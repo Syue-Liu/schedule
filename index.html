@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="學的班表">
+<meta name="theme-color" content="#F5F3EE">
+<title>學的班表</title>
+<style>
+:root{--bg:#F5F3EE;--card:#FFF;--bd:rgba(0,0,0,0.09);--bd2:rgba(0,0,0,0.15);--t:#1C1B18;--t2:#6B6860;--t3:#A8A59E;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);font-family:-apple-system,'PingFang TC',sans-serif;padding-bottom:84px;color:var(--t);}
+
+/* ── Header ── */
+.hdr{background:var(--card);border-bottom:0.5px solid var(--bd);padding:52px 14px 12px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;}
+.hdr-left{display:flex;align-items:center;gap:7px;}
+.aname{font-size:13px;font-weight:500;color:var(--t3);}
+.mnav{display:flex;align-items:center;gap:2px;}
+.nb{width:38px;height:38px;background:var(--bg);border:none;border-radius:10px;font-size:20px;color:var(--t2);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.nb:active{background:#E5E3DE;}
+.ml{min-width:112px;text-align:center;font-size:17px;font-weight:600;color:var(--t);}
+.ib{width:34px;height:34px;background:var(--bg);border:0.5px solid var(--bd2);border-radius:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;}
+.ib:active{background:#E5E3DE;}
+
+/* ── Sync dot ── */
+.sdot{width:8px;height:8px;border-radius:50%;background:#D0CEC8;transition:background .4s,box-shadow .4s;flex-shrink:0;}
+.sdot.ok{background:#639922;box-shadow:0 0 0 2px rgba(99,153,34,.2);}
+.sdot.err{background:#D85A30;}
+.sdot.spin{background:#BA7517;animation:blink 1.1s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+/* ── Legend ── */
+.lgd{display:flex;gap:6px;padding:10px 14px;overflow-x:auto;scrollbar-width:none;background:var(--card);border-bottom:0.5px solid var(--bd);}
+.lgd::-webkit-scrollbar{display:none;}
+.chip{flex-shrink:0;display:flex;align-items:center;gap:5px;font-size:12px;font-weight:500;padding:5px 10px;border-radius:20px;border:1px solid var(--bd2);background:var(--bg);color:var(--t2);white-space:nowrap;}
+.cdot{width:7px;height:7px;border-radius:50%;}
+
+/* ── Calendar ── */
+.cw{padding:12px 10px 0;}
+.wds{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px;}
+.wl{text-align:center;font-size:11px;font-weight:500;color:var(--t3);padding:2px 0;}
+.wl.s{color:#D85A30;}.wl.sa{color:#185FA5;}
+.cg{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.dc{border-radius:8px;min-height:62px;border:0.5px solid var(--bd);background:var(--card);text-align:center;cursor:pointer;padding:7px 2px 8px;}
+.dc:active{opacity:0.65;}
+.dc.em{border-color:transparent!important;background:transparent!important;pointer-events:none;}
+.dc.td{box-shadow:0 0 0 2.5px #639922;}
+.dn{font-size:13px;font-weight:500;color:var(--t);margin-bottom:5px;line-height:1;}
+.bg2{font-size:10px;font-weight:600;border-radius:3px;padding:2px 3px;display:inline-block;line-height:1.3;}
+
+/* ── Summary ── */
+.sm{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:10px 10px 0;}
+.sc{background:var(--card);border-radius:12px;padding:10px 4px;text-align:center;border:0.5px solid var(--bd);}
+.sn{font-size:20px;font-weight:700;line-height:1;}
+.sl2{font-size:10px;color:var(--t3);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ht{text-align:center;font-size:11px;color:var(--t3);padding:8px 16px 4px;line-height:1.7;}
+
+/* ── Bottom bar ── */
+.bbar{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:0.5px solid var(--bd);padding:10px 14px 24px;display:flex;gap:8px;z-index:10;}
+.sb{flex:1;padding:13px;background:#25D366;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;}
+.sb:active{opacity:0.82;}
+.cb{width:52px;padding:13px;background:var(--bg);color:var(--t2);border:0.5px solid var(--bd2);border-radius:12px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.cb:active{background:#E5E3DE;}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(10px);background:rgba(28,27,24,.9);color:#fff;font-size:13px;padding:9px 18px;border-radius:20px;pointer-events:none;opacity:0;transition:opacity .2s,transform .2s;white-space:nowrap;z-index:200;}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ── Sheet overlays ── */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;display:none;align-items:flex-end;}
+.ov.on{display:flex;}
+.sh{background:var(--card);width:100%;border-radius:20px 20px 0 0;padding:0 0 32px;max-height:90vh;display:flex;flex-direction:column;}
+.hdl{width:36px;height:4px;background:var(--bd2);border-radius:2px;margin:10px auto 0;flex-shrink:0;}
+.shd{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 0;flex-shrink:0;}
+.sht{font-size:16px;font-weight:600;color:var(--t);}
+.shc{width:30px;height:30px;border:none;background:var(--bg);border-radius:50%;font-size:16px;color:var(--t2);cursor:pointer;}
+.shb{padding:14px 18px 0;overflow-y:auto;}
+.sr{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--bd);}
+.sr:last-child{border-bottom:none;}
+.sw{width:28px;height:28px;border-radius:8px;flex-shrink:0;border:2px solid rgba(0,0,0,.12);position:relative;overflow:hidden;}
+.sw input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.ni{flex:1;padding:8px 10px;font-size:14px;border:1px solid var(--bd2);border-radius:8px;background:var(--bg);color:var(--t);font-family:inherit;outline:none;}
+.ei{width:42px;padding:8px 6px;font-size:16px;border:1px solid var(--bd2);border-radius:8px;background:var(--bg);text-align:center;font-family:inherit;outline:none;}
+.ssb{width:100%;margin-top:14px;padding:13px;background:#639922;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;}
+.pb{background:var(--bg);border-radius:12px;padding:14px 16px;font-size:13px;line-height:1.9;color:var(--t);white-space:pre-wrap;max-height:220px;overflow-y:auto;margin-bottom:12px;}
+.wb{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;background:#25D366;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:8px;}
+.cpb{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:12px;background:var(--bg);color:var(--t2);border:0.5px solid var(--bd2);border-radius:12px;font-size:14px;cursor:pointer;}
+
+/* ── Sync section in settings ── */
+.sync-div{border-top:0.5px solid var(--bd);margin-top:18px;padding-top:16px;}
+.sync-title{font-size:13px;font-weight:600;color:var(--t);margin-bottom:4px;}
+.sync-sub{font-size:12px;color:var(--t3);margin-bottom:12px;line-height:1.6;}
+.code-box{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--bd2);border-radius:10px;padding:10px 12px;margin-bottom:10px;}
+.code-txt{flex:1;font-size:17px;font-weight:700;letter-spacing:2px;color:var(--t);font-family:'Menlo','SF Mono',monospace;}
+.code-btn{padding:6px 10px;background:var(--card);border:0.5px solid var(--bd2);border-radius:8px;font-size:12px;color:var(--t2);cursor:pointer;white-space:nowrap;}
+.code-btn:active{background:#E5E3DE;}
+.sync-input-row{display:flex;gap:8px;margin-bottom:8px;}
+.sync-inp{flex:1;padding:10px 12px;font-size:14px;border:1px solid var(--bd2);border-radius:10px;background:var(--bg);color:var(--t);font-family:'Menlo','SF Mono',monospace;letter-spacing:1px;outline:none;text-transform:uppercase;}
+.sync-join-btn{padding:10px 14px;background:#639922;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;}
+.sync-warn{font-size:11px;color:#D85A30;margin-top:6px;line-height:1.5;}
+.sync-status-row{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--t3);margin-top:10px;}
+
+/* ── First-run / Setup overlay ── */
+.frov{position:fixed;inset:0;background:rgba(245,243,238,.97);z-index:100;display:flex;align-items:center;justify-content:center;padding:28px;}
+.frbox{max-width:340px;width:100%;text-align:center;}
+.fr-icon{font-size:52px;margin-bottom:16px;}
+.fr-t{font-size:20px;font-weight:700;color:var(--t);margin-bottom:8px;}
+.fr-s{font-size:13px;color:var(--t2);line-height:1.8;margin-bottom:24px;}
+.fr-code{font-size:28px;font-weight:800;letter-spacing:4px;color:#639922;font-family:'Menlo','SF Mono',monospace;background:#EAF3DE;border-radius:12px;padding:14px 20px;margin-bottom:12px;}
+.fr-hint{font-size:12px;color:var(--t3);margin-bottom:24px;line-height:1.7;}
+.fr-btn{width:100%;padding:14px;background:#639922;color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;}
+.fr-btn2{width:100%;padding:13px;background:var(--bg);color:var(--t2);border:0.5px solid var(--bd2);border-radius:14px;font-size:14px;cursor:pointer;}
+.fr-inp{width:100%;padding:12px 16px;font-size:18px;font-family:'Menlo','SF Mono',monospace;border:1.5px solid var(--bd2);border-radius:12px;background:var(--card);color:var(--t);letter-spacing:2px;text-align:center;outline:none;margin-bottom:10px;text-transform:uppercase;}
+.fr-inp:focus{border-color:#639922;}
+.fr-back{font-size:13px;color:var(--t3);text-decoration:underline;cursor:pointer;margin-top:6px;display:inline-block;}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="aname">學的班表</div>
+    <div class="sdot" id="syncDot" title="同步狀態"></div>
+  </div>
+  <div class="mnav">
+    <button class="nb" id="bp">‹</button>
+    <div class="ml" id="ml">—</div>
+    <button class="nb" id="bn">›</button>
+  </div>
+  <div style="display:flex;gap:6px">
+    <div class="ib" id="bt">今</div>
+    <div class="ib" id="bs">⚙️</div>
+  </div>
+</div>
+
+<div class="lgd" id="lgd"></div>
+<div class="cw">
+  <div class="wds">
+    <div class="wl s">日</div><div class="wl">一</div><div class="wl">二</div>
+    <div class="wl">三</div><div class="wl">四</div><div class="wl">五</div><div class="wl sa">六</div>
+  </div>
+  <div class="cg" id="cg"></div>
+</div>
+<div class="sm" id="sm"></div>
+<div class="ht">點格子切換班別・長按重設為上班</div>
+
+<div class="bbar">
+  <button class="sb" id="bsh"><span style="font-size:17px">💬</span> 傳給老婆</button>
+  <button class="cb" id="bcp">📋</button>
+</div>
+
+<!-- ⚙️ Settings sheet -->
+<div class="ov" id="ovS">
+  <div class="sh">
+    <div class="hdl"></div>
+    <div class="shd">
+      <div class="sht">⚙️ 設定</div>
+      <button class="shc" id="csS">✕</button>
+    </div>
+    <div class="shb" id="sbS"></div>
+  </div>
+</div>
+
+<!-- 💬 Share sheet -->
+<div class="ov" id="ovSh">
+  <div class="sh">
+    <div class="hdl"></div>
+    <div class="shd">
+      <div class="sht">傳給老婆</div>
+      <button class="shc" id="csSh">✕</button>
+    </div>
+    <div class="shb" id="sbSh"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- First-run overlay -->
+<div class="frov" id="frOv">
+  <div class="frbox" id="frBox">
+    <!-- content injected by JS -->
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     🔥 FIREBASE 設定
+     1. 前往 https://console.firebase.google.com
+     2. 建立新專案（或使用現有專案）
+     3. 點「新增應用程式」→ 選 Web（</>）
+     4. 複製設定值填入下方 FIREBASE_CONFIG
+     5. 在 Firebase Console → Firestore Database → 建立資料庫
+        規則設定選「以測試模式啟動」（30天內記得改）
+     ═══════════════════════════════════════════════════════ -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, setDoc, onSnapshot, getDoc, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// ▼▼▼ 填入你的 Firebase 設定 ▼▼▼
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyCOrBO2bs1VmSCUd14bqNJJ2GBeieR2ELo",
+  authDomain:        "syue-work-schedule.firebaseapp.com",
+  projectId:         "syue-work-schedule",
+  storageBucket:     "syue-work-schedule.firebasestorage.app",
+  messagingSenderId: "785105764126",
+  appId:             "1:785105764126:web:6ca5aa11e53a85f4bf930f"
+};
+// ▲▲▲ 填入你的 Firebase 設定 ▲▲▲
+
+// ── 偵測是否已填設定 ───────────────────────────────────
+const IS_CONFIGURED = !Object.values(FIREBASE_CONFIG)
+  .some(v => typeof v==='string' && v.startsWith('YOUR_'));
+
+let db, unsub;
+if (IS_CONFIGURED) {
+  const app = initializeApp(FIREBASE_CONFIG);
+  db = getFirestore(app);
+}
+
+// ── 基礎資料 ──────────────────────────────────────────
+var DOW = ['日','一','二','三','四','五','六'];
+var DEF = [
+  {name:'學休',    emoji:'🟢',bg:'#EAF3DE',border:'#639922',txt:'#2D5A11',bdg:'#C0DD97'},
+  {name:'休＋加班',emoji:'🟡',bg:'#FEF3E2',border:'#BA7517',txt:'#7A4700',bdg:'#FAC775'},
+  {name:'學巡檢',  emoji:'🟣',bg:'#EEEDFE',border:'#7F77DD',txt:'#3C3489',bdg:'#AFA9EC'},
+  {name:'學晚班',  emoji:'🔵',bg:'#E6F1FB',border:'#378ADD',txt:'#0C447C',bdg:'#B5D4F4'}
+];
+
+var now = new Date(), curY = now.getFullYear(), curM = now.getMonth()+1;
+var allData = {}, shifts = JSON.parse(JSON.stringify(DEF));
+var syncCode = '';
+var writeTimer = null;
+var isRemoteUpdate = false; // 避免遠端更新觸發重複寫入
+
+// ── localStorage 工具 ────────────────────────────────
+function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+function lsSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
+
+function mk(y,m){return y+'_'+(m<10?'0':'')+m;}
+function gd(){return allData[mk(curY,curM)]||{};}
+function sd(d){allData[mk(curY,curM)]=d;}
+
+// ── Toast ─────────────────────────────────────────────
+var tT;
+function toast(msg){
+  var t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast on';
+  clearTimeout(tT);tT=setTimeout(()=>{t.className='toast';},2400);
+}
+
+// ── Sync dot ──────────────────────────────────────────
+function setDot(state){ // 'spin','ok','err',''
+  var d=document.getElementById('syncDot');
+  d.className='sdot'+(state?' '+state:'');
+}
+
+// ── 產生隨機 8 碼代碼 ────────────────────────────────
+function genCode(){
+  var chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  var c='';for(var i=0;i<8;i++)c+=chars[Math.floor(Math.random()*chars.length)];
+  return c;
+}
+
+// ── Firestore 寫入（debounced） ───────────────────────
+function scheduleWrite(){
+  if(!IS_CONFIGURED||!syncCode)return;
+  clearTimeout(writeTimer);
+  writeTimer=setTimeout(doWrite,600);
+}
+
+async function doWrite(){
+  if(!db||!syncCode)return;
+  setDot('spin');
+  try{
+    await setDoc(doc(db,'banbiao',syncCode),{
+      allData: JSON.stringify(allData),
+      shifts:  JSON.stringify(shifts),
+      updatedAt: serverTimestamp()
+    });
+    setDot('ok');
+  }catch(e){
+    console.error('write error',e);
+    setDot('err');
+  }
+}
+
+// ── Firestore 監聽 ────────────────────────────────────
+function startListener(code){
+  if(unsub){unsub();unsub=null;}
+  if(!db||!code)return;
+  setDot('spin');
+  unsub=onSnapshot(doc(db,'banbiao',code),snap=>{
+    if(snap.exists()){
+      isRemoteUpdate=true;
+      try{allData=JSON.parse(snap.data().allData||'{}');}catch(e){}
+      try{
+        var remShifts=JSON.parse(snap.data().shifts||'null');
+        if(remShifts&&remShifts.length)shifts=remShifts;
+      }catch(e){}
+      lsSet('xd7',JSON.stringify(allData));
+      lsSet('xd7s',JSON.stringify(shifts));
+      render();
+      isRemoteUpdate=false;
+    }
+    setDot('ok');
+  },err=>{
+    console.error('listener error',err);
+    setDot('err');
+  });
+}
+
+// ── 儲存到 localStorage ＋ 排程雲端寫入 ─────────────
+function saveAll(){
+  lsSet('xd7',JSON.stringify(allData));
+  if(!isRemoteUpdate)scheduleWrite();
+}
+function saveShifts(){
+  lsSet('xd7s',JSON.stringify(shifts));
+  if(!isRemoteUpdate)scheduleWrite();
+}
+
+// ── 設定 sync code ────────────────────────────────────
+function applySyncCode(code){
+  code=(code||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8);
+  syncCode=code;
+  lsSet('syncCode',code);
+  startListener(code);
+}
+
+// ══════════════════════════════════════════════════════
+// First-run overlay
+// ══════════════════════════════════════════════════════
+function showFirstRun(){
+  var ov=document.getElementById('frOv');
+  var box=document.getElementById('frBox');
+  ov.style.display='flex';
+
+  if(!IS_CONFIGURED){
+    box.innerHTML=`
+      <div class="fr-icon">🔥</div>
+      <div class="fr-t">需要先設定 Firebase</div>
+      <div class="fr-s">
+        這個版本需要 Firebase 才能跨裝置同步。<br>
+        請依照以下步驟取得設定值，<br>
+        填入 HTML 檔案中的 <b>FIREBASE_CONFIG</b>。
+      </div>
+      <div style="text-align:left;background:var(--bg);border-radius:12px;padding:14px 16px;font-size:12px;line-height:2;color:var(--t2);">
+        1️⃣ 前往 <b>console.firebase.google.com</b><br>
+        2️⃣ 建立新專案<br>
+        3️⃣ 新增 Web 應用程式（&lt;/&gt;）<br>
+        4️⃣ 複製 firebaseConfig 值填入 HTML<br>
+        5️⃣ 在 Firestore Database 建立資料庫<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;（選「測試模式」即可）
+      </div>
+      <div style="height:20px"></div>
+      <button class="fr-btn2" onclick="document.getElementById('frOv').style.display='none';initLocal();">先用本機版本</button>`;
+    return;
+  }
+
+  // 已設定 Firebase → 自訂或隨機代碼
+  var newCode=genCode();
+  box.innerHTML=`
+    <div class="fr-icon">☁️</div>
+    <div class="fr-t">設定同步代碼</div>
+    <div class="fr-s">
+      輸入一組自訂代碼，讓所有裝置共用同一份班表。<br>
+      不需登入，輸入同樣代碼就能即時同步。
+    </div>
+    <input class="fr-inp" id="frInp" maxlength="20" placeholder="輸入自訂代碼，例如 SYUE" autocomplete="off" value="">
+    <div class="fr-hint" style="text-align:left;margin-bottom:16px">
+      💡 建議用好記的英文或拼音，例如：<br>
+      &nbsp;&nbsp;<b>SYUE</b>、<b>MYFAMILY</b>、<b>SCHEDULE2026</b><br>
+      老婆手機輸入<b>同一組代碼</b>就能看到同一份班表。
+    </div>
+    <button class="fr-btn" id="frUseCustom">✓ 使用這組代碼</button>
+    <button class="fr-btn2" id="frUseRandom">🎲 用隨機代碼（${newCode}）</button>`;
+
+  document.getElementById('frInp').focus();
+  document.getElementById('frUseCustom').onclick=function(){
+    var v=(document.getElementById('frInp').value||'').trim().toUpperCase().replace(/\s/g,'');
+    if(v.length<2){toast('代碼至少 2 個字');return;}
+    applySyncCode(v);
+    document.getElementById('frOv').style.display='none';
+    toast('🎉 代碼「'+v+'」已啟用！');
+  };
+  document.getElementById('frInp').addEventListener('keydown',function(e){
+    if(e.key==='Enter')document.getElementById('frUseCustom').click();
+  });
+  document.getElementById('frUseRandom').onclick=function(){
+    applySyncCode(newCode);
+    document.getElementById('frOv').style.display='none';
+    toast('🎉 代碼「'+newCode+'」已啟用！');
+  };
+}
+
+// 本機模式初始化（不用 Firebase）
+function initLocal(){
+  syncCode='LOCAL';
+  setDot('');
+  render();
+}
+
+// ══════════════════════════════════════════════════════
+// Render
+// ══════════════════════════════════════════════════════
+function renderLegend(){
+  var el=document.getElementById('lgd');
+  var h='<div class="chip"><div class="cdot" style="background:var(--t3)"></div>上班</div>';
+  for(var i=0;i<shifts.length;i++){
+    var s=shifts[i];
+    h+='<div class="chip" style="background:'+s.bg+';border-color:'+s.border+';color:'+s.txt+'"><div class="cdot" style="background:'+s.border+'"></div>'+s.name+'</div>';
+  }
+  el.innerHTML=h;
+}
+
+function render(){
+  document.getElementById('ml').textContent=curY+'年'+curM+'月';
+  renderLegend();
+  var data=gd(),cg=document.getElementById('cg');cg.innerHTML='';
+  var fd=new Date(curY,curM-1,1).getDay(),dim=new Date(curY,curM,0).getDate();
+  var td=new Date(),ty=td.getFullYear(),tm=td.getMonth()+1,tdd=td.getDate();
+  var i,d,dow,s,sh,div,cls,dn,html;
+  for(i=0;i<fd;i++){div=document.createElement('div');div.className='dc em';cg.appendChild(div);}
+  var cnt=[];for(i=0;i<=shifts.length;i++)cnt.push(0);
+  for(d=1;d<=dim;d++){
+    s=data[d]||0;cnt[s]++;dow=(fd+d-1)%7;
+    div=document.createElement('div');cls='dc';
+    if(curY===ty&&curM===tm&&d===tdd)cls+=' td';
+    div.className=cls;
+    if(s>0&&shifts[s-1]){sh=shifts[s-1];div.style.background=sh.bg;div.style.border='1.5px solid '+sh.border;}
+    dn=s>0&&shifts[s-1]?shifts[s-1].txt:(dow===0?'#D85A30':dow===6?'#185FA5':'var(--t)');
+    html='<div class="dn" style="color:'+dn+'">'+d+'</div>';
+    if(s>0&&shifts[s-1]){sh=shifts[s-1];html+='<div class="bg2" style="background:'+sh.bdg+';color:'+sh.txt+'">'+sh.name+'</div>';}
+    div.innerHTML=html;
+    (function(dd,dw){
+      div.addEventListener('click',function(){
+        var cd=gd();cd[dd]=((cd[dd]||0)+1)%(shifts.length+1);
+        if(cd[dd]===0)delete cd[dd];
+        sd(cd);saveAll();render();
+        var ns=gd()[dd]||0;
+        if(ns>0)toast(curM+'/'+dd+'（'+DOW[dw]+'）→ '+shifts[ns-1].name);
+      });
+      var pt;
+      div.addEventListener('touchstart',function(){pt=setTimeout(function(){
+        var cd=gd();if(cd[dd]){delete cd[dd];sd(cd);saveAll();render();toast(curM+'/'+dd+' 已重設');}
+      },550);});
+      div.addEventListener('touchend',function(){clearTimeout(pt);});
+      div.addEventListener('touchmove',function(){clearTimeout(pt);});
+    })(d,dow);
+    cg.appendChild(div);
+  }
+  var sm=document.getElementById('sm'),h2='<div class="sc"><div class="sn" style="color:var(--t)">'+cnt[0]+'</div><div class="sl2">上班</div></div>';
+  for(i=0;i<shifts.length;i++)h2+='<div class="sc"><div class="sn" style="color:'+shifts[i].txt+'">'+cnt[i+1]+'</div><div class="sl2">'+shifts[i].name+'</div></div>';
+  sm.innerHTML=h2;
+}
+
+// ── 月份切換 ──────────────────────────────────────────
+document.getElementById('bp').onclick=function(){curM--;if(curM<1){curM=12;curY--;}render();};
+document.getElementById('bn').onclick=function(){curM++;if(curM>12){curM=1;curY++;}render();};
+document.getElementById('bt').onclick=function(){var t=new Date();curY=t.getFullYear();curM=t.getMonth()+1;render();toast('已跳回本月');};
+
+function closeOv(id){document.getElementById(id).className='ov';}
+
+// ── ⚙️ 設定面板 ───────────────────────────────────────
+document.getElementById('bs').onclick=function(){
+  var body=document.getElementById('sbS');
+  // ── 班別設定 ──
+  body.innerHTML=`
+    <div style="font-size:12px;color:var(--t2);margin-bottom:10px">點色塊換顏色・修改名稱</div>
+    <div id="srows"></div>
+    <button class="ssb" id="saveSB">✓ 儲存班別設定</button>
+    <div style="font-size:11px;color:var(--t3);margin-top:8px">最多 4 種班別，點格子依序切換</div>`;
+
+  var rows=document.getElementById('srows');
+  for(var i=0;i<shifts.length;i++){
+    var row=document.createElement('div');row.className='sr';
+    row.innerHTML='<span style="font-size:12px;color:var(--t3);width:16px">'+(i+1)+'</span><div class="sw" id="sw'+i+'" style="background:'+shifts[i].bg+'"><input type="color" value="'+shifts[i].border+'" id="cp'+i+'"/></div><input class="ei" id="em'+i+'" value="'+shifts[i].emoji+'" maxlength="2"><input class="ni" id="sn'+i+'" value="'+shifts[i].name+'" maxlength="8">';
+    rows.appendChild(row);
+    (function(idx){
+      document.getElementById('cp'+idx).addEventListener('change',function(){
+        var h=this.value,r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);
+        document.getElementById('sw'+idx).style.background='rgba('+r+','+g+','+b+',.18)';
+      });
+    })(i);
+  }
+
+  document.getElementById('saveSB').onclick=function(){
+    for(var i=0;i<shifts.length;i++){
+      var h=document.getElementById('cp'+i).value;
+      var r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);
+      shifts[i].name=document.getElementById('sn'+i).value.trim()||shifts[i].name;
+      shifts[i].emoji=document.getElementById('em'+i).value.trim()||shifts[i].emoji;
+      shifts[i].bg='rgba('+r+','+g+','+b+',.14)';
+      shifts[i].border=h;
+      shifts[i].txt='rgb('+Math.round(r*.42)+','+Math.round(g*.42)+','+Math.round(b*.42)+')';
+      shifts[i].bdg='rgba('+r+','+g+','+b+',.42)';
+    }
+    saveShifts();closeOv('ovS');render();toast('✓ 班別設定已儲存');
+  };
+
+  // ── 雲端同步區塊 ──
+  var syncHtml='<div class="sync-div">';
+  syncHtml+='<div class="sync-title">☁️ 雲端同步</div>';
+
+  if(!IS_CONFIGURED){
+    syncHtml+='<div class="sync-sub" style="color:#D85A30;">⚠️ Firebase 尚未設定，目前只存在本機。<br>請在 HTML 檔案填入 FIREBASE_CONFIG。</div>';
+  } else {
+    syncHtml+=`
+      <div class="sync-sub">所有裝置輸入相同代碼就能即時同步班表</div>
+      <div class="code-box">
+        <div class="code-txt" id="dispCode">${syncCode||'—'}</div>
+        <button class="code-btn" id="cpCodeBtn">複製</button>
+      </div>
+      <div style="font-size:12px;color:var(--t3);margin-bottom:12px;">老婆的手機也輸入這組代碼，即可共用班表。</div>
+      <div class="sync-title" style="margin-bottom:8px">切換／加入代碼</div>
+      <div class="sync-input-row">
+        <input class="sync-inp" id="syncInp" placeholder="輸入 8 位代碼" maxlength="8" value="">
+        <button class="sync-join-btn" id="syncJoinBtn">加入</button>
+      </div>
+      <div class="sync-warn" id="syncWarn"></div>
+      <div class="sync-status-row">
+        <div class="sdot ${IS_CONFIGURED?'spin':''}"></div>
+        <span id="syncStatusTxt">${IS_CONFIGURED?'連線中…':'未設定'}</span>
+      </div>`;
+  }
+  syncHtml+='<div style="height:20px"></div></div>';
+
+  body.insertAdjacentHTML('beforeend',syncHtml);
+
+  if(IS_CONFIGURED&&syncCode){
+    document.getElementById('cpCodeBtn').onclick=function(){
+      copyText(syncCode);toast('✓ 已複製代碼 '+syncCode);
+    };
+    document.getElementById('syncJoinBtn').onclick=function(){
+      var v=(document.getElementById('syncInp').value||'').toUpperCase().trim();
+      if(v.length<4){document.getElementById('syncWarn').textContent='代碼至少 4 位';return;}
+      document.getElementById('syncWarn').textContent='';
+      applySyncCode(v);
+      document.getElementById('dispCode').textContent=v;
+      closeOv('ovS');
+      toast('✓ 已切換到代碼 '+v);
+    };
+  }
+
+  document.getElementById('ovS').className='ov on';
+};
+
+document.getElementById('csS').onclick=function(){closeOv('ovS');};
+document.getElementById('ovS').onclick=function(e){if(e.target===this)closeOv('ovS');};
+
+// ── 傳給老婆 ─────────────────────────────────────────
+function buildMsg(){
+  var data=gd(),fd=new Date(curY,curM-1,1).getDay(),dim=new Date(curY,curM,0).getDate();
+  var groups=[],i,d,s;
+  for(i=0;i<shifts.length;i++)groups.push([]);
+  for(d=1;d<=dim;d++){s=data[d]||0;if(s>0&&s<=shifts.length)groups[s-1].push(curM+'/'+d+'（'+DOW[(fd+d-1)%7]+'）');}
+  var msg='📅 '+curY+'年'+curM+'月 學的班表\n────────────────\n',any=false;
+  for(i=0;i<shifts.length;i++){if(groups[i].length){any=true;msg+='\n'+shifts[i].emoji+' '+shifts[i].name+'（'+groups[i].length+'天）\n  '+groups[i].join('\n  ')+'\n';}}
+  if(!any)msg+='\n（本月尚未設定班表）\n';
+  return msg+'────────────────';
+}
+
+document.getElementById('bsh').onclick=function(){
+  var msg=buildMsg(),sb=document.getElementById('sbSh');
+  var safe=msg.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  sb.innerHTML='<div class="pb">'+safe+'</div><button class="wb" id="waB"><span style="font-size:18px">💬</span> 在 WhatsApp 開啟</button><button class="cpb" id="cpB">📋 複製文字，自己貼上</button><div style="height:4px"></div>';
+  document.getElementById('waB').onclick=function(){window.location.href='whatsapp://send?text='+encodeURIComponent(buildMsg());closeOv('ovSh');};
+  document.getElementById('cpB').onclick=function(){copyText(buildMsg());closeOv('ovSh');toast('✓ 已複製！去 WhatsApp 長按貼上');};
+  document.getElementById('ovSh').className='ov on';
+};
+
+document.getElementById('bcp').onclick=function(){copyText(buildMsg());toast('✓ 已複製！去 WhatsApp 長按貼上');};
+document.getElementById('csSh').onclick=function(){closeOv('ovSh');};
+document.getElementById('ovSh').onclick=function(e){if(e.target===this)closeOv('ovSh');};
+
+// ── 複製工具 ─────────────────────────────────────────
+function copyText(m){
+  try{navigator.clipboard.writeText(m);}catch(e){
+    var ta=document.createElement('textarea');ta.value=m;ta.style.cssText='position:fixed;opacity:0;';
+    document.body.appendChild(ta);ta.select();try{document.execCommand('copy');}catch(ex){}document.body.removeChild(ta);
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// 初始化
+// ══════════════════════════════════════════════════════
+(function init(){
+  // 讀 localStorage
+  try{var rd=lsGet('xd7');if(rd)allData=JSON.parse(rd);}catch(e){allData={};}
+  try{var rs=lsGet('xd7s');if(rs)shifts=JSON.parse(rs);}catch(e){}
+
+  // 預設 5 月示範資料
+  if(!allData['2026_05']||Object.keys(allData['2026_05']).length===0){
+    allData['2026_05']={4:1,9:1,10:2,16:1,17:1,21:1,24:1,25:1,29:1};
+    lsSet('xd7',JSON.stringify(allData));
+  }
+
+  // 先 render（讓畫面不是空的）
+  render();
+
+  // 檢查是否有存好的 syncCode
+  var saved=lsGet('syncCode');
+  if(saved&&saved!=='LOCAL'){
+    syncCode=saved;
+    if(IS_CONFIGURED){
+      startListener(saved);
+      document.getElementById('frOv').style.display='none';
+    } else {
+      document.getElementById('frOv').style.display='none';
+      setDot('');
+    }
+  } else if(saved==='LOCAL'){
+    document.getElementById('frOv').style.display='none';
+    setDot('');
+  } else {
+    // 第一次使用 → 顯示 first-run
+    showFirstRun();
+  }
+})();
+</script>
+</body>
+</html>
