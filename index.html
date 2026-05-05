@@ -11,7 +11,7 @@
 <style>
 :root{--bg:#F5F3EE;--card:#FFF;--bd:rgba(0,0,0,0.09);--bd2:rgba(0,0,0,0.15);--t:#1C1B18;--t2:#6B6860;--t3:#A8A59E;--green:#639922;--blue:#378ADD;--pink:#C45B8A;--common:#E3654F;}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-body{background:var(--bg);font-family:-apple-system,'PingFang TC',sans-serif;padding-bottom:94px;color:var(--t);}
+body{background:var(--bg);font-family:-apple-system,'PingFang TC',sans-serif;padding-bottom:24px;color:var(--t);}
 .hdr{background:var(--card);border-bottom:0.5px solid var(--bd);padding:50px 14px 10px;position:sticky;top:0;z-index:10;}
 .top{display:flex;align-items:center;justify-content:space-between;gap:10px;}
 .hdr-left{display:flex;align-items:center;gap:7px;min-width:84px;}
@@ -19,7 +19,7 @@ body{background:var(--bg);font-family:-apple-system,'PingFang TC',sans-serif;pad
 .subname{font-size:11px;color:var(--t3);margin-top:2px;}
 .mnav{display:flex;align-items:center;gap:2px;}
 .nb{width:38px;height:38px;background:var(--bg);border:none;border-radius:10px;font-size:20px;color:var(--t2);cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.nb:active,.ib:active,.cb:active{background:#E5E3DE;}
+.nb:active,.ib:active{background:#E5E3DE;}
 .ml{min-width:112px;text-align:center;font-size:17px;font-weight:700;color:var(--t);}
 .ib{width:34px;height:34px;background:var(--bg);border:0.5px solid var(--bd2);border-radius:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;}
 .hdr-actions{display:flex;gap:6px;justify-content:flex-end;min-width:84px;}
@@ -31,10 +31,42 @@ body{background:var(--bg);font-family:-apple-system,'PingFang TC',sans-serif;pad
 .sdot.err{background:#D85A30;}
 .sdot.spin{background:#BA7517;animation:blink 1.1s ease-in-out infinite;}
 @keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
-.lgd{display:flex;gap:6px;padding:10px 14px;overflow-x:auto;scrollbar-width:none;background:var(--card);border-bottom:0.5px solid var(--bd);}
-.lgd::-webkit-scrollbar{display:none;}
-.chip{flex-shrink:0;display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:5px 10px;border-radius:20px;border:1px solid var(--bd2);background:var(--bg);color:var(--t2);white-space:nowrap;}
+
+/* ── Next common rest card ── */
+.nxt-card{margin:10px 10px 0;padding:12px 16px;background:linear-gradient(135deg,#FFF5F5,#FFF0EB);border:1px solid rgba(227,101,79,.22);border-radius:14px;display:flex;align-items:center;gap:12px;}
+.nxt-card.none{background:var(--bg);border-color:var(--bd2);}
+.nxt-icon{font-size:26px;flex-shrink:0;}
+.nxt-body{flex:1;min-width:0;}
+.nxt-label{font-size:11px;color:var(--t3);margin-bottom:2px;}
+.nxt-date{font-size:16px;font-weight:800;color:var(--common);}
+.nxt-card.none .nxt-date{color:var(--t3);}
+.nxt-countdown{font-size:12px;color:var(--t2);margin-top:1px;}
+.nxt-actions{flex-shrink:0;display:flex;gap:6px;}
+.ical-btn{padding:7px 10px;background:var(--card);border:1px solid var(--bd2);border-radius:9px;font-size:12px;font-weight:600;color:var(--t2);cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:4px;}
+.ical-btn:active{background:#E5E3DE;}
+
+/* ── Expandable legend ── */
+.lgd-wrap{background:var(--card);border-bottom:0.5px solid var(--bd);padding:6px 14px 8px;}
+.lgd-row{display:flex;gap:6px;align-items:center;margin-bottom:4px;}
+.lgd-row:last-child{margin-bottom:0;}
+.lgd-toggle{display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:22px;border:1.5px solid var(--bd2);background:var(--bg);cursor:pointer;font-size:13px;font-weight:700;color:var(--t2);flex-shrink:0;transition:background .2s,border-color .2s;}
+.lgd-toggle:active{opacity:.8;}
+.lgd-toggle.syue{border-color:rgba(55,138,221,.4);color:#185FA5;}
+.lgd-toggle.syue.open{background:rgba(55,138,221,.08);}
+.lgd-toggle.ling{border-color:rgba(196,91,138,.4);color:#7A2449;}
+.lgd-toggle.ling.open{background:rgba(196,91,138,.08);}
+.lgd-chevron{display:inline-block;font-size:10px;transition:transform .35s cubic-bezier(.34,1.56,.64,1);margin-left:2px;}
+.lgd-toggle.open .lgd-chevron{transform:rotate(180deg);}
+.chip-common{flex-shrink:0;display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:5px 10px;border-radius:20px;background:#FDEBE7;border:1px solid var(--common);color:#8A2A1D;white-space:nowrap;}
 .cdot{width:7px;height:7px;border-radius:50%;}
+
+.expand-panel{overflow:hidden;max-height:0;opacity:0;transition:max-height .4s cubic-bezier(.34,1.56,.64,1),opacity .3s ease,padding .3s ease;padding:0 0;}
+.expand-panel.open{max-height:200px;opacity:1;padding:6px 0 2px;}
+.expand-chips{display:flex;gap:6px;flex-wrap:wrap;}
+.chip{flex-shrink:0;display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:5px 10px;border-radius:20px;border:1px solid var(--bd2);background:var(--bg);color:var(--t2);white-space:nowrap;
+  animation:chipIn .35s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes chipIn{from{opacity:0;transform:scale(.7) translateY(-6px);}to{opacity:1;transform:scale(1) translateY(0);}}
+
 .cw{padding:12px 10px 0;}
 .wds{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px;}
 .wl{text-align:center;font-size:11px;font-weight:600;color:var(--t3);padding:2px 0;}
@@ -49,15 +81,44 @@ body{background:var(--bg);font-family:-apple-system,'PingFang TC',sans-serif;pad
 .badge-stack{display:flex;flex-direction:column;gap:2px;align-items:center;}
 .bg2{font-size:10px;font-weight:700;border-radius:3px;padding:2px 3px;display:inline-block;line-height:1.25;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .mini{font-size:9px;padding:2px 3px;max-width:96%;}
-.sm{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:10px 10px 0;}
-.sc{background:var(--card);border-radius:10px;padding:10px 4px;text-align:center;border:0.5px solid var(--bd);}
-.sn{font-size:20px;font-weight:800;line-height:1;}
-.sl2{font-size:10px;color:var(--t3);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sm{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px 10px 0;}
+.sc{background:var(--card);border-radius:14px;padding:14px 6px;text-align:center;border:0.5px solid var(--bd);cursor:pointer;transition:transform .15s;-webkit-user-select:none;}
+.sc:active{transform:scale(0.92);}
+.sc-dot{width:8px;height:8px;border-radius:50%;margin:0 auto 6px;}
+.sn{font-size:22px;font-weight:800;line-height:1;}
+.sl2{font-size:10px;color:var(--t3);margin-top:5px;}
+
+/* iOS-style detail card */
+.popup-ov{position:fixed;inset:0;background:rgba(0,0,0,0);z-index:60;display:none;align-items:flex-end;justify-content:center;padding:0 10px 12px;transition:background .28s ease;-webkit-backdrop-filter:blur(0px);backdrop-filter:blur(0px);}
+.popup-ov.on{background:rgba(0,0,0,.34);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);}
+.popup-card{background:rgba(255,255,255,.94);border:0.5px solid rgba(255,255,255,.55);box-shadow:0 18px 50px rgba(0,0,0,.24);border-radius:28px;width:100%;max-width:520px;max-height:82vh;display:flex;flex-direction:column;overflow:hidden;
+  transform:translateY(110%);opacity:.98;
+  transition:transform .42s cubic-bezier(.22,1,.36,1),opacity .25s ease;}
+.popup-ov.on .popup-card{transform:translateY(0);opacity:1;}
+.popup-grabber{width:42px;height:5px;border-radius:999px;background:rgba(60,60,67,.24);margin:9px auto 2px;flex-shrink:0;}
+.popup-top{display:flex;align-items:center;gap:10px;padding:12px 18px 6px;}
+.popup-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;}
+.popup-title{flex:1;font-size:18px;font-weight:800;color:var(--t);}
+.popup-count{font-size:24px;font-weight:900;margin-right:2px;}
+.popup-close{width:30px;height:30px;background:rgba(120,120,128,.14);border:none;border-radius:50%;font-size:14px;color:var(--t3);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.popup-close:active{background:#E5E3DE;}
+.popup-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:6px 14px 10px;}
+.popup-action{height:46px;border:none;border-radius:15px;background:rgba(120,120,128,.14);color:var(--t);font-size:14px;font-weight:800;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;}
+.popup-action.primary{background:#007AFF;color:#fff;}
+.popup-action:active{transform:scale(.97);opacity:.82;}
+.popup-preview{margin:0 14px 10px;padding:10px 12px;border-radius:16px;background:rgba(120,120,128,.10);font-size:12px;line-height:1.65;color:var(--t2);white-space:pre-wrap;max-height:116px;overflow:auto;}
+.popup-body{padding:0 14px 16px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.popup-list{display:flex;flex-direction:column;}
+.popup-item{display:flex;align-items:center;gap:10px;padding:11px 12px;margin-bottom:6px;border-radius:16px;background:rgba(255,255,255,.72);border:0.5px solid rgba(0,0,0,.05);
+  animation:popItem .35s cubic-bezier(.34,1.56,.64,1) both;}
+.popup-item:last-child{margin-bottom:0;}
+@keyframes popItem{from{opacity:0;transform:translateY(8px) scale(.95);}to{opacity:1;transform:translateY(0) scale(1);}}
+.popup-item-date{font-size:14px;font-weight:800;color:var(--t);min-width:58px;}
+.popup-item-dow{font-size:12px;color:var(--t3);margin-left:-4px;}
+.popup-item-badge{font-size:12px;font-weight:700;padding:4px 10px;border-radius:8px;white-space:nowrap;}
+.popup-empty{text-align:center;padding:24px 0;color:var(--t3);font-size:14px;}
+.popup-empty-icon{font-size:32px;margin-bottom:8px;}
 .ht{text-align:center;font-size:11px;color:var(--t3);padding:8px 16px 4px;line-height:1.7;}
-.bbar{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:0.5px solid var(--bd);padding:10px 14px 24px;display:flex;gap:8px;z-index:10;}
-.sb{flex:1;padding:13px;background:#25D366;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;}
-.sb:active{opacity:0.82;}
-.cb{width:52px;padding:13px;background:var(--bg);color:var(--t2);border:0.5px solid var(--bd2);border-radius:12px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .toast{position:fixed;bottom:98px;left:50%;transform:translateX(-50%) translateY(10px);background:rgba(28,27,24,.92);color:#fff;font-size:13px;padding:9px 18px;border-radius:20px;pointer-events:none;opacity:0;transition:opacity .2s,transform .2s;white-space:nowrap;z-index:200;}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;display:none;align-items:flex-end;}
@@ -75,9 +136,6 @@ body{background:var(--bg);font-family:-apple-system,'PingFang TC',sans-serif;pad
 .ni{flex:1;padding:8px 10px;font-size:14px;border:1px solid var(--bd2);border-radius:8px;background:var(--bg);color:var(--t);font-family:inherit;outline:none;}
 .ei{width:42px;padding:8px 6px;font-size:16px;border:1px solid var(--bd2);border-radius:8px;background:var(--bg);text-align:center;font-family:inherit;outline:none;}
 .ssb,.login-btn{width:100%;margin-top:14px;padding:13px;background:var(--green);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;}
-.pb{background:var(--bg);border-radius:12px;padding:14px 16px;font-size:13px;line-height:1.9;color:var(--t);white-space:pre-wrap;max-height:240px;overflow-y:auto;margin-bottom:12px;}
-.wb{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;background:#25D366;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px;}
-.cpb{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:12px;background:var(--bg);color:var(--t2);border:0.5px solid var(--bd2);border-radius:12px;font-size:14px;cursor:pointer;}
 .sync-div{border-top:0.5px solid var(--bd);margin-top:18px;padding-top:16px;}
 .sync-title{font-size:13px;font-weight:700;color:var(--t);margin-bottom:4px;}
 .sync-sub{font-size:12px;color:var(--t3);margin-bottom:12px;line-height:1.6;}
@@ -128,7 +186,30 @@ body{background:var(--bg);font-family:-apple-system,'PingFang TC',sans-serif;pad
   </div>
 </div>
 
-<div class="lgd" id="lgd"></div>
+<!-- Next common rest day -->
+<div class="nxt-card" id="nxtCard">
+  <div class="nxt-icon" id="nxtIcon">💕</div>
+  <div class="nxt-body">
+    <div class="nxt-label">下次共同休假</div>
+    <div class="nxt-date" id="nxtDate">—</div>
+    <div class="nxt-countdown" id="nxtCountdown"></div>
+  </div>
+  <div class="nxt-actions">
+    <button class="ical-btn" id="icalBtn" title="匯出到行事曆">📅 匯出</button>
+  </div>
+</div>
+
+<!-- Expandable legend -->
+<div class="lgd-wrap">
+  <div class="lgd-row">
+    <div class="chip-common"><div class="cdot" style="background:var(--common)"></div>共同休假</div>
+    <div class="lgd-toggle syue" id="togSyue" onclick="togglePanel('syue')">學的班別 <span class="lgd-chevron">▼</span></div>
+    <div class="lgd-toggle ling" id="togLing" onclick="togglePanel('ling')">綾的班別 <span class="lgd-chevron">▼</span></div>
+  </div>
+  <div class="expand-panel" id="panelSyue"><div class="expand-chips" id="chipsSyue"></div></div>
+  <div class="expand-panel" id="panelLing"><div class="expand-chips" id="chipsLing"></div></div>
+</div>
+
 <div class="cw">
   <div class="wds">
     <div class="wl s">日</div><div class="wl">一</div><div class="wl">二</div>
@@ -139,33 +220,8 @@ body{background:var(--bg);font-family:-apple-system,'PingFang TC',sans-serif;pad
 <div class="sm" id="sm"></div>
 <div class="ht">目前編輯：<span id="hintUser">—</span>・點日期切換自己的班別・兩人同休會自動合併</div>
 
-<div class="bbar">
-  <button class="sb" id="bsh"><span style="font-size:17px">💬</span> 分享本月班表</button>
-  <button class="cb" id="bcp">📋</button>
-</div>
-
-<div class="ov" id="ovS">
-  <div class="sh">
-    <div class="hdl"></div>
-    <div class="shd">
-      <div class="sht">⚙️ 設定</div>
-      <button class="shc" id="csS">✕</button>
-    </div>
-    <div class="shb" id="sbS"></div>
-  </div>
-</div>
-
-<div class="ov" id="ovSh">
-  <div class="sh">
-    <div class="hdl"></div>
-    <div class="shd">
-      <div class="sht">分享班表</div>
-      <button class="shc" id="csSh">✕</button>
-    </div>
-    <div class="shb" id="sbSh"></div>
-  </div>
-</div>
-
+<div class="ov" id="ovS"><div class="sh"><div class="hdl"></div><div class="shd"><div class="sht">⚙️ 設定</div><button class="shc" id="csS">✕</button></div><div class="shb" id="sbS"></div></div></div>
+<div class="popup-ov" id="popupOv"><div class="popup-card" id="popupCard"></div></div>
 <div class="toast" id="toast"></div>
 <div class="frov" id="frOv"><div class="frbox" id="frBox"></div></div>
 
@@ -219,116 +275,201 @@ var profilePins = {};
 var writeTimer = null;
 var isRemoteUpdate = false;
 var selectedLoginUser = 'syue';
+var expandState = {syue:false, ling:false};
 
 function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
 function lsSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
 function mk(y,m){return y+'_'+(m<10?'0':'')+m;}
 function userData(uid){uid=uid||currentUser;return scheduleData[uid]||(scheduleData[uid]={});}
 function gd(uid){return userData(uid)[mk(curY,curM)]||{};}
+function gdAt(uid,y,m){return userData(uid)[mk(y,m)]||{};}
 function sd(d,uid){userData(uid)[mk(curY,curM)]=d;}
 function shifts(uid){return shiftSets[uid||currentUser]||[];}
 function otherUser(uid){return uid==='syue'?'ling':'syue';}
+function defaultShiftIndex(uid,y,m,d){
+  return uid==='ling'&&new Date(y,m-1,d).getDay()===0?1:0;
+}
+function shiftIndex(uid,d){return (gd(uid)[d]||defaultShiftIndex(uid,curY,curM,d));}
+function shiftIndexAt(uid,y,m,d){return (gdAt(uid,y,m)[d]||defaultShiftIndex(uid,y,m,d));}
 function isOff(uid,idx){var s=shifts(uid)[idx-1];return !!(s&&s.off);}
+function isOffAt(uid,idx){var s=shiftSets[uid][idx-1];return !!(s&&s.off);}
 
 var tT;
-function toast(msg){
-  var t=document.getElementById('toast');
-  t.textContent=msg;t.className='toast on';
-  clearTimeout(tT);tT=setTimeout(()=>{t.className='toast';},2400);
-}
-function setDot(state){
-  var d=document.getElementById('syncDot');
-  d.className='sdot'+(state?' '+state:'');
-}
-function genCode(){
-  var chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  var c='';for(var i=0;i<8;i++)c+=chars[Math.floor(Math.random()*chars.length)];
-  return c;
-}
+function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.className='toast on';clearTimeout(tT);tT=setTimeout(()=>{t.className='toast';},2400);}
+function setDot(state){var d=document.getElementById('syncDot');d.className='sdot'+(state?' '+state:'');}
+function genCode(){var chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';var c='';for(var i=0;i<8;i++)c+=chars[Math.floor(Math.random()*chars.length)];return c;}
 function safeHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function normalizeCode(code){return (code||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,20);}
 
-function scheduleWrite(){
-  if(!IS_CONFIGURED||!syncCode)return;
-  clearTimeout(writeTimer);
-  writeTimer=setTimeout(doWrite,600);
-}
+function scheduleWrite(){if(!IS_CONFIGURED||!syncCode)return;clearTimeout(writeTimer);writeTimer=setTimeout(doWrite,600);}
 async function doWrite(){
-  if(!db||!syncCode)return;
-  setDot('spin');
+  if(!db||!syncCode)return;setDot('spin');
   try{
-    await setDoc(doc(db,'banbiao',syncCode),{
-      version:2,
-      scheduleData: JSON.stringify(scheduleData),
-      shiftSets: JSON.stringify(shiftSets),
-      profilePins: profilePins,
-      updatedAt: serverTimestamp()
-    },{merge:true});
+    await setDoc(doc(db,'banbiao',syncCode),{version:2,scheduleData:JSON.stringify(scheduleData),shiftSets:JSON.stringify(shiftSets),profilePins:profilePins,updatedAt:serverTimestamp()},{merge:true});
     setDot('ok');
-  }catch(e){
-    console.error('write error',e);
-    setDot('err');
-  }
+  }catch(e){console.error('write error',e);setDot('err');}
 }
 function readRemoteDocData(raw){
   if(!raw)return;
-  if(raw.scheduleData){
-    try{var r=JSON.parse(raw.scheduleData);scheduleData={syue:r.syue||{},ling:r.ling||{}};}catch(e){}
-  } else if(raw.allData) {
-    try{scheduleData.syue=JSON.parse(raw.allData||'{}');}catch(e){}
-  }
-  if(raw.shiftSets){
-    try{var ss=JSON.parse(raw.shiftSets);shiftSets.syue=ss.syue||shiftSets.syue;shiftSets.ling=ss.ling||shiftSets.ling;}catch(e){}
-  } else if(raw.shifts) {
-    try{var old=JSON.parse(raw.shifts||'null');if(old&&old.length)shiftSets.syue=old.map(s=>Object.assign({off:(s.name||'').includes('休')&&!(s.name||'').includes('加班')},s));}catch(e){}
-  }
-  profilePins = raw.profilePins || profilePins || {};
+  if(raw.scheduleData){try{var r=JSON.parse(raw.scheduleData);scheduleData={syue:r.syue||{},ling:r.ling||{}};}catch(e){}}
+  else if(raw.allData){try{scheduleData.syue=JSON.parse(raw.allData||'{}');}catch(e){}}
+  if(raw.shiftSets){try{var ss=JSON.parse(raw.shiftSets);shiftSets.syue=ss.syue||shiftSets.syue;shiftSets.ling=ss.ling||shiftSets.ling;}catch(e){}}
+  else if(raw.shifts){try{var old=JSON.parse(raw.shifts||'null');if(old&&old.length)shiftSets.syue=old.map(s=>Object.assign({off:(s.name||'').includes('休')&&!(s.name||'').includes('加班')},s));}catch(e){}}
+  profilePins=raw.profilePins||profilePins||{};
 }
 function startListener(code){
-  if(unsub){unsub();unsub=null;}
-  if(!db||!code)return;
-  setDot('spin');
+  if(unsub){unsub();unsub=null;}if(!db||!code)return;setDot('spin');
   unsub=onSnapshot(doc(db,'banbiao',code),snap=>{
-    if(snap.exists()){
-      isRemoteUpdate=true;
-      readRemoteDocData(snap.data());
-      saveLocalOnly();
-      render();
-      isRemoteUpdate=false;
-    }
+    if(snap.exists()){isRemoteUpdate=true;readRemoteDocData(snap.data());saveLocalOnly();render();isRemoteUpdate=false;}
     setDot('ok');
-  },err=>{
-    console.error('listener error',err);
-    setDot('err');
+  },err=>{console.error('listener error',err);setDot('err');});
+}
+function saveLocalOnly(){lsSet('scheduleDataV2',JSON.stringify(scheduleData));lsSet('shiftSetsV2',JSON.stringify(shiftSets));lsSet('profilePinsV2',JSON.stringify(profilePins));}
+function saveAll(){saveLocalOnly();if(!isRemoteUpdate)scheduleWrite();}
+function applySyncCode(code){code=normalizeCode(code);syncCode=code;lsSet('syncCode',code);startListener(code);}
+
+/* ── Toggle panels (iOS-style) ── */
+window.togglePanel = function(uid){
+  expandState[uid]=!expandState[uid];
+  var tog=document.getElementById('tog'+(uid==='syue'?'Syue':'Ling'));
+  var panel=document.getElementById('panel'+(uid==='syue'?'Syue':'Ling'));
+  if(expandState[uid]){tog.classList.add('open');panel.classList.add('open');}
+  else{tog.classList.remove('open');panel.classList.remove('open');}
+};
+
+window.toggleCard = function(){};
+function buildPopupCopyText(key,arr){
+  var title=key==='syue'?'學的班表':key==='ling'?'綾的班表':'共同休假';
+  var msg='📅 '+curY+'年'+curM+'月 '+title+'\n────────────────\n';
+  if(!arr.length)return msg+'（本月尚未設定）\n────────────────';
+  for(var i=0;i<arr.length;i++){
+    var it=arr[i], day=curM+'/'+it.d+'（'+it.dow+'）';
+    msg+='  '+day+' '+(key==='common'?'共同休假':it.sh.name)+'\n';
+  }
+  return msg+'────────────────';
+}
+window.showPopup = function(key){
+  var lists=window._popupLists||{syue:[],ling:[],common:[]};
+  var cnt=window._popupCnt||{syue:0,ling:0,common:0};
+  var config={
+    common:{dot:'var(--common)',title:'共同休假',count:cnt.common,color:'var(--common)',icon:'❤️',emptyIcon:'📅',emptyText:'本月尚無共同休假'},
+    syue:{dot:'#378ADD',title:'學的班別',count:cnt.syue,color:'#378ADD',icon:'📋',emptyIcon:'😊',emptyText:'學本月尚未設定班表'},
+    ling:{dot:'#C45B8A',title:'綾的班別',count:cnt.ling,color:'#C45B8A',icon:'📋',emptyIcon:'😊',emptyText:'綾本月尚未設定班表'}
+  };
+  var c=config[key], arr=lists[key]||[];
+  var copyTextForPopup=buildPopupCopyText(key,arr);
+  window._popupCopyText=copyTextForPopup;
+  var preview=copyTextForPopup.split('\n').slice(0,7).join('\n');
+  if(copyTextForPopup.split('\n').length>7)preview+='\n…';
+  var h='<div class="popup-grabber"></div><div class="popup-top"><div class="popup-dot" style="background:'+c.dot+'"></div><div class="popup-title">'+c.title+'</div><div class="popup-count" style="color:'+c.color+'">'+c.count+'</div><button class="popup-close" onclick="closePopup()">✕</button></div>';
+  h+='<div class="popup-actions"><button class="popup-action primary" onclick="copyPopupText()">📋 複製</button><button class="popup-action" onclick="closePopup()">完成</button></div>';
+  h+='<div class="popup-preview">'+safeHtml(preview)+'</div><div class="popup-body">';
+  if(!arr.length){
+    h+='<div class="popup-empty"><div class="popup-empty-icon">'+c.emptyIcon+'</div>'+c.emptyText+'</div>';
+  }else{
+    h+='<div class="popup-list">';
+    for(var i=0;i<arr.length;i++){
+      var it=arr[i], delay=i*0.05;
+      if(key==='common'){
+        h+='<div class="popup-item" style="animation-delay:'+delay+'s"><div class="popup-item-date">'+curM+'/'+it.d+'</div><div class="popup-item-dow">'+it.dow+'</div><div style="flex:1"></div><div class="popup-item-badge" style="background:#F7B9AC;color:#8A2A1D">❤️ 共同休假</div></div>';
+      }else{
+        h+='<div class="popup-item" style="animation-delay:'+delay+'s"><div class="popup-item-date">'+curM+'/'+it.d+'</div><div class="popup-item-dow">'+it.dow+'</div><div style="flex:1"></div><div class="popup-item-badge" style="background:'+it.sh.bdg+';color:'+it.sh.txt+'">'+it.sh.emoji+' '+safeHtml(it.sh.name)+'</div></div>';
+      }
+    }
+    h+='</div>';
+  }
+  h+='</div>';
+  document.getElementById('popupCard').innerHTML=h;
+  var ov=document.getElementById('popupOv');
+  ov.style.display='flex';
+  requestAnimationFrame(function(){requestAnimationFrame(function(){ov.classList.add('on');});});
+};
+window.copyPopupText = function(){
+  copyText(window._popupCopyText||'');
+  toast('✓ 已複製班表');
+};
+window.closePopup = function(){
+  var ov=document.getElementById('popupOv');
+  ov.classList.remove('on');
+  setTimeout(function(){ov.style.display='none';},350);
+};
+document.getElementById('popupOv').addEventListener('click',function(e){
+  if(e.target===this)closePopup();
+});
+
+function renderLegendPanels(){
+  ['syue','ling'].forEach(function(uid){
+    var container=document.getElementById('chips'+(uid==='syue'?'Syue':'Ling'));
+    var ss=shifts(uid), h='';
+    h+='<div class="chip"><div class="cdot" style="background:var(--t3)"></div>上班</div>';
+    for(var i=0;i<ss.length;i++){
+      var s=ss[i];
+      h+='<div class="chip" style="background:'+s.bg+';border-color:'+s.border+';color:'+s.txt+';animation-delay:'+(i*0.06)+'s"><div class="cdot" style="background:'+s.border+'"></div>'+safeHtml(s.name)+'</div>';
+    }
+    container.innerHTML=h;
   });
-}
-function saveLocalOnly(){
-  lsSet('scheduleDataV2',JSON.stringify(scheduleData));
-  lsSet('shiftSetsV2',JSON.stringify(shiftSets));
-  lsSet('profilePinsV2',JSON.stringify(profilePins));
-}
-function saveAll(){
-  saveLocalOnly();
-  if(!isRemoteUpdate)scheduleWrite();
-}
-function applySyncCode(code){
-  code=normalizeCode(code);
-  syncCode=code;
-  lsSet('syncCode',code);
-  startListener(code);
 }
 
-function renderLegend(){
-  var el=document.getElementById('lgd');
-  var h='<div class="chip" style="background:#FDEBE7;border-color:var(--common);color:#8A2A1D"><div class="cdot" style="background:var(--common)"></div>共同休假</div>';
-  h+='<div class="chip"><div class="cdot" style="background:var(--t3)"></div>上班</div>';
-  ['syue','ling'].forEach(uid=>{
-    shifts(uid).forEach(s=>{
-      h+='<div class="chip" style="background:'+s.bg+';border-color:'+s.border+';color:'+s.txt+'"><div class="cdot" style="background:'+s.border+'"></div>'+safeHtml(s.name)+'</div>';
-    });
-  });
-  el.innerHTML=h;
+/* ── Next common rest day ── */
+function findNextCommonRest(){
+  var today=new Date();today.setHours(0,0,0,0);
+  for(var offset=0;offset<180;offset++){
+    var check=new Date(today);check.setDate(check.getDate()+offset);
+    var y=check.getFullYear(),m=check.getMonth()+1,d=check.getDate();
+    var si=shiftIndexAt('syue',y,m,d), li=shiftIndexAt('ling',y,m,d);
+    if(isOffAt('syue',si)&&isOffAt('ling',li)){
+      return {date:check,y:y,m:m,d:d,daysAway:offset};
+    }
+  }
+  return null;
 }
+
+function renderNextCard(){
+  var nxt=findNextCommonRest();
+  var card=document.getElementById('nxtCard');
+  var icon=document.getElementById('nxtIcon');
+  var dateEl=document.getElementById('nxtDate');
+  var countEl=document.getElementById('nxtCountdown');
+  if(!nxt){
+    card.className='nxt-card none';icon.textContent='📅';
+    dateEl.textContent='尚未發現共同休假';countEl.textContent='填好兩人班表即可顯示';
+    return;
+  }
+  card.className='nxt-card';icon.textContent=nxt.daysAway===0?'🎉':'💕';
+  var dow=DOW[nxt.date.getDay()];
+  dateEl.textContent=nxt.m+'/'+nxt.d+'（'+dow+'）';
+  if(nxt.daysAway===0)countEl.textContent='就是今天！好好享受 ❤️';
+  else if(nxt.daysAway===1)countEl.textContent='就是明天！';
+  else countEl.textContent='還有 '+nxt.daysAway+' 天';
+}
+
+/* ── iCal export ── */
+function pad2(n){return n<10?'0'+n:''+n;}
+function icsDateStr(y,m,d){return y+pad2(m)+pad2(d);}
+function exportICal(){
+  var fd=new Date(curY,curM-1,1).getDay(), dim=new Date(curY,curM,0).getDate();
+  var events=[];
+  for(var d=1;d<=dim;d++){
+    var si=shiftIndex('syue',d), li=shiftIndex('ling',d);
+    if(isOff('syue',si)&&isOff('ling',li)){
+      var start=icsDateStr(curY,curM,d);
+      var endD=new Date(curY,curM-1,d+1);
+      var end=icsDateStr(endD.getFullYear(),endD.getMonth()+1,endD.getDate());
+      events.push('BEGIN:VEVENT\r\nDTSTART;VALUE=DATE:'+start+'\r\nDTEND;VALUE=DATE:'+end+'\r\nSUMMARY:共同休假 ❤️\r\nDESCRIPTION:學和綾的共同休假日\r\nEND:VEVENT');
+    }
+  }
+  if(!events.length){toast('本月沒有共同休假日');return;}
+  var ics='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//OurSchedule//TW//\r\nCALSCALE:GREGORIAN\r\n'+events.join('\r\n')+'\r\nEND:VCALENDAR';
+  var blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;a.download=curY+'年'+curM+'月_共同休假.ics';
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},200);
+  toast('✓ 已匯出 '+events.length+' 天到行事曆');
+}
+document.getElementById('icalBtn').onclick=exportICal;
+
 function renderProfileUI(){
   var u=USERS[currentUser]||USERS.syue;
   document.getElementById('appTitle').textContent='我們的班表';
@@ -338,14 +479,15 @@ function renderProfileUI(){
   document.getElementById('pLing').className='profile'+(currentUser==='ling'?' on':'');
 }
 function dayHtmlFor(uid,d,dow,compact){
-  var sidx=gd(uid)[d]||0, sh=sidx?shifts(uid)[sidx-1]:null;
+  var sidx=shiftIndex(uid,d), sh=sidx?shifts(uid)[sidx-1]:null;
   if(!sh)return '';
   return '<div class="bg2 '+(compact?'mini':'')+'" style="background:'+sh.bdg+';color:'+sh.txt+'">'+USERS[uid].label+' '+safeHtml(sh.name)+'</div>';
 }
 function render(){
   renderProfileUI();
   document.getElementById('ml').textContent=curY+'年'+curM+'月';
-  renderLegend();
+  renderLegendPanels();
+  renderNextCard();
   var cg=document.getElementById('cg');cg.innerHTML='';
   var fd=new Date(curY,curM-1,1).getDay(),dim=new Date(curY,curM,0).getDate();
   var td=new Date(),ty=td.getFullYear(),tm=td.getMonth()+1,tdd=td.getDate();
@@ -353,43 +495,32 @@ function render(){
   var cnt={syue:0,ling:0,common:0};
   for(var d=1;d<=dim;d++){
     var dow=(fd+d-1)%7;
-    var myIdx=currentUser?(gd(currentUser)[d]||0):0;
-    var syueIdx=gd('syue')[d]||0, lingIdx=gd('ling')[d]||0;
+    var myIdx=currentUser?shiftIndex(currentUser,d):0;
+    var syueIdx=shiftIndex('syue',d), lingIdx=shiftIndex('ling',d);
     var common=isOff('syue',syueIdx)&&isOff('ling',lingIdx);
-    if(syueIdx)cnt.syue++;
-    if(lingIdx)cnt.ling++;
-    if(common)cnt.common++;
+    if(syueIdx)cnt.syue++;if(lingIdx)cnt.ling++;if(common)cnt.common++;
     var div=document.createElement('div'), cls='dc';
     if(curY===ty&&curM===tm&&d===tdd)cls+=' td';
     if(common)cls+=' common';
     div.className=cls;
-    if(!common&&myIdx){
-      var msh=shifts(currentUser)[myIdx-1];
-      if(msh){div.style.background=msh.bg;div.style.border='1.5px solid '+msh.border;}
-    }
+    if(!common&&myIdx){var msh=shifts(currentUser)[myIdx-1];if(msh){div.style.background=msh.bg;div.style.border='1.5px solid '+msh.border;}}
     var dnColor=common?'#8A2A1D':(myIdx&&shifts(currentUser)[myIdx-1]?shifts(currentUser)[myIdx-1].txt:(dow===0?'#D85A30':dow===6?'#185FA5':'var(--t)'));
     var html='<div class="dn" style="color:'+dnColor+'">'+d+'</div><div class="badge-stack">';
-    if(common){
-      html+='<div class="bg2" style="background:#F7B9AC;color:#8A2A1D">共同休假</div>';
-    }else{
-      html+=dayHtmlFor('syue',d,dow,true)+dayHtmlFor('ling',d,dow,true);
-    }
-    html+='</div>';
-    div.innerHTML=html;
+    if(common){html+='<div class="bg2" style="background:#F7B9AC;color:#8A2A1D">共同休假</div>';}
+    else{html+=dayHtmlFor('syue',d,dow,true)+dayHtmlFor('ling',d,dow,true);}
+    html+='</div>';div.innerHTML=html;
     (function(dd,dw){
       div.addEventListener('click',function(){
         if(!currentUser){showLogin();return;}
-        var cd=gd(currentUser), max=shifts(currentUser).length;
-        cd[dd]=((cd[dd]||0)+1)%(max+1);
-        if(cd[dd]===0)delete cd[dd];
+        var cd=gd(currentUser),max=shifts(currentUser).length,start=shiftIndex(currentUser,dd);
+        cd[dd]=(start+1)%(max+1);if(cd[dd]===0)delete cd[dd];
         sd(cd,currentUser);saveAll();render();
-        var ns=gd(currentUser)[dd]||0;
+        var ns=shiftIndex(currentUser,dd);
         if(ns>0)toast(USERS[currentUser].label+' '+curM+'/'+dd+'（'+DOW[dw]+'）→ '+shifts(currentUser)[ns-1].name);
       });
       var pt;
       div.addEventListener('touchstart',function(){pt=setTimeout(function(){
-        if(!currentUser)return;
-        var cd=gd(currentUser);
+        if(!currentUser)return;var cd=gd(currentUser);
         if(cd[dd]){delete cd[dd];sd(cd,currentUser);saveAll();render();toast(USERS[currentUser].label+' '+curM+'/'+dd+' 已重設');}
       },550);});
       div.addEventListener('touchend',function(){clearTimeout(pt);});
@@ -397,10 +528,24 @@ function render(){
     })(d,dow);
     cg.appendChild(div);
   }
-  document.getElementById('sm').innerHTML=
-    '<div class="sc"><div class="sn" style="color:#378ADD">'+cnt.syue+'</div><div class="sl2">學有班別</div></div>'+
-    '<div class="sc"><div class="sn" style="color:#C45B8A">'+cnt.ling+'</div><div class="sl2">綾有班別</div></div>'+
-    '<div class="sc"><div class="sn" style="color:#E3654F">'+cnt.common+'</div><div class="sl2">共同休假</div></div>';
+  // Build summary cards + popup data
+  var smEl=document.getElementById('sm');
+  var lists={syue:[],ling:[],common:[]};
+  for(var d2=1;d2<=dim;d2++){
+    var dw2=DOW[(fd+d2-1)%7];
+    var si2=shiftIndex('syue',d2), li2=shiftIndex('ling',d2);
+    var sh_s=si2?shifts('syue')[si2-1]:null;
+    var sh_l=li2?shifts('ling')[li2-1]:null;
+    if(isOff('syue',si2)&&isOff('ling',li2))lists.common.push({d:d2,dow:dw2});
+    if(sh_s)lists.syue.push({d:d2,dow:dw2,sh:sh_s});
+    if(sh_l)lists.ling.push({d:d2,dow:dw2,sh:sh_l});
+  }
+  window._popupLists=lists;
+  window._popupCnt=cnt;
+  smEl.innerHTML=
+    '<div class="sc" onclick="showPopup(\'syue\')"><div class="sc-dot" style="background:#378ADD"></div><div class="sn" style="color:#378ADD">'+cnt.syue+'</div><div class="sl2">學的班別</div></div>'+
+    '<div class="sc" onclick="showPopup(\'ling\')"><div class="sc-dot" style="background:#C45B8A"></div><div class="sn" style="color:#C45B8A">'+cnt.ling+'</div><div class="sl2">綾的班別</div></div>'+
+    '<div class="sc" onclick="showPopup(\'common\')"><div class="sc-dot" style="background:var(--common)"></div><div class="sn" style="color:var(--common)">'+cnt.common+'</div><div class="sl2">共同休假</div></div>';
 }
 
 document.getElementById('bp').onclick=function(){curM--;if(curM<1){curM=12;curY--;}render();};
@@ -436,24 +581,14 @@ async function completeLogin(uid,pin,checkCloud){
     if(pin.length<2){toast('PIN 至少 2 碼');return;}
     setDot('spin');
     try{
-      var ref=doc(db,'banbiao',syncCode);
-      var snap=await getDoc(ref);
-      var raw=snap.exists()?snap.data():{};
+      var ref=doc(db,'banbiao',syncCode);var snap=await getDoc(ref);var raw=snap.exists()?snap.data():{};
       readRemoteDocData(raw);
       if(profilePins[uid]&&profilePins[uid]!==pin){setDot('err');toast('PIN 不正確');return;}
-      if(!profilePins[uid]){
-        profilePins[uid]=pin;
-        await setDoc(ref,{profilePins:profilePins,updatedAt:serverTimestamp()},{merge:true});
-      }
+      if(!profilePins[uid]){profilePins[uid]=pin;await setDoc(ref,{profilePins:profilePins,updatedAt:serverTimestamp()},{merge:true});}
       setDot('ok');
     }catch(e){console.error(e);setDot('err');toast('登入檢查失敗，先用本機身份');}
   }
-  currentUser=uid;
-  lsSet('currentUser',uid);
-  saveLocalOnly();
-  closeOv('ovS');
-  render();
-  toast('已登入 '+USERS[uid].label);
+  currentUser=uid;lsSet('currentUser',uid);saveLocalOnly();closeOv('ovS');render();toast('已登入 '+USERS[uid].label);
 }
 
 document.getElementById('bs').onclick=function(){
@@ -469,115 +604,42 @@ document.getElementById('bs').onclick=function(){
     var row=document.createElement('div');row.className='sr';
     row.innerHTML='<span style="font-size:12px;color:var(--t3);width:16px">'+(i+1)+'</span><div class="sw" id="sw'+i+'" style="background:'+ss[i].bg+'"><input type="color" value="'+ss[i].border+'" id="cp'+i+'"/></div><input class="ei" id="em'+i+'" value="'+safeHtml(ss[i].emoji)+'" maxlength="2"><input class="ni" id="sn'+i+'" value="'+safeHtml(ss[i].name)+'" maxlength="8"><label style="font-size:12px;color:var(--t2);display:flex;align-items:center;gap:3px"><input type="checkbox" id="off'+i+'" '+(ss[i].off?'checked':'')+'>休</label>';
     rows.appendChild(row);
-    (function(idx){
-      document.getElementById('cp'+idx).addEventListener('change',function(){
-        var h=this.value,r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);
-        document.getElementById('sw'+idx).style.background='rgba('+r+','+g+','+b+',.18)';
-      });
-    })(i);
+    (function(idx){document.getElementById('cp'+idx).addEventListener('change',function(){var h=this.value,r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);document.getElementById('sw'+idx).style.background='rgba('+r+','+g+','+b+',.18)';});})(i);
   }
   document.getElementById('saveSB').onclick=function(){
     for(var i=0;i<ss.length;i++){
-      var h=document.getElementById('cp'+i).value;
-      var r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);
-      ss[i].name=document.getElementById('sn'+i).value.trim()||ss[i].name;
-      ss[i].emoji=document.getElementById('em'+i).value.trim()||ss[i].emoji;
-      ss[i].off=document.getElementById('off'+i).checked;
-      ss[i].bg='rgba('+r+','+g+','+b+',.14)';
-      ss[i].border=h;
-      ss[i].txt='rgb('+Math.round(r*.42)+','+Math.round(g*.42)+','+Math.round(b*.42)+')';
-      ss[i].bdg='rgba('+r+','+g+','+b+',.42)';
+      var h=document.getElementById('cp'+i).value;var r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);
+      ss[i].name=document.getElementById('sn'+i).value.trim()||ss[i].name;ss[i].emoji=document.getElementById('em'+i).value.trim()||ss[i].emoji;ss[i].off=document.getElementById('off'+i).checked;
+      ss[i].bg='rgba('+r+','+g+','+b+',.14)';ss[i].border=h;ss[i].txt='rgb('+Math.round(r*.42)+','+Math.round(g*.42)+','+Math.round(b*.42)+')';ss[i].bdg='rgba('+r+','+g+','+b+',.42)';
     }
     saveAll();closeOv('ovS');render();toast('✓ '+u.label+' 的班別設定已儲存');
   };
   document.getElementById('switchLogin').onclick=function(){showLogin(otherUser(currentUser));};
   var syncHtml='<div class="sync-div"><div class="sync-title">☁️ 雲端同步</div>';
-  if(!IS_CONFIGURED){
-    syncHtml+='<div class="sync-sub" style="color:#D85A30;">Firebase 尚未設定，目前只存在本機。</div>';
-  } else {
-    syncHtml+=`
-      <div class="sync-sub">兩人的手機輸入相同同步代碼，再用自己的身份登入。</div>
-      <div class="code-box"><div class="code-txt" id="dispCode">${syncCode||'—'}</div><button class="code-btn" id="cpCodeBtn">複製</button></div>
-      <div class="sync-title" style="margin-bottom:8px">切換／加入代碼</div>
-      <div class="sync-input-row"><input class="sync-inp" id="syncInp" placeholder="同步代碼" maxlength="20" value=""><button class="sync-join-btn" id="syncJoinBtn">加入</button></div>
-      <div class="sync-warn" id="syncWarn"></div>`;
-  }
-  syncHtml+='</div>';
-  body.insertAdjacentHTML('beforeend',syncHtml);
+  if(!IS_CONFIGURED){syncHtml+='<div class="sync-sub" style="color:#D85A30;">Firebase 尚未設定，目前只存在本機。</div>';}
+  else{syncHtml+=`<div class="sync-sub">兩人的手機輸入相同同步代碼，再用自己的身份登入。</div><div class="code-box"><div class="code-txt" id="dispCode">${syncCode||'—'}</div><button class="code-btn" id="cpCodeBtn">複製</button></div><div class="sync-title" style="margin-bottom:8px">切換／加入代碼</div><div class="sync-input-row"><input class="sync-inp" id="syncInp" placeholder="同步代碼" maxlength="20" value=""><button class="sync-join-btn" id="syncJoinBtn">加入</button></div><div class="sync-warn" id="syncWarn"></div>`;}
+  syncHtml+='</div>';body.insertAdjacentHTML('beforeend',syncHtml);
   if(IS_CONFIGURED){
     document.getElementById('cpCodeBtn').onclick=function(){copyText(syncCode);toast('✓ 已複製代碼 '+syncCode);};
-    document.getElementById('syncJoinBtn').onclick=function(){
-      var v=normalizeCode(document.getElementById('syncInp').value);
-      if(v.length<2){document.getElementById('syncWarn').textContent='代碼至少 2 位';return;}
-      applySyncCode(v);closeOv('ovS');toast('✓ 已切換到代碼 '+v);
-    };
+    document.getElementById('syncJoinBtn').onclick=function(){var v=normalizeCode(document.getElementById('syncInp').value);if(v.length<2){document.getElementById('syncWarn').textContent='代碼至少 2 位';return;}applySyncCode(v);closeOv('ovS');toast('✓ 已切換到代碼 '+v);};
   }
   document.getElementById('ovS').className='ov on';
 };
 document.getElementById('csS').onclick=function(){closeOv('ovS');};
 document.getElementById('ovS').onclick=function(e){if(e.target===this)closeOv('ovS');};
 
-function buildMsg(){
-  var fd=new Date(curY,curM-1,1).getDay(),dim=new Date(curY,curM,0).getDate();
-  var msg='📅 '+curY+'年'+curM+'月 我們的班表\n────────────────\n';
-  var common=[], parts={syue:[],ling:[]};
-  for(var d=1;d<=dim;d++){
-    var dw=DOW[(fd+d-1)%7], day=curM+'/'+d+'（'+dw+'）';
-    var si=gd('syue')[d]||0, li=gd('ling')[d]||0;
-    if(isOff('syue',si)&&isOff('ling',li))common.push(day);
-    ['syue','ling'].forEach(uid=>{
-      var idx=gd(uid)[d]||0, sh=idx?shifts(uid)[idx-1]:null;
-      if(sh)parts[uid].push(day+' '+sh.name);
-    });
-  }
-  if(common.length)msg+='\n❤️ 共同休假（'+common.length+'天）\n  '+common.join('\n  ')+'\n';
-  ['syue','ling'].forEach(uid=>{
-    msg+='\n'+USERS[uid].label+' 的班表（'+parts[uid].length+'筆）\n';
-    msg+=parts[uid].length?'  '+parts[uid].join('\n  ')+'\n':'  （本月尚未設定）\n';
-  });
-  return msg+'────────────────';
-}
-document.getElementById('bsh').onclick=function(){
-  var msg=buildMsg(),sb=document.getElementById('sbSh');
-  sb.innerHTML='<div class="pb">'+safeHtml(msg)+'</div><button class="wb" id="waB"><span style="font-size:18px">💬</span> 在 WhatsApp 開啟</button><button class="cpb" id="cpB">📋 複製文字，自己貼上</button><div style="height:4px"></div>';
-  document.getElementById('waB').onclick=function(){window.location.href='whatsapp://send?text='+encodeURIComponent(buildMsg());closeOv('ovSh');};
-  document.getElementById('cpB').onclick=function(){copyText(buildMsg());closeOv('ovSh');toast('✓ 已複製！');};
-  document.getElementById('ovSh').className='ov on';
-};
-document.getElementById('bcp').onclick=function(){copyText(buildMsg());toast('✓ 已複製！');};
-document.getElementById('csSh').onclick=function(){closeOv('ovSh');};
-document.getElementById('ovSh').onclick=function(e){if(e.target===this)closeOv('ovSh');};
-function copyText(m){
-  try{navigator.clipboard.writeText(m);}catch(e){
-    var ta=document.createElement('textarea');ta.value=m;ta.style.cssText='position:fixed;opacity:0;';
-    document.body.appendChild(ta);ta.select();try{document.execCommand('copy');}catch(ex){}document.body.removeChild(ta);
-  }
-}
+function copyText(m){try{navigator.clipboard.writeText(m);}catch(e){var ta=document.createElement('textarea');ta.value=m;ta.style.cssText='position:fixed;opacity:0;';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');}catch(ex){}document.body.removeChild(ta);}}
 
 function showSyncSetup(){
   var box=document.getElementById('frBox'), newCode=genCode();
   document.getElementById('frOv').style.display='flex';
   if(!IS_CONFIGURED){
-    box.innerHTML=`
-      <div class="fr-icon">☁️</div>
-      <div class="fr-t">先用本機班表</div>
-      <div class="fr-s">Firebase 沒有設定時，仍可在這台手機使用雙人班表；之後補上設定就能同步。</div>
-      <button class="fr-btn" id="localGo">開始使用</button>`;
+    box.innerHTML=`<div class="fr-icon">☁️</div><div class="fr-t">先用本機班表</div><div class="fr-s">Firebase 沒有設定時，仍可在這台手機使用雙人班表；之後補上設定就能同步。</div><button class="fr-btn" id="localGo">開始使用</button>`;
     document.getElementById('localGo').onclick=function(){syncCode='LOCAL';lsSet('syncCode','LOCAL');document.getElementById('frOv').style.display='none';showLogin('syue');};
     return;
   }
-  box.innerHTML=`
-    <div class="fr-icon">☁️</div>
-    <div class="fr-t">設定同步代碼</div>
-    <div class="fr-s">你和老婆的手機輸入同一組代碼，就會看到同一份雙人班表。</div>
-    <input class="fr-inp" id="frInp" maxlength="20" placeholder="例如 SYUEHOME" autocomplete="off">
-    <button class="fr-btn" id="frUseCustom">使用這組代碼</button>
-    <button class="fr-btn2" id="frUseRandom">用隨機代碼（${newCode}）</button>`;
-  document.getElementById('frUseCustom').onclick=function(){
-    var v=normalizeCode(document.getElementById('frInp').value);
-    if(v.length<2){toast('代碼至少 2 個字');return;}
-    applySyncCode(v);document.getElementById('frOv').style.display='none';showLogin('syue');
-  };
+  box.innerHTML=`<div class="fr-icon">☁️</div><div class="fr-t">設定同步代碼</div><div class="fr-s">你和老婆的手機輸入同一組代碼，就會看到同一份雙人班表。</div><input class="fr-inp" id="frInp" maxlength="20" placeholder="例如 SYUEHOME" autocomplete="off"><button class="fr-btn" id="frUseCustom">使用這組代碼</button><button class="fr-btn2" id="frUseRandom">用隨機代碼（${newCode}）</button>`;
+  document.getElementById('frUseCustom').onclick=function(){var v=normalizeCode(document.getElementById('frInp').value);if(v.length<2){toast('代碼至少 2 個字');return;}applySyncCode(v);document.getElementById('frOv').style.display='none';showLogin('syue');};
   document.getElementById('frUseRandom').onclick=function(){applySyncCode(newCode);document.getElementById('frOv').style.display='none';showLogin('syue');};
   document.getElementById('frInp').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('frUseCustom').click();});
   setTimeout(()=>document.getElementById('frInp').focus(),60);
@@ -587,36 +649,21 @@ function showSyncSetup(){
   try{var rd=lsGet('scheduleDataV2');if(rd)scheduleData=JSON.parse(rd);}catch(e){}
   try{var rs=lsGet('shiftSetsV2');if(rs)shiftSets=JSON.parse(rs);}catch(e){}
   try{var rp=lsGet('profilePinsV2');if(rp)profilePins=JSON.parse(rp);}catch(e){}
-  try{
-    var old=lsGet('xd7');
-    if(old&&!Object.keys(scheduleData.syue||{}).length)scheduleData.syue=JSON.parse(old);
-  }catch(e){}
-  try{
-    var oldS=lsGet('xd7s');
-    if(oldS){var os=JSON.parse(oldS);if(os&&os.length)shiftSets.syue=os.map(s=>Object.assign({off:(s.name||'').includes('休')&&!(s.name||'').includes('加班')},s));}
-  }catch(e){}
+  try{var old=lsGet('xd7');if(old&&!Object.keys(scheduleData.syue||{}).length)scheduleData.syue=JSON.parse(old);}catch(e){}
+  try{var oldS=lsGet('xd7s');if(oldS){var os=JSON.parse(oldS);if(os&&os.length)shiftSets.syue=os.map(s=>Object.assign({off:(s.name||'').includes('休')&&!(s.name||'').includes('加班')},s));}}catch(e){}
   if(!scheduleData.syue)scheduleData.syue={};
   if(!scheduleData.ling)scheduleData.ling={};
   if(!shiftSets.syue)shiftSets.syue=JSON.parse(JSON.stringify(DEF_SHIFTS.syue));
   if(!shiftSets.ling)shiftSets.ling=JSON.parse(JSON.stringify(DEF_SHIFTS.ling));
-
   if(!scheduleData.syue['2026_05']||Object.keys(scheduleData.syue['2026_05']).length===0){
     scheduleData.syue['2026_05']={4:1,9:1,10:2,16:1,17:1,21:1,24:1,25:1,29:1};
   }
   currentUser=lsGet('currentUser')||'';
   syncCode=lsGet('syncCode')||'';
-  saveLocalOnly();
-  render();
-  if(syncCode&&syncCode!=='LOCAL'&&IS_CONFIGURED){
-    startListener(syncCode);
-    document.getElementById('frOv').style.display=currentUser?'none':'none';
-    if(!currentUser)showLogin('syue');
-  }else if(syncCode==='LOCAL'){
-    document.getElementById('frOv').style.display=currentUser?'none':'none';
-    if(!currentUser)showLogin('syue');
-  }else{
-    showSyncSetup();
-  }
+  saveLocalOnly();render();
+  if(syncCode&&syncCode!=='LOCAL'&&IS_CONFIGURED){startListener(syncCode);document.getElementById('frOv').style.display=currentUser?'none':'none';if(!currentUser)showLogin('syue');}
+  else if(syncCode==='LOCAL'){document.getElementById('frOv').style.display=currentUser?'none':'none';if(!currentUser)showLogin('syue');}
+  else{showSyncSetup();}
 })();
 </script>
 </body>
