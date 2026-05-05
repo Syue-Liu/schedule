@@ -15,17 +15,17 @@ body{background:var(--bg);font-family:-apple-system,'PingFang TC',sans-serif;pad
 .hdr{background:var(--card);border-bottom:0.5px solid var(--bd);padding:50px 14px 10px;position:sticky;top:0;z-index:10;}
 .top{display:flex;align-items:center;justify-content:space-between;gap:10px;}
 .hdr-left{display:flex;align-items:center;gap:7px;min-width:84px;}
+.title-row{display:flex;align-items:center;gap:7px;}
 .aname{font-size:13px;font-weight:700;color:var(--t);}
 .subname{font-size:11px;color:var(--t3);margin-top:2px;}
+.user-pill{height:26px;padding:0 9px;border:none;border-radius:999px;background:var(--bg);color:var(--t);font-size:12px;font-weight:800;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:3px;white-space:nowrap;}
+.user-pill:active{background:#E5E3DE;}
 .mnav{display:flex;align-items:center;gap:2px;}
 .nb{width:38px;height:38px;background:var(--bg);border:none;border-radius:10px;font-size:20px;color:var(--t2);cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .nb:active,.ib:active{background:#E5E3DE;}
 .ml{min-width:112px;text-align:center;font-size:17px;font-weight:700;color:var(--t);}
 .ib{width:34px;height:34px;background:var(--bg);border:0.5px solid var(--bd2);border-radius:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;}
 .hdr-actions{display:flex;gap:6px;justify-content:flex-end;min-width:84px;}
-.profilebar{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
-.profile{border:1px solid var(--bd2);background:var(--bg);border-radius:12px;padding:8px 10px;text-align:center;color:var(--t2);font-size:13px;font-weight:700;cursor:pointer;}
-.profile.on{background:#1C1B18;color:#fff;border-color:#1C1B18;}
 .sdot{width:8px;height:8px;border-radius:50%;background:#D0CEC8;transition:background .4s,box-shadow .4s;flex-shrink:0;}
 .sdot.ok{background:var(--green);box-shadow:0 0 0 2px rgba(99,153,34,.2);}
 .sdot.err{background:#D85A30;}
@@ -165,7 +165,10 @@ body{background:var(--bg);font-family:-apple-system,'PingFang TC',sans-serif;pad
   <div class="top">
     <div class="hdr-left">
       <div>
-        <div class="aname" id="appTitle">我們的班表</div>
+        <div class="title-row">
+          <div class="aname" id="appTitle">我們的班表</div>
+          <button class="user-pill" id="userPill">學 ▾</button>
+        </div>
         <div class="subname" id="loginName">未登入</div>
       </div>
       <div class="sdot" id="syncDot" title="同步狀態"></div>
@@ -179,10 +182,6 @@ body{background:var(--bg);font-family:-apple-system,'PingFang TC',sans-serif;pad
       <div class="ib" id="bt">今</div>
       <div class="ib" id="bs">⚙️</div>
     </div>
-  </div>
-  <div class="profilebar">
-    <button class="profile" id="pSyue">學</button>
-    <button class="profile" id="pLing">綾</button>
   </div>
 </div>
 
@@ -260,9 +259,9 @@ var DEF_SHIFTS = {
   ],
   ling:[
     {name:'綾休',emoji:'🌸',bg:'#FCEBF3',border:'#C45B8A',txt:'#7A2449',bdg:'#F2B8D0',off:true},
-    {name:'綾早班',emoji:'☀️',bg:'#FFF4D8',border:'#D59A18',txt:'#745000',bdg:'#F4D27B',off:false},
     {name:'綾晚班',emoji:'🌙',bg:'#E8EEF9',border:'#5577B9',txt:'#263F78',bdg:'#B8C7EA',off:false},
-    {name:'綾特班',emoji:'⭐',bg:'#EAF4EA',border:'#57955C',txt:'#24572A',bdg:'#B8DDBA',off:false}
+    {name:'',emoji:'',bg:'#FFF4D8',border:'#D59A18',txt:'#745000',bdg:'#F4D27B',off:false},
+    {name:'',emoji:'',bg:'#EAF4EA',border:'#57955C',txt:'#24572A',bdg:'#B8DDBA',off:false}
   ]
 };
 
@@ -285,14 +284,33 @@ function gd(uid){return userData(uid)[mk(curY,curM)]||{};}
 function gdAt(uid,y,m){return userData(uid)[mk(y,m)]||{};}
 function sd(d,uid){userData(uid)[mk(curY,curM)]=d;}
 function shifts(uid){return shiftSets[uid||currentUser]||[];}
+function isEnabledShift(s){return !!(s&&String(s.name||'').trim());}
+function activeShiftIndexes(uid){
+  var ss=shifts(uid), a=[];
+  for(var i=0;i<ss.length;i++)if(isEnabledShift(ss[i]))a.push(i+1);
+  return a;
+}
+function activeShiftSets(uid){
+  return activeShiftIndexes(uid).map(function(idx){return {idx:idx,shift:shifts(uid)[idx-1]};});
+}
 function otherUser(uid){return uid==='syue'?'ling':'syue';}
 function defaultShiftIndex(uid,y,m,d){
-  return uid==='ling'&&new Date(y,m-1,d).getDay()===0?1:0;
+  return uid==='ling'&&new Date(y,m-1,d).getDay()===0&&isEnabledShift(shifts('ling')[0])?1:0;
 }
-function shiftIndex(uid,d){return (gd(uid)[d]||defaultShiftIndex(uid,curY,curM,d));}
-function shiftIndexAt(uid,y,m,d){return (gdAt(uid,y,m)[d]||defaultShiftIndex(uid,y,m,d));}
-function isOff(uid,idx){var s=shifts(uid)[idx-1];return !!(s&&s.off);}
-function isOffAt(uid,idx){var s=shiftSets[uid][idx-1];return !!(s&&s.off);}
+function shiftIndex(uid,d){
+  var raw=gd(uid)[d];
+  if(raw===-1)return 0;
+  var idx=raw||defaultShiftIndex(uid,curY,curM,d);
+  return isEnabledShift(shifts(uid)[idx-1])?idx:0;
+}
+function shiftIndexAt(uid,y,m,d){
+  var raw=gdAt(uid,y,m)[d];
+  if(raw===-1)return 0;
+  var idx=raw||defaultShiftIndex(uid,y,m,d);
+  return isEnabledShift(shifts(uid)[idx-1])?idx:0;
+}
+function isOff(uid,idx){var s=shifts(uid)[idx-1];return !!(isEnabledShift(s)&&s.off);}
+function isOffAt(uid,idx){var s=shifts(uid)[idx-1];return !!(isEnabledShift(s)&&s.off);}
 
 var tT;
 function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.className='toast on';clearTimeout(tT);tT=setTimeout(()=>{t.className='toast';},2400);}
@@ -300,6 +318,14 @@ function setDot(state){var d=document.getElementById('syncDot');d.className='sdo
 function genCode(){var chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';var c='';for(var i=0;i<8;i++)c+=chars[Math.floor(Math.random()*chars.length)];return c;}
 function safeHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function normalizeCode(code){return (code||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,20);}
+function ensureShiftSlots(uid){
+  if(!shiftSets[uid])shiftSets[uid]=JSON.parse(JSON.stringify(DEF_SHIFTS[uid]));
+  while(shiftSets[uid].length<4){
+    var base=DEF_SHIFTS[uid][shiftSets[uid].length]||{name:'',emoji:'',bg:'#F5F3EE',border:'#A8A59E',txt:'#6B6860',bdg:'#DDD',off:false};
+    shiftSets[uid].push(JSON.parse(JSON.stringify(base)));
+  }
+  shiftSets[uid]=shiftSets[uid].slice(0,4);
+}
 
 function scheduleWrite(){if(!IS_CONFIGURED||!syncCode)return;clearTimeout(writeTimer);writeTimer=setTimeout(doWrite,600);}
 async function doWrite(){
@@ -315,6 +341,7 @@ function readRemoteDocData(raw){
   else if(raw.allData){try{scheduleData.syue=JSON.parse(raw.allData||'{}');}catch(e){}}
   if(raw.shiftSets){try{var ss=JSON.parse(raw.shiftSets);shiftSets.syue=ss.syue||shiftSets.syue;shiftSets.ling=ss.ling||shiftSets.ling;}catch(e){}}
   else if(raw.shifts){try{var old=JSON.parse(raw.shifts||'null');if(old&&old.length)shiftSets.syue=old.map(s=>Object.assign({off:(s.name||'').includes('休')&&!(s.name||'').includes('加班')},s));}catch(e){}}
+  ensureShiftSlots('syue');ensureShiftSlots('ling');
   profilePins=raw.profilePins||profilePins||{};
 }
 function startListener(code){
@@ -400,10 +427,10 @@ document.getElementById('popupOv').addEventListener('click',function(e){
 function renderLegendPanels(){
   ['syue','ling'].forEach(function(uid){
     var container=document.getElementById('chips'+(uid==='syue'?'Syue':'Ling'));
-    var ss=shifts(uid), h='';
+    var ss=activeShiftSets(uid), h='';
     h+='<div class="chip"><div class="cdot" style="background:var(--t3)"></div>上班</div>';
     for(var i=0;i<ss.length;i++){
-      var s=ss[i];
+      var s=ss[i].shift;
       h+='<div class="chip" style="background:'+s.bg+';border-color:'+s.border+';color:'+s.txt+';animation-delay:'+(i*0.06)+'s"><div class="cdot" style="background:'+s.border+'"></div>'+safeHtml(s.name)+'</div>';
     }
     container.innerHTML=h;
@@ -448,35 +475,37 @@ function pad2(n){return n<10?'0'+n:''+n;}
 function icsDateStr(y,m,d){return y+pad2(m)+pad2(d);}
 function exportICal(){
   var fd=new Date(curY,curM-1,1).getDay(), dim=new Date(curY,curM,0).getDate();
-  var events=[];
+  var uid=currentUser||'syue', u=USERS[uid], events=[];
   for(var d=1;d<=dim;d++){
-    var si=shiftIndex('syue',d), li=shiftIndex('ling',d);
-    if(isOff('syue',si)&&isOff('ling',li)){
+    var idx=shiftIndex(uid,d), sh=idx?shifts(uid)[idx-1]:null;
+    if(sh){
       var start=icsDateStr(curY,curM,d);
       var endD=new Date(curY,curM-1,d+1);
       var end=icsDateStr(endD.getFullYear(),endD.getMonth()+1,endD.getDate());
-      events.push('BEGIN:VEVENT\r\nDTSTART;VALUE=DATE:'+start+'\r\nDTEND;VALUE=DATE:'+end+'\r\nSUMMARY:共同休假 ❤️\r\nDESCRIPTION:學和綾的共同休假日\r\nEND:VEVENT');
+      var syueIdx=shiftIndex('syue',d), lingIdx=shiftIndex('ling',d);
+      var desc=(isOff('syue',syueIdx)&&isOff('ling',lingIdx))?'共同休假':'';
+      events.push('BEGIN:VEVENT\r\nDTSTART;VALUE=DATE:'+start+'\r\nDTEND;VALUE=DATE:'+end+'\r\nSUMMARY:'+u.label+' '+sh.name+'\r\nDESCRIPTION:'+desc+'\r\nEND:VEVENT');
     }
   }
-  if(!events.length){toast('本月沒有共同休假日');return;}
+  if(!events.length){toast(u.label+' 本月沒有可匯出的班別');return;}
   var ics='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//OurSchedule//TW//\r\nCALSCALE:GREGORIAN\r\n'+events.join('\r\n')+'\r\nEND:VCALENDAR';
   var blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});
   var url=URL.createObjectURL(blob);
   var a=document.createElement('a');
-  a.href=url;a.download=curY+'年'+curM+'月_共同休假.ics';
+  a.href=url;a.download=curY+'年'+curM+'月_'+u.label+'的班表.ics';
   document.body.appendChild(a);a.click();
   setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},200);
-  toast('✓ 已匯出 '+events.length+' 天到行事曆');
+  toast('✓ 已匯出 '+u.label+' '+events.length+' 筆班別');
 }
 document.getElementById('icalBtn').onclick=exportICal;
 
 function renderProfileUI(){
   var u=USERS[currentUser]||USERS.syue;
   document.getElementById('appTitle').textContent='我們的班表';
-  document.getElementById('loginName').textContent=currentUser?'登入：'+u.label:'未登入';
+  document.getElementById('userPill').textContent=(currentUser?u.label:'選擇')+' ▾';
+  document.getElementById('loginName').textContent=currentUser?'目前編輯：'+u.label:'未登入';
   document.getElementById('hintUser').textContent=currentUser?u.label:'—';
-  document.getElementById('pSyue').className='profile'+(currentUser==='syue'?' on':'');
-  document.getElementById('pLing').className='profile'+(currentUser==='ling'?' on':'');
+  document.getElementById('icalBtn').textContent='📅 匯出'+(currentUser?u.label:'');
 }
 function dayHtmlFor(uid,d,dow,compact){
   var sidx=shiftIndex(uid,d), sh=sidx?shifts(uid)[sidx-1]:null;
@@ -512,8 +541,11 @@ function render(){
     (function(dd,dw){
       div.addEventListener('click',function(){
         if(!currentUser){showLogin();return;}
-        var cd=gd(currentUser),max=shifts(currentUser).length,start=shiftIndex(currentUser,dd);
-        cd[dd]=(start+1)%(max+1);if(cd[dd]===0)delete cd[dd];
+        var cd=gd(currentUser),active=activeShiftIndexes(currentUser),start=shiftIndex(currentUser,dd),pos=active.indexOf(start);
+        if(!active.length){toast('請先在設定新增班別');return;}
+        var next=pos>=0&&pos<active.length-1?active[pos+1]:0;
+        cd[dd]=next?next:(defaultShiftIndex(currentUser,curY,curM,dd)?-1:0);
+        if(cd[dd]===0)delete cd[dd];
         sd(cd,currentUser);saveAll();render();
         var ns=shiftIndex(currentUser,dd);
         if(ns>0)toast(USERS[currentUser].label+' '+curM+'/'+dd+'（'+DOW[dw]+'）→ '+shifts(currentUser)[ns-1].name);
@@ -551,8 +583,7 @@ function render(){
 document.getElementById('bp').onclick=function(){curM--;if(curM<1){curM=12;curY--;}render();};
 document.getElementById('bn').onclick=function(){curM++;if(curM>12){curM=1;curY++;}render();};
 document.getElementById('bt').onclick=function(){var t=new Date();curY=t.getFullYear();curM=t.getMonth()+1;render();toast('已跳回本月');};
-document.getElementById('pSyue').onclick=function(){showLogin('syue');};
-document.getElementById('pLing').onclick=function(){showLogin('ling');};
+document.getElementById('userPill').onclick=function(){showLogin(currentUser||'syue');};
 function closeOv(id){document.getElementById(id).className='ov';}
 
 function showLogin(uid){
@@ -595,21 +626,21 @@ document.getElementById('bs').onclick=function(){
   if(!currentUser){showLogin();return;}
   var body=document.getElementById('sbS'), ss=shifts(currentUser), u=USERS[currentUser];
   body.innerHTML=`
-    <div style="font-size:12px;color:var(--t2);margin-bottom:10px">目前設定：${u.label}。點色塊換顏色・勾選「休」才會納入共同休假。</div>
+    <div style="font-size:12px;color:var(--t2);margin-bottom:10px">目前設定：${u.label}。名稱留空就不顯示，也不會出現在日期切換裡。</div>
     <div id="srows"></div>
     <button class="ssb" id="saveSB">✓ 儲存 ${u.label} 的班別設定</button>
     <button class="fr-btn2" id="switchLogin" style="margin-top:10px">切換登入身份</button>`;
   var rows=document.getElementById('srows');
   for(var i=0;i<ss.length;i++){
     var row=document.createElement('div');row.className='sr';
-    row.innerHTML='<span style="font-size:12px;color:var(--t3);width:16px">'+(i+1)+'</span><div class="sw" id="sw'+i+'" style="background:'+ss[i].bg+'"><input type="color" value="'+ss[i].border+'" id="cp'+i+'"/></div><input class="ei" id="em'+i+'" value="'+safeHtml(ss[i].emoji)+'" maxlength="2"><input class="ni" id="sn'+i+'" value="'+safeHtml(ss[i].name)+'" maxlength="8"><label style="font-size:12px;color:var(--t2);display:flex;align-items:center;gap:3px"><input type="checkbox" id="off'+i+'" '+(ss[i].off?'checked':'')+'>休</label>';
+    row.innerHTML='<span style="font-size:12px;color:var(--t3);width:16px">'+(i+1)+'</span><div class="sw" id="sw'+i+'" style="background:'+ss[i].bg+'"><input type="color" value="'+ss[i].border+'" id="cp'+i+'"/></div><input class="ei" id="em'+i+'" value="'+safeHtml(ss[i].emoji||'')+'" maxlength="2" placeholder="圖"><input class="ni" id="sn'+i+'" value="'+safeHtml(ss[i].name||'')+'" maxlength="8" placeholder="空白不顯示"><label style="font-size:12px;color:var(--t2);display:flex;align-items:center;gap:3px"><input type="checkbox" id="off'+i+'" '+(ss[i].off?'checked':'')+'>休</label>';
     rows.appendChild(row);
     (function(idx){document.getElementById('cp'+idx).addEventListener('change',function(){var h=this.value,r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);document.getElementById('sw'+idx).style.background='rgba('+r+','+g+','+b+',.18)';});})(i);
   }
   document.getElementById('saveSB').onclick=function(){
     for(var i=0;i<ss.length;i++){
       var h=document.getElementById('cp'+i).value;var r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);
-      ss[i].name=document.getElementById('sn'+i).value.trim()||ss[i].name;ss[i].emoji=document.getElementById('em'+i).value.trim()||ss[i].emoji;ss[i].off=document.getElementById('off'+i).checked;
+      ss[i].name=document.getElementById('sn'+i).value.trim();ss[i].emoji=document.getElementById('em'+i).value.trim();ss[i].off=document.getElementById('off'+i).checked;
       ss[i].bg='rgba('+r+','+g+','+b+',.14)';ss[i].border=h;ss[i].txt='rgb('+Math.round(r*.42)+','+Math.round(g*.42)+','+Math.round(b*.42)+')';ss[i].bdg='rgba('+r+','+g+','+b+',.42)';
     }
     saveAll();closeOv('ovS');render();toast('✓ '+u.label+' 的班別設定已儲存');
@@ -655,6 +686,27 @@ function showSyncSetup(){
   if(!scheduleData.ling)scheduleData.ling={};
   if(!shiftSets.syue)shiftSets.syue=JSON.parse(JSON.stringify(DEF_SHIFTS.syue));
   if(!shiftSets.ling)shiftSets.ling=JSON.parse(JSON.stringify(DEF_SHIFTS.ling));
+  ensureShiftSlots('syue');ensureShiftSlots('ling');
+  var migratedLingDefaults=false;
+  if((shiftSets.ling[1]&&shiftSets.ling[1].name==='綾早班')||(shiftSets.ling[2]&&shiftSets.ling[2].name==='綾晚班')){
+    migratedLingDefaults=true;
+    var oldLing=shiftSets.ling;
+    shiftSets.ling=[
+      oldLing[0]||JSON.parse(JSON.stringify(DEF_SHIFTS.ling[0])),
+      oldLing[2]||JSON.parse(JSON.stringify(DEF_SHIFTS.ling[1])),
+      Object.assign({},oldLing[1]||DEF_SHIFTS.ling[2],{name:'',emoji:'',off:false}),
+      Object.assign({},oldLing[3]||DEF_SHIFTS.ling[3],{name:'',emoji:'',off:false})
+    ];
+  }
+  if(migratedLingDefaults){
+    Object.keys(scheduleData.ling).forEach(function(monthKey){
+      var monthData=scheduleData.ling[monthKey]||{};
+      Object.keys(monthData).forEach(function(dayKey){
+        if(monthData[dayKey]===3)monthData[dayKey]=2;
+        else if(monthData[dayKey]===2||monthData[dayKey]===4)delete monthData[dayKey];
+      });
+    });
+  }
   if(!scheduleData.syue['2026_05']||Object.keys(scheduleData.syue['2026_05']).length===0){
     scheduleData.syue['2026_05']={4:1,9:1,10:2,16:1,17:1,21:1,24:1,25:1,29:1};
   }
