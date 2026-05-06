@@ -582,7 +582,10 @@ function render(){
         if(!currentUser){showLogin();return;}
         var cd=gd(currentUser),active=activeShiftIndexes(currentUser),start=shiftIndex(currentUser,dd),pos=active.indexOf(start);
         if(!active.length){toast('請先在設定新增班別');return;}
-        var next=pos>=0&&pos<active.length-1?active[pos+1]:0;
+        var next;
+        if(pos===-1){next=active[0];}
+        else if(pos<active.length-1){next=active[pos+1];}
+        else{next=0;}
         cd[dd]=next?next:(defaultShiftIndex(currentUser,curY,curM,dd)?-1:0);
         if(cd[dd]===0)delete cd[dd];
         sd(cd,currentUser);saveAll();render();
