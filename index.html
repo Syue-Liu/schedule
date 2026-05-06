@@ -157,6 +157,35 @@ body{background:var(--bg);font-family:-apple-system,'PingFang TC',sans-serif;pad
 .fr-s{font-size:13px;color:var(--t2);line-height:1.8;margin-bottom:22px;}
 .fr-btn{width:100%;padding:14px;background:var(--green);color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:10px;}
 .fr-btn2{width:100%;padding:13px;background:var(--card);color:var(--t2);border:0.5px solid var(--bd2);border-radius:14px;font-size:14px;cursor:pointer;}
+@media (max-width:430px){
+  .hdr{padding:46px 10px 10px;}
+  .top{display:grid;grid-template-columns:1fr auto;grid-template-areas:"left actions" "nav nav";gap:8px 8px;}
+  .hdr-left{grid-area:left;min-width:0;overflow:hidden;}
+  .hdr-actions{grid-area:actions;min-width:0;}
+  .mnav{grid-area:nav;justify-content:center;}
+  .ml{min-width:104px;font-size:16px;}
+  .nb{width:36px;height:34px;}
+  .ib{width:34px;height:34px;}
+  .title-row{min-width:0;}
+  .aname{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .nxt-card{margin:8px 8px 0;padding:10px 12px;gap:8px;}
+  .nxt-icon{font-size:22px;}
+  .nxt-date{font-size:15px;}
+  .ical-btn{padding:7px 8px;font-size:11px;}
+  .lgd-wrap{padding:6px 8px 8px;}
+  .lgd-row{overflow-x:auto;scrollbar-width:none;padding-bottom:1px;}
+  .lgd-row::-webkit-scrollbar{display:none;}
+  .cw{padding:10px 6px 0;}
+  .cg,.wds{gap:3px;}
+  .dc{min-height:58px;padding:6px 1px 5px;border-radius:7px;}
+  .dn{font-size:12px;margin-bottom:4px;}
+  .bg2{font-size:9px;max-width:98%;}
+  .mini{font-size:8px;}
+  .sm{gap:5px;padding:8px 6px 0;}
+  .sc{border-radius:10px;padding:10px 3px;}
+  .sn{font-size:18px;}
+  .sl2{font-size:9px;}
+}
 </style>
 </head>
 <body>
@@ -225,10 +254,6 @@ body{background:var(--bg);font-family:-apple-system,'PingFang TC',sans-serif;pad
 <div class="frov" id="frOv"><div class="frbox" id="frBox"></div></div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, setDoc, onSnapshot, getDoc, serverTimestamp }
-  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
 const FIREBASE_CONFIG = {
   apiKey:            "AIzaSyCOrBO2bs1VmSCUd14bqNJJ2GBeieR2ELo",
   authDomain:        "syue-work-schedule.firebaseapp.com",
@@ -239,10 +264,20 @@ const FIREBASE_CONFIG = {
 };
 
 const IS_CONFIGURED = !Object.values(FIREBASE_CONFIG).some(v => typeof v==='string' && v.startsWith('YOUR_'));
-let db, unsub;
-if (IS_CONFIGURED) {
-  const app = initializeApp(FIREBASE_CONFIG);
-  db = getFirestore(app);
+let db, unsub, doc, setDoc, onSnapshot, getDoc, serverTimestamp;
+let FIREBASE_READY = false;
+async function initFirebase(){
+  if(!IS_CONFIGURED)return;
+  try{
+    var appMod=await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
+    var fsMod=await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    doc=fsMod.doc;setDoc=fsMod.setDoc;onSnapshot=fsMod.onSnapshot;getDoc=fsMod.getDoc;serverTimestamp=fsMod.serverTimestamp;
+    db=fsMod.getFirestore(appMod.initializeApp(FIREBASE_CONFIG));
+    FIREBASE_READY=true;
+  }catch(e){
+    console.warn('Firebase unavailable, using local mode',e);
+    FIREBASE_READY=false;
+  }
 }
 
 var DOW = ['日','一','二','三','四','五','六'];
@@ -327,7 +362,7 @@ function ensureShiftSlots(uid){
   shiftSets[uid]=shiftSets[uid].slice(0,4);
 }
 
-function scheduleWrite(){if(!IS_CONFIGURED||!syncCode)return;clearTimeout(writeTimer);writeTimer=setTimeout(doWrite,600);}
+function scheduleWrite(){if(!FIREBASE_READY||!syncCode)return;clearTimeout(writeTimer);writeTimer=setTimeout(doWrite,600);}
 async function doWrite(){
   if(!db||!syncCode)return;setDot('spin');
   try{
@@ -500,6 +535,10 @@ function exportICal(){
 document.getElementById('icalBtn').onclick=exportICal;
 
 function renderProfileUI(){
+  if(!currentUser){
+    currentUser='syue';
+    lsSet('currentUser',currentUser);
+  }
   var u=USERS[currentUser]||USERS.syue;
   document.getElementById('appTitle').textContent='我們的班表';
   document.getElementById('userPill').textContent=(currentUser?u.label:'選擇')+' ▾';
@@ -539,7 +578,7 @@ function render(){
     else{html+=dayHtmlFor('syue',d,dow,true)+dayHtmlFor('ling',d,dow,true);}
     html+='</div>';div.innerHTML=html;
     (function(dd,dw){
-      div.addEventListener('click',function(){
+      function setDayShift(){
         if(!currentUser){showLogin();return;}
         var cd=gd(currentUser),active=activeShiftIndexes(currentUser),start=shiftIndex(currentUser,dd),pos=active.indexOf(start);
         if(!active.length){toast('請先在設定新增班別');return;}
@@ -549,13 +588,15 @@ function render(){
         sd(cd,currentUser);saveAll();render();
         var ns=shiftIndex(currentUser,dd);
         if(ns>0)toast(USERS[currentUser].label+' '+curM+'/'+dd+'（'+DOW[dw]+'）→ '+shifts(currentUser)[ns-1].name);
-      });
+      }
+      div.addEventListener('click',function(){setDayShift();});
       var pt;
       div.addEventListener('touchstart',function(){pt=setTimeout(function(){
         if(!currentUser)return;var cd=gd(currentUser);
         if(cd[dd]){delete cd[dd];sd(cd,currentUser);saveAll();render();toast(USERS[currentUser].label+' '+curM+'/'+dd+' 已重設');}
       },550);});
       div.addEventListener('touchend',function(){clearTimeout(pt);});
+      div.addEventListener('touchcancel',function(){clearTimeout(pt);});
       div.addEventListener('touchmove',function(){clearTimeout(pt);});
     })(d,dow);
     cg.appendChild(div);
@@ -608,7 +649,7 @@ function showLogin(uid){
   setTimeout(()=>document.getElementById('pinInp').focus(),60);
 }
 async function completeLogin(uid,pin,checkCloud){
-  if(checkCloud&&IS_CONFIGURED&&syncCode){
+  if(checkCloud&&FIREBASE_READY&&syncCode){
     if(pin.length<2){toast('PIN 至少 2 碼');return;}
     setDot('spin');
     try{
@@ -647,10 +688,10 @@ document.getElementById('bs').onclick=function(){
   };
   document.getElementById('switchLogin').onclick=function(){showLogin(otherUser(currentUser));};
   var syncHtml='<div class="sync-div"><div class="sync-title">☁️ 雲端同步</div>';
-  if(!IS_CONFIGURED){syncHtml+='<div class="sync-sub" style="color:#D85A30;">Firebase 尚未設定，目前只存在本機。</div>';}
+  if(!FIREBASE_READY){syncHtml+='<div class="sync-sub" style="color:#D85A30;">目前無法連線同步，仍可在本機新增班表。</div>';}
   else{syncHtml+=`<div class="sync-sub">兩人的手機輸入相同同步代碼，再用自己的身份登入。</div><div class="code-box"><div class="code-txt" id="dispCode">${syncCode||'—'}</div><button class="code-btn" id="cpCodeBtn">複製</button></div><div class="sync-title" style="margin-bottom:8px">切換／加入代碼</div><div class="sync-input-row"><input class="sync-inp" id="syncInp" placeholder="同步代碼" maxlength="20" value=""><button class="sync-join-btn" id="syncJoinBtn">加入</button></div><div class="sync-warn" id="syncWarn"></div>`;}
   syncHtml+='</div>';body.insertAdjacentHTML('beforeend',syncHtml);
-  if(IS_CONFIGURED){
+  if(FIREBASE_READY){
     document.getElementById('cpCodeBtn').onclick=function(){copyText(syncCode);toast('✓ 已複製代碼 '+syncCode);};
     document.getElementById('syncJoinBtn').onclick=function(){var v=normalizeCode(document.getElementById('syncInp').value);if(v.length<2){document.getElementById('syncWarn').textContent='代碼至少 2 位';return;}applySyncCode(v);closeOv('ovS');toast('✓ 已切換到代碼 '+v);};
   }
@@ -664,7 +705,7 @@ function copyText(m){try{navigator.clipboard.writeText(m);}catch(e){var ta=docum
 function showSyncSetup(){
   var box=document.getElementById('frBox'), newCode=genCode();
   document.getElementById('frOv').style.display='flex';
-  if(!IS_CONFIGURED){
+  if(!FIREBASE_READY){
     box.innerHTML=`<div class="fr-icon">☁️</div><div class="fr-t">先用本機班表</div><div class="fr-s">Firebase 沒有設定時，仍可在這台手機使用雙人班表；之後補上設定就能同步。</div><button class="fr-btn" id="localGo">開始使用</button>`;
     document.getElementById('localGo').onclick=function(){syncCode='LOCAL';lsSet('syncCode','LOCAL');document.getElementById('frOv').style.display='none';showLogin('syue');};
     return;
@@ -713,9 +754,12 @@ function showSyncSetup(){
   currentUser=lsGet('currentUser')||'';
   syncCode=lsGet('syncCode')||'';
   saveLocalOnly();render();
-  if(syncCode&&syncCode!=='LOCAL'&&IS_CONFIGURED){startListener(syncCode);document.getElementById('frOv').style.display=currentUser?'none':'none';if(!currentUser)showLogin('syue');}
-  else if(syncCode==='LOCAL'){document.getElementById('frOv').style.display=currentUser?'none':'none';if(!currentUser)showLogin('syue');}
-  else{showSyncSetup();}
+  if(syncCode&&syncCode!=='LOCAL'){
+    document.getElementById('frOv').style.display='none';
+    initFirebase().then(function(){if(FIREBASE_READY)startListener(syncCode);else setDot('');});
+  }
+  else if(syncCode==='LOCAL'){document.getElementById('frOv').style.display='none';}
+  else{syncCode='LOCAL';lsSet('syncCode','LOCAL');document.getElementById('frOv').style.display='none';}
 })();
 </script>
 </body>
