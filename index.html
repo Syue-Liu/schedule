@@ -121,6 +121,19 @@ body{background:var(--bg);font-family:-apple-system,'PingFang TC',sans-serif;pad
 .ht{text-align:center;font-size:11px;color:var(--t3);padding:8px 16px 4px;line-height:1.7;}
 .toast{position:fixed;bottom:98px;left:50%;transform:translateX(-50%) translateY(10px);background:rgba(28,27,24,.92);color:#fff;font-size:13px;padding:9px 18px;border-radius:20px;pointer-events:none;opacity:0;transition:opacity .2s,transform .2s;white-space:nowrap;z-index:200;}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* Change notification bar */
+.chg-bar{position:fixed;bottom:0;left:0;right:0;z-index:30;transform:translateY(100%);transition:transform .35s cubic-bezier(.34,1.56,.64,1);pointer-events:none;}
+.chg-bar.show{transform:translateY(0);pointer-events:auto;}
+.chg-inner{margin:0 10px 12px;padding:12px 14px;background:rgba(28,27,24,.94);border-radius:16px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 30px rgba(0,0,0,.25);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);}
+.chg-info{flex:1;min-width:0;}
+.chg-title{font-size:13px;font-weight:700;color:#fff;}
+.chg-sub{font-size:11px;color:rgba(255,255,255,.6);margin-top:2px;}
+.chg-btns{display:flex;gap:6px;flex-shrink:0;}
+.chg-send{padding:8px 14px;background:#25D366;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap;}
+.chg-send:active{opacity:.8;}
+.chg-dismiss{width:30px;height:30px;background:rgba(255,255,255,.15);border:none;border-radius:50%;color:rgba(255,255,255,.6);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.chg-dismiss:active{background:rgba(255,255,255,.25);}
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;display:none;align-items:flex-end;}
 .ov.on{display:flex;}
 .sh{background:var(--card);width:100%;border-radius:20px 20px 0 0;padding:0 0 32px;max-height:90vh;display:flex;flex-direction:column;}
@@ -251,6 +264,18 @@ body{background:var(--bg);font-family:-apple-system,'PingFang TC',sans-serif;pad
 <div class="ov" id="ovS"><div class="sh"><div class="hdl"></div><div class="shd"><div class="sht">⚙️ 設定</div><button class="shc" id="csS">✕</button></div><div class="shb" id="sbS"></div></div></div>
 <div class="popup-ov" id="popupOv"><div class="popup-card" id="popupCard"></div></div>
 <div class="toast" id="toast"></div>
+<div class="chg-bar" id="chgBar">
+  <div class="chg-inner">
+    <div class="chg-info">
+      <div class="chg-title" id="chgTitle">已修改 0 處</div>
+      <div class="chg-sub" id="chgSub">點擊通知另一半</div>
+    </div>
+    <div class="chg-btns">
+      <button class="chg-send" id="chgSend">📢 通知</button>
+      <button class="chg-dismiss" id="chgDismiss">✕</button>
+    </div>
+  </div>
+</div>
 <div class="frov" id="frOv"><div class="frbox" id="frBox"></div></div>
 
 <script type="module">
@@ -310,6 +335,7 @@ var writeTimer = null;
 var isRemoteUpdate = false;
 var selectedLoginUser = 'syue';
 var expandState = {syue:false, ling:false};
+var pendingChanges = []; // [{uid, y, m, d, dow, oldName, newName, time}]
 
 function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
 function lsSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
@@ -390,6 +416,74 @@ function saveLocalOnly(){lsSet('scheduleDataV2',JSON.stringify(scheduleData));ls
 function saveAll(){saveLocalOnly();if(!isRemoteUpdate)scheduleWrite();}
 function applySyncCode(code){code=normalizeCode(code);syncCode=code;lsSet('syncCode',code);startListener(code);}
 
+/* ── Change tracking ── */
+function loadChanges(){try{var r=lsGet('pendingChanges');if(r)pendingChanges=JSON.parse(r);}catch(e){pendingChanges=[];}}
+function saveChanges(){lsSet('pendingChanges',JSON.stringify(pendingChanges));}
+
+function shiftLabel(uid,idx){
+  if(!idx)return '上班';
+  var sh=shifts(uid)[idx-1];
+  return (sh&&sh.name)?sh.name:'上班';
+}
+
+function recordChange(uid,y,m,d,dow,oldIdx,newIdx){
+  var oldName=shiftLabel(uid,oldIdx);
+  var newName=shiftLabel(uid,newIdx);
+  if(oldName===newName)return;
+  // Deduplicate: if same date already changed, update it
+  for(var i=0;i<pendingChanges.length;i++){
+    var c=pendingChanges[i];
+    if(c.uid===uid&&c.y===y&&c.m===m&&c.d===d){
+      c.newName=newName;
+      c.time=new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+      // If changed back to original, remove
+      if(c.oldName===c.newName){pendingChanges.splice(i,1);}
+      saveChanges();renderChgBar();return;
+    }
+  }
+  pendingChanges.push({uid:uid,y:y,m:m,d:d,dow:DOW[dow],oldName:oldName,newName:newName,
+    time:new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})});
+  saveChanges();renderChgBar();
+}
+
+function renderChgBar(){
+  var bar=document.getElementById('chgBar');
+  if(!pendingChanges.length){bar.classList.remove('show');return;}
+  bar.classList.add('show');
+  var n=pendingChanges.length;
+  var who=currentUser?USERS[currentUser].label:'';
+  document.getElementById('chgTitle').textContent=(who?who+'：':'')+'已修改 '+n+' 處';
+  var latest=pendingChanges[pendingChanges.length-1];
+  document.getElementById('chgSub').textContent=latest.m+'/'+latest.d+'（'+latest.dow+'）'+latest.oldName+' → '+latest.newName;
+}
+
+function buildChangeMsg(){
+  if(!pendingChanges.length)return '';
+  var who=pendingChanges[0].uid?USERS[pendingChanges[0].uid].label:'';
+  var ym=pendingChanges[0].y+'年'+pendingChanges[0].m+'月';
+  var msg='📢 '+who+' 剛更新了 '+ym+' 班表\n\n';
+  msg+='✏️ 變更內容：\n';
+  for(var i=0;i<pendingChanges.length;i++){
+    var c=pendingChanges[i];
+    msg+='  '+c.m+'/'+c.d+'（'+c.dow+'）'+c.oldName+' → '+c.newName+'\n';
+  }
+  msg+='\n⏰ 更新時間：'+pendingChanges[pendingChanges.length-1].time;
+  return msg;
+}
+
+function sendChangeNotification(){
+  var msg=buildChangeMsg();
+  if(!msg){toast('沒有待通知的變更');return;}
+  window.location.href='whatsapp://send?text='+encodeURIComponent(msg);
+  pendingChanges=[];saveChanges();
+  setTimeout(function(){renderChgBar();},500);
+}
+
+function dismissChanges(){
+  pendingChanges=[];saveChanges();renderChgBar();
+  toast('已清除變更記錄');
+}
+
 /* ── Toggle panels (iOS-style) ── */
 window.togglePanel = function(uid){
   expandState[uid]=!expandState[uid];
@@ -458,6 +552,8 @@ window.closePopup = function(){
 document.getElementById('popupOv').addEventListener('click',function(e){
   if(e.target===this)closePopup();
 });
+document.getElementById('chgSend').onclick=sendChangeNotification;
+document.getElementById('chgDismiss').onclick=dismissChanges;
 
 function renderLegendPanels(){
   ['syue','ling'].forEach(function(uid){
@@ -608,21 +704,24 @@ function render(){
         if(!currentUser){showUserPicker();return;}
         var cd=gd(currentUser),active=activeShiftIndexes(currentUser),start=shiftIndex(currentUser,dd),pos=active.indexOf(start);
         if(!active.length){toast('請先在設定新增班別');return;}
+        var oldIdx=start;
         var next;
         if(pos===-1){next=active[0];}
         else if(pos<active.length-1){next=active[pos+1];}
         else{next=0;}
         cd[dd]=next?next:(defaultShiftIndex(currentUser,curY,curM,dd)?-1:0);
         if(cd[dd]===0)delete cd[dd];
-        sd(cd,currentUser);saveAll();render();
-        var ns=shiftIndex(currentUser,dd);
-        if(ns>0)toast(USERS[currentUser].label+' '+curM+'/'+dd+'（'+DOW[dw]+'）→ '+shifts(currentUser)[ns-1].name);
+        sd(cd,currentUser);saveAll();
+        var newIdx=shiftIndex(currentUser,dd);
+        recordChange(currentUser,curY,curM,dd,dw,oldIdx,newIdx);
+        render();
+        if(newIdx>0)toast(USERS[currentUser].label+' '+curM+'/'+dd+'（'+DOW[dw]+'）→ '+shifts(currentUser)[newIdx-1].name);
       }
       div.addEventListener('click',function(){setDayShift();});
       var pt;
       div.addEventListener('touchstart',function(){pt=setTimeout(function(){
         if(!currentUser)return;var cd=gd(currentUser);
-        if(cd[dd]){delete cd[dd];sd(cd,currentUser);saveAll();render();toast(USERS[currentUser].label+' '+curM+'/'+dd+' 已重設');}
+        if(cd[dd]){var oldIdx=shiftIndex(currentUser,dd);delete cd[dd];sd(cd,currentUser);saveAll();var newIdx=shiftIndex(currentUser,dd);recordChange(currentUser,curY,curM,dd,dw,oldIdx,newIdx);render();toast(USERS[currentUser].label+' '+curM+'/'+dd+' 已重設');}
       },550);});
       div.addEventListener('touchend',function(){clearTimeout(pt);});
       div.addEventListener('touchcancel',function(){clearTimeout(pt);});
@@ -801,7 +900,8 @@ function showSyncSetup(){
   }
   currentUser=lsGet('currentUser')||'';
   syncCode=lsGet('syncCode')||'';
-  saveLocalOnly();render();
+  loadChanges();
+  saveLocalOnly();render();renderChgBar();
   if(syncCode&&syncCode!=='LOCAL'){
     document.getElementById('frOv').style.display='none';
     initFirebase().then(function(){if(FIREBASE_READY)startListener(syncCode);else setDot('');});
