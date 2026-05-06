@@ -246,7 +246,7 @@ body{background:var(--bg);font-family:-apple-system,'PingFang TC',sans-serif;pad
   <div class="cg" id="cg"></div>
 </div>
 <div class="sm" id="sm"></div>
-<div class="ht">目前編輯：<span id="hintUser">—</span>・點日期切換自己的班別・兩人同休會自動合併</div>
+<div class="ht"><span id="hintText"></span></div>
 
 <div class="ov" id="ovS"><div class="sh"><div class="hdl"></div><div class="shd"><div class="sht">⚙️ 設定</div><button class="shc" id="csS">✕</button></div><div class="shb" id="sbS"></div></div></div>
 <div class="popup-ov" id="popupOv"><div class="popup-card" id="popupCard"></div></div>
@@ -510,41 +510,57 @@ function pad2(n){return n<10?'0'+n:''+n;}
 function icsDateStr(y,m,d){return y+pad2(m)+pad2(d);}
 function exportICal(){
   var fd=new Date(curY,curM-1,1).getDay(), dim=new Date(curY,curM,0).getDate();
-  var uid=currentUser||'syue', u=USERS[uid], events=[];
-  for(var d=1;d<=dim;d++){
-    var idx=shiftIndex(uid,d), sh=idx?shifts(uid)[idx-1]:null;
-    if(sh){
-      var start=icsDateStr(curY,curM,d);
-      var endD=new Date(curY,curM-1,d+1);
-      var end=icsDateStr(endD.getFullYear(),endD.getMonth()+1,endD.getDate());
+  var isOverview=!currentUser;
+  var events=[];
+  if(isOverview){
+    // Overview mode: export common rest days
+    for(var d=1;d<=dim;d++){
       var syueIdx=shiftIndex('syue',d), lingIdx=shiftIndex('ling',d);
-      var desc=(isOff('syue',syueIdx)&&isOff('ling',lingIdx))?'共同休假':'';
-      events.push('BEGIN:VEVENT\r\nDTSTART;VALUE=DATE:'+start+'\r\nDTEND;VALUE=DATE:'+end+'\r\nSUMMARY:'+u.label+' '+sh.name+'\r\nDESCRIPTION:'+desc+'\r\nEND:VEVENT');
+      if(isOff('syue',syueIdx)&&isOff('ling',lingIdx)){
+        var start=icsDateStr(curY,curM,d);
+        var endD=new Date(curY,curM-1,d+1);
+        var end=icsDateStr(endD.getFullYear(),endD.getMonth()+1,endD.getDate());
+        events.push('BEGIN:VEVENT\r\nDTSTART;VALUE=DATE:'+start+'\r\nDTEND;VALUE=DATE:'+end+'\r\nSUMMARY:共同休假 ❤️\r\nDESCRIPTION:學和綾的共同休假日\r\nEND:VEVENT');
+      }
     }
+    if(!events.length){toast('本月沒有共同休假');return;}
+  }else{
+    var uid=currentUser, u=USERS[uid];
+    for(var d=1;d<=dim;d++){
+      var idx=shiftIndex(uid,d), sh=idx?shifts(uid)[idx-1]:null;
+      if(sh){
+        var start=icsDateStr(curY,curM,d);
+        var endD=new Date(curY,curM-1,d+1);
+        var end=icsDateStr(endD.getFullYear(),endD.getMonth()+1,endD.getDate());
+        var syueIdx=shiftIndex('syue',d), lingIdx=shiftIndex('ling',d);
+        var desc=(isOff('syue',syueIdx)&&isOff('ling',lingIdx))?'共同休假':'';
+        events.push('BEGIN:VEVENT\r\nDTSTART;VALUE=DATE:'+start+'\r\nDTEND;VALUE=DATE:'+end+'\r\nSUMMARY:'+u.label+' '+sh.name+'\r\nDESCRIPTION:'+desc+'\r\nEND:VEVENT');
+      }
+    }
+    if(!events.length){toast(u.label+' 本月沒有可匯出的班別');return;}
   }
-  if(!events.length){toast(u.label+' 本月沒有可匯出的班別');return;}
   var ics='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//OurSchedule//TW//\r\nCALSCALE:GREGORIAN\r\n'+events.join('\r\n')+'\r\nEND:VCALENDAR';
   var blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});
   var url=URL.createObjectURL(blob);
   var a=document.createElement('a');
-  a.href=url;a.download=curY+'年'+curM+'月_'+u.label+'的班表.ics';
+  var fname=isOverview?curY+'年'+curM+'月_共同休假.ics':curY+'年'+curM+'月_'+USERS[currentUser].label+'的班表.ics';
+  a.href=url;a.download=fname;
   document.body.appendChild(a);a.click();
   setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},200);
-  toast('✓ 已匯出 '+u.label+' '+events.length+' 筆班別');
+  toast('✓ 已匯出 '+events.length+' 筆'+(isOverview?'共同休假':USERS[currentUser].label+' 班別'));
 }
 document.getElementById('icalBtn').onclick=exportICal;
 
 function renderProfileUI(){
-  if(!currentUser){
-    currentUser='syue';
-    lsSet('currentUser',currentUser);
-  }
-  var u=USERS[currentUser]||USERS.syue;
+  var isOverview=!currentUser;
+  var u=isOverview?null:(USERS[currentUser]||USERS.syue);
   document.getElementById('appTitle').textContent='我們的班表';
-  document.getElementById('userPill').textContent=(currentUser?u.label:'選擇')+' ▾';
-  document.getElementById('loginName').textContent=currentUser?'目前編輯：'+u.label:'未登入';
-  document.getElementById('hintUser').textContent=currentUser?u.label:'—';
-  document.getElementById('icalBtn').textContent='📅 匯出'+(currentUser?u.label:'');
+  document.getElementById('userPill').textContent=isOverview?'總表 ▾':u.label+' ✎ ▾';
+  document.getElementById('userPill').style.background=isOverview?'var(--bg)':(currentUser==='syue'?'rgba(55,138,221,.12)':'rgba(196,91,138,.12)');
+  document.getElementById('userPill').style.color=isOverview?'var(--t2)':(currentUser==='syue'?'#185FA5':'#7A2449');
+  document.getElementById('loginName').textContent=isOverview?'瀏覽模式・點擊切換編輯':'編輯中：'+u.label;
+  document.getElementById('hintText').innerHTML=isOverview?'👀 瀏覽模式・點上方 <b>總表</b> 切換為編輯模式':'目前編輯：<b>'+u.label+'</b>・點日期切換班別・兩人同休會自動合併';
+  document.getElementById('icalBtn').textContent=isOverview?'📅 匯出':'📅 匯出'+u.label;
 }
 function dayHtmlFor(uid,d,dow,compact){
   var sidx=shiftIndex(uid,d), sh=sidx?shifts(uid)[sidx-1]:null;
@@ -579,7 +595,7 @@ function render(){
     html+='</div>';div.innerHTML=html;
     (function(dd,dw){
       function setDayShift(){
-        if(!currentUser){showLogin();return;}
+        if(!currentUser){showUserPicker();return;}
         var cd=gd(currentUser),active=activeShiftIndexes(currentUser),start=shiftIndex(currentUser,dd),pos=active.indexOf(start);
         if(!active.length){toast('請先在設定新增班別');return;}
         var next;
@@ -627,7 +643,22 @@ function render(){
 document.getElementById('bp').onclick=function(){curM--;if(curM<1){curM=12;curY--;}render();};
 document.getElementById('bn').onclick=function(){curM++;if(curM>12){curM=1;curY++;}render();};
 document.getElementById('bt').onclick=function(){var t=new Date();curY=t.getFullYear();curM=t.getMonth()+1;render();toast('已跳回本月');};
-document.getElementById('userPill').onclick=function(){showLogin(currentUser||'syue');};
+document.getElementById('userPill').onclick=function(){showUserPicker();};
+function showUserPicker(){
+  var body=document.getElementById('sbS');
+  body.innerHTML=`
+    <div style="font-size:13px;color:var(--t2);margin-bottom:14px;text-align:center">選擇模式</div>
+    <div style="display:flex;flex-direction:column;gap:8px" id="pickerBtns">
+      <button class="person-card ${!currentUser?'on':''}" id="pickOverview" style="display:flex;align-items:center;justify-content:center;gap:8px">👀 總表瀏覽</button>
+      <button class="person-card ${currentUser==='syue'?'on':''}" id="pickSyue" style="display:flex;align-items:center;justify-content:center;gap:8px">✏️ 編輯 學 的班表</button>
+      <button class="person-card ${currentUser==='ling'?'on':''}" id="pickLing" style="display:flex;align-items:center;justify-content:center;gap:8px">✏️ 編輯 綾 的班表</button>
+    </div>
+    <div style="font-size:11px;color:var(--t3);margin-top:12px;text-align:center;line-height:1.6">總表模式只看不能改<br>選編輯模式才能修改班別</div>`;
+  document.getElementById('pickOverview').onclick=function(){currentUser='';lsSet('currentUser','');closeOv('ovS');render();toast('已切換為總表瀏覽');};
+  document.getElementById('pickSyue').onclick=function(){currentUser='syue';lsSet('currentUser','syue');closeOv('ovS');render();toast('已切換為編輯 學');};
+  document.getElementById('pickLing').onclick=function(){currentUser='ling';lsSet('currentUser','ling');closeOv('ovS');render();toast('已切換為編輯 綾');};
+  document.getElementById('ovS').className='ov on';
+}
 function closeOv(id){document.getElementById(id).className='ov';}
 
 function showLogin(uid){
@@ -642,11 +673,13 @@ function showLogin(uid){
     <div class="login-copy">第一次登入某個身份時，輸入一組自己記得的 PIN。之後在其他手機用同一個同步代碼登入同一身份，就要輸入這組 PIN。</div>
     <input class="fr-inp" id="pinInp" maxlength="12" inputmode="numeric" placeholder="${u.label} 的 PIN" autocomplete="off">
     <button class="login-btn" id="loginGo">登入 ${u.label}</button>
-    <button class="fr-btn2" id="loginLocal" style="margin-top:10px">只在這台手機切換身份</button>`;
+    <button class="fr-btn2" id="loginLocal" style="margin-top:10px">只在這台手機切換身份</button>
+    <button class="fr-btn2" id="loginOverview" style="margin-top:8px">👀 回到總表瀏覽</button>`;
   document.getElementById('loginSyue').onclick=function(){showLogin('syue');};
   document.getElementById('loginLing').onclick=function(){showLogin('ling');};
   document.getElementById('loginGo').onclick=function(){completeLogin(selectedLoginUser,document.getElementById('pinInp').value.trim(),true);};
   document.getElementById('loginLocal').onclick=function(){completeLogin(selectedLoginUser,document.getElementById('pinInp').value.trim(),false);};
+  document.getElementById('loginOverview').onclick=function(){currentUser='';lsSet('currentUser','');closeOv('ovS');render();toast('已切換為總表瀏覽');};
   document.getElementById('pinInp').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('loginGo').click();});
   document.getElementById('ovS').className='ov on';
   setTimeout(()=>document.getElementById('pinInp').focus(),60);
@@ -667,13 +700,14 @@ async function completeLogin(uid,pin,checkCloud){
 }
 
 document.getElementById('bs').onclick=function(){
-  if(!currentUser){showLogin();return;}
+  if(!currentUser){showUserPicker();return;}
   var body=document.getElementById('sbS'), ss=shifts(currentUser), u=USERS[currentUser];
   body.innerHTML=`
     <div style="font-size:12px;color:var(--t2);margin-bottom:10px">目前設定：${u.label}。名稱留空就不顯示，也不會出現在日期切換裡。</div>
     <div id="srows"></div>
     <button class="ssb" id="saveSB">✓ 儲存 ${u.label} 的班別設定</button>
-    <button class="fr-btn2" id="switchLogin" style="margin-top:10px">切換登入身份</button>`;
+    <button class="fr-btn2" id="switchLogin" style="margin-top:10px">切換登入身份</button>
+    <button class="fr-btn2" id="backOverview" style="margin-top:8px">👀 回到總表瀏覽</button>`;
   var rows=document.getElementById('srows');
   for(var i=0;i<ss.length;i++){
     var row=document.createElement('div');row.className='sr';
@@ -690,6 +724,7 @@ document.getElementById('bs').onclick=function(){
     saveAll();closeOv('ovS');render();toast('✓ '+u.label+' 的班別設定已儲存');
   };
   document.getElementById('switchLogin').onclick=function(){showLogin(otherUser(currentUser));};
+  document.getElementById('backOverview').onclick=function(){currentUser='';lsSet('currentUser','');closeOv('ovS');render();toast('已切換為總表瀏覽');};
   var syncHtml='<div class="sync-div"><div class="sync-title">☁️ 雲端同步</div>';
   if(!FIREBASE_READY){syncHtml+='<div class="sync-sub" style="color:#D85A30;">目前無法連線同步，仍可在本機新增班表。</div>';}
   else{syncHtml+=`<div class="sync-sub">兩人的手機輸入相同同步代碼，再用自己的身份登入。</div><div class="code-box"><div class="code-txt" id="dispCode">${syncCode||'—'}</div><button class="code-btn" id="cpCodeBtn">複製</button></div><div class="sync-title" style="margin-bottom:8px">切換／加入代碼</div><div class="sync-input-row"><input class="sync-inp" id="syncInp" placeholder="同步代碼" maxlength="20" value=""><button class="sync-join-btn" id="syncJoinBtn">加入</button></div><div class="sync-warn" id="syncWarn"></div>`;}
