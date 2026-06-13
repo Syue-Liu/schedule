@@ -11,7 +11,7 @@
 <style>
 :root{--bg:#F5F3EE;--card:#FFF;--bd:rgba(0,0,0,0.09);--bd2:rgba(0,0,0,0.15);--t:#1C1B18;--t2:#6B6860;--t3:#A8A59E;--green:#639922;--blue:#378ADD;--pink:#C45B8A;--common:#E3654F;}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-body{background:var(--bg);font-family:-apple-system,'PingFang TC',sans-serif;padding-bottom:24px;color:var(--t);}
+body{background:var(--bg);font-family:-apple-system,'PingFang TC',sans-serif;padding-bottom:24px;color:var(--t);touch-action:manipulation;overscroll-behavior-y:contain;}
 .hdr{background:var(--card);border-bottom:0.5px solid var(--bd);padding:50px 14px 10px;position:sticky;top:0;z-index:10;}
 .top{display:flex;align-items:center;justify-content:space-between;gap:10px;}
 .hdr-left{display:flex;align-items:center;gap:7px;min-width:84px;}
@@ -388,20 +388,38 @@ function ensureShiftSlots(uid){
   shiftSets[uid]=shiftSets[uid].slice(0,4);
 }
 
-function scheduleWrite(){if(!FIREBASE_READY||!syncCode)return;clearTimeout(writeTimer);writeTimer=setTimeout(doWrite,600);}
+var dirtyUids={};
+function scheduleWrite(uid){if(!FIREBASE_READY||!syncCode)return;if(uid)dirtyUids[uid]=true;clearTimeout(writeTimer);writeTimer=setTimeout(doWrite,600);}
 async function doWrite(){
   if(!db||!syncCode)return;setDot('spin');
+  var uids=Object.keys(dirtyUids);dirtyUids={};
   try{
-    await setDoc(doc(db,'banbiao',syncCode),{version:2,scheduleData:JSON.stringify(scheduleData),shiftSets:JSON.stringify(shiftSets),profilePins:profilePins,updatedAt:serverTimestamp()},{merge:true});
+    // v3：每人各自一個欄位，只寫自己改過的人，兩人同時編輯不會互相覆蓋
+    var payload={version:3,profilePins:profilePins,updatedAt:serverTimestamp()};
+    if(!uids.length)uids=['syue','ling'];
+    uids.forEach(function(u){
+      payload['sd_'+u]=JSON.stringify(scheduleData[u]||{});
+      payload['ss_'+u]=JSON.stringify(shiftSets[u]||[]);
+    });
+    await setDoc(doc(db,'banbiao',syncCode),payload,{merge:true});
     setDot('ok');
-  }catch(e){console.error('write error',e);setDot('err');}
+  }catch(e){console.error('write error',e);uids.forEach(function(u){dirtyUids[u]=true;});setDot('err');}
 }
 function readRemoteDocData(raw){
   if(!raw)return;
-  if(raw.scheduleData){try{var r=JSON.parse(raw.scheduleData);scheduleData={syue:r.syue||{},ling:r.ling||{}};}catch(e){}}
-  else if(raw.allData){try{scheduleData.syue=JSON.parse(raw.allData||'{}');}catch(e){}}
-  if(raw.shiftSets){try{var ss=JSON.parse(raw.shiftSets);shiftSets.syue=ss.syue||shiftSets.syue;shiftSets.ling=ss.ling||shiftSets.ling;}catch(e){}}
-  else if(raw.shifts){try{var old=JSON.parse(raw.shifts||'null');if(old&&old.length)shiftSets.syue=old.map(s=>Object.assign({off:(s.name||'').includes('休')&&!(s.name||'').includes('加班')},s));}catch(e){}}
+  // v3：每人各自欄位（優先）
+  var hasV3=raw.sd_syue!==undefined||raw.sd_ling!==undefined;
+  if(hasV3){
+    ['syue','ling'].forEach(function(u){
+      if(raw['sd_'+u]!==undefined){try{scheduleData[u]=JSON.parse(raw['sd_'+u])||{};}catch(e){}}
+      if(raw['ss_'+u]!==undefined){try{var s=JSON.parse(raw['ss_'+u]);if(s&&s.length)shiftSets[u]=s;}catch(e){}}
+    });
+  }
+  // v2 與更舊格式（向下相容）
+  if(!hasV3&&raw.scheduleData){try{var r=JSON.parse(raw.scheduleData);scheduleData={syue:r.syue||{},ling:r.ling||{}};}catch(e){}}
+  else if(!hasV3&&raw.allData){try{scheduleData.syue=JSON.parse(raw.allData||'{}');}catch(e){}}
+  if(!hasV3&&raw.shiftSets){try{var ss=JSON.parse(raw.shiftSets);shiftSets.syue=ss.syue||shiftSets.syue;shiftSets.ling=ss.ling||shiftSets.ling;}catch(e){}}
+  else if(!hasV3&&raw.shifts){try{var old=JSON.parse(raw.shifts||'null');if(old&&old.length)shiftSets.syue=old.map(s=>Object.assign({off:(s.name||'').includes('休')&&!(s.name||'').includes('加班')},s));}catch(e){}}
   ensureShiftSlots('syue');ensureShiftSlots('ling');
   profilePins=raw.profilePins||profilePins||{};
 }
@@ -413,7 +431,7 @@ function startListener(code){
   },err=>{console.error('listener error',err);setDot('err');});
 }
 function saveLocalOnly(){lsSet('scheduleDataV2',JSON.stringify(scheduleData));lsSet('shiftSetsV2',JSON.stringify(shiftSets));lsSet('profilePinsV2',JSON.stringify(profilePins));}
-function saveAll(){saveLocalOnly();if(!isRemoteUpdate)scheduleWrite();}
+function saveAll(uid){saveLocalOnly();if(!isRemoteUpdate)scheduleWrite(uid||currentUser);}
 function applySyncCode(code){code=normalizeCode(code);syncCode=code;lsSet('syncCode',code);startListener(code);}
 
 /* ── Change tracking ── */
@@ -459,14 +477,22 @@ function renderChgBar(){
 
 function buildChangeMsg(){
   if(!pendingChanges.length)return '';
-  var who=pendingChanges[0].uid?USERS[pendingChanges[0].uid].label:'';
-  var ym=pendingChanges[0].y+'年'+pendingChanges[0].m+'月';
-  var msg='📢 '+who+' 剛更新了 '+ym+' 班表\n\n';
-  msg+='✏️ 變更內容：\n';
-  for(var i=0;i<pendingChanges.length;i++){
-    var c=pendingChanges[i];
-    msg+='  '+c.m+'/'+c.d+'（'+c.dow+'）'+c.oldName+' → '+c.newName+'\n';
-  }
+  // 依「人＋月份」分組，避免跨人或跨月時訊息標題錯誤
+  var groups={},order=[];
+  pendingChanges.forEach(function(c){
+    var k=c.uid+'_'+c.y+'_'+c.m;
+    if(!groups[k]){groups[k]=[];order.push(k);}
+    groups[k].push(c);
+  });
+  var msg='📢 班表更新通知\n';
+  order.forEach(function(k){
+    var arr=groups[k],f=arr[0];
+    var who=f.uid?USERS[f.uid].label:'';
+    msg+='\n✏️ '+who+'（'+f.y+'年'+f.m+'月）\n';
+    arr.forEach(function(c){
+      msg+='  '+c.m+'/'+c.d+'（'+c.dow+'）'+c.oldName+' → '+c.newName+'\n';
+    });
+  });
   msg+='\n⏰ 更新時間：'+pendingChanges[pendingChanges.length-1].time;
   return msg;
 }
@@ -474,7 +500,7 @@ function buildChangeMsg(){
 function sendChangeNotification(){
   var msg=buildChangeMsg();
   if(!msg){toast('沒有待通知的變更');return;}
-  window.location.href='whatsapp://send?text='+encodeURIComponent(msg);
+  window.location.href='https://wa.me/?text='+encodeURIComponent(msg);
   pendingChanges=[];saveChanges();
   setTimeout(function(){renderChgBar();},500);
 }
@@ -604,6 +630,11 @@ function renderNextCard(){
 /* ── iCal export ── */
 function pad2(n){return n<10?'0'+n:''+n;}
 function icsDateStr(y,m,d){return y+pad2(m)+pad2(d);}
+function escICS(s){return String(s||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\r?\n/g,'\\n');}
+function icsStamp(){var n=new Date();return n.getUTCFullYear()+pad2(n.getUTCMonth()+1)+pad2(n.getUTCDate())+'T'+pad2(n.getUTCHours())+pad2(n.getUTCMinutes())+pad2(n.getUTCSeconds())+'Z';}
+function vevent(start,end,summary,desc,uidKey){
+  return 'BEGIN:VEVENT\r\nUID:'+uidKey+'@ourschedule\r\nDTSTAMP:'+icsStamp()+'\r\nDTSTART;VALUE=DATE:'+start+'\r\nDTEND;VALUE=DATE:'+end+'\r\nSUMMARY:'+escICS(summary)+'\r\nDESCRIPTION:'+escICS(desc)+'\r\nEND:VEVENT';
+}
 function exportICal(){
   var fd=new Date(curY,curM-1,1).getDay(), dim=new Date(curY,curM,0).getDate();
   var isOverview=!currentUser;
@@ -619,13 +650,13 @@ function exportICal(){
       var lingSh=lingIdx?shifts('ling')[lingIdx-1]:null;
       var isCommon=isOff('syue',syueIdx)&&isOff('ling',lingIdx);
       if(isCommon){
-        events.push('BEGIN:VEVENT\r\nDTSTART;VALUE=DATE:'+start+'\r\nDTEND;VALUE=DATE:'+end+'\r\nSUMMARY:❤️ 共同休假\r\nDESCRIPTION:學：'+(syueSh?syueSh.name:'上班')+'\\n綾：'+(lingSh?lingSh.name:'上班')+'\r\nEND:VEVENT');
+        events.push(vevent(start,end,'❤️ 共同休假','學：'+(syueSh?syueSh.name:'上班')+'\n綾：'+(lingSh?lingSh.name:'上班'),start+'-common'));
       }else{
         if(syueSh){
-          events.push('BEGIN:VEVENT\r\nDTSTART;VALUE=DATE:'+start+'\r\nDTEND;VALUE=DATE:'+end+'\r\nSUMMARY:學 '+syueSh.name+'\r\nDESCRIPTION:\r\nEND:VEVENT');
+          events.push(vevent(start,end,'學 '+syueSh.name,'',start+'-syue'));
         }
         if(lingSh){
-          events.push('BEGIN:VEVENT\r\nDTSTART;VALUE=DATE:'+start+'\r\nDTEND;VALUE=DATE:'+end+'\r\nSUMMARY:綾 '+lingSh.name+'\r\nDESCRIPTION:\r\nEND:VEVENT');
+          events.push(vevent(start,end,'綾 '+lingSh.name,'',start+'-ling'));
         }
       }
     }
@@ -640,7 +671,7 @@ function exportICal(){
         var end=icsDateStr(endD.getFullYear(),endD.getMonth()+1,endD.getDate());
         var syueIdx=shiftIndex('syue',d), lingIdx=shiftIndex('ling',d);
         var desc=(isOff('syue',syueIdx)&&isOff('ling',lingIdx))?'共同休假':'';
-        events.push('BEGIN:VEVENT\r\nDTSTART;VALUE=DATE:'+start+'\r\nDTEND;VALUE=DATE:'+end+'\r\nSUMMARY:'+u.label+' '+sh.name+'\r\nDESCRIPTION:'+desc+'\r\nEND:VEVENT');
+        events.push(vevent(start,end,u.label+' '+sh.name,desc,start+'-'+uid));
       }
     }
     if(!events.length){toast(u.label+' 本月沒有可匯出的班別');return;}
@@ -717,11 +748,13 @@ function render(){
         render();
         if(newIdx>0)toast(USERS[currentUser].label+' '+curM+'/'+dd+'（'+DOW[dw]+'）→ '+shifts(currentUser)[newIdx-1].name);
       }
-      div.addEventListener('click',function(){setDayShift();});
+      var longFired=false;
+      div.addEventListener('click',function(){if(longFired){longFired=false;return;}setDayShift();});
+      div.addEventListener('contextmenu',function(e){e.preventDefault();});
       var pt;
-      div.addEventListener('touchstart',function(){pt=setTimeout(function(){
+      div.addEventListener('touchstart',function(){longFired=false;pt=setTimeout(function(){
         if(!currentUser)return;var cd=gd(currentUser);
-        if(cd[dd]){var oldIdx=shiftIndex(currentUser,dd);delete cd[dd];sd(cd,currentUser);saveAll();var newIdx=shiftIndex(currentUser,dd);recordChange(currentUser,curY,curM,dd,dw,oldIdx,newIdx);render();toast(USERS[currentUser].label+' '+curM+'/'+dd+' 已重設');}
+        if(cd[dd]){longFired=true;var oldIdx=shiftIndex(currentUser,dd);delete cd[dd];sd(cd,currentUser);saveAll();var newIdx=shiftIndex(currentUser,dd);recordChange(currentUser,curY,curM,dd,dw,oldIdx,newIdx);render();toast(USERS[currentUser].label+' '+curM+'/'+dd+' 已重設');}
       },550);});
       div.addEventListener('touchend',function(){clearTimeout(pt);});
       div.addEventListener('touchcancel',function(){clearTimeout(pt);});
@@ -751,6 +784,23 @@ function render(){
 
 document.getElementById('bp').onclick=function(){curM--;if(curM<1){curM=12;curY--;}render();};
 document.getElementById('bn').onclick=function(){curM++;if(curM>12){curM=1;curY++;}render();};
+
+/* 左右滑動換月 */
+(function(){
+  var cw=document.querySelector('.cw'),sx=0,sy=0,tracking=false;
+  cw.addEventListener('touchstart',function(e){
+    if(e.touches.length!==1)return;
+    sx=e.touches[0].clientX;sy=e.touches[0].clientY;tracking=true;
+  },{passive:true});
+  cw.addEventListener('touchend',function(e){
+    if(!tracking)return;tracking=false;
+    var dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy;
+    if(Math.abs(dx)>60&&Math.abs(dy)<45){
+      if(dx<0)document.getElementById('bn').onclick();
+      else document.getElementById('bp').onclick();
+    }
+  },{passive:true});
+})();
 document.getElementById('bt').onclick=function(){var t=new Date();curY=t.getFullYear();curM=t.getMonth()+1;render();toast('已跳回本月');};
 document.getElementById('userPill').onclick=function(){showUserPicker();};
 function showUserPicker(){
@@ -894,9 +944,6 @@ function showSyncSetup(){
         else if(monthData[dayKey]===2||monthData[dayKey]===4)delete monthData[dayKey];
       });
     });
-  }
-  if(!scheduleData.syue['2026_05']||Object.keys(scheduleData.syue['2026_05']).length===0){
-    scheduleData.syue['2026_05']={4:1,9:1,10:2,16:1,17:1,21:1,24:1,25:1,29:1};
   }
   currentUser=lsGet('currentUser')||'';
   syncCode=lsGet('syncCode')||'';
