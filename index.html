@@ -51,12 +51,11 @@ body{background-color:var(--bg);background-image:repeating-linear-gradient(0deg,
 .sdot.spin{background:#BA7517;animation:blink 1.1s ease-in-out infinite;}
 @keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
 
-/* ── Next common rest card：白色欄杆＋粉紅緞帶，就像照片裡兩人站的門框 ── */
+/* ── Next common rest card：粉紅緞帶從卡片上緣垂下，就像照片裡兩人站的門框 ── */
 .nxt-card{position:relative;margin:12px 10px 0;padding:32px 14px 12px;background:linear-gradient(180deg,var(--ribbon-bg),var(--card) 70%);border:1px solid rgba(232,69,126,.22);border-radius:16px;}
 .nxt-card.none{background:var(--card);border-color:var(--bd2);}
-.rail{position:absolute;left:8px;right:8px;top:9px;height:6px;border-radius:3px;background:linear-gradient(180deg,#FFFFFF,#E6DFD3);box-shadow:0 1px 2px rgba(70,52,35,.22);z-index:4;}
-.ribbons{position:absolute;left:4px;right:4px;top:4px;height:0;z-index:3;}
-.rb{position:absolute;top:0;transform-origin:50% 0;clip-path:polygon(0 0,100% 0,100% 100%,50% calc(100% - 4px),0 100%);animation:sway 4.5s ease-in-out infinite alternate;}
+.ribbons{position:absolute;left:0;right:0;top:0;height:40px;overflow:hidden;border-radius:15px 15px 0 0;z-index:3;pointer-events:none;}
+.rb{position:absolute;top:-4px;transform-origin:50% 0;clip-path:polygon(0 0,100% 0,100% 100%,50% calc(100% - 4px),0 100%);animation:sway 4.5s ease-in-out infinite alternate;}
 .rb.p{background:linear-gradient(180deg,rgba(240,85,140,.92),rgba(232,69,126,.72));}
 .rb.w{background:linear-gradient(180deg,#FFFFFF,#EEE7DA);box-shadow:inset 0 0 0 .5px rgba(70,52,35,.15);}
 .nxt-card.none .rb.p{background:linear-gradient(180deg,#FFFFFF,#EEE7DA);}
@@ -273,7 +272,6 @@ body{background-color:var(--bg);background-image:repeating-linear-gradient(0deg,
 
 <!-- Next common rest day -->
 <div class="nxt-card" id="nxtCard">
-  <div class="rail" aria-hidden="true"></div>
   <div class="ribbons" id="ribbons" aria-hidden="true"></div>
   <svg class="ivy" viewBox="0 0 64 44" aria-hidden="true">
     <defs><path id="lf" d="M0 0C3-5 10-6 13 0C10 5 3 5 0 0Z"/></defs>
@@ -719,9 +717,9 @@ function buildFlags(){
 function buildRibbons(){
   var box=document.getElementById('ribbons'),W=box.clientWidth;
   if(!W||W===lastRibbonW)return;lastRibbonW=W;
-  var rnd=seeded(520),x=6,h='';
-  while(x<W-8){
-    var w=6+rnd()*5,len=13+rnd()*13,pink=rnd()<.62,r=(rnd()*6-3).toFixed(1);
+  var rnd=seeded(520),x=10,h='';
+  while(x<W-12){
+    var w=6+rnd()*5,len=17+rnd()*13,pink=rnd()<.62,r=(rnd()*6-3).toFixed(1);
     h+='<div class="rb '+(pink?'p':'w')+'" style="left:'+x.toFixed(1)+'px;width:'+w.toFixed(1)+'px;height:'+len.toFixed(1)+'px;--r:'+r+'deg;animation-delay:-'+(rnd()*4).toFixed(2)+'s"></div>';
     x+=w+2+rnd()*6;
   }
