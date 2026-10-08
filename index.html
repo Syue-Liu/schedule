@@ -6,23 +6,42 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="我們的班表">
-<meta name="theme-color" content="#F5F3EE">
+<meta name="theme-color" content="#EFE8DC">
 <title>我們的班表</title>
 <style>
-:root{--bg:#F5F3EE;--card:#FFF;--bd:rgba(0,0,0,0.09);--bd2:rgba(0,0,0,0.15);--t:#1C1B18;--t2:#6B6860;--t3:#A8A59E;--green:#639922;--blue:#378ADD;--pink:#C45B8A;--common:#E3654F;}
+/* 配色取自照片：亞麻布旗、粉紅緞帶、常春藤、木屋、橄欖綠襯衫 */
+:root{
+  --bg:#F3EEE5;--card:#FFFDF8;--press:#EAE3D7;
+  --bd:rgba(74,56,40,.10);--bd2:rgba(74,56,40,.18);
+  --t:#2F271F;--t2:#6E6253;--t3:#A79B8C;
+  --linen:#F7F2E8;--wood:#8B6E52;--leaf:#5E8A34;--green:#5E8A34;
+  --syue:#6B8545;--syue-t:#3E5226;--syue-bg:rgba(107,133,69,.12);
+  --ling:#C25A88;--ling-t:#7A2449;--ling-bg:rgba(194,90,136,.10);
+  --ribbon:#E8457E;--ribbon-t:#A01E50;--ribbon-bg:#FFF0F4;--common:#E8457E;
+  --sun:#C0504D;--sat:#4A7A96;
+}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-body{background:var(--bg);font-family:-apple-system,'PingFang TC',sans-serif;padding-bottom:24px;color:var(--t);touch-action:manipulation;overscroll-behavior-y:contain;}
-.hdr{background:var(--card);border-bottom:0.5px solid var(--bd);padding:50px 14px 10px;position:sticky;top:0;z-index:10;}
+body{background-color:var(--bg);background-image:repeating-linear-gradient(0deg,rgba(120,95,60,.028) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(120,95,60,.022) 0 1px,transparent 1px 4px);font-family:-apple-system,'PingFang TC',sans-serif;padding-bottom:24px;color:var(--t);touch-action:manipulation;overscroll-behavior-y:contain;}
+.hdr{background:linear-gradient(180deg,#E6DCCB 0,#EFE8DC 26px,var(--card) 58px);border-bottom:0.5px solid var(--bd);padding:50px 14px 10px;position:sticky;top:0;z-index:10;}
+.hdr .top{position:relative;z-index:1;}
+
+/* ── 頂部亞麻布旗 ── */
+.flags{position:absolute;top:0;left:0;right:0;height:44px;overflow:hidden;pointer-events:none;}
+.flags::before{content:'';position:absolute;left:0;right:0;top:4px;height:1px;background:rgba(90,70,50,.32);}
+.flag{position:absolute;top:4px;transform-origin:50% 0;filter:drop-shadow(0 2px 1.5px rgba(70,52,35,.16));animation:sway 5.5s ease-in-out infinite alternate;}
+.flag i{display:block;width:100%;height:100%;background:linear-gradient(90deg,transparent var(--f1),rgba(120,95,60,.08) calc(var(--f1) + 8%),transparent calc(var(--f1) + 18%),transparent var(--f2),rgba(120,95,60,.06) calc(var(--f2) + 7%),transparent calc(var(--f2) + 15%)),repeating-linear-gradient(90deg,rgba(120,95,60,.05) 0 1px,transparent 1px 3px),linear-gradient(180deg,#FFFFFF,#EFE8DB);}
+.flag.pink i{background:linear-gradient(180deg,rgba(240,85,140,.82),rgba(232,69,126,.68));}
+@keyframes sway{from{transform:rotate(calc(var(--r) - 2.2deg));}to{transform:rotate(calc(var(--r) + 2.2deg));}}
 .top{display:flex;align-items:center;justify-content:space-between;gap:10px;}
 .hdr-left{display:flex;align-items:center;gap:7px;min-width:84px;}
 .title-row{display:flex;align-items:center;gap:7px;}
 .aname{font-size:13px;font-weight:700;color:var(--t);}
 .subname{font-size:11px;color:var(--t3);margin-top:2px;}
 .user-pill{height:26px;padding:0 9px;border:none;border-radius:999px;background:var(--bg);color:var(--t);font-size:12px;font-weight:800;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:3px;white-space:nowrap;}
-.user-pill:active{background:#E5E3DE;}
+.user-pill:active{background:var(--press);}
 .mnav{display:flex;align-items:center;gap:2px;}
 .nb{width:38px;height:38px;background:var(--bg);border:none;border-radius:10px;font-size:20px;color:var(--t2);cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.nb:active,.ib:active{background:#E5E3DE;}
+.nb:active,.ib:active{background:var(--press);}
 .ml{min-width:112px;text-align:center;font-size:17px;font-weight:700;color:var(--t);}
 .ib{width:34px;height:34px;background:var(--bg);border:0.5px solid var(--bd2);border-radius:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;}
 .hdr-actions{display:flex;gap:6px;justify-content:flex-end;min-width:84px;}
@@ -32,18 +51,35 @@ body{background:var(--bg);font-family:-apple-system,'PingFang TC',sans-serif;pad
 .sdot.spin{background:#BA7517;animation:blink 1.1s ease-in-out infinite;}
 @keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
 
-/* ── Next common rest card ── */
-.nxt-card{margin:10px 10px 0;padding:12px 16px;background:linear-gradient(135deg,#FFF5F5,#FFF0EB);border:1px solid rgba(227,101,79,.22);border-radius:14px;display:flex;align-items:center;gap:12px;}
-.nxt-card.none{background:var(--bg);border-color:var(--bd2);}
-.nxt-icon{font-size:26px;flex-shrink:0;}
+/* ── Next common rest card：白色欄杆＋粉紅緞帶，就像照片裡兩人站的門框 ── */
+.nxt-card{position:relative;margin:12px 10px 0;padding:32px 14px 12px;background:linear-gradient(180deg,var(--ribbon-bg),var(--card) 70%);border:1px solid rgba(232,69,126,.22);border-radius:16px;}
+.nxt-card.none{background:var(--card);border-color:var(--bd2);}
+.rail{position:absolute;left:8px;right:8px;top:9px;height:6px;border-radius:3px;background:linear-gradient(180deg,#FFFFFF,#E6DFD3);box-shadow:0 1px 2px rgba(70,52,35,.22);z-index:4;}
+.ribbons{position:absolute;left:4px;right:4px;top:4px;height:0;z-index:3;}
+.rb{position:absolute;top:0;transform-origin:50% 0;clip-path:polygon(0 0,100% 0,100% 100%,50% calc(100% - 4px),0 100%);animation:sway 4.5s ease-in-out infinite alternate;}
+.rb.p{background:linear-gradient(180deg,rgba(240,85,140,.92),rgba(232,69,126,.72));}
+.rb.w{background:linear-gradient(180deg,#FFFFFF,#EEE7DA);box-shadow:inset 0 0 0 .5px rgba(70,52,35,.15);}
+.nxt-card.none .rb.p{background:linear-gradient(180deg,#FFFFFF,#EEE7DA);}
+.ivy{position:absolute;right:-6px;top:-14px;width:64px;height:44px;z-index:5;pointer-events:none;}
+.nxt-row{display:flex;align-items:center;gap:12px;}
+.polaroid{position:relative;flex-shrink:0;width:66px;height:76px;padding:4px 4px 10px;background:#FFF;border:none;border-radius:3px;box-shadow:0 2px 6px rgba(70,52,35,.22);transform:rotate(-4deg);cursor:pointer;margin-top:-12px;z-index:2;font-family:inherit;}
+.polaroid:active{transform:rotate(-4deg) scale(.95);}
+.polaroid-img{width:100%;height:100%;border-radius:1px;background:var(--linen) center 55%/cover no-repeat;display:flex;align-items:center;justify-content:center;font-size:10px;line-height:1.3;color:var(--t3);text-align:center;}
+.polaroid-img.has span{display:none;}
+.polaroid-sticker{position:absolute;right:-8px;bottom:-6px;font-size:18px;transform:rotate(8deg);}
 .nxt-body{flex:1;min-width:0;}
-.nxt-label{font-size:11px;color:var(--t3);margin-bottom:2px;}
-.nxt-date{font-size:16px;font-weight:800;color:var(--common);}
-.nxt-card.none .nxt-date{color:var(--t3);}
+.nxt-label{font-size:11px;color:var(--t2);margin-bottom:2px;}
+.nxt-date{font-size:17px;font-weight:800;color:var(--ribbon-t);}
+.nxt-card.none .nxt-date{color:var(--t3);font-size:15px;}
 .nxt-countdown{font-size:12px;color:var(--t2);margin-top:1px;}
 .nxt-actions{flex-shrink:0;display:flex;gap:6px;}
-.ical-btn{padding:7px 10px;background:var(--card);border:1px solid var(--bd2);border-radius:9px;font-size:12px;font-weight:600;color:var(--t2);cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:4px;}
-.ical-btn:active{background:#E5E3DE;}
+.ical-btn{padding:7px 10px;background:var(--card);border:1px solid var(--bd2);border-radius:9px;font-size:12px;font-weight:600;color:var(--t2);cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:4px;font-family:inherit;}
+.ical-btn:active{background:var(--press);}
+
+/* 照片大圖 */
+.photo-view{margin:4px 14px 12px;border-radius:18px;overflow:hidden;background:var(--linen);}
+.photo-view img{display:block;width:100%;max-height:52vh;object-fit:contain;}
+.photo-note{font-size:11px;color:var(--t3);text-align:center;padding:0 18px 16px;line-height:1.6;}
 
 /* ── Expandable legend ── */
 .lgd-wrap{background:var(--card);border-bottom:0.5px solid var(--bd);padding:6px 14px 8px;}
@@ -51,13 +87,13 @@ body{background:var(--bg);font-family:-apple-system,'PingFang TC',sans-serif;pad
 .lgd-row:last-child{margin-bottom:0;}
 .lgd-toggle{display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:22px;border:1.5px solid var(--bd2);background:var(--bg);cursor:pointer;font-size:13px;font-weight:700;color:var(--t2);flex-shrink:0;transition:background .2s,border-color .2s;}
 .lgd-toggle:active{opacity:.8;}
-.lgd-toggle.syue{border-color:rgba(55,138,221,.4);color:#185FA5;}
-.lgd-toggle.syue.open{background:rgba(55,138,221,.08);}
-.lgd-toggle.ling{border-color:rgba(196,91,138,.4);color:#7A2449;}
-.lgd-toggle.ling.open{background:rgba(196,91,138,.08);}
+.lgd-toggle.syue{border-color:rgba(107,133,69,.45);color:var(--syue-t);}
+.lgd-toggle.syue.open{background:var(--syue-bg);}
+.lgd-toggle.ling{border-color:rgba(194,90,136,.4);color:var(--ling-t);}
+.lgd-toggle.ling.open{background:var(--ling-bg);}
 .lgd-chevron{display:inline-block;font-size:10px;transition:transform .35s cubic-bezier(.34,1.56,.64,1);margin-left:2px;}
 .lgd-toggle.open .lgd-chevron{transform:rotate(180deg);}
-.chip-common{flex-shrink:0;display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:5px 10px;border-radius:20px;background:#FDEBE7;border:1px solid var(--common);color:#8A2A1D;white-space:nowrap;}
+.chip-common{flex-shrink:0;display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:5px 10px;border-radius:20px;background:var(--ribbon-bg);border:1px solid var(--ribbon);color:var(--ribbon-t);white-space:nowrap;}
 .cdot{width:7px;height:7px;border-radius:50%;}
 
 .expand-panel{overflow:hidden;max-height:0;opacity:0;transition:max-height .4s cubic-bezier(.34,1.56,.64,1),opacity .3s ease,padding .3s ease;padding:0 0;}
@@ -70,19 +106,22 @@ body{background:var(--bg);font-family:-apple-system,'PingFang TC',sans-serif;pad
 .cw{padding:12px 10px 0;}
 .wds{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px;}
 .wl{text-align:center;font-size:11px;font-weight:600;color:var(--t3);padding:2px 0;}
-.wl.s{color:#D85A30;}.wl.sa{color:#185FA5;}
+.wl.s{color:var(--sun);}.wl.sa{color:var(--sat);}
 .cg{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
 .dc{border-radius:8px;min-height:68px;border:0.5px solid var(--bd);background:var(--card);text-align:center;cursor:pointer;padding:7px 2px 6px;position:relative;overflow:hidden;}
 .dc:active{opacity:0.65;}
 .dc.em{border-color:transparent!important;background:transparent!important;pointer-events:none;}
-.dc.td{box-shadow:0 0 0 2.5px var(--green);}
-.dc.common{background:#FDEBE7!important;border:1.5px solid var(--common)!important;}
+.dc.td{box-shadow:0 0 0 2px var(--t);}
+/* 共同休假：格子頂端掛一排小緞帶 */
+.dc.common{background:var(--ribbon-bg)!important;border:1.5px solid var(--ribbon)!important;padding-top:13px;}
+.dc.common::before,.sc.common::before{content:'';position:absolute;left:0;right:0;top:0;height:11px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='11'%3E%3Cpath d='M1 0h3v10l-1.5-1.6L1 10z' fill='%23E8457E' fill-opacity='.85'/%3E%3Cpath d='M6 0h3v7l-1.5-1.6L6 7z' fill='%23fff' stroke='%23d9cfc0' stroke-width='.5'/%3E%3Cpath d='M11 0h3v9l-1.5-1.6L11 9z' fill='%23E8457E' fill-opacity='.65'/%3E%3Cpath d='M16 0h2.6v6l-1.3-1.4L16 6z' fill='%23F7A6C2'/%3E%3C/svg%3E") repeat-x center top;pointer-events:none;}
 .dn{font-size:13px;font-weight:700;color:var(--t);margin-bottom:5px;line-height:1;}
 .badge-stack{display:flex;flex-direction:column;gap:2px;align-items:center;}
 .bg2{font-size:10px;font-weight:700;border-radius:3px;padding:2px 3px;display:inline-block;line-height:1.25;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .mini{font-size:9px;padding:2px 3px;max-width:96%;}
 .sm{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px 10px 0;}
-.sc{background:var(--card);border-radius:14px;padding:14px 6px;text-align:center;border:0.5px solid var(--bd);cursor:pointer;transition:transform .15s;-webkit-user-select:none;}
+.sc{position:relative;overflow:hidden;background:var(--card);border-radius:14px;padding:14px 6px;text-align:center;border:0.5px solid var(--bd);cursor:pointer;transition:transform .15s;-webkit-user-select:none;}
+.sc.common{background:var(--ribbon-bg);border-color:rgba(232,69,126,.3);}
 .sc:active{transform:scale(0.92);}
 .sc-dot{width:8px;height:8px;border-radius:50%;margin:0 auto 6px;}
 .sn{font-size:22px;font-weight:800;line-height:1;}
@@ -104,7 +143,8 @@ body{background:var(--bg);font-family:-apple-system,'PingFang TC',sans-serif;pad
 .popup-close:active{background:#E5E3DE;}
 .popup-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:6px 14px 10px;}
 .popup-action{height:46px;border:none;border-radius:15px;background:rgba(120,120,128,.14);color:var(--t);font-size:14px;font-weight:800;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;}
-.popup-action.primary{background:#007AFF;color:#fff;}
+.popup-action.primary{background:var(--t);color:#fff;}
+.popup-action.danger{color:#C0504D;}
 .popup-action:active{transform:scale(.97);opacity:.82;}
 .popup-preview{margin:0 14px 10px;padding:10px 12px;border-radius:16px;background:rgba(120,120,128,.10);font-size:12px;line-height:1.65;color:var(--t2);white-space:pre-wrap;max-height:116px;overflow:auto;}
 .popup-body{padding:0 14px 16px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
@@ -119,13 +159,13 @@ body{background:var(--bg);font-family:-apple-system,'PingFang TC',sans-serif;pad
 .popup-empty{text-align:center;padding:24px 0;color:var(--t3);font-size:14px;}
 .popup-empty-icon{font-size:32px;margin-bottom:8px;}
 .ht{text-align:center;font-size:11px;color:var(--t3);padding:8px 16px 4px;line-height:1.7;}
-.toast{position:fixed;bottom:98px;left:50%;transform:translateX(-50%) translateY(10px);background:rgba(28,27,24,.92);color:#fff;font-size:13px;padding:9px 18px;border-radius:20px;pointer-events:none;opacity:0;transition:opacity .2s,transform .2s;white-space:nowrap;z-index:200;}
+.toast{position:fixed;bottom:98px;left:50%;transform:translateX(-50%) translateY(10px);background:rgba(47,39,31,.92);color:#fff;font-size:13px;padding:9px 18px;border-radius:20px;pointer-events:none;opacity:0;transition:opacity .2s,transform .2s;white-space:nowrap;z-index:200;}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
 
 /* Change notification bar */
 .chg-bar{position:fixed;bottom:0;left:0;right:0;z-index:30;transform:translateY(100%);transition:transform .35s cubic-bezier(.34,1.56,.64,1);pointer-events:none;}
 .chg-bar.show{transform:translateY(0);pointer-events:auto;}
-.chg-inner{margin:0 10px 12px;padding:12px 14px;background:rgba(28,27,24,.94);border-radius:16px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 30px rgba(0,0,0,.25);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);}
+.chg-inner{margin:0 10px 12px;padding:12px 14px;background:rgba(47,39,31,.94);border-radius:16px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 30px rgba(0,0,0,.25);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);}
 .chg-info{flex:1;min-width:0;}
 .chg-title{font-size:13px;font-weight:700;color:#fff;}
 .chg-sub{font-size:11px;color:rgba(255,255,255,.6);margin-top:2px;}
@@ -161,7 +201,7 @@ body{background:var(--bg);font-family:-apple-system,'PingFang TC',sans-serif;pad
 .sync-warn{font-size:11px;color:#D85A30;margin-top:6px;line-height:1.5;}
 .login-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
 .person-card{border:1.5px solid var(--bd2);background:var(--bg);border-radius:14px;padding:16px 10px;text-align:center;font-size:20px;font-weight:800;color:var(--t);cursor:pointer;}
-.person-card.on{border-color:#1C1B18;background:#1C1B18;color:#fff;}
+.person-card.on{border-color:var(--t);background:var(--t);color:#fff;}
 .login-copy{font-size:12px;line-height:1.7;color:var(--t3);margin:8px 0 12px;}
 .frov{position:fixed;inset:0;background:rgba(245,243,238,.98);z-index:100;display:flex;align-items:center;justify-content:center;padding:28px;}
 .frbox{max-width:350px;width:100%;text-align:center;}
@@ -181,9 +221,10 @@ body{background:var(--bg);font-family:-apple-system,'PingFang TC',sans-serif;pad
   .ib{width:34px;height:34px;}
   .title-row{min-width:0;}
   .aname{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .nxt-card{margin:8px 8px 0;padding:10px 12px;gap:8px;}
-  .nxt-icon{font-size:22px;}
-  .nxt-date{font-size:15px;}
+  .nxt-card{margin:10px 8px 0;padding:30px 12px 10px;}
+  .nxt-row{gap:10px;}
+  .polaroid{width:62px;height:72px;}
+  .nxt-date{font-size:16px;}
   .ical-btn{padding:7px 8px;font-size:11px;}
   .lgd-wrap{padding:6px 8px 8px;}
   .lgd-row{overflow-x:auto;scrollbar-width:none;padding-bottom:1px;}
@@ -198,12 +239,15 @@ body{background:var(--bg);font-family:-apple-system,'PingFang TC',sans-serif;pad
   .sc{border-radius:10px;padding:10px 3px;}
   .sn{font-size:18px;}
   .sl2{font-size:9px;}
+  .dc.common{padding-top:11px;}
 }
+@media (prefers-reduced-motion:reduce){.flag,.rb{animation:none;transform:rotate(var(--r,0deg));}}
 </style>
 </head>
 <body>
 
 <div class="hdr">
+  <div class="flags" id="flags" aria-hidden="true"></div>
   <div class="top">
     <div class="hdr-left">
       <div>
@@ -229,15 +273,35 @@ body{background:var(--bg);font-family:-apple-system,'PingFang TC',sans-serif;pad
 
 <!-- Next common rest day -->
 <div class="nxt-card" id="nxtCard">
-  <div class="nxt-icon" id="nxtIcon">💕</div>
-  <div class="nxt-body">
-    <div class="nxt-label">下次共同休假</div>
-    <div class="nxt-date" id="nxtDate">—</div>
-    <div class="nxt-countdown" id="nxtCountdown"></div>
+  <div class="rail" aria-hidden="true"></div>
+  <div class="ribbons" id="ribbons" aria-hidden="true"></div>
+  <svg class="ivy" viewBox="0 0 64 44" aria-hidden="true">
+    <defs><path id="lf" d="M0 0C3-5 10-6 13 0C10 5 3 5 0 0Z"/></defs>
+    <path d="M6 30C18 27 30 22 40 16S56 6 62 2" stroke="#4E6E2C" stroke-width="1.1" fill="none" stroke-linecap="round"/>
+    <use href="#lf" fill="#6E9A3A" transform="translate(8 29) rotate(-150)"/>
+    <use href="#lf" fill="#5E8A34" transform="translate(16 27) rotate(70)"/>
+    <use href="#lf" fill="#7FAE45" transform="translate(22 24) rotate(-120) scale(1.15)"/>
+    <use href="#lf" fill="#4E7A2A" transform="translate(30 21) rotate(85) scale(1.1)"/>
+    <use href="#lf" fill="#6E9A3A" transform="translate(37 17) rotate(-100) scale(1.25)"/>
+    <use href="#lf" fill="#5E8A34" transform="translate(45 12) rotate(60) scale(1.05)"/>
+    <use href="#lf" fill="#7FAE45" transform="translate(52 8) rotate(-80)"/>
+    <use href="#lf" fill="#4E7A2A" transform="translate(57 5) rotate(40) scale(.9)"/>
+  </svg>
+  <div class="nxt-row">
+    <button class="polaroid" id="polaroid" aria-label="我們的照片">
+      <div class="polaroid-img" id="polaroidImg"><span>＋<br>照片</span></div>
+      <div class="polaroid-sticker" id="nxtIcon">💕</div>
+    </button>
+    <div class="nxt-body">
+      <div class="nxt-label">下次共同休假</div>
+      <div class="nxt-date" id="nxtDate">—</div>
+      <div class="nxt-countdown" id="nxtCountdown"></div>
+    </div>
+    <div class="nxt-actions">
+      <button class="ical-btn" id="icalBtn" title="匯出到行事曆">📅 匯出</button>
+    </div>
   </div>
-  <div class="nxt-actions">
-    <button class="ical-btn" id="icalBtn" title="匯出到行事曆">📅 匯出</button>
-  </div>
+  <input type="file" id="photoInp" accept="image/*" hidden>
 </div>
 
 <!-- Expandable legend -->
@@ -307,8 +371,8 @@ async function initFirebase(){
 
 var DOW = ['日','一','二','三','四','五','六'];
 var USERS = {
-  syue:{id:'syue',label:'學',title:'學的班表',color:'#378ADD',store:'xd7_syue',pin:'pin_syue'},
-  ling:{id:'ling',label:'綾',title:'綾的班表',color:'#C45B8A',store:'xd7_ling',pin:'pin_ling'}
+  syue:{id:'syue',label:'學',title:'學的班表',color:'var(--syue)',store:'xd7_syue',pin:'pin_syue'},
+  ling:{id:'ling',label:'綾',title:'綾的班表',color:'var(--ling)',store:'xd7_ling',pin:'pin_ling'}
 };
 var DEF_SHIFTS = {
   syue:[
@@ -389,9 +453,10 @@ function ensureShiftSlots(uid){
 }
 
 var dirtyUids={};
-function scheduleWrite(uid){if(!FIREBASE_READY||!syncCode)return;if(uid)dirtyUids[uid]=true;clearTimeout(writeTimer);writeTimer=setTimeout(doWrite,600);}
+function cloudOn(){return FIREBASE_READY&&!!syncCode&&syncCode!=='LOCAL';}
+function scheduleWrite(uid){if(!cloudOn())return;if(uid)dirtyUids[uid]=true;clearTimeout(writeTimer);writeTimer=setTimeout(doWrite,600);}
 async function doWrite(){
-  if(!db||!syncCode)return;setDot('spin');
+  if(!db||!cloudOn())return;setDot('spin');
   var uids=Object.keys(dirtyUids);dirtyUids={};
   try{
     // v3：每人各自一個欄位，只寫自己改過的人，兩人同時編輯不會互相覆蓋
@@ -535,8 +600,8 @@ window.showPopup = function(key){
   var cnt=window._popupCnt||{syue:0,ling:0,common:0};
   var config={
     common:{dot:'var(--common)',title:'共同休假',count:cnt.common,color:'var(--common)',icon:'❤️',emptyIcon:'📅',emptyText:'本月尚無共同休假'},
-    syue:{dot:'#378ADD',title:'學的班別',count:cnt.syue,color:'#378ADD',icon:'📋',emptyIcon:'😊',emptyText:'學本月尚未設定班表'},
-    ling:{dot:'#C45B8A',title:'綾的班別',count:cnt.ling,color:'#C45B8A',icon:'📋',emptyIcon:'😊',emptyText:'綾本月尚未設定班表'}
+    syue:{dot:'var(--syue)',title:'學的班別',count:cnt.syue,color:'var(--syue)',icon:'📋',emptyIcon:'😊',emptyText:'學本月尚未設定班表'},
+    ling:{dot:'var(--ling)',title:'綾的班別',count:cnt.ling,color:'var(--ling)',icon:'📋',emptyIcon:'😊',emptyText:'綾本月尚未設定班表'}
   };
   var c=config[key], arr=lists[key]||[];
   var copyTextForPopup=buildPopupCopyText(key,arr);
@@ -553,7 +618,7 @@ window.showPopup = function(key){
     for(var i=0;i<arr.length;i++){
       var it=arr[i], delay=i*0.05;
       if(key==='common'){
-        h+='<div class="popup-item" style="animation-delay:'+delay+'s"><div class="popup-item-date">'+curM+'/'+it.d+'</div><div class="popup-item-dow">'+it.dow+'</div><div style="flex:1"></div><div class="popup-item-badge" style="background:#F7B9AC;color:#8A2A1D">❤️ 共同休假</div></div>';
+        h+='<div class="popup-item" style="animation-delay:'+delay+'s"><div class="popup-item-date">'+curM+'/'+it.d+'</div><div class="popup-item-dow">'+it.dow+'</div><div style="flex:1"></div><div class="popup-item-badge" style="background:var(--ribbon);color:#fff">🎀 共同休假</div></div>';
       }else{
         h+='<div class="popup-item" style="animation-delay:'+delay+'s"><div class="popup-item-date">'+curM+'/'+it.d+'</div><div class="popup-item-dow">'+it.dow+'</div><div style="flex:1"></div><div class="popup-item-badge" style="background:'+it.sh.bdg+';color:'+it.sh.txt+'">'+it.sh.emoji+' '+safeHtml(it.sh.name)+'</div></div>';
       }
@@ -561,11 +626,14 @@ window.showPopup = function(key){
     h+='</div>';
   }
   h+='</div>';
-  document.getElementById('popupCard').innerHTML=h;
+  openPopupCard(h);
+};
+function openPopupCard(html){
+  document.getElementById('popupCard').innerHTML=html;
   var ov=document.getElementById('popupOv');
   ov.style.display='flex';
   requestAnimationFrame(function(){requestAnimationFrame(function(){ov.classList.add('on');});});
-};
+}
 window.copyPopupText = function(){
   copyText(window._popupCopyText||'');
   toast('✓ 已複製班表');
@@ -615,7 +683,7 @@ function renderNextCard(){
   var dateEl=document.getElementById('nxtDate');
   var countEl=document.getElementById('nxtCountdown');
   if(!nxt){
-    card.className='nxt-card none';icon.textContent='📅';
+    card.className='nxt-card none';icon.textContent='🌿';
     dateEl.textContent='尚未發現共同休假';countEl.textContent='填好兩人班表即可顯示';
     return;
   }
@@ -626,6 +694,74 @@ function renderNextCard(){
   else if(nxt.daysAway===1)countEl.textContent='就是明天！';
   else countEl.textContent='還有 '+nxt.daysAway+' 天';
 }
+
+/* ── 照片元素：頂部布旗、門框緞帶（固定亂數，每次長得一樣） ── */
+function seeded(seed){return function(){seed=seed+0x6D2B79F5|0;var t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function frayPolygon(rnd,w,h){
+  var pts=['0 0',w.toFixed(1)+'px 0'];
+  for(var x=w;x>0;x-=2+rnd()*3)pts.push(x.toFixed(1)+'px '+(h-rnd()*5).toFixed(1)+'px');
+  pts.push('0 '+(h-rnd()*4).toFixed(1)+'px');
+  return 'polygon('+pts.join(',')+')';
+}
+var lastFlagW=0,lastRibbonW=0;
+function buildFlags(){
+  var box=document.getElementById('flags'),W=box.clientWidth;
+  if(!W||W===lastFlagW)return;lastFlagW=W;
+  var rnd=seeded(20260408),x=-8,h='';
+  while(x<W){
+    var w=28+rnd()*30,ht=20+rnd()*16,pink=rnd()<.12,r=(rnd()*6-3).toFixed(1);
+    h+='<div class="flag'+(pink?' pink':'')+'" style="left:'+x.toFixed(1)+'px;width:'+w.toFixed(1)+'px;height:'+ht.toFixed(1)+'px;--r:'+r+'deg;--f1:'+Math.round(rnd()*30)+'%;--f2:'+Math.round(45+rnd()*30)+'%;animation-delay:-'+(rnd()*5).toFixed(2)+'s"><i style="clip-path:'+frayPolygon(rnd,w,ht)+'"></i></div>';
+    x+=w+3+rnd()*7;
+  }
+  box.innerHTML=h;
+}
+function buildRibbons(){
+  var box=document.getElementById('ribbons'),W=box.clientWidth;
+  if(!W||W===lastRibbonW)return;lastRibbonW=W;
+  var rnd=seeded(520),x=6,h='';
+  while(x<W-8){
+    var w=6+rnd()*5,len=13+rnd()*13,pink=rnd()<.62,r=(rnd()*6-3).toFixed(1);
+    h+='<div class="rb '+(pink?'p':'w')+'" style="left:'+x.toFixed(1)+'px;width:'+w.toFixed(1)+'px;height:'+len.toFixed(1)+'px;--r:'+r+'deg;animation-delay:-'+(rnd()*4).toFixed(2)+'s"></div>';
+    x+=w+2+rnd()*6;
+  }
+  box.innerHTML=h;
+}
+var decoT;
+window.addEventListener('resize',function(){clearTimeout(decoT);decoT=setTimeout(function(){buildFlags();buildRibbons();},150);});
+
+/* ── 我們的照片：只存在這支手機（localStorage），不會上傳 ── */
+var PHOTO_KEY='ourPhoto';
+function renderPhoto(){
+  var src=lsGet(PHOTO_KEY),el=document.getElementById('polaroidImg');
+  el.style.backgroundImage=src?'url('+src+')':'';
+  el.classList.toggle('has',!!src);
+}
+function pickPhoto(){var inp=document.getElementById('photoInp');inp.value='';inp.click();}
+document.getElementById('photoInp').addEventListener('change',function(){
+  var f=this.files&&this.files[0];if(!f)return;
+  var url=URL.createObjectURL(f),img=new Image();
+  img.onload=function(){
+    var s=Math.min(1,900/Math.max(img.width,img.height)),c=document.createElement('canvas');
+    c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);
+    c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+    URL.revokeObjectURL(url);
+    try{localStorage.setItem(PHOTO_KEY,c.toDataURL('image/jpeg',.82));}catch(e){toast('照片太大，存不下');return;}
+    renderPhoto();closePopup();toast('✓ 已換上我們的照片');
+  };
+  img.onerror=function(){URL.revokeObjectURL(url);toast('這張照片讀不到，換一張試試');};
+  img.src=url;
+});
+function showPhoto(){
+  var src=lsGet(PHOTO_KEY);
+  if(!src){pickPhoto();return;}
+  openPopupCard('<div class="popup-grabber"></div><div class="popup-top"><div class="popup-title">我們的照片</div><button class="popup-close" onclick="closePopup()">✕</button></div>'+
+    '<div class="photo-view"><img src="'+src+'" alt="我們的照片"></div>'+
+    '<div class="popup-actions"><button class="popup-action primary" id="photoChange">更換照片</button><button class="popup-action danger" id="photoRemove">移除</button></div>'+
+    '<div class="photo-note">照片只存在這支手機，不會上傳到雲端或 GitHub</div>');
+  document.getElementById('photoChange').onclick=pickPhoto;
+  document.getElementById('photoRemove').onclick=function(){try{localStorage.removeItem(PHOTO_KEY);}catch(e){}renderPhoto();closePopup();toast('已移除照片');};
+}
+document.getElementById('polaroid').onclick=showPhoto;
 
 /* ── iCal export ── */
 function pad2(n){return n<10?'0'+n:''+n;}
@@ -693,8 +829,8 @@ function renderProfileUI(){
   var u=isOverview?null:(USERS[currentUser]||USERS.syue);
   document.getElementById('appTitle').textContent='我們的班表';
   document.getElementById('userPill').textContent=isOverview?'總表 ▾':u.label+' ✎ ▾';
-  document.getElementById('userPill').style.background=isOverview?'var(--bg)':(currentUser==='syue'?'rgba(55,138,221,.12)':'rgba(196,91,138,.12)');
-  document.getElementById('userPill').style.color=isOverview?'var(--t2)':(currentUser==='syue'?'#185FA5':'#7A2449');
+  document.getElementById('userPill').style.background=isOverview?'var(--bg)':(currentUser==='syue'?'var(--syue-bg)':'var(--ling-bg)');
+  document.getElementById('userPill').style.color=isOverview?'var(--t2)':(currentUser==='syue'?'var(--syue-t)':'var(--ling-t)');
   document.getElementById('loginName').textContent=isOverview?'瀏覽模式・點擊切換編輯':'編輯中：'+u.label;
   document.getElementById('hintText').innerHTML=isOverview?'👀 瀏覽模式・點上方 <b>總表</b> 切換為編輯模式':'目前編輯：<b>'+u.label+'</b>・點日期切換班別・兩人同休會自動合併';
   document.getElementById('icalBtn').textContent=isOverview?'📅 匯出總表':'📅 匯出'+u.label;
@@ -725,9 +861,9 @@ function render(){
     if(common)cls+=' common';
     div.className=cls;
     if(!common&&myIdx){var msh=shifts(currentUser)[myIdx-1];if(msh){div.style.background=msh.bg;div.style.border='1.5px solid '+msh.border;}}
-    var dnColor=common?'#8A2A1D':(myIdx&&shifts(currentUser)[myIdx-1]?shifts(currentUser)[myIdx-1].txt:(dow===0?'#D85A30':dow===6?'#185FA5':'var(--t)'));
+    var dnColor=common?'var(--ribbon-t)':(myIdx&&shifts(currentUser)[myIdx-1]?shifts(currentUser)[myIdx-1].txt:(dow===0?'var(--sun)':dow===6?'var(--sat)':'var(--t)'));
     var html='<div class="dn" style="color:'+dnColor+'">'+d+'</div><div class="badge-stack">';
-    if(common){html+='<div class="bg2" style="background:#F7B9AC;color:#8A2A1D">共同休假</div>';}
+    if(common){html+='<div class="bg2" style="background:var(--ribbon);color:#fff">共同休假</div>';}
     else{html+=dayHtmlFor('syue',d,dow,true)+dayHtmlFor('ling',d,dow,true);}
     html+='</div>';div.innerHTML=html;
     (function(dd,dw){
@@ -777,9 +913,9 @@ function render(){
   window._popupLists=lists;
   window._popupCnt=cnt;
   smEl.innerHTML=
-    '<div class="sc" onclick="showPopup(\'syue\')"><div class="sc-dot" style="background:#378ADD"></div><div class="sn" style="color:#378ADD">'+cnt.syue+'</div><div class="sl2">學的班別</div></div>'+
-    '<div class="sc" onclick="showPopup(\'ling\')"><div class="sc-dot" style="background:#C45B8A"></div><div class="sn" style="color:#C45B8A">'+cnt.ling+'</div><div class="sl2">綾的班別</div></div>'+
-    '<div class="sc" onclick="showPopup(\'common\')"><div class="sc-dot" style="background:var(--common)"></div><div class="sn" style="color:var(--common)">'+cnt.common+'</div><div class="sl2">共同休假</div></div>';
+    '<div class="sc" onclick="showPopup(\'syue\')"><div class="sc-dot" style="background:var(--syue)"></div><div class="sn" style="color:var(--syue)">'+cnt.syue+'</div><div class="sl2">學的班別</div></div>'+
+    '<div class="sc" onclick="showPopup(\'ling\')"><div class="sc-dot" style="background:var(--ling)"></div><div class="sn" style="color:var(--ling)">'+cnt.ling+'</div><div class="sl2">綾的班別</div></div>'+
+    '<div class="sc common" onclick="showPopup(\'common\')"><div class="sc-dot" style="background:var(--ribbon)"></div><div class="sn" style="color:var(--ribbon-t)">'+cnt.common+'</div><div class="sl2">共同休假</div></div>';
 }
 
 document.getElementById('bp').onclick=function(){curM--;if(curM<1){curM=12;curY--;}render();};
@@ -844,7 +980,7 @@ function showLogin(uid){
   setTimeout(()=>document.getElementById('pinInp').focus(),60);
 }
 async function completeLogin(uid,pin,checkCloud){
-  if(checkCloud&&FIREBASE_READY&&syncCode){
+  if(checkCloud&&cloudOn()){
     if(pin.length<2){toast('PIN 至少 2 碼');return;}
     setDot('spin');
     try{
@@ -886,10 +1022,10 @@ document.getElementById('bs').onclick=function(){
   document.getElementById('backOverview').onclick=function(){currentUser='';lsSet('currentUser','');closeOv('ovS');render();toast('已切換為總表瀏覽');};
   var syncHtml='<div class="sync-div"><div class="sync-title">☁️ 雲端同步</div>';
   if(!FIREBASE_READY){syncHtml+='<div class="sync-sub" style="color:#D85A30;">目前無法連線同步，仍可在本機新增班表。</div>';}
-  else{syncHtml+=`<div class="sync-sub">兩人的手機輸入相同同步代碼，再用自己的身份登入。</div><div class="code-box"><div class="code-txt" id="dispCode">${syncCode||'—'}</div><button class="code-btn" id="cpCodeBtn">複製</button></div><div class="sync-title" style="margin-bottom:8px">切換／加入代碼</div><div class="sync-input-row"><input class="sync-inp" id="syncInp" placeholder="同步代碼" maxlength="20" value=""><button class="sync-join-btn" id="syncJoinBtn">加入</button></div><div class="sync-warn" id="syncWarn"></div>`;}
+  else{syncHtml+=`<div class="sync-sub">兩人的手機輸入相同同步代碼，再用自己的身份登入。</div><div class="code-box"><div class="code-txt" id="dispCode">${cloudOn()?syncCode:'尚未設定'}</div>${cloudOn()?'<button class="code-btn" id="cpCodeBtn">複製</button>':''}</div><div class="sync-title" style="margin-bottom:8px">切換／加入代碼</div><div class="sync-input-row"><input class="sync-inp" id="syncInp" placeholder="同步代碼" maxlength="20" value=""><button class="sync-join-btn" id="syncJoinBtn">加入</button></div><div class="sync-warn" id="syncWarn"></div>`;}
   syncHtml+='</div>';body.insertAdjacentHTML('beforeend',syncHtml);
   if(FIREBASE_READY){
-    document.getElementById('cpCodeBtn').onclick=function(){copyText(syncCode);toast('✓ 已複製代碼 '+syncCode);};
+    if(cloudOn())document.getElementById('cpCodeBtn').onclick=function(){copyText(syncCode);toast('✓ 已複製代碼 '+syncCode);};
     document.getElementById('syncJoinBtn').onclick=function(){var v=normalizeCode(document.getElementById('syncInp').value);if(v.length<2){document.getElementById('syncWarn').textContent='代碼至少 2 位';return;}applySyncCode(v);closeOv('ovS');toast('✓ 已切換到代碼 '+v);};
   }
   document.getElementById('ovS').className='ov on';
@@ -949,12 +1085,11 @@ function showSyncSetup(){
   syncCode=lsGet('syncCode')||'';
   loadChanges();
   saveLocalOnly();render();renderChgBar();
-  if(syncCode&&syncCode!=='LOCAL'){
-    document.getElementById('frOv').style.display='none';
-    initFirebase().then(function(){if(FIREBASE_READY)startListener(syncCode);else setDot('');});
-  }
-  else if(syncCode==='LOCAL'){document.getElementById('frOv').style.display='none';}
-  else{syncCode='LOCAL';lsSet('syncCode','LOCAL');document.getElementById('frOv').style.display='none';}
+  buildFlags();buildRibbons();renderPhoto();
+  if(!syncCode){syncCode='LOCAL';lsSet('syncCode','LOCAL');}
+  document.getElementById('frOv').style.display='none';
+  // 一律載入 Firebase：本機模式的新手機也能在設定裡輸入同步代碼加入
+  initFirebase().then(function(){if(cloudOn())startListener(syncCode);else setDot('');});
 })();
 </script>
 </body>
