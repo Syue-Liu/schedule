@@ -494,6 +494,7 @@ function startListener(code){
     if(snap.exists()){isRemoteUpdate=true;readRemoteDocData(snap.data());saveLocalOnly();render();isRemoteUpdate=false;}
     setDot('ok');
   },err=>{console.error('listener error',err);setDot('err');});
+  startPhotoListener(code);
 }
 function saveLocalOnly(){lsSet('scheduleDataV2',JSON.stringify(scheduleData));lsSet('shiftSetsV2',JSON.stringify(shiftSets));lsSet('profilePinsV2',JSON.stringify(profilePins));}
 function saveAll(uid){saveLocalOnly();if(!isRemoteUpdate)scheduleWrite(uid||currentUser);}
@@ -729,24 +730,52 @@ function buildRibbons(){
 var decoT;
 window.addEventListener('resize',function(){clearTimeout(decoT);decoT=setTimeout(function(){buildFlags();buildRibbons();},150);});
 
-/* ── 我們的照片：只存在這支手機（localStorage），不會上傳 ── */
-var PHOTO_KEY='ourPhoto';
+/* ── 我們的照片：透過同步代碼存到 Firebase（獨立一份文件），兩支手機自動同步；本機另存一份可離線顯示 ── */
+var PHOTO_KEY='ourPhoto',unsubPhoto=null;
 function renderPhoto(){
   var src=lsGet(PHOTO_KEY),el=document.getElementById('polaroidImg');
   el.style.backgroundImage=src?'url('+src+')':'';
   el.classList.toggle('has',!!src);
+}
+function setLocalPhoto(data){
+  try{if(data)localStorage.setItem(PHOTO_KEY,data);else localStorage.removeItem(PHOTO_KEY);}catch(e){return false;}
+  renderPhoto();return true;
+}
+function photoDoc(code){return doc(db,'banbiao',code+'_photo');}
+async function uploadPhoto(data){
+  if(!cloudOn())return false;
+  try{await setDoc(photoDoc(syncCode),{photo:data,updatedAt:serverTimestamp()});return true;}
+  catch(e){console.error('photo upload error',e);return false;}
+}
+function startPhotoListener(code){
+  if(unsubPhoto){unsubPhoto();unsubPhoto=null;}
+  if(!db||!code||code==='LOCAL')return;
+  unsubPhoto=onSnapshot(photoDoc(code),function(snap){
+    // 雲端還沒有照片：這支手機之前設過的話就上傳，另一半也會看到
+    if(!snap.exists()){if(lsGet(PHOTO_KEY))uploadPhoto(lsGet(PHOTO_KEY));return;}
+    var p=snap.data().photo||'';
+    if(p!==(lsGet(PHOTO_KEY)||''))setLocalPhoto(p);
+  },function(err){console.error('photo listener error',err);});
+}
+function syncPhotoChange(data,localMsg){
+  if(!cloudOn()){toast(localMsg);return;}
+  toast('照片同步中…');
+  uploadPhoto(data).then(function(ok){toast(ok?'✓ 已同步到兩支手機':'照片同步失敗，先存在這支手機');});
 }
 function pickPhoto(){var inp=document.getElementById('photoInp');inp.value='';inp.click();}
 document.getElementById('photoInp').addEventListener('change',function(){
   var f=this.files&&this.files[0];if(!f)return;
   var url=URL.createObjectURL(f),img=new Image();
   img.onload=function(){
-    var s=Math.min(1,900/Math.max(img.width,img.height)),c=document.createElement('canvas');
+    var s=Math.min(1,800/Math.max(img.width,img.height)),c=document.createElement('canvas');
     c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);
     c.getContext('2d').drawImage(img,0,0,c.width,c.height);
     URL.revokeObjectURL(url);
-    try{localStorage.setItem(PHOTO_KEY,c.toDataURL('image/jpeg',.82));}catch(e){toast('照片太大，存不下');return;}
-    renderPhoto();closePopup();toast('✓ 已換上我們的照片');
+    // Firestore 單一欄位上限約 1MB，太大就降畫質
+    var q=.8,data=c.toDataURL('image/jpeg',q);
+    while(data.length>700000&&q>.35){q-=.15;data=c.toDataURL('image/jpeg',q);}
+    if(!setLocalPhoto(data)){toast('照片太大，存不下');return;}
+    closePopup();syncPhotoChange(data,'✓ 已換上我們的照片');
   };
   img.onerror=function(){URL.revokeObjectURL(url);toast('這張照片讀不到，換一張試試');};
   img.src=url;
@@ -757,9 +786,9 @@ function showPhoto(){
   openPopupCard('<div class="popup-grabber"></div><div class="popup-top"><div class="popup-title">我們的照片</div><button class="popup-close" onclick="closePopup()">✕</button></div>'+
     '<div class="photo-view"><img src="'+src+'" alt="我們的照片"></div>'+
     '<div class="popup-actions"><button class="popup-action primary" id="photoChange">更換照片</button><button class="popup-action danger" id="photoRemove">移除</button></div>'+
-    '<div class="photo-note">照片只存在這支手機，不會上傳到雲端或 GitHub</div>');
+    '<div class="photo-note">'+(cloudOn()?'照片會用同步代碼同步到兩支手機，不會放到 GitHub':'目前是本機模式，照片只存在這支手機')+'</div>');
   document.getElementById('photoChange').onclick=pickPhoto;
-  document.getElementById('photoRemove').onclick=function(){try{localStorage.removeItem(PHOTO_KEY);}catch(e){}renderPhoto();closePopup();toast('已移除照片');};
+  document.getElementById('photoRemove').onclick=function(){setLocalPhoto('');closePopup();syncPhotoChange('','已移除照片');};
 }
 document.getElementById('polaroid').onclick=showPhoto;
 
