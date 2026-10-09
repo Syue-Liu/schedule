@@ -196,6 +196,7 @@ b{font-weight:400;color:var(--t);box-shadow:inset 0 -.4em 0 var(--yellow);}
 .ev-meta{font-size:12px;color:var(--t3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .ev-form{display:flex;flex-direction:column;gap:14px;padding:4px 2px 6px;}
 .ev-lbl{display:block;font-size:12px;color:var(--t2);margin-bottom:6px;}
+.ev-days{color:var(--t3);}
 .ev-inp{display:block;width:100%;min-width:0;min-height:44px;padding:10px 12px;font-size:16px;border:var(--lw2) solid var(--ink);border-radius:14px;background:var(--paper);color:var(--t);outline:none;}
 .ev-inp:focus{background:var(--ev-bg);}
 .ev-2col{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;}
@@ -546,7 +547,7 @@ var scheduleData = {syue:{},ling:{}};
 var shiftSets = JSON.parse(JSON.stringify(DEF_SHIFTS));
 var currentUser = '';
 var calMode = false; // 自訂編輯：點日期新增行程（不改班別）
-var calEvents = {}; // {id:{id,date:'2026-10-09',title,emoji,time,who:'both'|'syue'|'ling',yearly,note}}
+var calEvents = {}; // {id:{id,date:'2026-10-09',end:''|'2026-10-11',title,emoji,time,who:'both'|'syue'|'ling',yearly,note}}
 var syncCode = '';
 var profilePins = {};
 var writeTimer = null;
@@ -970,22 +971,40 @@ var EV_EMOJIS=['📌','❤️','🎂','🎉','🍽️','🎬','✈️','🛒','�
 function newEvId(){return 'e'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
 function evDateStr(y,m,d){return y+'-'+pad2(m)+'-'+pad2(d);}
 function evParts(s){return {y:+s.slice(0,4),m:+s.slice(5,7),d:+s.slice(8,10)};}
+function addDays(s,n){var p=evParts(s),t=new Date(p.y,p.m-1,p.d+n);return evDateStr(t.getFullYear(),t.getMonth()+1,t.getDate());}
+function dayDiff(a,b){var p=evParts(a),q=evParts(b);return Math.round((Date.UTC(q.y,q.m-1,q.d)-Date.UTC(p.y,p.m-1,p.d))/86400000);}
+function evMD(s){var p=evParts(s);return p.m+'/'+p.d;}
+// 多天的行程：date＝開始、end＝結束（一天的行程 end 是空的）
+function evSpan(e){return e.end?dayDiff(e.date,e.end):0;}
+// key 這天落在哪一次的行程裡，回傳那次的開始日；不在就回傳空字串
+function evOccStart(e,key){
+  var span=evSpan(e);
+  if(key>=e.date&&key<=(e.end||e.date))return e.date;
+  if(!e.yearly)return '';
+  for(var yr=+key.slice(0,4);yr>=+key.slice(0,4)-1;yr--){
+    var s=yr+e.date.slice(4);
+    // 2/29 開始的行程，平年就跳過
+    if(s<=e.date||addDays(s,0)!==s)continue;
+    if(key>=s&&key<=addDays(s,span))return s;
+  }
+  return '';
+}
 function cleanEvents(obj){
   var out={};
   Object.keys(obj||{}).forEach(function(k){
     var e=obj[k];
     if(!/^e[a-z0-9]{4,30}$/.test(k)||!e||typeof e!=='object'||typeof e.title!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(e.date||''))return;
-    out[k]={id:k,date:e.date,title:e.title,emoji:typeof e.emoji==='string'?e.emoji:'',
+    out[k]={id:k,date:e.date,end:/^\d{4}-\d{2}-\d{2}$/.test(e.end||'')&&e.end>e.date?e.end:'',title:e.title,emoji:typeof e.emoji==='string'?e.emoji:'',
       time:/^\d{2}:\d{2}$/.test(e.time||'')?e.time:'',who:WHO_KEYS.indexOf(e.who)>-1?e.who:'both',
       yearly:!!e.yearly,note:typeof e.note==='string'?e.note:''};
   });
   return out;
 }
 function eventsOn(y,m,d){
-  var key=evDateStr(y,m,d),md=key.slice(5),list=[];
+  var key=evDateStr(y,m,d),list=[];
   Object.keys(calEvents).forEach(function(id){
     var e=calEvents[id];
-    if(e.date===key||(e.yearly&&e.date.slice(5)===md&&e.date<key))list.push(e);
+    if(evOccStart(e,key))list.push(e);
   });
   // 整天的排前面，其餘照時間
   return list.sort(function(a,b){return (a.time||'').localeCompare(b.time||'')||a.title.localeCompare(b.title);});
@@ -996,7 +1015,7 @@ function eventsByDay(y,m){
   for(var d=1;d<=dim;d++){var l=eventsOn(y,m,d);if(l.length)map[d]=l;}
   return map;
 }
-function evText(ev){return (ev.emoji?ev.emoji+' ':'')+ev.title+(ev.time?' '+ev.time:'')+(ev.who!=='both'?'（'+WHO[ev.who].label+'）':'');}
+function evText(ev){return (ev.emoji?ev.emoji+' ':'')+ev.title+(ev.end?' ～'+evMD(ev.end):'')+(ev.time?' '+ev.time:'')+(ev.who!=='both'?'（'+WHO[ev.who].label+'）':'');}
 function evLabels(list){
   if(!list||!list.length)return '';
   var h='',n=list.length,show=n>2?1:n;
@@ -1044,7 +1063,8 @@ function showDaySheet(y,m,d,readOnly){
   }else{
     h+='<div class="popup-list">';
     list.forEach(function(e,i){
-      var w=WHO[e.who],meta=[e.time||'整天',e.yearly?'每年':'',e.note].filter(Boolean).join('・');
+      var w=WHO[e.who],os=evOccStart(e,key),span=evSpan(e);
+      var meta=[span?evMD(os)+'～'+evMD(addDays(os,span))+'（第'+(dayDiff(os,key)+1)+'/'+(span+1)+'天）':'',e.time||'整天',e.yearly?'每年':'',e.note].filter(Boolean).join('・');
       h+='<div class="popup-item ev-item'+(readOnly?' ro':'')+'" data-id="'+safeHtml(e.id)+'" style="animation-delay:'+(i*0.05)+'s"><div class="ev-emoji">'+safeHtml(e.emoji||'📌')+'</div><div class="ev-main"><div class="ev-title">'+safeHtml(e.title)+'</div><div class="ev-meta">'+safeHtml(meta)+'</div></div><div class="popup-item-badge" style="background:'+w.c+';color:var(--t)">'+w.label+'</div></div>';
     });
     h+='</div>';
@@ -1063,13 +1083,15 @@ function showDaySheet(y,m,d,readOnly){
 // 新增／編輯行程。fromKey＝從哪一天點進來的，存完回到那天
 function showEventForm(fromKey,id){
   var ev=id&&calEvents[id]?calEvents[id]:null;
-  var cur=ev||{title:'',emoji:'📌',date:fromKey,time:'',who:'both',yearly:false,note:''};
+  var cur=ev||{title:'',emoji:'📌',date:fromKey,end:'',time:'',who:'both',yearly:false,note:''};
   var sel={emoji:cur.emoji||'📌',who:cur.who};
   var h='<div class="popup-grabber"></div><div class="popup-top"><div class="popup-dot" style="background:var(--ev)"></div><div class="popup-title">'+(ev?'編輯行程':'新增行程')+'</div><button class="popup-close" id="evBack">✕</button></div>';
   h+='<div class="popup-body"><div class="ev-form">';
   h+='<div><label class="ev-lbl" for="evTitle">標題</label><input class="ev-inp" id="evTitle" maxlength="20" placeholder="例如：看電影、晚餐約會" autocomplete="off" value="'+safeHtml(cur.title)+'"></div>';
   h+='<div><div class="ev-lbl">圖示</div><div class="ev-emojis">'+EV_EMOJIS.map(function(e){return '<button type="button" class="ev-emo'+(e===sel.emoji?' on':'')+'" data-emo="'+e+'">'+e+'</button>';}).join('')+'</div></div>';
-  h+='<div class="ev-2col"><div><label class="ev-lbl" for="evDate">日期</label><input class="ev-inp" type="date" id="evDate" value="'+safeHtml(cur.date)+'"></div><div><label class="ev-lbl" for="evTime">時間（可不填）</label><input class="ev-inp" type="time" id="evTime" value="'+safeHtml(cur.time||'')+'"></div></div>';
+  // 結束日期跟開始同一天＝一天的行程
+  h+='<div class="ev-2col"><div><label class="ev-lbl" for="evDate">開始日期</label><input class="ev-inp" type="date" id="evDate" value="'+safeHtml(cur.date)+'"></div><div><label class="ev-lbl" for="evEnd">結束日期<span class="ev-days" id="evDays"></span></label><input class="ev-inp" type="date" id="evEnd" value="'+safeHtml(cur.end||cur.date)+'"></div></div>';
+  h+='<div class="ev-2col"><div><label class="ev-lbl" for="evTime">時間（可不填）</label><input class="ev-inp" type="time" id="evTime" value="'+safeHtml(cur.time||'')+'"></div></div>';
   h+='<div><div class="ev-lbl">誰的行程</div><div class="ev-seg">'+WHO_KEYS.map(function(w){return '<button type="button" data-who="'+w+'">'+WHO[w].label+'</button>';}).join('')+'</div></div>';
   h+='<label class="ev-check"><input type="checkbox" id="evYearly"'+(cur.yearly?' checked':'')+'>每年重複（生日、紀念日）</label>';
   h+='<div><label class="ev-lbl" for="evNote">備註（可不填）</label><input class="ev-inp" id="evNote" maxlength="60" autocomplete="off" value="'+safeHtml(cur.note||'')+'"></div>';
@@ -1095,14 +1117,34 @@ function showEventForm(fromKey,id){
   });
   document.getElementById('evBack').onclick=back;
   if(!ev)document.getElementById('evCancel').onclick=back;
+  var dIn=document.getElementById('evDate'),eIn=document.getElementById('evEnd'),lastStart=dIn.value;
+  function paintDays(){
+    var ok=/^\d{4}-\d{2}-\d{2}$/.test(dIn.value)&&/^\d{4}-\d{2}-\d{2}$/.test(eIn.value),n=ok?dayDiff(dIn.value,eIn.value):0;
+    eIn.min=dIn.value;
+    document.getElementById('evDays').textContent=n>0?'・共 '+(n+1)+' 天':'';
+  }
+  // 改開始日期：原本是一天的行程就跟著改；多天的保持天數
+  dIn.onchange=function(){
+    if(/^\d{4}-\d{2}-\d{2}$/.test(dIn.value)){
+      var n=/^\d{4}-\d{2}-\d{2}$/.test(lastStart)&&/^\d{4}-\d{2}-\d{2}$/.test(eIn.value)?dayDiff(lastStart,eIn.value):0;
+      eIn.value=addDays(dIn.value,Math.max(n,0));lastStart=dIn.value;
+    }
+    paintDays();
+  };
+  eIn.onchange=paintDays;
+  paintDays();
 
   document.getElementById('evSave').onclick=function(){
-    var title=document.getElementById('evTitle').value.trim(),date=document.getElementById('evDate').value;
+    var title=document.getElementById('evTitle').value.trim(),date=dIn.value,end=eIn.value;
     if(!title){toast('請輸入標題');document.getElementById('evTitle').focus();return;}
-    if(!/^\d{4}-\d{2}-\d{2}$/.test(date)){toast('請選擇日期');return;}
-    var nev={id:ev?ev.id:newEvId(),date:date,title:title,emoji:sel.emoji,time:document.getElementById('evTime').value||'',
-      who:sel.who,yearly:document.getElementById('evYearly').checked,note:document.getElementById('evNote').value.trim()};
-    var same=ev&&['date','title','emoji','time','who','yearly','note'].every(function(k){return String(ev[k]||'')===String(nev[k]||'');});
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(date)){toast('請選擇開始日期');return;}
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(end)||end===date)end='';
+    if(end&&end<date){toast('結束日期不能早於開始日期');return;}
+    var yearly=document.getElementById('evYearly').checked;
+    if(end&&yearly&&dayDiff(date,end)>=365){toast('每年重複的行程最長一年');return;}
+    var nev={id:ev?ev.id:newEvId(),date:date,end:end,title:title,emoji:sel.emoji,time:document.getElementById('evTime').value||'',
+      who:sel.who,yearly:yearly,note:document.getElementById('evNote').value.trim()};
+    var same=ev&&['date','end','title','emoji','time','who','yearly','note'].every(function(k){return String(ev[k]||'')===String(nev[k]||'');});
     if(same){back();return;}
     calEvents[nev.id]=nev;saveLocalOnly();writeEvent(nev.id);recordEventChange(ev?'edit':'add',nev);
     // 還在原本那天就回那天；日期改了就跳到新的日期
@@ -1133,13 +1175,17 @@ function veventTimed(y,m,d,time,summary,desc,uidKey){
   return 'BEGIN:VEVENT\r\nUID:'+uidKey+'@ourschedule\r\nDTSTAMP:'+icsStamp()+'\r\nDTSTART:'+f(s)+'\r\nDTEND:'+f(e)+'\r\nSUMMARY:'+escICS(summary)+'\r\nDESCRIPTION:'+escICS(desc)+'\r\nEND:VEVENT';
 }
 function customEventsICS(uid){
-  var out=[],dim=new Date(curY,curM,0).getDate();
+  var out=[],dim=new Date(curY,curM,0).getDate(),seen={};
   for(var d=1;d<=dim;d++){
+    var day=evDateStr(curY,curM,d);
     eventsOn(curY,curM,d).forEach(function(e){
       if(uid&&e.who!=='both'&&e.who!==uid)return;
-      var summary=(e.emoji?e.emoji+' ':'')+(e.who!=='both'?WHO[e.who].label+' ':'')+e.title,key=evDateStr(curY,curM,d).replace(/-/g,'')+'-'+e.id;
-      if(e.time)out.push(veventTimed(curY,curM,d,e.time,summary,e.note,key));
-      else{var nd=new Date(curY,curM-1,d+1);out.push(vevent(icsDateStr(curY,curM,d),icsDateStr(nd.getFullYear(),nd.getMonth()+1,nd.getDate()),summary,e.note,key));}
+      // 多天的行程匯出成一筆跨天的，不要每天一筆
+      var os=evOccStart(e,day),span=evSpan(e),key=os.replace(/-/g,'')+'-'+e.id;
+      if(seen[key])return;seen[key]=1;
+      var summary=(e.emoji?e.emoji+' ':'')+(e.who!=='both'?WHO[e.who].label+' ':'')+e.title,p=evParts(os),np=evParts(addDays(os,span+1));
+      if(e.time&&!span)out.push(veventTimed(p.y,p.m,p.d,e.time,summary,e.note,key));
+      else out.push(vevent(icsDateStr(p.y,p.m,p.d),icsDateStr(np.y,np.m,np.d),summary,[e.time?e.time+' 開始':'',e.note].filter(Boolean).join('\n'),key));
     });
   }
   return out;
