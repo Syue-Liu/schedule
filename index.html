@@ -101,6 +101,9 @@ b{font-weight:400;color:var(--t);box-shadow:inset 0 -.4em 0 var(--yellow);}
 .lgd-toggle:active{transform:scale(.95);}
 .lgd-toggle.syue.open{background:var(--syue);}
 .lgd-toggle.ling.open{background:var(--ling);}
+.lgd-toggle.cal{gap:5px;}
+.lgd-toggle.cal.open{background:var(--ev);}
+.lgd-toggle svg{flex-shrink:0;}
 .lgd-chevron{display:inline-block;font-size:9px;transition:transform .35s var(--pop);margin-left:2px;}
 .lgd-toggle.open .lgd-chevron{transform:rotate(180deg);}
 .chip-common{flex-shrink:0;display:flex;align-items:center;gap:6px;font-size:12px;padding:6px 11px;border-radius:999px;background:var(--ribbon-bg);border:var(--lw2) solid var(--ink);color:var(--t);white-space:nowrap;}
@@ -196,6 +199,10 @@ b{font-weight:400;color:var(--t);box-shadow:inset 0 -.4em 0 var(--yellow);}
 .ev-inp{display:block;width:100%;min-width:0;min-height:44px;padding:10px 12px;font-size:16px;border:var(--lw2) solid var(--ink);border-radius:14px;background:var(--paper);color:var(--t);outline:none;}
 .ev-inp:focus{background:var(--ev-bg);}
 .ev-2col{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;}
+.ev-2col>div{min-width:0;}
+/* iPhone 的日期／時間欄位自帶最小寬度，不關掉原生外觀會撐出欄位 */
+.ev-inp[type=date],.ev-inp[type=time]{-webkit-appearance:none;appearance:none;max-width:100%;}
+.ev-inp::-webkit-date-and-time-value{text-align:left;}
 .ev-emojis{display:flex;flex-wrap:wrap;gap:6px;}
 .ev-emo{width:40px;height:40px;border-radius:14px;border:var(--lw2) solid transparent;background:var(--paper2);font-size:20px;cursor:pointer;}
 .ev-emo.on{border-color:var(--ink);background:var(--mizu);animation:cellPop .4s var(--pop);}
@@ -203,6 +210,17 @@ b{font-weight:400;color:var(--t);box-shadow:inset 0 -.4em 0 var(--yellow);}
 .ev-seg button{height:40px;border-radius:14px;border:var(--lw2) solid var(--ink);background:var(--paper);font-size:14px;color:var(--t);cursor:pointer;}
 .ev-check{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--t);cursor:pointer;}
 .ev-check input{width:20px;height:20px;accent-color:var(--wakatake);}
+/* 點兩下：班別下拉選單 */
+.smenu-bd{position:fixed;inset:0;z-index:70;background:rgba(255,252,246,.45);cursor:pointer;}
+.smenu{position:fixed;z-index:71;min-width:156px;max-width:230px;padding:6px;background:var(--paper);border:var(--lw) solid var(--ink);border-radius:18px;box-shadow:0 3px 0 var(--ink);animation:menuIn .35s var(--pop);}
+@keyframes menuIn{from{opacity:0;transform:scale(.8);}to{opacity:1;transform:none;}}
+.smenu-hd{font-size:12px;color:var(--t3);padding:4px 8px 6px;}
+.smenu-opt{display:flex;align-items:center;gap:9px;width:100%;min-height:42px;padding:8px 10px;border:none;background:transparent;border-radius:12px;font-size:15px;color:var(--t);cursor:pointer;text-align:left;}
+.smenu-opt.on{background:var(--paper2);}
+.smenu-opt:active{background:var(--press);}
+.smenu-opt .cdot{width:13px;height:13px;border-width:var(--lw2);}
+.smenu-name{flex:1;}
+.smenu-ck{font-size:13px;}
 .ht{text-align:center;font-size:12px;color:var(--t3);padding:12px 16px 0;line-height:1.7;}
 .toast{position:fixed;bottom:98px;left:50%;transform:translateX(-50%) translateY(12px) scale(.9);background:var(--paper);color:var(--t);border:var(--lw) solid var(--ink);box-shadow:0 3px 0 var(--ink);font-size:14px;padding:8px 18px;border-radius:999px;pointer-events:none;opacity:0;transition:opacity .2s,transform .4s var(--pop);white-space:nowrap;z-index:200;}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0) scale(1);}
@@ -294,7 +312,9 @@ b{font-weight:400;color:var(--t);box-shadow:inset 0 -.4em 0 var(--yellow);}
   .nxt-date{font-size:18px;}
   .ical-btn{padding:6px 8px;font-size:11px;}
   .lgd-wrap{padding:10px 8px 2px;}
-  .lgd-row{overflow-x:auto;scrollbar-width:none;padding:2px 0 3px;}
+  .lgd-row{overflow-x:auto;scrollbar-width:none;padding:2px 0 3px;gap:5px;}
+  .lgd-toggle{padding:6px 9px;font-size:12px;gap:4px;}
+  .chip-common{padding:6px 9px;gap:5px;}
   .lgd-row::-webkit-scrollbar{display:none;}
   .cw{margin:10px 8px 0;padding:10px 5px 8px;border-radius:20px;}
   .cg,.wds{gap:3px;}
@@ -380,6 +400,7 @@ b{font-weight:400;color:var(--t);box-shadow:inset 0 -.4em 0 var(--yellow);}
     <div class="chip-common"><div class="cdot" style="background:var(--common)"></div>共同休假</div>
     <div class="lgd-toggle syue" id="togSyue" onclick="togglePanel('syue')">學的班別 <span class="lgd-chevron">▼</span></div>
     <div class="lgd-toggle ling" id="togLing" onclick="togglePanel('ling')">綾的班別 <span class="lgd-chevron">▼</span></div>
+    <button type="button" class="lgd-toggle cal" id="togCal" title="自訂編輯（行事曆）"><svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true"><rect x="2.5" y="4" width="15" height="13.5" rx="3.5" fill="#A8D3E6" stroke="#3E3A39" stroke-width="2"/><path d="M2.5 8.8h15" stroke="#3E3A39" stroke-width="2"/><path d="M7 2.3v3.4M13 2.3v3.4" stroke="#3E3A39" stroke-width="2" stroke-linecap="round"/></svg>行事曆</button>
   </div>
   <div class="expand-panel" id="panelSyue"><div class="expand-chips" id="chipsSyue"></div></div>
   <div class="expand-panel" id="panelLing"><div class="expand-chips" id="chipsLing"></div></div>
@@ -1183,6 +1204,7 @@ function renderProfileUI(){
   var u=isOverview?null:(USERS[currentUser]||USERS.syue);
   document.getElementById('appTitle').textContent='我們的班表';
   var pill=document.getElementById('userPill');
+  document.getElementById('togCal').classList.toggle('open',calMode);
   document.getElementById('icalBtn').innerHTML=ART.cal+'<span>'+(isOverview?'匯出總表':'匯出'+u.label)+'</span>';
   if(calMode){
     pill.textContent='行事曆 ✎ ▾';pill.style.background='var(--ev)';
@@ -1193,7 +1215,7 @@ function renderProfileUI(){
   pill.textContent=isOverview?'總表 ▾':u.label+' ✎ ▾';
   pill.style.background=isOverview?'var(--paper)':(currentUser==='syue'?'var(--syue)':'var(--ling)');
   document.getElementById('loginName').textContent=isOverview?'瀏覽模式・點擊切換編輯':'編輯中：'+u.label;
-  document.getElementById('hintText').innerHTML=isOverview?'瀏覽模式・點上方 <b>總表</b> 切換為編輯模式・點有行程的日期可看詳細':'目前編輯：<b>'+u.label+'</b>・點日期切換班別・兩人同休會自動合併';
+  document.getElementById('hintText').innerHTML=isOverview?'瀏覽模式・點上方 <b>總表</b> 切換為編輯模式・點有行程的日期可看詳細':'目前編輯：<b>'+u.label+'</b>・點一下切換班別・點兩下選擇・長按取消';
 }
 function dayHtmlFor(uid,d,dow,compact){
   var sidx=shiftIndex(uid,d), sh=sidx?shifts(uid)[sidx-1]:null;
@@ -1203,6 +1225,54 @@ function dayHtmlFor(uid,d,dow,compact){
 // monthAnim：換月份時讓日期格彈進來（'next'／'prev'／'pop'）；popDay：剛點的那天彈一下
 var monthAnim='',popDay=0,popT2;
 function bounce(el,cls){el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls);}
+
+/* ── 班別模式：點一下切換、點兩下選單、長按取消 ── */
+var TAP_WAIT=260,tapT=null,tapDay=0,tapFn=null;
+// 執行還在等第二下的那一下（換點別天時，上一天的那一下不能弄丟）
+function flushTap(){var f=tapFn;clearTimeout(tapT);tapT=null;tapFn=null;if(f)f();}
+// 把 dd 這天改成第 next 個班別（0＝上班）
+function applyShift(dd,dw,next){
+  var uid=currentUser,cd=gd(uid),oldIdx=shiftIndex(uid,dd);
+  if(next===oldIdx)return;
+  cd[dd]=next?next:(defaultShiftIndex(uid,curY,curM,dd)?-1:0);
+  if(cd[dd]===0)delete cd[dd];
+  sd(cd,uid);saveAll();
+  var newIdx=shiftIndex(uid,dd);
+  recordChange(uid,curY,curM,dd,dw,oldIdx,newIdx);
+  // 重畫會換掉整個月曆，記下是哪天，讓新的格子彈一下
+  popDay=dd;clearTimeout(popT2);popT2=setTimeout(function(){popDay=0;},500);
+  render();
+  toast(USERS[uid].label+' '+curM+'/'+dd+'（'+DOW[dw]+'）→ '+shiftLabel(uid,newIdx));
+}
+function closeShiftMenu(){document.querySelectorAll('.smenu,.smenu-bd').forEach(function(e){e.remove();});}
+// 點兩下：在那一格旁邊跳出班別選單
+function showShiftMenu(dd,dw){
+  var uid=currentUser,cur=shiftIndex(uid,dd),anchor=document.querySelector('#cg .dc[data-d="'+dd+'"]');
+  var opts=[{idx:0,name:'上班',color:'var(--paper)'}].concat(activeShiftSets(uid).map(function(s){return {idx:s.idx,name:s.shift.name,color:s.shift.bdg};}));
+  closeShiftMenu();
+  var bd=document.createElement('div');bd.className='smenu-bd';
+  var m=document.createElement('div');m.className='smenu';m.setAttribute('role','listbox');
+  var h='<div class="smenu-hd">'+USERS[uid].label+'・'+curM+'/'+dd+'（'+DOW[dw]+'）</div>';
+  opts.forEach(function(o){
+    var on=o.idx===cur;
+    h+='<button type="button" class="smenu-opt'+(on?' on':'')+'" role="option" aria-selected="'+on+'" data-idx="'+o.idx+'"><span class="cdot" style="background:'+o.color+'"></span><span class="smenu-name">'+safeHtml(o.name)+'</span>'+(on?'<span class="smenu-ck">✓</span>':'')+'</button>';
+  });
+  m.innerHTML=h;
+  document.body.appendChild(bd);document.body.appendChild(m);
+  // 放在格子下面；下面放不下就放上面，左右不超出螢幕
+  var r=anchor?anchor.getBoundingClientRect():{left:innerWidth/2,width:0,top:innerHeight/2,bottom:innerHeight/2};
+  var mw=m.offsetWidth,mh=m.offsetHeight,cx=r.left+r.width/2;
+  var left=Math.min(Math.max(8,cx-mw/2),innerWidth-mw-8);
+  var below=r.bottom+6+mh<=innerHeight-8,top=below?r.bottom+6:Math.max(8,r.top-mh-6);
+  m.style.left=left+'px';m.style.top=top+'px';
+  m.style.transformOrigin=(cx-left)+'px '+(below?'0':'100%');
+  bd.onclick=closeShiftMenu;
+  m.querySelectorAll('.smenu-opt').forEach(function(b){
+    b.onclick=function(){closeShiftMenu();applyShift(dd,dw,+b.getAttribute('data-idx'));};
+  });
+}
+window.addEventListener('scroll',closeShiftMenu,{passive:true});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeShiftMenu();});
 function render(){
   renderProfileUI();
   document.getElementById('ml').textContent=curY+'年'+curM+'月';
@@ -1228,6 +1298,7 @@ function render(){
     if(common)cls+=' common';
     if(d===popDay)cls+=' pop';
     div.className=cls;
+    div.setAttribute('data-d',d);
     div.style.setProperty('--i',fd+d-1);
     if(!common&&myIdx){var msh=shifts(currentUser)[myIdx-1];if(msh)div.style.background=msh.bg;}
     var dnColor=common?'var(--ribbon-t)':(myIdx&&shifts(currentUser)[myIdx-1]?shifts(currentUser)[myIdx-1].txt:(dow===0?'var(--sun)':dow===6?'var(--sat)':'var(--t)'));
@@ -1237,30 +1308,26 @@ function render(){
     html+=evLabels(evMap[d]);
     html+='</div>';div.innerHTML=html;
     (function(dd,dw){
-      function setDayShift(){
+      // 總表／自訂編輯：打開這天的行程
+      function openDay(){
         if(calMode){showDaySheet(curY,curM,dd,false);return;}
-        if(!currentUser){if(evMap[dd]){showDaySheet(curY,curM,dd,true);return;}showUserPicker();return;}
-        var cd=gd(currentUser),active=activeShiftIndexes(currentUser),start=shiftIndex(currentUser,dd),pos=active.indexOf(start);
+        if(evMap[dd]){showDaySheet(curY,curM,dd,true);return;}
+        showUserPicker();
+      }
+      // 班別模式點一下：換到下一個班別
+      function cycleShift(){
+        var active=activeShiftIndexes(currentUser),pos=active.indexOf(shiftIndex(currentUser,dd));
         if(!active.length){toast('請先在設定新增班別');return;}
-        var oldIdx=start;
-        var next;
-        if(pos===-1){next=active[0];}
-        else if(pos<active.length-1){next=active[pos+1];}
-        else{next=0;}
-        cd[dd]=next?next:(defaultShiftIndex(currentUser,curY,curM,dd)?-1:0);
-        if(cd[dd]===0)delete cd[dd];
-        sd(cd,currentUser);saveAll();
-        var newIdx=shiftIndex(currentUser,dd);
-        recordChange(currentUser,curY,curM,dd,dw,oldIdx,newIdx);
-        render();
-        if(newIdx>0)toast(USERS[currentUser].label+' '+curM+'/'+dd+'（'+DOW[dw]+'）→ '+shifts(currentUser)[newIdx-1].name);
+        applyShift(dd,dw,pos===-1?active[0]:(pos<active.length-1?active[pos+1]:0));
       }
       var longFired=false;
       div.addEventListener('click',function(){
         if(longFired){longFired=false;return;}
-        // 班別模式會重畫整個月曆，所以記下是哪天，重畫時讓新的格子接著彈
-        popDay=dd;clearTimeout(popT2);popT2=setTimeout(function(){popDay=0;},500);
-        bounce(div,'pop');setDayShift();
+        if(calMode||!currentUser){bounce(div,'pop');openDay();return;}
+        // 班別模式：點一下切換、點兩下跳出選單。先等一下，看會不會有第二下
+        if(tapT&&tapDay===dd){clearTimeout(tapT);tapT=null;tapFn=null;bounce(div,'pop');showShiftMenu(dd,dw);return;}
+        flushTap();
+        tapDay=dd;tapFn=cycleShift;tapT=setTimeout(flushTap,TAP_WAIT);
       });
       div.addEventListener('contextmenu',function(e){e.preventDefault();});
       var pt;
@@ -1316,6 +1383,11 @@ document.getElementById('bn').onclick=function(){curM++;if(curM>12){curM=1;curY+
 })();
 document.getElementById('bt').onclick=function(){var t=new Date();curY=t.getFullYear();curM=t.getMonth()+1;monthAnim='pop';render();toast('已跳回本月');};
 document.getElementById('userPill').onclick=function(){showUserPicker();};
+// 圖例列最右邊的「行事曆」：切換自訂編輯，再點一次回總表
+document.getElementById('togCal').onclick=function(){
+  if(calMode){setMode('');render();toast('已回到總表瀏覽');}
+  else{setMode('',true);render();toast('已切換為自訂編輯，點日期新增行程');}
+};
 function showUserPicker(){
   var body=document.getElementById('sbS');
   body.innerHTML=`
@@ -1324,13 +1396,11 @@ function showUserPicker(){
       <button class="person-card ${!currentUser&&!calMode?'on':''}" id="pickOverview" style="display:flex;align-items:center;justify-content:center;gap:10px"><span class="pick-dot" style="background:var(--paper)"></span>總表瀏覽</button>
       <button class="person-card ${currentUser==='syue'?'on':''}" id="pickSyue" style="display:flex;align-items:center;justify-content:center;gap:10px"><span class="pick-dot" style="background:var(--syue)"></span>編輯 學 的班表</button>
       <button class="person-card ${currentUser==='ling'?'on':''}" id="pickLing" style="display:flex;align-items:center;justify-content:center;gap:10px"><span class="pick-dot" style="background:var(--ling)"></span>編輯 綾 的班表</button>
-      <button class="person-card ${calMode?'on':''}" id="pickCal" style="display:flex;align-items:center;justify-content:center;gap:10px"><span class="pick-dot" style="background:var(--ev)"></span>自訂編輯（行事曆）</button>
     </div>
-    <div style="font-size:11px;color:var(--t3);margin-top:12px;text-align:center;line-height:1.6">總表模式只看不能改<br>選編輯模式才能修改班別<br>自訂編輯可以加約會、生日等行程</div>`;
+    <div style="font-size:11px;color:var(--t3);margin-top:12px;text-align:center;line-height:1.6">總表模式只看不能改<br>選編輯模式才能修改班別<br>要加約會、生日等行程，點月曆上方的「行事曆」</div>`;
   document.getElementById('pickOverview').onclick=function(){setMode('');closeOv('ovS');render();toast('已切換為總表瀏覽');};
   document.getElementById('pickSyue').onclick=function(){setMode('syue');closeOv('ovS');render();toast('已切換為編輯 學');};
   document.getElementById('pickLing').onclick=function(){setMode('ling');closeOv('ovS');render();toast('已切換為編輯 綾');};
-  document.getElementById('pickCal').onclick=function(){setMode('',true);closeOv('ovS');render();toast('已切換為自訂編輯，點日期新增行程');};
   document.getElementById('ovS').className='ov on';
 }
 function closeOv(id){document.getElementById(id).className='ov';}
