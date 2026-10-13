@@ -1443,7 +1443,9 @@ function showUserPicker(){
       <button class="person-card ${currentUser==='syue'?'on':''}" id="pickSyue" style="display:flex;align-items:center;justify-content:center;gap:10px"><span class="pick-dot" style="background:var(--syue)"></span>編輯 學 的班表</button>
       <button class="person-card ${currentUser==='ling'?'on':''}" id="pickLing" style="display:flex;align-items:center;justify-content:center;gap:10px"><span class="pick-dot" style="background:var(--ling)"></span>編輯 綾 的班表</button>
     </div>
+    ${FIREBASE_READY&&!cloudOn()?'<button class="fr-btn2" id="pickJoin" style="margin-top:12px">☁️ 輸入同步代碼（班表是空的？）</button>':''}
     <div style="font-size:11px;color:var(--t3);margin-top:12px;text-align:center;line-height:1.6">總表模式只看不能改<br>選編輯模式才能修改班別<br>要加約會、生日等行程，點月曆上方的「行事曆」</div>`;
+  if(document.getElementById('pickJoin'))document.getElementById('pickJoin').onclick=function(){closeOv('ovS');showJoinPrompt();};
   document.getElementById('pickOverview').onclick=function(){setMode('');closeOv('ovS');render();toast('已切換為總表瀏覽');};
   document.getElementById('pickSyue').onclick=function(){setMode('syue');closeOv('ovS');render();toast('已切換為編輯 學');};
   document.getElementById('pickLing').onclick=function(){setMode('ling');closeOv('ovS');render();toast('已切換為編輯 綾');};
@@ -1517,10 +1519,11 @@ document.getElementById('bs').onclick=function(){
   document.getElementById('backOverview').onclick=function(){setMode('');closeOv('ovS');render();toast('已切換為總表瀏覽');};
   var syncHtml='<div class="sync-div"><div class="sync-title">☁️ 雲端同步</div>';
   if(!FIREBASE_READY){syncHtml+='<div class="sync-sub" style="color:#D85A30;">目前無法連線同步，仍可在本機新增班表。</div>';}
-  else{syncHtml+=`<div class="sync-sub">兩人的手機輸入相同同步代碼，再用自己的身份登入。</div><div class="code-box"><div class="code-txt" id="dispCode">${cloudOn()?syncCode:'尚未設定'}</div>${cloudOn()?'<button class="code-btn" id="cpCodeBtn">複製</button>':''}</div><div class="sync-title" style="margin-bottom:8px">切換／加入代碼</div><div class="sync-input-row"><input class="sync-inp" id="syncInp" placeholder="同步代碼" maxlength="20" value=""><button class="sync-join-btn" id="syncJoinBtn">加入</button></div><div class="sync-warn" id="syncWarn"></div>`;}
+  else{syncHtml+=`<div class="sync-sub">兩人的手機輸入相同同步代碼，再用自己的身份登入。</div><div class="code-box"><div class="code-txt" id="dispCode">${cloudOn()?syncCode:'尚未設定'}</div>${cloudOn()?'<button class="code-btn" id="cpCodeBtn">複製</button>':''}</div>${cloudOn()?'<button class="fr-btn2" id="cpLinkBtn" style="margin-bottom:6px">複製加入連結（傳給另一支手機）</button><div class="sync-sub">用 Safari 打開這個連結，再「加入主畫面」，就會自動帶入代碼。連結等於代碼，只傳給對方。</div>':''}<div class="sync-title" style="margin-bottom:8px">切換／加入代碼</div><div class="sync-input-row"><input class="sync-inp" id="syncInp" placeholder="同步代碼" maxlength="20" value=""><button class="sync-join-btn" id="syncJoinBtn">加入</button></div><div class="sync-warn" id="syncWarn"></div>`;}
   syncHtml+='</div>';body.insertAdjacentHTML('beforeend',syncHtml);
   if(FIREBASE_READY){
     if(cloudOn())document.getElementById('cpCodeBtn').onclick=function(){copyText(syncCode);toast('✓ 已複製代碼 '+syncCode);};
+    if(cloudOn())document.getElementById('cpLinkBtn').onclick=function(){copyText(joinLink());toast('✓ 已複製加入連結');};
     document.getElementById('syncJoinBtn').onclick=function(){var v=normalizeCode(document.getElementById('syncInp').value);if(v.length<2){document.getElementById('syncWarn').textContent='代碼至少 2 位';return;}applySyncCode(v);closeOv('ovS');toast('✓ 已切換到代碼 '+v);};
   }
   document.getElementById('ovS').className='ov on';
@@ -1529,6 +1532,26 @@ document.getElementById('csS').onclick=function(){closeOv('ovS');};
 document.getElementById('ovS').onclick=function(e){if(e.target===this)closeOv('ovS');};
 
 function copyText(m){try{navigator.clipboard.writeText(m);}catch(e){var ta=document.createElement('textarea');ta.value=m;ta.style.cssText='position:fixed;opacity:0;';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');}catch(ex){}document.body.removeChild(ta);}}
+
+function joinLink(){return location.origin+location.pathname+'?code='+encodeURIComponent(syncCode);}
+// 還沒連上雲端（新手機，或 iPhone 從主畫面打開：主畫面跟 Safari 的資料是分開的）就請她輸入同步代碼
+function showJoinPrompt(){
+  var box=document.getElementById('frBox');
+  document.getElementById('frOv').style.display='flex';
+  box.innerHTML=`<div class="fr-icon">☁️</div><div class="fr-t">輸入同步代碼</div><div class="fr-s">這支手機還沒連上雲端，所以班表是空的。<br>輸入另一支手機「⚙️ 設定 → 雲端同步」裡的代碼，就會載入同一份班表。</div><input class="fr-inp" id="frInp" maxlength="20" placeholder="同步代碼" autocomplete="off" autocapitalize="characters"><div class="sync-warn" id="frWarn" style="min-height:18px;margin:6px 0 10px"></div><button class="fr-btn" id="frJoin">加入</button><button class="fr-btn2" id="frLocal">先用這支手機自己的班表</button>`;
+  function close(){document.getElementById('frOv').style.display='none';}
+  document.getElementById('frJoin').onclick=async function(){
+    var v=normalizeCode(document.getElementById('frInp').value),warn=document.getElementById('frWarn');
+    if(v.length<2){warn.textContent='代碼至少 2 個字';return;}
+    warn.textContent='查詢中…';
+    // 打錯代碼會連到一份空白班表，先確認雲端真的有這份
+    try{var snap=await getDoc(doc(db,'banbiao',v));if(!snap.exists()){warn.textContent='找不到這組代碼的班表，請確認跟另一支手機的一樣';return;}}
+    catch(e){console.error(e);warn.textContent='連不上雲端，請確認網路後再試';return;}
+    lsSet('skipJoin','');applySyncCode(v);close();toast('✓ 已連上代碼 '+v);
+  };
+  document.getElementById('frLocal').onclick=function(){lsSet('skipJoin','1');close();toast('之後可在 ⚙️ 輸入同步代碼');};
+  document.getElementById('frInp').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('frJoin').click();});
+}
 
 function showSyncSetup(){
   var box=document.getElementById('frBox'), newCode=genCode();
@@ -1580,13 +1603,20 @@ function showSyncSetup(){
   currentUser=lsGet('currentUser')||'';
   calMode=!currentUser&&lsGet('calMode')==='1';
   syncCode=lsGet('syncCode')||'';
+  // 加入連結 ?code=XXX：還沒連上雲端的手機直接用這組（主畫面圖示也會記住這個網址）
+  var urlCode='';try{urlCode=normalizeCode(new URLSearchParams(location.search).get('code'));}catch(e){}
+  if(urlCode.length>=2&&(!syncCode||syncCode==='LOCAL')){syncCode=urlCode;lsSet('syncCode',urlCode);}
   loadChanges();
   saveLocalOnly();render();renderChgBar();
   buildFlags();renderPhoto();
   if(!syncCode){syncCode='LOCAL';lsSet('syncCode','LOCAL');}
   document.getElementById('frOv').style.display='none';
   // 一律載入 Firebase：本機模式的新手機也能在設定裡輸入同步代碼加入
-  initFirebase().then(function(){if(cloudOn())startListener(syncCode);else setDot('');});
+  initFirebase().then(function(){
+    if(cloudOn()){startListener(syncCode);return;}
+    setDot('');
+    if(FIREBASE_READY&&lsGet('skipJoin')!=='1')showJoinPrompt();
+  });
 })();
 </script>
 </body>
