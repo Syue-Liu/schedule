@@ -331,6 +331,132 @@ b{font-weight:400;color:var(--t);box-shadow:inset 0 -.4em 0 var(--yellow);}
   .sl2{font-size:10px;}
   .dc.common{padding-top:12px;}
 }
+/* ── 三花貓：在畫面上散步，可以摸、餵、看牠表演技能 ── */
+.cat{position:fixed;left:0;top:0;width:76px;height:58px;z-index:25;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;cursor:pointer;will-change:transform;}
+.cat.hide{display:none;}
+.cat-face{width:100%;height:100%;transition:transform .2s;}
+.cat.left .cat-face{transform:scaleX(-1);}
+.cat-sk,.cat-bob{width:100%;height:100%;transform-origin:50% 85%;}
+.cat svg{display:block;width:100%;height:100%;overflow:visible;}
+.c-leg{transform-box:fill-box;transform-origin:50% 10%;transition:transform .3s;}
+.c-tail{transform-box:fill-box;transform-origin:100% 100%;animation:tail 1.8s ease-in-out infinite alternate;}
+.c-head{transform-box:fill-box;transform-origin:30% 80%;transition:transform .3s;}
+.c-body{transform-box:fill-box;transform-origin:50% 100%;}
+.c-eo{transform-box:fill-box;transform-origin:50% 50%;animation:catBlink 4.2s infinite;}
+.c-ec,.c-eh,.c-mo,.c-paw{display:none;}
+.c-paw{transform-box:fill-box;transform-origin:0% 100%;}
+@keyframes catBlink{0%,93%,100%{transform:scaleY(1);}96%{transform:scaleY(.1);}}
+/* 走路：前後腳交錯、身體一上一下 */
+.cat.walk .lf1,.cat.walk .lb2{animation:catLeg .44s ease-in-out infinite alternate;}
+.cat.walk .lf2,.cat.walk .lb1{animation:catLeg .44s ease-in-out infinite alternate-reverse;}
+.cat.run .c-leg{animation-duration:.2s!important;}
+@keyframes catLeg{from{transform:rotate(-24deg);}to{transform:rotate(24deg);}}
+.cat.walk .cat-bob{animation:catBob .22s ease-in-out infinite alternate;}
+@keyframes catBob{from{transform:translateY(0);}to{transform:translateY(-2px);}}
+/* 睡覺：縮成一團，肚子起伏 */
+.cat.sleep .c-leg{transform:scaleY(.15);}
+.cat.sleep .cat-bob{transform:translateY(7px);}
+.cat.sleep .c-head{transform:rotate(10deg) translateY(3px);}
+.cat.sleep .c-body{animation:breath 3.2s ease-in-out infinite;}
+.cat.sleep .c-tail{animation-duration:4s;}
+.cat.sleep .c-eo{display:none;}
+.cat.sleep .c-ec{display:inline;}
+/* 開心（被摸、吃飯、表演）：瞇瞇眼 */
+.cat.happy .c-eo,.cat.sk-roll .c-eo,.cat.sk-spin .c-eo,.cat.sk-love .c-eo,.cat.sk-groom .c-eo{display:none;}
+.cat.happy .c-eh,.cat.sk-roll .c-eh,.cat.sk-spin .c-eh,.cat.sk-love .c-eh,.cat.sk-groom .c-eh{display:inline;}
+.cat.meow .c-mc{display:none;}
+.cat.meow .c-mo{display:inline;}
+.cat.eat .c-head{animation:catEat .45s ease-in-out infinite alternate;}
+@keyframes catEat{from{transform:rotate(18deg);}to{transform:rotate(28deg) translateY(1px);}}
+.cat.pet .cat-bob{animation:catSquish .6s ease-in-out infinite alternate;}
+@keyframes catSquish{from{transform:none;}to{transform:scale(1.05,.93) translateY(2px);}}
+/* 技能 */
+.cat.sk-stretch .cat-sk{animation:skStretch 1.6s ease-in-out;}
+@keyframes skStretch{0%,100%{transform:none;}30%,70%{transform:rotate(7deg) scale(1.16,.9) translateY(3px);}}
+.cat.sk-roll .cat-sk,.cat.sk-flip .cat-sk{transform-origin:50% 55%;}
+.cat.sk-roll .cat-sk{animation:skRoll 1.2s ease-in-out;}
+@keyframes skRoll{0%{transform:none;}50%{transform:translateY(-8px) rotate(180deg);}100%{transform:rotate(360deg);}}
+.cat.sk-jump .cat-sk{animation:skJump .9s cubic-bezier(.3,.7,.4,1);}
+@keyframes skJump{0%,100%{transform:none;}15%{transform:translateY(3px) scale(1.08,.88);}45%{transform:translateY(-62px) scale(.94,1.06);}78%{transform:translateY(0) scale(1.08,.9);}}
+.cat.sk-flip .cat-sk{animation:skFlip 1.3s ease-in-out;}
+@keyframes skFlip{0%{transform:none;}15%{transform:translateY(4px) scale(1.08,.86);}32%{transform:translateY(-52px) rotate(-70deg);}50%{transform:translateY(-80px) rotate(-200deg);}70%{transform:translateY(-30px) rotate(-330deg);}85%{transform:translateY(0) rotate(-360deg) scale(1.08,.9);}100%{transform:rotate(-360deg);}}
+.cat.sk-wave .cat-sk{transform:rotate(-6deg);transition:transform .3s;}
+.cat.sk-wave .lf1,.cat.sk-groom .lf1{opacity:0;}
+.cat.sk-wave .c-paw{display:inline;animation:skWave .32s ease-in-out infinite alternate;}
+@keyframes skWave{from{transform:rotate(-14deg);}to{transform:rotate(12deg);}}
+.cat.sk-groom .c-head{transform:rotate(14deg);}
+.cat.sk-groom .c-paw{display:inline;animation:skGroom .3s ease-in-out infinite alternate;}
+@keyframes skGroom{from{transform:rotate(22deg);}to{transform:rotate(34deg);}}
+.cat.sk-spin .cat-sk{animation:skSpin 1.4s ease-in-out;}
+@keyframes skSpin{0%{transform:none;}50%{transform:translateY(-16px) rotateY(360deg);}100%{transform:rotateY(720deg);}}
+.cat.sk-yarn .cat-sk{animation:skYarn 1.5s ease-in-out .5s forwards;}
+@keyframes skYarn{0%{transform:none;}30%{transform:translateY(3px) scale(1.06,.88);}60%{transform:translate(46px,-34px) rotate(-10deg);}85%,100%{transform:translate(90px,0);}}
+.cat.sk-love .cat-sk{animation:skLove 1.6s ease-in-out;}
+@keyframes skLove{0%,100%{transform:none;}25%,75%{transform:scale(1.1);}50%{transform:scale(1.18) translateY(-6px);}}
+/* 對話泡泡、支線任務的驚嘆號 */
+.cat-say{position:absolute;left:50%;bottom:100%;margin-bottom:6px;transform:translateX(-50%) scale(.6);opacity:0;background:var(--paper);border:var(--lw2) solid var(--ink);border-radius:14px;padding:3px 10px;font-size:13px;line-height:1.5;white-space:nowrap;color:var(--t);pointer-events:none;transition:opacity .2s,transform .35s var(--pop);}
+.cat-say.on{opacity:1;transform:translateX(-50%) scale(1);}
+.cat-say::after{content:'';position:absolute;left:50%;top:100%;margin-left:-5px;border:5px solid transparent;border-top-color:var(--ink);}
+.cat-mark{position:absolute;right:0;top:-8px;width:20px;height:20px;border-radius:50%;background:var(--yellow);border:var(--lw2) solid var(--ink);font-size:12px;line-height:1;display:none;align-items:center;justify-content:center;pointer-events:none;animation:markBob .8s ease-in-out infinite alternate;}
+.cat.has-q .cat-mark{display:flex;}
+@keyframes markBob{from{transform:translateY(0);}to{transform:translateY(-4px);}}
+/* 飄出來的愛心、點數 */
+.cat-fx{position:fixed;z-index:46;pointer-events:none;font-size:13px;color:var(--t);white-space:nowrap;animation:catFx 1.4s ease-out forwards;}
+.cat-fx svg{width:18px;height:18px;display:block;}
+.cat-fx.pt{background:var(--yellow);border:var(--lw2) solid var(--ink);border-radius:999px;padding:1px 9px;}
+@keyframes catFx{0%{opacity:0;transform:translate(0,0) scale(.5);}15%{opacity:1;transform:translate(calc(var(--dx) * .2),-10px) scale(1.1);}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.9);}}
+/* 點貓咪跳出來的選單 */
+.cat-menu-bd{position:fixed;inset:0;z-index:44;}
+.cat-menu{position:fixed;z-index:45;display:flex;flex-wrap:wrap;gap:6px;width:max-content;max-width:min(330px,calc(100vw - 16px));padding:6px;background:var(--paper);border:var(--lw) solid var(--ink);border-radius:18px;box-shadow:0 3px 0 var(--ink);animation:menuIn .3s var(--pop);}
+.cat-menu button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:52px;height:54px;padding:4px 6px;border:var(--lw2) solid var(--ink);border-radius:14px;background:var(--paper);font-size:11px;color:var(--t);cursor:pointer;}
+.cat-menu button:active{background:var(--press);}
+.cat-menu button.off{opacity:.45;}
+.cat-menu .ic{font-size:18px;line-height:1;height:22px;display:flex;align-items:center;}
+.cat-menu .ic svg{width:22px;height:22px;}
+.cat-menu-q{width:100%;font-size:11px;color:var(--t2);padding:2px 4px 0;line-height:1.5;}
+/* 地上的貓糧、碗、毛線球 */
+.cat-drop{position:fixed;z-index:26;width:42px;height:42px;padding:0;border:none;background:none;cursor:pointer;animation:dropIn .6s var(--pop),dropBob 1.6s ease-in-out .6s infinite alternate;}
+.cat-drop svg{width:100%;height:100%;}
+.cat-drop.bye{transition:opacity .4s;opacity:0;}
+@keyframes dropIn{from{transform:translateY(-40px) scale(.4);opacity:0;}to{transform:none;opacity:1;}}
+@keyframes dropBob{from{transform:translateY(0) rotate(-6deg);}to{transform:translateY(-5px) rotate(6deg);}}
+.cat-bowl{position:fixed;z-index:24;width:36px;height:20px;pointer-events:none;animation:dropIn .4s var(--pop);}
+.cat-bowl svg,.cat-yarn svg{width:100%;height:100%;display:block;}
+.cat-yarn{position:fixed;left:0;top:0;z-index:26;width:22px;height:22px;pointer-events:none;transition:transform 1.1s cubic-bezier(.2,.7,.3,1),opacity .4s;}
+/* 貓咪狀態卡 */
+.cs-name{border:none;background:none;font-size:19px;color:var(--t);cursor:pointer;padding:0;}
+.cs-sec{padding:12px 4px;border-bottom:1.5px dashed var(--bd2);}
+.cs-sec:last-child{border-bottom:none;}
+.cs-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:13px;color:var(--t2);margin-bottom:8px;}
+.cs-h b{font-size:13px;}
+.cs-bar{flex:1;height:13px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper2);overflow:hidden;}
+.cs-bar i{display:block;height:100%;min-width:0;border-right:var(--lw2) solid var(--ink);}
+.cs-bar i[style*="width:0%"]{border-right:none;}
+.cs-note{font-size:12px;color:var(--t3);margin-top:6px;line-height:1.7;}
+.cs-aff{display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:12px;color:var(--t2);}
+.cs-who{width:26px;height:26px;border-radius:50%;border:var(--lw2) solid var(--ink);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--t);flex-shrink:0;}
+.cs-num{min-width:58px;text-align:right;white-space:nowrap;}
+.cs-food{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.cs-btn{display:flex;align-items:center;justify-content:center;gap:6px;height:46px;border:var(--lw2) solid var(--ink);border-radius:14px;background:var(--paper);font-size:14px;color:var(--t);cursor:pointer;box-shadow:0 2px 0 var(--ink);}
+.cs-btn svg{width:24px;height:24px;flex-shrink:0;}
+.cs-btn:active{transform:translateY(2px);box-shadow:none;}
+.cs-btn.off{opacity:.45;}
+.cs-quest{display:flex;align-items:center;gap:10px;padding:10px 12px;border:var(--lw2) solid var(--ink);border-radius:14px;background:var(--ribbon-bg);font-size:14px;color:var(--t);line-height:1.5;}
+.cs-quest.done{background:var(--syue-bg);}
+.cs-quest .q-main{flex:1;min-width:0;}
+.cs-quest .q-sub{font-size:12px;color:var(--t2);}
+.cs-quest svg{width:26px;height:26px;flex-shrink:0;}
+.cs-skills{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.cs-sk{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 2px;border:var(--lw2) solid var(--ink);border-radius:14px;background:var(--paper);font-size:11px;color:var(--t);cursor:pointer;}
+.cs-sk:active{background:var(--press);}
+.cs-sk .ic{font-size:20px;line-height:1.2;}
+.cs-sk.lock{border-style:dashed;color:var(--t3);background:var(--paper2);cursor:default;}
+.cs-sk.lock .ic{filter:grayscale(1);opacity:.45;}
+.cs-rules{font-size:12px;color:var(--t2);line-height:1.9;}
+.cs-seg{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:13px;color:var(--t2);}
+.cs-seg button{height:34px;padding:0 14px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);font-size:13px;color:var(--t);cursor:pointer;}
+.cs-seg button.on{background:var(--yellow);}
+.scene{cursor:pointer;}
 /* 系統開了「減少動態效果」：插圖停住，彈跳、滑動、淡入都關掉，全部直接停在最後的樣子 */
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition-duration:.01ms!important;}
@@ -416,8 +542,8 @@ b{font-weight:400;color:var(--t);box-shadow:inset 0 -.4em 0 var(--yellow);}
 </div>
 <div class="sm" id="sm"></div>
 <div class="ht"><span id="hintText"></span></div>
-<!-- 頁尾小插圖：書堆上睡午覺的三花貓、底片相機、盆栽 -->
-<div class="scene" aria-hidden="true">
+<!-- 頁尾小插圖：書堆上睡午覺的三花貓、底片相機、盆栽（點一下打開貓咪狀態） -->
+<div class="scene" id="scene" role="button" aria-label="貓咪狀態">
   <svg viewBox="0 0 360 124">
     <g stroke="#3E3A39" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
       <!-- 書堆 -->
@@ -644,11 +770,23 @@ function readRemoteDocData(raw){
   profilePins=raw.profilePins||profilePins||{};
   if(raw.events&&typeof raw.events==='object')calEvents=cleanEvents(raw.events);
 }
+// 雲端文件扣掉貓咪欄位的樣子：只有貓咪變了（每分鐘都會）就不用重讀、重畫月曆
+var lastDocSig='';
+function docSig(raw){
+  var o={};
+  Object.keys(raw).sort().forEach(function(k){if(k!=='updatedAt'&&k.indexOf('cat_')!==0)o[k]=raw[k];});
+  return JSON.stringify(o);
+}
 function startListener(code){
   if(unsub){unsub();unsub=null;}if(!db||!code)return;setDot('spin');
+  lastDocSig='';
   unsub=onSnapshot(doc(db,'banbiao',code),snap=>{
     var raw=snap.exists()?snap.data():null;
-    if(raw){isRemoteUpdate=true;readRemoteDocData(raw);saveLocalOnly();render();isRemoteUpdate=false;}
+    if(raw){
+      var sig=docSig(raw);
+      if(sig!==lastDocSig){lastDocSig=sig;isRemoteUpdate=true;readRemoteDocData(raw);saveLocalOnly();render();isRemoteUpdate=false;}
+    }
+    catFromRemote(raw);
     // 雲端還沒有行程：把這支手機之前加的行程傳上去
     if((!raw||raw.events===undefined)&&Object.keys(calEvents).length)uploadAllEvents();
     setDot('ok');
@@ -704,6 +842,7 @@ function recordEventChange(act,ev){
   rec.text=verb[rec.act]+' '+evText(ev);
   pendingChanges.push(rec);
   saveChanges();renderChgBar();
+  catGain('ev');
 }
 
 function renderChgBar(){
@@ -742,6 +881,7 @@ function buildChangeMsg(){
 function sendChangeNotification(){
   var msg=buildChangeMsg();
   if(!msg){toast('沒有待通知的變更');return;}
+  catGain('ntf');catFlush();
   window.location.href='https://wa.me/?text='+encodeURIComponent(msg);
   pendingChanges=[];saveChanges();
   setTimeout(function(){renderChgBar();},500);
@@ -1052,6 +1192,7 @@ function shiftBadge(uid,idx){
 }
 // 某一天：兩人的班＋這天的行程；readOnly＝總表瀏覽時只看不改
 function showDaySheet(y,m,d,readOnly){
+  catBusy();
   var key=evDateStr(y,m,d),dow=DOW[new Date(y,m-1,d).getDay()],list=eventsOn(y,m,d);
   var si=shiftIndexAt('syue',y,m,d),li=shiftIndexAt('ling',y,m,d);
   var info=(isOffAt('syue',si)&&isOffAt('ling',li))?'<div class="popup-item-badge" style="background:var(--common);color:var(--t)">共同休假</div>':shiftBadge('syue',si)+shiftBadge('ling',li);
@@ -1285,6 +1426,7 @@ function applyShift(dd,dw,next){
   sd(cd,uid);saveAll();
   var newIdx=shiftIndex(uid,dd);
   recordChange(uid,curY,curM,dd,dw,oldIdx,newIdx);
+  catGain('chg',uid+'|'+curY+'-'+curM+'-'+dd);catBusy();
   // 重畫會換掉整個月曆，記下是哪天，讓新的格子彈一下
   popDay=dd;clearTimeout(popT2);popT2=setTimeout(function(){popDay=0;},500);
   render();
@@ -1408,8 +1550,8 @@ function render(){
     '<div class="sc common" onclick="showPopup(\'common\')"><div class="sc-dot" style="background:var(--common)"></div><div class="sn">'+cnt.common+'</div><div class="sl2">共同休假</div></div>';
 }
 
-document.getElementById('bp').onclick=function(){curM--;if(curM<1){curM=12;curY--;}monthAnim='prev';render();};
-document.getElementById('bn').onclick=function(){curM++;if(curM>12){curM=1;curY++;}monthAnim='next';render();};
+document.getElementById('bp').onclick=function(){curM--;if(curM<1){curM=12;curY--;}monthAnim='prev';render();catQuest('nav',1);catSave();};
+document.getElementById('bn').onclick=function(){curM++;if(curM>12){curM=1;curY++;}monthAnim='next';render();catQuest('nav',1);catSave();};
 
 /* 左右滑動換月 */
 (function(){
@@ -1568,6 +1710,610 @@ function showSyncSetup(){
   setTimeout(()=>document.getElementById('frInp').focus(),60);
 }
 
+/* ── 三花貓：在畫面上散步，可以摸、餵、看牠表演 ──
+   每人一筆紀錄（雲端欄位 cat_syue／cat_ling，JSON 字串），每支手機只寫自己那筆，兩人同時玩不會互蓋
+   - 升級點數：兩人維護班表賺的點數加起來，貓咪升級、學新技能
+   - 親密度：各自算。常來、常排班、摸摸、餵食的人，貓咪比較黏
+   - 貓糧：各自的。每天第一次來送一包、今日支線、貓咪偶爾叼來的 */
+var CAT_LV=[0,12,35,70,120,190,280,400,550]; // 第 i 格＝升到 Lv(i+1) 要的總點數
+var CAT_SKILLS=[
+  {id:'stretch',lv:1,name:'伸懶腰',ic:'🙆'},
+  {id:'roll',lv:2,name:'打滾',ic:'🌀'},
+  {id:'jump',lv:3,name:'跳高高',ic:'⤴️'},
+  {id:'flip',lv:4,name:'翻跟斗',ic:'🤸'},
+  {id:'wave',lv:5,name:'招財貓',ic:'👋'},
+  {id:'spin',lv:6,name:'轉圈圈',ic:'💫'},
+  {id:'yarn',lv:7,name:'玩毛線球',ic:'🧶'},
+  {id:'love',lv:8,name:'愛心光波',ic:'💖'}
+];
+var CAT_SK_MS={stretch:1600,roll:1200,jump:900,flip:1300,wave:2200,spin:1400,yarn:2050,love:1700,groom:1900};
+var CAT_QUESTS=[
+  {id:'chg3',t:'幫忙更新 3 天的班表',k:'chg',n:3,r:{can:1}},
+  {id:'ev1',t:'新增或修改一個行程',k:'ev',n:1,r:{kib:3}},
+  {id:'pet5',t:'摸摸貓咪 5 次',k:'pet',n:5,r:{kib:2}},
+  {id:'min5',t:'在班表停留 5 分鐘',k:'min',n:5,r:{kib:2}},
+  {id:'ntf1',t:'傳一次變更通知給對方',k:'ntf',n:1,r:{can:1}},
+  {id:'nav2',t:'翻翻前後月份的班表 2 次',k:'nav',n:2,r:{kib:2}},
+  {id:'skill2',t:'讓貓咪表演 2 次技能',k:'skill',n:2,r:{kib:2}},
+  {id:'feed1',t:'餵貓咪吃一頓飯',k:'feed',n:1,r:{kib:2}}
+];
+// 每人每天的上限，避免一直點同一格刷點數
+var CAT_DAY_PTS=30,CAT_DAY_MIN=30,CAT_DAY_PET=10,CAT_DAY_DROP=3,CAT_DAY_EV=3;
+var CAT_ART={
+  cat:'<svg viewBox="0 0 84 64" aria-hidden="true"><g stroke="#3E3A39" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">'+
+    '<g class="c-tail"><path d="M20 38C9 37 4 27 9 16" fill="none" stroke-width="9"/><path d="M20 38C9 37 4 27 9 16" fill="none" stroke="#FFFCF6" stroke-width="3.6"/></g>'+
+    '<rect class="c-leg lb2" x="27" y="42" width="8" height="15" rx="4" fill="#F5EEE2" stroke-width="2.6"/>'+
+    '<rect class="c-leg lf2" x="54" y="42" width="8" height="15" rx="4" fill="#F5EEE2" stroke-width="2.6"/>'+
+    '<rect class="c-leg lb1" x="19" y="42" width="8" height="15" rx="4" fill="#FFFCF6" stroke-width="2.6"/>'+
+    '<rect class="c-leg lf1" x="46" y="42" width="8" height="15" rx="4" fill="#FFFCF6" stroke-width="2.6"/>'+
+    '<g class="c-body"><path d="M15 35C15 26 24 22 36 22H50C61 22 66 29 64 37C62 45 56 49 47 49H29C20 49 15 43 15 35Z" fill="#FFFCF6"/>'+
+    '<ellipse cx="29" cy="31" rx="9" ry="6" fill="#F6D27A" stroke="none"/><ellipse cx="46" cy="27.5" rx="5.5" ry="3.6" fill="#F2A497" stroke="none"/></g>'+
+    '<g class="c-head"><path d="M56 17 58.5 4.5 66 12.5Z" fill="#FFFCF6"/><path d="M68 12 76 4.5 78 17Z" fill="#F2A497"/>'+
+    '<circle cx="67" cy="23" r="13" fill="#FFFCF6"/>'+
+    '<g class="c-eo"><ellipse cx="62.5" cy="22" rx="1.9" ry="2.6" fill="#3E3A39" stroke="none"/><ellipse cx="72" cy="22" rx="1.9" ry="2.6" fill="#3E3A39" stroke="none"/></g>'+
+    '<path class="c-ec" d="M60 22q2.5 2.2 5 0M69.5 22q2.5 2.2 5 0" fill="none" stroke-width="2.2"/>'+
+    '<path class="c-eh" d="M60 23q2.5-2.6 5 0M69.5 23q2.5-2.6 5 0" fill="none" stroke-width="2.2"/>'+
+    '<circle cx="59.5" cy="27.5" r="2.2" fill="#F2A497" stroke="none"/><circle cx="75" cy="27.5" r="2.2" fill="#F2A497" stroke="none"/>'+
+    '<path d="M66.1 26.2h2.4l-1.2 1.4Z" fill="#3E3A39" stroke-width="1"/>'+
+    '<path class="c-mc" d="M64.8 28.6q1.2 1.3 2.5 0q1.3 1.3 2.5 0" fill="none" stroke-width="1.6"/>'+
+    '<ellipse class="c-mo" cx="67.3" cy="30.2" rx="2" ry="2.4" fill="#F2A497" stroke-width="1.6"/></g>'+
+    '<g class="c-paw"><path d="M52 44 56 25" fill="none" stroke-width="9"/><path d="M52 44 56 25" fill="none" stroke="#FFFCF6" stroke-width="3.6"/></g></g></svg>',
+  kib:'<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 9h16l2 18a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2Z" fill="#F6D27A" stroke="#3E3A39" stroke-width="2.2" stroke-linejoin="round"/><path d="M8 9l1.5-5h13L24 9Z" fill="#F2A497" stroke="#3E3A39" stroke-width="2.2" stroke-linejoin="round"/><path d="M10.5 19.5q5-5 9.5 0q-4.5 5-9.5 0Zm9.5 0 3-2.5v5Z" fill="#FFFCF6" stroke="#3E3A39" stroke-width="1.6" stroke-linejoin="round"/></svg>',
+  can:'<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6 10v14c0 2.5 4.5 4 10 4s10-1.5 10-4V10" fill="#A8D3E6" stroke="#3E3A39" stroke-width="2.2"/><ellipse cx="16" cy="10" rx="10" ry="4" fill="#FFFCF6" stroke="#3E3A39" stroke-width="2.2"/><path d="M6 15.5c3 1.6 17 1.6 20 0v6c-3 1.6-17 1.6-20 0Z" fill="#F2A497" stroke="#3E3A39" stroke-width="1.8"/><path d="M11.5 18.7q3.5-3 6.5 0q-3 3-6.5 0Zm6.5 0 2.5-2v4Z" fill="#FFFCF6" stroke="#3E3A39" stroke-width="1.4" stroke-linejoin="round"/></svg>',
+  bowl:'<svg viewBox="0 0 40 22" aria-hidden="true"><path d="M7 8q13-8 26 0Z" fill="#E8C27A" stroke="#3E3A39" stroke-width="2" stroke-linejoin="round"/><path d="M3 8h34l-4 11a3 3 0 0 1-3 2H10a3 3 0 0 1-3-2Z" fill="#F2A497" stroke="#3E3A39" stroke-width="2.4" stroke-linejoin="round"/><path d="M15 14q2.5 2 5 0q2.5 2 5 0" fill="none" stroke="#FFFCF6" stroke-width="1.8" stroke-linecap="round"/></svg>',
+  yarn:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="#F2A497" stroke="#3E3A39" stroke-width="2.2"/><path d="M5 8c4 1 10 6 12 12M8 4.5c4 3 9 9 10 14M3.5 13c3 0 7 3 9 7.5" fill="none" stroke="#3E3A39" stroke-width="1.5" stroke-linecap="round"/></svg>'
+};
+var CAT_W=76,CAT_H=58;
+var catData={syue:null,ling:null},catSynced=false,catDirty=false,catWT=null,catGift=false,catBusyUntil=0,catSecs=0,catDropT=null;
+var cat={el:null,x:0,y:0,dir:1,raf:0,timer:null,sayT:null,act:'',menu:false,pet:false,pd:null,lpT:null,tapT:null,sleepT:null};
+var catReduce=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+function catPick(a){return a[Math.floor(Math.random()*a.length)];}
+function catClamp(v,a,b){return Math.max(a,Math.min(b,v));}
+function catHash(s){var h=2166136261;for(var i=0;i<s.length;i++)h=Math.imul(h^s.charCodeAt(i),16777619);return h>>>0;}
+function catToday(){var t=new Date();return evDateStr(t.getFullYear(),t.getMonth()+1,t.getDate());}
+function catNewRec(){return {pts:0,aff:0,kib:3,can:1,fedAt:0,fedFull:0,last:'',name:'',nameAt:0,d:null};}
+function catClean(o){
+  var r=catNewRec();
+  if(!o||typeof o!=='object')return r;
+  ['pts','aff','kib','can','fedAt','fedFull','nameAt'].forEach(function(k){var v=+o[k];if(isFinite(v)&&v>=0)r[k]=v;});
+  if(/^\d{4}-\d{2}-\d{2}$/.test(o.last||''))r.last=o.last;
+  if(typeof o.name==='string')r.name=o.name.slice(0,8);
+  var d=o.d;
+  if(d&&typeof d==='object'&&/^\d{4}-\d{2}-\d{2}$/.test(d.day||'')){
+    r.d={day:d.day,pts:+d.pts||0,min:+d.min||0,pet:+d.pet||0,ev:+d.ev||0,ntf:+d.ntf||0,drop:+d.drop||0,
+      chg:Array.isArray(d.chg)?d.chg.filter(function(x){return typeof x==='string';}).slice(-60):[],
+      q:d.q&&typeof d.q==='object'?{id:String(d.q.id||''),p:+d.q.p||0,done:!!d.q.done,seen:!!d.q.seen}:null};
+  }
+  return r;
+}
+// 新手機第一次收到雲端資料時：本機先玩到的跟雲端的合在一起，不會蓋掉雲端的點數
+function catMerge(a,b){
+  var m=catClean(b);
+  ['pts','aff','kib','can'].forEach(function(k){m[k]=Math.max(a[k],b[k]);});
+  if(a.fedAt>b.fedAt){m.fedAt=a.fedAt;m.fedFull=a.fedFull;}
+  if(a.nameAt>b.nameAt){m.name=a.name;m.nameAt=a.nameAt;}
+  if(a.last>b.last)m.last=a.last;
+  if(a.d&&(!b.d||a.d.day>b.d.day))m.d=a.d;
+  return m;
+}
+function catRec(uid){if(!catData[uid])catData[uid]=catNewRec();return catData[uid];}
+// 這支手機是誰：第一次登入／選身份時記下來，之後在貓咪狀態卡可以改
+function catWho(){
+  var me=lsGet('catMe');
+  if(me==='syue'||me==='ling')return me;
+  if(currentUser){lsSet('catMe',currentUser);return currentUser;}
+  return '';
+}
+// 很久沒來，親密度每天淡掉 3%
+function catEffAff(r){
+  if(!r)return 0;
+  if(!r.last)return r.aff;
+  return r.aff*Math.pow(.97,Math.max(0,dayDiff(r.last,catToday())-1));
+}
+// 每天第一次：重設今天的計數、抽今日支線、送一包飼料
+function catDay(uid){
+  var r=catRec(uid),today=catToday();
+  if(r.d&&r.d.day===today)return r;
+  r.aff=Math.round(catEffAff(r));
+  var rnd=seeded(catHash(today+uid)),q=CAT_QUESTS[Math.floor(rnd()*CAT_QUESTS.length)];
+  r.d={day:today,pts:0,min:0,pet:0,ev:0,ntf:0,drop:0,chg:[],q:{id:q.id,p:0,done:false,seen:false}};
+  r.last=today;r.kib+=1;r.aff+=2;catGift=true;
+  return r;
+}
+function catPts(){return (catData.syue?catData.syue.pts:0)+(catData.ling?catData.ling.pts:0);}
+function catLevel(p){var lv=1;for(var i=1;i<CAT_LV.length;i++)if(p>=CAT_LV[i])lv=i+1;return lv;}
+function catSkills(){var lv=catLevel(catPts());return CAT_SKILLS.filter(function(s){return s.lv<=lv;});}
+function catName(){
+  var a=catData.syue,b=catData.ling,ta=a&&a.name?a.nameAt:-1,tb=b&&b.name?b.nameAt:-1;
+  if(ta<0&&tb<0)return '三花';
+  return ta>=tb?a.name:b.name;
+}
+// 飽足度：誰最後餵的就從那次開始算，每小時少 4
+function catFull(){
+  var best=0;
+  ['syue','ling'].forEach(function(u){var r=catData[u];if(r&&r.fedAt){var f=r.fedFull-(Date.now()-r.fedAt)/3600000*4;if(f>best)best=f;}});
+  return catClamp(best,0,100);
+}
+function catFav(){
+  var a=catEffAff(catData.syue),b=catEffAff(catData.ling);
+  if(Math.max(a,b)<10)return '';
+  if(a>=b*1.15)return 'syue';
+  if(b>=a*1.15)return 'ling';
+  return 'both';
+}
+function catQuestDef(id){return CAT_QUESTS.filter(function(q){return q.id===id;})[0];}
+function catQuestTxt(def){return def.r.can?'罐頭 ×'+def.r.can:'飼料 ×'+def.r.kib;}
+
+function catSave(){
+  lsSet('catV1',JSON.stringify(catData));
+  var me=catWho();
+  if(!me||!cloudOn()||!catSynced)return;
+  catDirty=true;clearTimeout(catWT);catWT=setTimeout(catFlush,2500);
+}
+function catFlush(){
+  clearTimeout(catWT);catWT=null;
+  var me=catWho();
+  if(!catDirty||!me||!cloudOn()||!catData[me])return;
+  var p={};p['cat_'+me]=JSON.stringify(catData[me]);
+  setDoc(doc(db,'banbiao',syncCode),p,{merge:true})
+    .then(function(){if(!catWT)catDirty=false;})
+    .catch(function(e){console.error('cat write error',e);});
+}
+// 雲端有變：對方的紀錄直接換；自己的還沒寫上去就先不收
+function catFromRemote(raw){
+  var me=catWho();
+  ['syue','ling'].forEach(function(u){
+    var s=raw&&raw['cat_'+u];
+    if(typeof s!=='string')return;
+    var rr;try{rr=catClean(JSON.parse(s));}catch(e){return;}
+    if(u===me){
+      if(catDirty)return;
+      if(!catSynced&&catData[u]&&catData[u].d){catData[u]=catMerge(catData[u],rr);return;}
+    }
+    catData[u]=rr;
+  });
+  lsSet('catV1',JSON.stringify(catData));
+  if(!catSynced){catSynced=true;catReady();}
+  else{catCheckLevel();catUpdMark();}
+}
+// 資料準備好了（本機模式一開始；雲端模式收到第一筆）
+function catReady(){
+  var me=catWho();
+  if(me){catDay(me);catSave();if(cloudOn())catFlush();}
+  catCheckLevel();catUpdMark();
+  setTimeout(catGreet,900);
+}
+
+/* 賺點數：改班表、改行程、傳通知 */
+function catGain(kind,key){
+  var me=catWho();if(!me)return;
+  var r=catDay(me),d=r.d,p=0,a=0;
+  if(kind==='chg'){if(d.chg.indexOf(key)>-1)return;d.chg.push(key);if(d.chg.length>60)d.chg.shift();p=1;a=1;}
+  else if(kind==='ev'){if(d.ev<CAT_DAY_EV){d.ev++;p=3;a=2;}}
+  else if(kind==='ntf'){if(!d.ntf){d.ntf=1;p=2;a=2;}}
+  p=Math.max(0,Math.min(p,CAT_DAY_PTS-d.pts));
+  d.pts+=p;r.pts+=p;r.aff+=a;
+  catQuest(kind,1);
+  catSave();
+  if(p)catFloat('+'+p+' ⭐');
+  catCheckLevel();
+}
+function catQuest(k,n){
+  var me=catWho();if(!me)return;
+  var r=catDay(me),q=r.d.q,def=q&&catQuestDef(q.id);
+  if(!def||q.done||def.k!==k)return;
+  q.p+=n;
+  if(q.p>=def.n){
+    q.done=true;q.seen=true;
+    if(def.r.kib)r.kib+=def.r.kib;
+    if(def.r.can)r.can+=def.r.can;
+    setTimeout(function(){catSay('支線完成！',2200);catFloat('+ '+catQuestTxt(def));toast('🎁 今日支線完成：獲得 '+catQuestTxt(def));},500);
+  }
+  catUpdMark();
+}
+function catBusy(){
+  catBusyUntil=Date.now()+20000;
+  if(!cat.el||cat.act||cat.menu||cat.pet)return;
+  if(cat.el.classList.contains('sleep'))catWake();
+  catNext(400);
+}
+function catCheckLevel(){
+  if(!catSynced)return;
+  var lv=catLevel(catPts()),seen=+lsGet('catLvSeen')||0;
+  if(!seen){lsSet('catLvSeen',lv);return;}
+  if(lv<=seen)return;
+  lsSet('catLvSeen',lv);
+  var sk=CAT_SKILLS.filter(function(s){return s.lv===lv;})[0];
+  // 晚一點再跳，免得被「已新增」之類的提示蓋掉
+  setTimeout(function(){toast('🎉 '+catName()+' 升到 Lv'+lv+(sk?'，學會「'+sk.name+'」':''));},900);
+  if(!cat.el||catHidden())return;
+  catSay('升到 Lv'+lv+'！',2600);catBurst(ART.star,8);
+  if(sk)setTimeout(function(){catDo(sk.id,false,true);},1400);
+}
+function catUpdMark(){
+  if(!cat.el)return;
+  var me=catWho(),r=me&&catData[me],q=r&&r.d&&r.d.day===catToday()&&r.d.q;
+  cat.el.classList.toggle('has-q',!!(q&&!q.seen&&!q.done));
+}
+function catGreet(){
+  if(!cat.el||catHidden())return;
+  var me=catWho(),fav=catFav();
+  if(catGift&&me){
+    catGift=false;
+    catSay('今天也來看我了！送你飼料',2600);catFloat('+ 飼料 ×1');
+    return;
+  }
+  if(me&&fav===me){catSay(catPick(['歡迎回來♥','等你好久了～','喵♥（蹭蹭）']),2200);catHearts(3);}
+  else catSay(catPick(['喵～','喵？','（伸懶腰）']));
+}
+
+/* ── 畫面上的貓咪 ── */
+function catHidden(){return lsGet('catHide')==='1';}
+function catBounds(){
+  var vw=window.innerWidth,vh=window.innerHeight,hdr=document.querySelector('.hdr').getBoundingClientRect().bottom;
+  var bar=document.getElementById('chgBar').classList.contains('show')?100:12;
+  var y0=Math.max(hdr+10,10),y1=Math.max(y0,vh-CAT_H-bar);
+  return {x0:6,x1:Math.max(6,vw-CAT_W-6),y0:y0,y1:y1};
+}
+function catPlace(){
+  cat.el.style.transform='translate3d('+cat.x.toFixed(1)+'px,'+cat.y.toFixed(1)+'px,0)';
+  cat.el.classList.toggle('left',cat.dir<0);
+}
+function catMode(m){
+  ['walk','run','sleep','eat','pet','happy'].forEach(function(c){cat.el.classList.remove(c);});
+  if(m)m.split(' ').forEach(function(c){cat.el.classList.add(c);});
+}
+function catStop(){cancelAnimationFrame(cat.raf);cat.raf=0;clearTimeout(cat.timer);clearTimeout(cat.sleepT);if(cat.el.classList.contains('walk'))catMode('');}
+function catWalkTo(tx,ty,speed,done){
+  catStop();
+  var b=catBounds();tx=catClamp(tx,b.x0,b.x1);ty=catClamp(ty,b.y0,b.y1);
+  if(Math.abs(tx-cat.x)>2)cat.dir=tx<cat.x?-1:1;
+  if(catReduce){cat.x=tx;cat.y=ty;catPlace();if(done)done();return;}
+  catMode(speed>70?'walk run':'walk');catPlace();
+  var last=performance.now();
+  function step(t){
+    var dt=Math.min(.05,(t-last)/1000);last=t;
+    var dx=tx-cat.x,dy=ty-cat.y,dist=Math.hypot(dx,dy),mv=speed*dt;
+    if(dist<=mv){cat.x=tx;cat.y=ty;catPlace();catMode('');cat.raf=0;if(done)done();return;}
+    cat.x+=dx/dist*mv;cat.y+=dy/dist*mv;catPlace();
+    cat.raf=requestAnimationFrame(step);
+  }
+  cat.raf=requestAnimationFrame(step);
+}
+function catNext(ms){clearTimeout(cat.timer);cat.timer=setTimeout(catThink,ms==null?1800+Math.random()*3500:ms);}
+// 自己決定下一步要做什麼
+function catThink(){
+  if(!cat.el)return;
+  if(cat.menu||cat.pet||cat.act||catHidden()||document.hidden){catNext(3000);return;}
+  if(cat.el.classList.contains('sleep'))return;
+  var b=catBounds(),r=Math.random(),hr=new Date().getHours(),night=hr>=23||hr<7,full=catFull();
+  // 有人在排班：走到下面坐著陪，不擋月曆
+  if(catBusyUntil>Date.now()){
+    if(Math.abs(cat.y-b.y1)>6&&!catReduce)catWalkTo(cat.x+(Math.random()-.5)*100,b.y1,75,function(){catNext(4000);});
+    else{if(Math.random()<.3)catSay(catPick(['（看你排班）','我陪你～','加油喵']));catNext(5000);}
+    return;
+  }
+  if(full<20&&r<.25){catSay(catPick(['肚子餓了…','想吃罐罐','（肚子咕嚕咕嚕）']),2200);catNext(4000);return;}
+  if((night&&r<.5)||r<.07){catSleep(9000+Math.random()*14000);return;}
+  if(r<.55&&!catReduce){
+    catWalkTo(b.x0+Math.random()*(b.x1-b.x0),b.y0+Math.random()*(b.y1-b.y0),full<20?28:44,function(){catNext();});
+    return;
+  }
+  if(r<.66){catDo('groom');return;}
+  if(r<.78&&full>=15){var sk=catSkills();if(sk.length){catDo(catPick(sk).id);return;}}
+  if(r<.86)catSay(catPick(['喵～','（發呆）','喵？','（盯）']));
+  catNext();
+}
+function catSleep(ms){
+  catStop();catMode('sleep');catSay('Zzz…',2000);
+  cat.sleepT=setTimeout(catWake,ms);
+}
+function catWake(){clearTimeout(cat.sleepT);if(cat.el.classList.contains('sleep'))catMode('');catNext();}
+function catSay(t,ms){
+  if(!cat.el)return;
+  var s=cat.el.querySelector('.cat-say');s.textContent=t;s.classList.add('on');
+  clearTimeout(cat.sayT);cat.sayT=setTimeout(function(){s.classList.remove('on');},ms||1800);
+}
+function catMeow(){cat.el.classList.add('meow');setTimeout(function(){cat.el.classList.remove('meow');},600);}
+function catFx(html,cls,x,y,dx,dy){
+  var e=document.createElement('div');e.className='cat-fx'+(cls?' '+cls:'');e.innerHTML=html;
+  e.style.left=x+'px';e.style.top=y+'px';e.style.setProperty('--dx',(dx||0)+'px');e.style.setProperty('--dy',(dy==null?-60:dy)+'px');
+  document.body.appendChild(e);setTimeout(function(){e.remove();},1500);
+}
+function catFloat(txt){if(!cat.el||catHidden())return;catFx(safeHtml(txt),'pt',cat.x+CAT_W/2-26,cat.y-14,0,-44);}
+function catHearts(n){
+  for(var i=0;i<n;i++)(function(i){setTimeout(function(){
+    catFx(ART.heart,'',cat.x+CAT_W/2-9+(Math.random()-.5)*34,cat.y+4,(Math.random()-.5)*40,-50-Math.random()*30);
+  },i*140);})(i);
+}
+function catBurst(svg,n){
+  for(var i=0;i<n;i++){var a=Math.PI*2*i/n;catFx(svg,'',cat.x+CAT_W/2-9,cat.y+CAT_H/2-9,Math.cos(a)*70,Math.sin(a)*60-20);}
+}
+// 表演：fromUser＝有人按的（算支線、太餓不表演）；force＝升級時的示範
+function catDo(id,fromUser,force){
+  if(cat.act||(!force&&(cat.menu||cat.pet)))return false;
+  if(fromUser&&id!=='groom'&&catFull()<15){catSay('太餓了，沒力氣…');catMeow();return false;}
+  catStop();catMode('');
+  cat.act=id;cat.el.classList.add('sk-'+id);
+  if(id==='wave')catSay('招財進寶～',2000);
+  if(id==='love')setTimeout(function(){catBurst(ART.heart,10);},500);
+  if(id==='yarn')catYarn();
+  if(id==='flip'||id==='jump')setTimeout(function(){catSay(catPick(['嘿咻！','看我的！']),1200);},100);
+  var ms=CAT_SK_MS[id]||1500;
+  setTimeout(function(){
+    cat.el.classList.remove('sk-'+id);cat.act='';
+    // 毛線球：貓咪撲出去了，把位置留在落地的地方
+    if(id==='yarn'&&!catReduce){var b=catBounds();cat.x=catClamp(cat.x+cat.dir*90,b.x0,b.x1);catPlace();}
+    catNext();
+  },catReduce?700:ms);
+  if(fromUser&&id!=='groom'){catQuest('skill',1);catSave();}
+  return true;
+}
+function catYarn(){
+  var y=document.createElement('div');y.className='cat-yarn';y.innerHTML=CAT_ART.yarn;
+  var sx=cat.dir>0?cat.x+CAT_W-8:cat.x-14,sy=cat.y+CAT_H-22;
+  y.style.transform='translate('+sx+'px,'+sy+'px)';document.body.appendChild(y);
+  requestAnimationFrame(function(){requestAnimationFrame(function(){y.style.transform='translate('+(sx+cat.dir*120)+'px,'+sy+'px) rotate('+(cat.dir*540)+'deg)';});});
+  setTimeout(function(){y.style.transition='transform .6s cubic-bezier(.2,.7,.3,1),opacity .4s';y.style.transform='translate('+(sx+cat.dir*150)+'px,'+(sy-6)+'px) rotate('+(cat.dir*720)+'deg)';},1500);
+  setTimeout(function(){y.style.opacity='0';},2300);
+  setTimeout(function(){y.remove();},2800);
+}
+// 摸摸：手指在貓咪身上滑、或長按
+function catPetStart(){
+  if(cat.pet)return;
+  if(cat.act)return;
+  catCloseMenu();clearTimeout(cat.sleepT);catStop();
+  var wasSleep=cat.el.classList.contains('sleep');
+  cat.pet=true;catMode('pet happy');
+  var me=catWho(),fav=catFav();
+  if(me&&fav&&fav!=='both'&&fav!==me&&Math.random()<.3)catSay('哼～（我比較黏'+USERS[fav].label+'）',2200);
+  else catSay(wasSleep?'嗯…呼嚕…':catPick(['呼嚕呼嚕～','好舒服～','再摸一下']),2000);
+  catHearts(me&&fav===me?3:2);
+}
+function catPetEnd(){
+  if(!cat.pet)return;
+  cat.pet=false;catMode('');
+  var me=catWho();
+  if(me){var r=catDay(me);if(r.d.pet<CAT_DAY_PET){r.d.pet++;r.aff+=1;}catQuest('pet',1);catSave();}
+  catNext(2500);
+}
+function catTap(){
+  catMeow();
+  if(cat.el.classList.contains('sleep')){catWake();catSay('喵…？（被吵醒）');}
+  else{
+    var me=catWho(),fav=catFav();
+    if(me&&fav===me)catSay(catPick(['喵♥','最喜歡你了','（蹭蹭）']));
+    else if(me&&fav&&fav!=='both'&&Math.random()<.35)catSay(catPick(['哼～','（假裝沒看到）','喵。']));
+    else catSay(catPick(['喵～','喵？','喵嗚']));
+  }
+  catOpenMenu();
+}
+function catCloseMenu(){
+  document.querySelectorAll('.cat-menu,.cat-menu-bd').forEach(function(e){e.remove();});
+  if(cat.menu){cat.menu=false;catNext(2500);}
+}
+function catPosMenu(m){
+  var w=m.offsetWidth,h=m.offsetHeight,vw=window.innerWidth;
+  var left=catClamp(cat.x+CAT_W/2-w/2,8,vw-w-8),top=cat.y-h-34;
+  if(top<8)top=cat.y+CAT_H+8;
+  m.style.left=left+'px';m.style.top=top+'px';
+}
+function catOpenMenu(skills){
+  catCloseMenu();
+  var me=catWho();
+  if(!me){catOpenSheet();return;}
+  var r=catDay(me);
+  cat.menu=true;catStop();
+  var bd=document.createElement('div');bd.className='cat-menu-bd';bd.onclick=catCloseMenu;
+  var m=document.createElement('div');m.className='cat-menu';
+  var h='';
+  if(skills){
+    catSkills().forEach(function(s){h+='<button data-sk="'+s.id+'"><span class="ic">'+s.ic+'</span>'+s.name+'</button>';});
+    var nx=CAT_SKILLS.filter(function(s){return s.lv>catLevel(catPts());})[0];
+    h+='<button data-a="back"><span class="ic">‹</span>返回</button>';
+    if(nx)h+='<div class="cat-menu-q">Lv'+nx.lv+' 會學「'+nx.name+'」・維護班表可以升級</div>';
+  }else{
+    var q=r.d.q,def=q&&catQuestDef(q.id);
+    h+='<button data-a="pet"><span class="ic">🐾</span>摸摸</button>'+
+      '<button data-a="kib"'+(r.kib?'':' class="off"')+'><span class="ic">'+CAT_ART.kib+'</span>飼料 '+r.kib+'</button>'+
+      '<button data-a="can"'+(r.can?'':' class="off"')+'><span class="ic">'+CAT_ART.can+'</span>罐頭 '+r.can+'</button>'+
+      '<button data-a="sk"><span class="ic">✨</span>技能</button>'+
+      '<button data-a="info"><span class="ic">📋</span>狀態</button>';
+    if(def)h+='<div class="cat-menu-q">'+(q.done?'✓ ':'❗ ')+'今日支線：'+safeHtml(def.t)+'（'+Math.min(q.p,def.n)+'/'+def.n+'）→ '+catQuestTxt(def)+'</div>';
+    if(q&&!q.seen){q.seen=true;catSave();catUpdMark();}
+  }
+  m.innerHTML=h;
+  document.body.appendChild(bd);document.body.appendChild(m);
+  catPosMenu(m);
+  m.onclick=function(e){
+    var b=e.target.closest('button');if(!b)return;
+    var a=b.getAttribute('data-a'),sk=b.getAttribute('data-sk');
+    if(sk){catCloseMenu();catDo(sk,true);return;}
+    if(a==='back'){catOpenMenu(false);return;}
+    if(a==='sk'){catOpenMenu(true);return;}
+    catCloseMenu();
+    if(a==='pet'){catPetStart();setTimeout(catPetEnd,1800);}
+    else if(a==='kib'||a==='can')catFeed(a);
+    else if(a==='info')catOpenSheet();
+  };
+}
+function catFeed(kind){
+  var me=catWho();if(!me){catOpenSheet();return;}
+  var r=catDay(me),full=catFull(),have=kind==='can'?r.can:r.kib;
+  if(!have){catSay(kind==='can'?'沒有罐頭了…':'沒有飼料了…');toast('完成今日支線、撿貓咪找到的東西，就有貓糧');return false;}
+  if(full>=92){catSay('吃不下了～');catMeow();return false;}
+  if(cat.act||cat.pet)return false;
+  if(kind==='can')r.can--;else r.kib--;
+  r.fedAt=Date.now();r.fedFull=Math.min(100,full+(kind==='can'?60:30));r.aff+=kind==='can'?6:2;
+  catQuest('feed',1);catSave();
+  catStop();clearTimeout(cat.sleepT);
+  // 碗放在比較有空間的那一邊
+  cat.dir=cat.x+CAT_W/2>window.innerWidth/2?-1:1;catPlace();
+  cat.act='eat';catMode('eat happy');catSay(kind==='can'?'罐罐！！':'開動～');
+  var bowl=document.createElement('div');bowl.className='cat-bowl';bowl.innerHTML=CAT_ART.bowl;
+  bowl.style.left=(cat.dir>0?cat.x+CAT_W-14:cat.x-22)+'px';bowl.style.top=(cat.y+CAT_H-17)+'px';
+  document.body.appendChild(bowl);
+  setTimeout(function(){
+    bowl.remove();catMode('');cat.act='';
+    catSay(kind==='can'?'最喜歡罐罐了♥':'好飽～',2000);catHearts(kind==='can'?5:2);
+    catNext(2500);
+  },catReduce?900:2600);
+  return true;
+}
+// 偶爾：貓咪在畫面上找到飼料或罐頭，點一下撿起來
+function catScheduleDrop(){clearTimeout(catDropT);catDropT=setTimeout(catTryDrop,(80+Math.random()*160)*1000);}
+function catTryDrop(){
+  catScheduleDrop();
+  var me=catWho();
+  if(!me||!catSynced||document.hidden||catHidden()||document.querySelector('.cat-drop'))return;
+  var r=catDay(me);
+  if(r.d.drop>=CAT_DAY_DROP||Math.random()>.55)return;
+  var can=Math.random()<.25,b=catBounds(),x=b.x0+10+Math.random()*(b.x1-b.x0),y=b.y0+10+Math.random()*(b.y1-b.y0);
+  var el=document.createElement('button');el.className='cat-drop';el.setAttribute('aria-label',can?'撿起罐頭':'撿起貓飼料');
+  el.innerHTML=can?CAT_ART.can:CAT_ART.kib;el.style.left=x+'px';el.style.top=y+'px';
+  document.body.appendChild(el);
+  if(!cat.menu&&!cat.act&&!cat.pet&&!cat.el.classList.contains('sleep'))
+    catWalkTo(x>cat.x?x-CAT_W+4:x+36,y+42-CAT_H,80,function(){catSay(can?'你看！罐罐！':'找到飼料了！',2400);catMeow();catNext(5000);});
+  var gone=setTimeout(function(){el.classList.add('bye');setTimeout(function(){el.remove();},450);},45000);
+  el.onclick=function(){
+    clearTimeout(gone);el.remove();
+    var r=catDay(catWho());r.d.drop++;if(can)r.can++;else r.kib++;catSave();
+    catFx(can?'+ 罐頭 ×1':'+ 飼料 ×1','pt',x-14,y-8,0,-40);
+    toast(can?'撿到罐頭 ×1':'撿到貓飼料 ×1');
+  };
+}
+
+/* 貓咪狀態卡 */
+function catOpenSheet(){
+  catCloseMenu();
+  var me=catWho(),pts=catPts(),lv=catLevel(pts),nx=CAT_LV[lv],prev=CAT_LV[lv-1],fav=catFav(),full=Math.round(catFull()),name=catName();
+  var h='<div class="popup-grabber"></div><div class="popup-top"><div class="popup-dot" style="background:var(--yellow)"></div><div class="popup-title"><button class="cs-name" id="csName">'+safeHtml(name)+' ✎</button></div><div class="popup-count">Lv'+lv+'</div><button class="popup-close" onclick="closePopup()">✕</button></div><div class="popup-body">';
+  if(!me){
+    h+='<div class="cs-sec"><div class="cs-h"><span>你是誰？</span></div><div class="cs-note" style="margin:0 0 10px">貓咪要記得是誰在照顧牠，點數和貓糧會算在你身上。</div><div class="cs-seg"><button data-me="syue">我是 學</button><button data-me="ling">我是 綾</button></div></div>';
+  }
+  var nsk=CAT_SKILLS.filter(function(s){return s.lv===lv+1;})[0];
+  h+='<div class="cs-sec"><div class="cs-h"><span>升級點數（兩人一起）</span><b>⭐ '+pts+(nx?' / '+nx:'')+'</b></div>'+
+    '<div class="cs-bar"><i style="width:'+(nx?Math.round((pts-prev)/(nx-prev)*100):100)+'%;background:var(--yellow)"></i></div>'+
+    '<div class="cs-note">'+(nx?'再 '+(nx-pts)+' 點升到 Lv'+(lv+1)+(nsk?'，學會「'+nsk.name+'」':''):'已經是最高等級，所有技能都學會了！')+'</div></div>';
+  var aff={syue:Math.round(catEffAff(catData.syue)),ling:Math.round(catEffAff(catData.ling))},mx=Math.max(aff.syue,aff.ling,1);
+  h+='<div class="cs-sec"><div class="cs-h"><span>親密度</span></div>';
+  ['syue','ling'].forEach(function(u){
+    h+='<div class="cs-aff"><span class="cs-who" style="background:var(--'+u+')">'+USERS[u].label+'</span><div class="cs-bar"><i style="width:'+Math.round(aff[u]/mx*100)+'%;background:var(--'+u+')"></i></div><span class="cs-num">'+aff[u]+' ♥'+(fav===u?' 👑':'')+'</span></div>';
+  });
+  h+='<div class="cs-note">'+(fav==='syue'||fav==='ling'?safeHtml(name)+' 最近最黏 <b>'+USERS[fav].label+'</b>':fav==='both'?safeHtml(name)+' 兩個人都一樣喜歡':safeHtml(name)+' 還在認識你們')+
+    '<br>常來看牠、常維護班表、摸摸和餵食，牠就會比較黏你。</div></div>';
+  h+='<div class="cs-sec"><div class="cs-h"><span>肚子</span><b>'+(full>=80?'飽飽的':full>=40?'還好':full>=15?'有點餓':'好餓…')+'</b></div>'+
+    '<div class="cs-bar"><i style="width:'+full+'%;background:'+(full<30?'var(--coral)':'var(--wakatake)')+'"></i></div></div>';
+  if(me){
+    var r=catDay(me),q=r.d.q,def=q&&catQuestDef(q.id);
+    h+='<div class="cs-sec"><div class="cs-h"><span>'+USERS[me].label+' 的貓糧</span></div><div class="cs-food">'+
+      '<button class="cs-btn'+(r.kib?'':' off')+'" data-feed="kib">'+CAT_ART.kib+'餵飼料 ×'+r.kib+'</button>'+
+      '<button class="cs-btn'+(r.can?'':' off')+'" data-feed="can">'+CAT_ART.can+'餵罐頭 ×'+r.can+'</button></div></div>';
+    if(def){
+      if(!q.seen){q.seen=true;catSave();catUpdMark();}
+      h+='<div class="cs-sec"><div class="cs-h"><span>今日支線</span><b>'+(q.done?'完成 ✓':Math.min(q.p,def.n)+' / '+def.n)+'</b></div>'+
+        '<div class="cs-quest'+(q.done?' done':'')+'">'+(def.r.can?CAT_ART.can:CAT_ART.kib)+'<div class="q-main">'+safeHtml(def.t)+'<div class="q-sub">獎勵：'+catQuestTxt(def)+'</div></div></div></div>';
+    }
+  }
+  h+='<div class="cs-sec"><div class="cs-h"><span>技能</span><b>點一下讓牠表演</b></div><div class="cs-skills">';
+  CAT_SKILLS.forEach(function(s){
+    var ok=s.lv<=lv;
+    h+='<button class="cs-sk'+(ok?'':' lock')+'"'+(ok?' data-sk="'+s.id+'"':'')+'><span class="ic">'+(ok?s.ic:'🔒')+'</span>'+(ok?s.name:'Lv'+s.lv)+'</button>';
+  });
+  h+='</div></div>';
+  h+='<div class="cs-sec"><div class="cs-h"><span>怎麼讓貓咪升級</span></div><div class="cs-rules">'+
+    '改一天班表 +1⭐・新增／修改行程 +3⭐・傳變更通知 +2⭐<br>（每人每天最多 '+CAT_DAY_PTS+'⭐，同一天改來改去只算一次）<br>'+
+    '每天第一次來送飼料 ×1・完成今日支線拿貓糧<br>貓咪偶爾會找到飼料或罐頭，看到記得點一下撿起來</div></div>';
+  h+='<div class="cs-sec"><div class="cs-seg">'+(me?'這支手機是 <button data-me="syue"'+(me==='syue'?' class="on"':'')+'>學</button><button data-me="ling"'+(me==='ling'?' class="on"':'')+'>綾</button>':'')+
+    '<button id="csHide">'+(catHidden()?'叫貓咪出來':'讓貓咪去睡（隱藏）')+'</button></div></div>';
+  h+='</div>';
+  openPopupCard(h);
+  var card=document.getElementById('popupCard');
+  card.querySelectorAll('[data-me]').forEach(function(b){b.onclick=function(){
+    lsSet('catMe',b.getAttribute('data-me'));catDay(catWho());catSave();if(cloudOn())catFlush();catUpdMark();catOpenSheet();
+  };});
+  card.querySelectorAll('[data-feed]').forEach(function(b){b.onclick=function(){
+    if(catHidden()){toast('先叫貓咪出來才能餵喔');return;}
+    var k=b.getAttribute('data-feed'),have=catData[catWho()][k];
+    if(!have){toast('完成今日支線、撿貓咪找到的東西，就有貓糧');return;}
+    closePopup();setTimeout(function(){catFeed(k);},350);
+  };});
+  card.querySelectorAll('[data-sk]').forEach(function(b){b.onclick=function(){
+    if(catHidden()){toast('先叫貓咪出來才能表演喔');return;}
+    closePopup();var id=b.getAttribute('data-sk');setTimeout(function(){catDo(id,true);},350);
+  };});
+  document.getElementById('csHide').onclick=function(){
+    var hide=!catHidden();lsSet('catHide',hide?'1':'');cat.el.classList.toggle('hide',hide);
+    if(!hide){var bb=catBounds();cat.x=catClamp(cat.x,bb.x0,bb.x1);cat.y=bb.y1;catPlace();catNext(800);setTimeout(function(){catSay('喵～我回來了');},400);}
+    closePopup();
+  };
+  document.getElementById('csName').onclick=function(){
+    if(!catWho()){toast('先選你是誰');return;}
+    var v=prompt('幫貓咪取名字（8 個字以內）',name);
+    if(v==null)return;v=v.trim().slice(0,8);if(!v)return;
+    var r=catRec(catWho());r.name=v;r.nameAt=Date.now();catSave();catOpenSheet();
+  };
+}
+
+function catInit(){
+  try{var s=JSON.parse(lsGet('catV1')||'null');if(s){catData.syue=s.syue?catClean(s.syue):null;catData.ling=s.ling?catClean(s.ling):null;}}catch(e){}
+  var el=document.createElement('div');el.className='cat';el.id='cat';
+  el.setAttribute('role','button');el.setAttribute('aria-label','貓咪');
+  el.innerHTML='<div class="cat-face"><div class="cat-sk"><div class="cat-bob">'+CAT_ART.cat+'</div></div></div><div class="cat-say"></div><div class="cat-mark">!</div>';
+  document.body.appendChild(el);cat.el=el;
+  if(catHidden())el.classList.add('hide');
+  var b=catBounds();cat.x=b.x1-10;cat.y=b.y1;cat.dir=-1;catPlace();
+  // 手指在貓咪身上滑＝摸摸；點一下＝選單；長按也算摸摸
+  el.addEventListener('pointerdown',function(e){
+    e.preventDefault();
+    cat.pd={x:e.clientX,y:e.clientY,t:Date.now(),dist:0,acc:0};
+    try{el.setPointerCapture(e.pointerId);}catch(_){}
+    clearTimeout(cat.lpT);cat.lpT=setTimeout(function(){if(cat.pd)catPetStart();},450);
+  });
+  el.addEventListener('pointermove',function(e){
+    var p=cat.pd;if(!p)return;
+    var d=Math.hypot(e.clientX-p.x,e.clientY-p.y);p.x=e.clientX;p.y=e.clientY;p.dist+=d;p.acc+=d;
+    if(p.dist>22)catPetStart();
+    if(cat.pet&&p.acc>90){p.acc=0;catHearts(1);}
+  });
+  // 點一下要等 click 才開選單：iPhone 手指放開後還會補一個 click，先開的話會點到選單外面又關掉
+  function up(tap){
+    clearTimeout(cat.lpT);
+    var p=cat.pd;cat.pd=null;if(!p)return;
+    if(cat.pet){catPetEnd();return;}
+    if(tap&&p.dist<12){clearTimeout(cat.tapT);cat.tapT=setTimeout(function(){cat.tapT=null;catTap();},450);}
+  }
+  el.addEventListener('pointerup',function(){up(true);});
+  el.addEventListener('pointercancel',function(){up(false);});
+  el.addEventListener('click',function(){if(cat.tapT){clearTimeout(cat.tapT);cat.tapT=null;catTap();}});
+  el.addEventListener('contextmenu',function(e){e.preventDefault();});
+  // 最黏你的話：偶爾跑到你點的地方
+  document.addEventListener('pointerdown',function(e){
+    if(catHidden()||cat.menu||cat.act||cat.pet||catReduce||catBusyUntil>Date.now())return;
+    if(e.target.closest('.cw,.popup-ov,.ov,.frov,.cat,.cat-menu,.cat-drop,.chg-bar,.hdr,.smenu'))return;
+    var me=catWho();if(!me||catFav()!==me||Math.random()>.3)return;
+    var x=e.clientX,y=e.clientY;
+    setTimeout(function(){if(!cat.menu&&!cat.act&&!cat.pet){clearTimeout(cat.sleepT);catMode('');catWalkTo(x-CAT_W/2+(x>cat.x?-30:30),y-CAT_H+10,95,function(){catSay('♥');catNext();});}},250);
+  },{passive:true});
+  window.addEventListener('resize',function(){var b=catBounds();cat.x=catClamp(cat.x,b.x0,b.x1);cat.y=catClamp(cat.y,b.y0,b.y1);catPlace();});
+  document.addEventListener('visibilitychange',function(){if(document.hidden)catFlush();});
+  window.addEventListener('pagehide',catFlush);
+  // 停留時間：畫面開著每滿一分鐘，親密度 +1
+  setInterval(function(){
+    if(document.hidden||!catSynced)return;
+    catSecs+=15;if(catSecs<60)return;catSecs=0;
+    var me=catWho();if(!me)return;
+    var r=catDay(me);r.d.min++;if(r.d.min<=CAT_DAY_MIN)r.aff+=1;
+    catQuest('min',1);catSave();
+    if(catGift)catGreet();
+  },15000);
+  document.getElementById('scene').addEventListener('click',catOpenSheet);
+  catSynced=!(syncCode&&syncCode!=='LOCAL');
+  if(catSynced)catReady();
+  catNext(2500);catScheduleDrop();
+}
+
 (function init(){
   try{var rd=lsGet('scheduleDataV2');if(rd)scheduleData=JSON.parse(rd);}catch(e){}
   try{var rs=lsGet('shiftSetsV2');if(rs)shiftSets=JSON.parse(rs);}catch(e){}
@@ -1611,10 +2357,13 @@ function showSyncSetup(){
   buildFlags();renderPhoto();
   if(!syncCode){syncCode='LOCAL';lsSet('syncCode','LOCAL');}
   document.getElementById('frOv').style.display='none';
+  catInit();
   // 一律載入 Firebase：本機模式的新手機也能在設定裡輸入同步代碼加入
   initFirebase().then(function(){
     if(cloudOn()){startListener(syncCode);return;}
     setDot('');
+    // 連不上雲端：貓咪先用這支手機的資料
+    if(!catSynced){catSynced=true;catReady();}
     if(FIREBASE_READY&&lsGet('skipJoin')!=='1')showJoinPrompt();
   });
 })();
