@@ -531,6 +531,42 @@ b{font-weight:400;color:var(--t);box-shadow:inset 0 -.4em 0 var(--yellow);}
 @keyframes bookNibble{from{transform:none;}to{transform:translateY(1px) rotate(2deg);}}
 @keyframes bookGreeting{from{transform:rotate(-3deg);}to{transform:rotate(3deg) translateY(-1px);}}
 @keyframes bookGroom{from{transform:rotate(-3deg);}to{transform:rotate(1deg) scale(1.02,.98);}}
+/* 技能專用姿勢，短暫交疊淡入，並與整段動作共用時間。 */
+.cat[data-book-pose] .book-frame{display:inline;animation:none;opacity:0;visibility:hidden;transition:opacity .08s linear,visibility 0s .08s;}
+.cat[data-book-pose="idle"] .book-idle{opacity:1;visibility:visible;transition:opacity .08s linear;}
+.cat[data-book-pose="walk-a"] .book-walk-a{opacity:1;visibility:visible;transition:opacity .08s linear;}
+.cat[data-book-pose="walk-b"] .book-walk-b{opacity:1;visibility:visible;transition:opacity .08s linear;}
+.cat[data-book-pose="happy"] .book-happy{opacity:1;visibility:visible;transition:opacity .08s linear;}
+.cat[data-book-pose="eat"] .book-eat{opacity:1;visibility:visible;transition:opacity .08s linear;}
+.cat[data-book-pose="sleep"] .book-sleep{opacity:1;visibility:visible;transition:opacity .08s linear;}
+.cat[data-book-pose="stretch-start"] .book-stretch-start{opacity:1;visibility:visible;transition:opacity .08s linear;}
+.cat[data-book-pose="stretch"] .book-stretch{opacity:1;visibility:visible;transition:opacity .08s linear;}
+.cat[data-book-pose="roll"] .book-roll{opacity:1;visibility:visible;transition:opacity .08s linear;}
+.cat[data-book-pose="wave"] .book-wave{opacity:1;visibility:visible;transition:opacity .08s linear;}
+.cat[data-book-pose="pounce"] .book-pounce{opacity:1;visibility:visible;transition:opacity .08s linear;}
+.cat[data-book-pose="groom"] .book-groom{opacity:1;visibility:visible;transition:opacity .08s linear;}
+.cat[data-book-pose="flap-up"] .book-flap-up{opacity:1;visibility:visible;transition:opacity .08s linear;}
+.cat[data-book-pose="flap-down"] .book-flap-down{opacity:1;visibility:visible;transition:opacity .08s linear;}
+.cat[data-book-pose="salute"] .book-salute{opacity:1;visibility:visible;transition:opacity .08s linear;}
+.cat[data-book-pose="slide"] .book-slide{opacity:1;visibility:visible;transition:opacity .08s linear;}
+.cat[data-book-pose="preen"] .book-preen{opacity:1;visibility:visible;transition:opacity .08s linear;}
+.cat[data-book-pose="dance"] .book-dance{opacity:1;visibility:visible;transition:opacity .08s linear;}
+
+.cat:is(.sk-jump,.sk-flip,.sk-spin,.sk-love) .cat-sk{animation-duration:var(--skill-time);}
+.cat.sk-stretch .cat-sk{animation:bookStretch var(--skill-time) ease-in-out;}
+.cat.sk-roll .cat-sk{animation:bookRoll var(--skill-time) ease-in-out;transform-origin:50% 83%;}
+.cat.sk-wave .cat-sk{animation:bookWave var(--skill-time) ease-in-out;}
+.cat.sk-yarn .cat-sk{animation:bookPounce var(--skill-time) cubic-bezier(.3,.6,.4,1) forwards;}
+.cat.pg.sk-flap .cat-sk{animation:bookFlap var(--skill-time) ease-in-out;}
+.cat.pg.sk-dance .cat-sk{animation:pgDance var(--skill-time) ease-in-out;}
+.cat.pg.sk-salute .cat-sk{animation:bookWave var(--skill-time) ease-in-out;}
+.cat.pg.sk-slide .cat-sk{animation:bookSlide var(--skill-time) cubic-bezier(.3,.6,.4,1) forwards;}
+@keyframes bookStretch{0%,100%{transform:none;}12%{transform:translateY(1px);}30%,68%{transform:scale(1.035,1) translateY(1px);}50%{transform:scale(1.055,.985) translateY(2px);}84%{transform:scale(1.015,1);}}
+@keyframes bookRoll{0%,100%{transform:none;}18%{transform:rotate(-12deg);}34%{transform:rotate(-30deg) translateY(-3px);}52%{transform:rotate(25deg) translateY(-2px);}70%{transform:rotate(-20deg);}86%{transform:rotate(8deg);}}
+@keyframes bookWave{0%,100%{transform:none;}20%,48%,76%{transform:rotate(-3deg);}34%,62%{transform:rotate(3deg) translateY(-2px);}}
+@keyframes bookFlap{0%,100%{transform:none;}14%,42%,70%{transform:translateY(-6px) scale(.98,1.025);}28%,56%,84%{transform:translateY(1px) scale(1.02,.98);}}
+@keyframes bookPounce{0%,20%{transform:none;}34%{transform:translateY(3px) scale(1.03,.96);}52%{transform:translate(45px,-28px) rotate(-5deg);}70%,100%{transform:translate(90px,0);}}
+@keyframes bookSlide{0%,10%{transform:none;}20%{transform:translateX(5px);}90%,100%{transform:translateX(110px);}}
 /* 系統開了「減少動態效果」：插圖停住，彈跳、滑動、淡入都關掉，全部直接停在最後的樣子 */
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition-duration:.01ms!important;}
@@ -1824,10 +1860,10 @@ var PET_SKILLS={
   ]
 };
 var PET_SK_MS={
-  cat:{stretch:1600,roll:1200,jump:900,flip:1300,wave:2200,spin:1400,yarn:2050,love:1700,groom:1900},
-  pg:{flap:1500,dance:1800,jump:900,slide:1650,salute:1900,spin:1400,flip:1300,love:1700,preen:1600}
+  cat:{stretch:3000,roll:2300,jump:1300,flip:1700,wave:2600,spin:1800,yarn:2600,love:2200,groom:2400},
+  pg:{flap:2300,dance:2600,jump:1300,slide:2200,salute:2400,spin:1800,flip:1700,love:2200,preen:2400}
 };
-var PET_SK_SAY={wave:'招財進寶～',salute:'嗨～！',dance:'嘎嘎嘎♪',slide:'咻～'};
+var PET_SK_SAY={stretch:'伸個大懶腰～',wave:'招財進寶～',salute:'嗨～！',dance:'嘎嘎嘎♪',slide:'咻～'};
 var PET_QUESTS=[
   {id:'chg3',t:'幫忙更新 3 天的班表',k:'chg',n:3,r:{can:1}},
   {id:'ev1',t:'新增或修改一個行程',k:'ev',n:1,r:{kib:2,fish:1}},
@@ -1855,9 +1891,50 @@ var PET_DEF={
 };
 // 每人每天的上限，避免一直點同一格刷點數
 var PET_DAY_PTS=30,PET_DAY_MIN=30,PET_DAY_PET=10,PET_DAY_DROP=3,PET_DAY_EV=3;
+// 專用關鍵姿勢與技能節奏，數字為整段技能的時間比例。
+var PET_BOOK_EXTRA={
+  snowball:['stretch-start','stretch','roll','wave','pounce','groom'],
+  dudu:['flap-up','flap-down','salute','slide','preen','dance']
+};
+var PET_BOOK_SKILLS={
+  cat:{
+    stretch:[[0,'idle'],[.10,'stretch-start'],[.26,'stretch'],[.78,'stretch-start'],[.94,'idle']],
+    roll:[[0,'pounce'],[.15,'roll'],[.87,'pounce'],[.96,'idle']],
+    jump:[[0,'pounce'],[.20,'happy'],[.73,'pounce'],[.94,'idle']],
+    flip:[[0,'pounce'],[.24,'roll'],[.76,'pounce'],[.94,'idle']],
+    wave:[[0,'happy'],[.14,'wave'],[.29,'happy'],[.43,'wave'],[.58,'happy'],[.72,'wave'],[.94,'idle']],
+    spin:[[0,'idle'],[.24,'walk-a'],[.49,'idle'],[.74,'walk-b'],[.95,'idle']],
+    yarn:[[0,'pounce'],[.18,'wave'],[.34,'pounce'],[.52,'happy'],[.68,'pounce'],[.94,'idle']],
+    love:[[0,'happy'],[.20,'wave'],[.80,'happy'],[.95,'idle']],
+    groom:[[0,'happy'],[.15,'groom'],[.35,'happy'],[.50,'groom'],[.72,'groom'],[.94,'idle']]
+  },
+  pg:{
+    flap:[[0,'flap-down'],[.14,'flap-up'],[.28,'flap-down'],[.42,'flap-up'],[.56,'flap-down'],[.70,'flap-up'],[.84,'flap-down'],[.96,'idle']],
+    dance:[[0,'dance'],[.18,'happy'],[.36,'dance'],[.54,'happy'],[.72,'dance'],[.94,'idle']],
+    jump:[[0,'flap-down'],[.18,'flap-up'],[.74,'flap-down'],[.94,'idle']],
+    slide:[[0,'idle'],[.12,'slide'],[.90,'slide'],[.97,'idle']],
+    salute:[[0,'idle'],[.15,'salute'],[.85,'salute'],[.95,'idle']],
+    spin:[[0,'idle'],[.24,'walk-a'],[.49,'happy'],[.74,'walk-b'],[.95,'idle']],
+    flip:[[0,'flap-down'],[.22,'slide'],[.72,'flap-up'],[.94,'idle']],
+    love:[[0,'happy'],[.20,'flap-up'],[.80,'happy'],[.95,'idle']],
+    preen:[[0,'idle'],[.15,'preen'],[.38,'idle'],[.54,'preen'],[.80,'preen'],[.94,'idle']]
+  }
+};
+function petBookReset(p){
+  (p.bookTimers||[]).forEach(clearTimeout);p.bookTimers=[];
+  p.el.removeAttribute('data-book-pose');
+}
+function petBookPlay(p,id,ms){
+  var seq=PET_BOOK_SKILLS[p.k][id]||[[0,'idle']];
+  if(catReduce){p.el.setAttribute('data-book-pose',seq[Math.floor(seq.length/2)][1]);return;}
+  seq.forEach(function(step){
+    if(!step[0])p.el.setAttribute('data-book-pose',step[1]);
+    else p.bookTimers.push(setTimeout(function(){p.el.setAttribute('data-book-pose',step[1]);},Math.round(ms*step[0])));
+  });
+}
 // Each pose uses an optimized transparent illustration; state classes keep the existing interactions.
 function petBookArt(name,w,h){
-  var poses=['idle','walk-a','walk-b','happy','eat','sleep'];
+  var poses=['idle','walk-a','walk-b','happy','eat','sleep'].concat(PET_BOOK_EXTRA[name]);
   return '<svg class="book-art" viewBox="0 0 '+w+' '+h+'" aria-hidden="true">'+poses.map(function(p){
     return '<image class="book-frame book-'+p+'" href="assets/pets/'+name+'-'+p+'.svg" width="'+w+'" height="'+h+'"/>';
   }).join('')+'</svg>';
@@ -2094,6 +2171,7 @@ function petPlace(p){
   p.el.classList.toggle('left',p.dir<0);
 }
 function petMode(p,m){
+  petBookReset(p);
   ['walk','run','sleep','eat','pet','happy'].forEach(function(c){p.el.classList.remove(c);});
   if(m)m.split(' ').forEach(function(c){p.el.classList.add(c);});
 }
@@ -2181,14 +2259,15 @@ function petDo(p,id,fromUser,force){
   if(p.act||(!force&&(p.menu||p.pet)))return false;
   if(fromUser&&id!==p.def.idle&&petFull(p.k)<15){petSay(p,p.def.say.weak);petMeow(p);return false;}
   petStop(p);petMode(p,'');
-  p.act=id;p.el.classList.add('sk-'+id);
-  if(PET_SK_SAY[id])petSay(p,PET_SK_SAY[id],2000);
-  if(id==='love')setTimeout(function(){petBurst(p,ART.heart,10);},500);
-  if(id==='yarn')catYarn(p);
-  if(id==='flip'||id==='jump')setTimeout(function(){petSay(p,catPick(p.def.say.jump),1200);},100);
   var ms=PET_SK_MS[p.k][id]||1500;
-  setTimeout(function(){
-    p.el.classList.remove('sk-'+id);p.act='';
+  p.el.style.setProperty('--skill-time',ms+'ms');
+  p.act=id;p.el.classList.add('sk-'+id);petBookPlay(p,id,ms);
+  if(PET_SK_SAY[id])petSay(p,PET_SK_SAY[id],2000);
+  if(id==='love')p.bookTimers.push(setTimeout(function(){petBurst(p,ART.heart,10);},500));
+  if(id==='yarn')catYarn(p);
+  if(id==='flip'||id==='jump')p.bookTimers.push(setTimeout(function(){petSay(p,catPick(p.def.say.jump),1200);},100));
+  p.skillT=setTimeout(function(){
+    petBookReset(p);p.skillT=0;p.el.classList.remove('sk-'+id);p.act='';
     // 毛線球、滑行：整隻衝出去了，把位置留在停下來的地方
     var go=id==='yarn'?90:id==='slide'?110:0;
     if(go&&!catReduce){var b=petBounds(p);p.x=catClamp(p.x+p.dir*go,b.x0,b.x1);petPlace(p);}
@@ -2198,13 +2277,13 @@ function petDo(p,id,fromUser,force){
   return true;
 }
 function catYarn(p){
-  var y=document.createElement('div');y.className='cat-yarn';y.innerHTML=CAT_ART.yarn;
+  var y=document.createElement('div');p.yarnEl=y;y.className='cat-yarn';y.innerHTML=CAT_ART.yarn;
   var sx=p.dir>0?p.x+p.def.W-8:p.x-14,sy=p.y+p.def.H-22;
   y.style.transform='translate('+sx+'px,'+sy+'px)';document.body.appendChild(y);
   requestAnimationFrame(function(){requestAnimationFrame(function(){y.style.transform='translate('+(sx+p.dir*120)+'px,'+sy+'px) rotate('+(p.dir*540)+'deg)';});});
   setTimeout(function(){y.style.transition='transform .6s cubic-bezier(.2,.7,.3,1),opacity .4s';y.style.transform='translate('+(sx+p.dir*150)+'px,'+(sy-6)+'px) rotate('+(p.dir*720)+'deg)';},1500);
   setTimeout(function(){y.style.opacity='0';},2300);
-  setTimeout(function(){y.remove();},2800);
+  setTimeout(function(){y.remove();if(p.yarnEl===y)p.yarnEl=null;},2800);
 }
 // 摸摸：手指在寵物身上滑、或長按
 function petPetStart(p){
@@ -2411,6 +2490,9 @@ function petOpenSheet(k){
 // 點寵物選單或狀態卡都使用同一個休息開關，重新整理後也保留。
 function petSetResting(p,hide){
   petCloseMenu();petStop(p);clearTimeout(p.sleepT);clearTimeout(p.sayT);
+  clearTimeout(p.skillT);p.skillT=0;
+  if(p.act&&p.act!=='eat'){p.el.classList.remove('sk-'+p.act);p.act='';}
+  if(p.yarnEl){p.yarnEl.remove();p.yarnEl=null;}
   p.el.querySelector('.cat-say').classList.remove('on');
   lsSet(p.def.hide,hide?'1':'');
   p.el.classList.toggle('hide',hide);petMode(p,'');petUpdHome();
