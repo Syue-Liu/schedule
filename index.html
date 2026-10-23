@@ -573,10 +573,12 @@ button.sc{font-family:inherit;color:var(--t);}
 @keyframes bookSlide{0%,10%{transform:none;}20%{transform:translateX(5px);}90%,100%{transform:translateX(110px);}}
 /* 雙寵碰面合體：短暫合作表演，效果不攔截班表操作。 */
 .cat.sk-combo{transition:transform .24s ease-out;}
+.cat.sk-combo .cat-mark{visibility:hidden;}
+.cat.sk-combo .cat-say{bottom:auto;top:var(--combo-say-top);margin-bottom:0;transition:opacity .2s;}
+.cat.sk-combo .cat-say.combo-below::after{top:auto;bottom:100%;border-top-color:transparent;border-bottom-color:var(--ink);}
 .cat.sk-combo .cat-sk{animation:comboCat 4s ease-in-out;}
 .cat.pg.sk-combo .cat-sk{animation:comboPenguin 4s ease-in-out;}
 .pet-combo-fx{position:fixed;width:180px;height:150px;z-index:30;pointer-events:none;color:var(--ink);}
-.combo-title{position:absolute;top:0;left:0;width:100%;text-align:center;font-size:14px;font-weight:bold;color:#76605C;background:var(--paper);border:2px solid #D9ABAA;border-radius:999px;padding:4px 7px;box-sizing:border-box;}
 .combo-ring{position:absolute;width:120px;height:120px;left:30px;top:30px;opacity:.75;animation:comboRing 4s ease-in-out;}
 @keyframes comboCat{0%,100%{transform:none;}10%{transform:scale(1.05,.93);}24%{transform:translateY(-40px) rotate(-7deg);}38%{transform:translateY(0) scale(1.04,.96);}54%,72%{transform:translateY(-9px) rotate(3deg);}62%,82%{transform:translateY(-3px) rotate(-3deg);}}
 @keyframes comboPenguin{0%,100%{transform:none;}15%,43%,71%{transform:translateY(-9px) rotate(7deg);}29%,57%,85%{transform:translateY(1px) rotate(-7deg);}}
@@ -1979,8 +1981,7 @@ var CAT_ART={
 var petData={syue:null,ling:null},petSynced=false,petDirty=false,petWT=null,petGift=false,petBusyUntil=0,petSecs=0,petDropT=null,menuPet=null;
 var pets={};
 var catReduce=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
-var PET_COMBO_COOLDOWN=90000;
-var petCombo={active:false,armed:true,nextAt:(+lsGet('petComboAt')||0)+PET_COMBO_COOLDOWN,timers:[],fx:null,waiting:null,waitT:null};
+var petCombo={active:false,armed:true,timers:[],fx:null,waiting:null,waitT:null};
 PET_BOOK_SKILLS.cat.combo=[[0,'pounce'],[.16,'wave'],[.35,'happy'],[.50,'wave'],[.80,'happy'],[.95,'idle']];
 PET_BOOK_SKILLS.pg.combo=[[0,'flap-down'],[.14,'flap-up'],[.28,'flap-down'],[.42,'flap-up'],[.56,'flap-down'],[.70,'flap-up'],[.84,'flap-down'],[.96,'idle']];
 
@@ -2248,7 +2249,7 @@ function petEndCombo(){
   if(petCombo.fx){petCombo.fx.remove();petCombo.fx=null;}
   petList().forEach(function(p){
     if(p.act!=='combo')return;
-    petBookReset(p);p.el.classList.remove('sk-combo');p.act='';petNext(p,2600+Math.random()*1400);
+    petBookReset(p);p.el.querySelector('.cat-say').classList.remove('on','combo-below');p.el.classList.remove('sk-combo');p.act='';petNext(p,2600+Math.random()*1400);
   });
 }
 function petComboBurst(){
@@ -2259,14 +2260,36 @@ function petComboBurst(){
     catFx(i%2?ART.heart:'❄','',x-9,y,Math.cos(angle)*85,Math.sin(angle)*55-40);
   }
 }
+// 合體泡泡共用一排，量出寬度後留出間距，並避開整段跳躍範圍。
+function petComboDialogue(pair){
+  var gap=12,vw=window.innerWidth,hdr=document.querySelector('.hdr').getBoundingClientRect().bottom;
+  var bubbles=pair.map(function(p){
+    var s=p.el.querySelector('.cat-say');clearTimeout(p.sayT);
+    s.textContent=p.k==='cat'?'冰雪愛心陣！':'一起上！';
+    return {p:p,s:s,w:s.offsetWidth,h:s.offsetHeight};
+  });
+  var left=bubbles[0],right=bubbles[1];
+  var x0=left.p.x+left.p.def.W/2-left.w/2;
+  var x1=Math.max(right.p.x+right.p.def.W/2-right.w/2,x0+left.w+gap);
+  var shift=Math.min(0,vw-6-x1-right.w);x0+=shift;x1+=shift;
+  if(x0<6){x1+=6-x0;x0=6;}
+  var top=Math.min(pair[0].y,pair[1].y)-40-Math.max(left.h,right.h)-14;
+  var below=top<hdr+8;
+  if(below)top=Math.max(pair[0].y+pair[0].def.H,pair[1].y+pair[1].def.H)+12;
+  bubbles.forEach(function(b,i){
+    var x=i?x1:x0;
+    b.s.style.setProperty('--sx',(x-(b.p.x+b.p.def.W/2-b.w/2))+'px');
+    b.s.style.setProperty('--combo-say-top',(top-b.p.y)+'px');
+    b.s.classList.toggle('combo-below',below);b.s.classList.add('on');
+  });
+}
 function petTryCombo(){
   var a=pets.cat,b=pets.pg;
   if(petCombo.active||document.hidden||!a||!b)return false;
   if(!petTouching(a,b)){petCombo.armed=true;return false;}
-  if(!petCombo.armed||Date.now()<petCombo.nextAt||!petIdle(a)||!petIdle(b))return false;
+  if(!petCombo.armed||!petIdle(a)||!petIdle(b))return false;
   petReleaseComboWait();
-  petCombo.active=true;petCombo.armed=false;petCombo.nextAt=Date.now()+PET_COMBO_COOLDOWN;
-  lsSet('petComboAt',Date.now());
+  petCombo.active=true;petCombo.armed=false;
   var pair=a.x+a.def.W/2<b.x+b.def.W/2?[a,b]:[b,a];
   var mid=(a.x+a.def.W/2+b.x+b.def.W/2)/2,ground=Math.max(a.y+a.def.H,b.y+b.def.H);
   var total=a.def.W+b.def.W+6,start=catClamp(mid-total/2,6,Math.max(6,window.innerWidth-total-6));
@@ -2274,12 +2297,16 @@ function petTryCombo(){
     petStop(p);petMode(p,'');p.act='combo';p.el.classList.add('sk-combo');
     var bounds=petBounds(p);p.x=catClamp(start+(i?pair[0].def.W+6:0),bounds.x0,bounds.x1);
     p.y=catClamp(ground-p.def.H,bounds.y0,bounds.y1);p.dir=i?-1:1;petPlace(p);
-    petBookPlay(p,'combo',4000);petSay(p,p.k==='cat'?'冰雪愛心陣！':'一起上！',2600);
+    petBookPlay(p,'combo',4000);
+    clearTimeout(p.sayT);p.el.querySelector('.cat-say').classList.remove('on');
   });
+  petComboDialogue(pair);
   var fx=document.createElement('div');fx.className='pet-combo-fx';fx.setAttribute('aria-hidden','true');
   fx.style.left=catClamp(start+total/2-90,6,Math.max(6,window.innerWidth-186))+'px';
-  fx.style.top=Math.max(document.querySelector('.hdr').getBoundingClientRect().bottom+4,ground-150)+'px';
-  fx.innerHTML='<div class="combo-title">❄ 冰雪愛心陣 ♥</div><svg class="combo-ring" viewBox="0 0 120 120"><circle cx="60" cy="60" r="48" fill="none" stroke="#A8D3E6" stroke-width="3" stroke-dasharray="8 7"/><circle cx="60" cy="60" r="36" fill="none" stroke="#F2A497" stroke-width="2"/><path d="M60 15v90M21 37l78 46M21 83l78-46" fill="none" stroke="#A8D3E6" stroke-width="2" opacity=".65"/><path d="M60 76C33 59 43 39 60 50C77 39 87 59 60 76Z" fill="#F2A497" stroke="#FFFCF6" stroke-width="3"/></svg>';
+  var headerBottom=document.querySelector('.hdr').getBoundingClientRect().bottom;
+  var effectTop=Math.max(headerBottom+4,ground-150);
+  fx.style.top=effectTop+'px';
+  fx.innerHTML='<svg class="combo-ring" viewBox="0 0 120 120"><circle cx="60" cy="60" r="48" fill="none" stroke="#A8D3E6" stroke-width="3" stroke-dasharray="8 7"/><circle cx="60" cy="60" r="36" fill="none" stroke="#F2A497" stroke-width="2"/><path d="M60 15v90M21 37l78 46M21 83l78-46" fill="none" stroke="#A8D3E6" stroke-width="2" opacity=".65"/><path d="M60 76C33 59 43 39 60 50C77 39 87 59 60 76Z" fill="#F2A497" stroke="#FFFCF6" stroke-width="3"/></svg>';
   document.body.appendChild(fx);petCombo.fx=fx;
   if(!catReduce){petCombo.timers.push(setTimeout(petComboBurst,700),setTimeout(petComboBurst,1900));}
   petCombo.timers.push(setTimeout(petEndCombo,catReduce?1000:4000));
@@ -2288,8 +2315,6 @@ function petTryCombo(){
 function petInviteCombo(p){
   var o=p.k==='cat'?pets.pg:pets.cat;
   if(petCombo.active){toast('正在合體表演中～');return;}
-  var remaining=Math.ceil((petCombo.nextAt-Date.now())/1000);
-  if(remaining>0){toast('合體技能冷卻中，再等 '+remaining+' 秒');return;}
   if(petHidden(o)){toast('先叫'+petName(o.k)+'出來，才能一起合體');return;}
   if(o.el.classList.contains('sleep'))petWake(o);
   if(!petIdle(p)||!petIdle(o)){toast('等牠們忙完，再一起合體吧');return;}
@@ -2345,6 +2370,7 @@ function petSleep(p,ms){
 }
 function petWake(p){clearTimeout(p.sleepT);if(p.el.classList.contains('sleep'))petMode(p,'');petNext(p);}
 function petSay(p,t,ms){
+  if(p.act==='combo')return;
   var s=p.el.querySelector('.cat-say');s.textContent=t;
   // 寵物在畫面邊邊時，泡泡往內挪，尾巴還是指著寵物
   var w=s.offsetWidth,vw=window.innerWidth,l=p.x+p.def.W/2-w/2,sx=l<6?6-l:l+w>vw-6?vw-6-l-w:0;
