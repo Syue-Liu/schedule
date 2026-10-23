@@ -114,6 +114,7 @@ b{font-weight:400;color:var(--t);box-shadow:inset 0 -.4em 0 var(--yellow);}
 .expand-panel.open{max-height:200px;opacity:1;padding:6px 0 2px;}
 .expand-chips{display:flex;gap:6px;flex-wrap:wrap;}
 .chip{flex-shrink:0;display:flex;align-items:center;gap:5px;font-size:12px;padding:4px 10px;border-radius:999px;border:var(--lw2) solid var(--ink);background:var(--paper);color:var(--t);white-space:nowrap;animation:chipIn .35s var(--pop) both;}
+button.chip{cursor:pointer;min-height:32px;font-family:inherit;}
 @keyframes chipIn{from{opacity:0;transform:scale(.7) translateY(-6px);}to{opacity:1;transform:none;}}
 
 /* ── 月曆：一張粗框大卡片，日期格平塗 ── */
@@ -133,6 +134,7 @@ b{font-weight:400;color:var(--t);box-shadow:inset 0 -.4em 0 var(--yellow);}
 .dn{font-size:13px;color:var(--t);margin-bottom:5px;line-height:1;}
 .badge-stack{display:flex;flex-direction:column;gap:2px;align-items:center;}
 .bg2{font-size:10px;border-radius:6px;padding:2px 4px;display:inline-block;line-height:1.25;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+button.bg2{border:0;font-family:inherit;cursor:pointer;}
 .mini{font-size:9px;padding:2px 3px;max-width:96%;}
 /* 自訂行程：有墨線框的小貼紙，跟平塗的班別標籤區分 */
 .evl{font-size:9px;border:1.5px solid var(--ink);border-radius:6px;padding:1px 3px;background:var(--paper);color:var(--t);line-height:1.25;max-width:96%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -151,6 +153,8 @@ b{font-weight:400;color:var(--t);box-shadow:inset 0 -.4em 0 var(--yellow);}
 .sc{position:relative;overflow:hidden;background:var(--paper);border-radius:20px;padding:14px 6px 12px;text-align:center;border:var(--lw) solid var(--ink);cursor:pointer;box-shadow:0 3px 0 var(--ink);-webkit-user-select:none;user-select:none;}
 .sc.common{background:var(--ribbon-bg);padding-top:18px;}
 .sc:active{transform:translateY(3px);box-shadow:none;}
+button.sc{font-family:inherit;color:var(--t);}
+.sc[aria-pressed="true"] .sl2{font-weight:bold;}
 .sc-dot{width:13px;height:13px;border-radius:50%;margin:0 auto 7px;border:var(--lw2) solid var(--ink);}
 .sn{font-size:24px;line-height:1;color:var(--t);}
 .sl2{font-size:11px;color:var(--t2);margin-top:6px;}
@@ -1093,10 +1097,10 @@ function renderLegendPanels(){
   ['syue','ling'].forEach(function(uid){
     var container=document.getElementById('chips'+(uid==='syue'?'Syue':'Ling'));
     var ss=activeShiftSets(uid), h='';
-    h+='<div class="chip"><div class="cdot" style="background:var(--t3)"></div>上班</div>';
+    h+='<button type="button" class="chip" onclick="editSchedule(\''+uid+'\')" title="編輯'+USERS[uid].label+'的班表"><span class="cdot" style="background:var(--t3)"></span>上班</button>';
     for(var i=0;i<ss.length;i++){
       var s=ss[i].shift;
-      h+='<div class="chip" style="background:'+s.bg+';animation-delay:'+(i*0.06)+'s"><div class="cdot" style="background:'+s.bdg+'"></div>'+safeHtml(s.name)+'</div>';
+      h+='<button type="button" class="chip" onclick="editSchedule(\''+uid+'\')" title="編輯'+USERS[uid].label+'的班表" style="background:'+s.bg+';animation-delay:'+(i*0.06)+'s"><span class="cdot" style="background:'+s.bdg+'"></span>'+safeHtml(s.name)+'</button>';
     }
     container.innerHTML=h;
   });
@@ -1302,9 +1306,17 @@ function uploadAllEvents(){
     .catch(function(e){console.error('event upload error',e);});
 }
 function setMode(uid,cal){
+  clearTimeout(tapT);tapT=null;tapFn=null;tapDay=0;closeShiftMenu();
   currentUser=uid;calMode=!!cal&&!uid;
   lsSet('currentUser',uid);lsSet('calMode',calMode?'1':'');
 }
+function activateMode(uid,cal){
+  setMode(uid,cal);closeOv('ovS');closePopup();render();petBusy();
+  toast(cal?'已切換為行事曆，點日期新增行程':uid?'已切換為編輯 '+USERS[uid].label:'已切換為總表瀏覽');
+}
+window.editSchedule=function(uid){
+  if(uid==='syue'||uid==='ling')activateMode(uid,false);
+};
 
 function shiftBadge(uid,idx){
   var sh=idx?shifts(uid)[idx-1]:null;
@@ -1528,7 +1540,7 @@ function renderProfileUI(){
 function dayHtmlFor(uid,d,dow,compact){
   var sidx=shiftIndex(uid,d), sh=sidx?shifts(uid)[sidx-1]:null;
   if(!sh)return '';
-  return '<div class="bg2 '+(compact?'mini':'')+'" style="background:'+sh.bdg+';color:'+sh.txt+'">'+USERS[uid].label+' '+safeHtml(sh.name)+'</div>';
+  return '<button type="button" class="bg2 '+(compact?'mini':'')+'" data-shift-user="'+uid+'" title="編輯'+USERS[uid].label+'的班表" style="background:'+sh.bdg+';color:'+sh.txt+'">'+USERS[uid].label+' '+safeHtml(sh.name)+'</button>';
 }
 // monthAnim：換月份時讓日期格彈進來（'next'／'prev'／'pop'）；popDay：剛點的那天彈一下
 var monthAnim='',popDay=0,popT2;
@@ -1630,8 +1642,13 @@ function render(){
         applyShift(dd,dw,pos===-1?active[0]:(pos<active.length-1?active[pos+1]:0));
       }
       var longFired=false;
-      div.addEventListener('click',function(){
+      div.addEventListener('click',function(e){
         if(longFired){longFired=false;return;}
+        var badge=e.target.closest('[data-shift-user]');
+        if(badge){
+          var owner=badge.getAttribute('data-shift-user');
+          setMode(owner,false);render();petBusy();showShiftMenu(dd,dw);return;
+        }
         if(calMode||!currentUser){bounce(div,'pop');openDay();return;}
         // 班別模式：點一下切換、點兩下跳出選單。先等一下，看會不會有第二下
         if(tapT&&tapDay===dd){clearTimeout(tapT);tapT=null;tapFn=null;bounce(div,'pop');showShiftMenu(dd,dw);return;}
@@ -1640,7 +1657,7 @@ function render(){
       });
       div.addEventListener('contextmenu',function(e){e.preventDefault();});
       var pt;
-      div.addEventListener('touchstart',function(){longFired=false;pt=setTimeout(function(){
+      div.addEventListener('touchstart',function(e){longFired=false;clearTimeout(pt);if(e.target.closest('[data-shift-user]'))return;pt=setTimeout(function(){
         if(!currentUser)return;var cd=gd(currentUser);
         if(cd[dd]){longFired=true;var oldIdx=shiftIndex(currentUser,dd);delete cd[dd];sd(cd,currentUser);saveAll();var newIdx=shiftIndex(currentUser,dd);recordChange(currentUser,curY,curM,dd,dw,oldIdx,newIdx);render();toast(USERS[currentUser].label+' '+curM+'/'+dd+' 已重設');}
       },550);});
@@ -1666,8 +1683,8 @@ function render(){
   window._popupLists=lists;
   window._popupCnt=cnt;
   smEl.innerHTML=
-    '<div class="sc" onclick="showPopup(\'syue\')"><div class="sc-dot" style="background:var(--syue)"></div><div class="sn">'+cnt.syue+'</div><div class="sl2">學的班別</div></div>'+
-    '<div class="sc" onclick="showPopup(\'ling\')"><div class="sc-dot" style="background:var(--ling)"></div><div class="sn">'+cnt.ling+'</div><div class="sl2">綾的班別</div></div>'+
+    '<button type="button" class="sc" data-edit-user="syue" aria-label="編輯學的班表" aria-pressed="'+(currentUser==='syue')+'" onclick="editSchedule(\'syue\')"><div class="sc-dot" style="background:var(--syue)"></div><div class="sn">'+cnt.syue+'</div><div class="sl2">學的班別'+(currentUser==='syue'?'・編輯中':'')+'</div></button>'+
+    '<button type="button" class="sc" data-edit-user="ling" aria-label="編輯綾的班表" aria-pressed="'+(currentUser==='ling')+'" onclick="editSchedule(\'ling\')"><div class="sc-dot" style="background:var(--ling)"></div><div class="sn">'+cnt.ling+'</div><div class="sl2">綾的班別'+(currentUser==='ling'?'・編輯中':'')+'</div></button>'+
     '<div class="sc common" onclick="showPopup(\'common\')"><div class="sc-dot" style="background:var(--common)"></div><div class="sn">'+cnt.common+'</div><div class="sl2">共同休假</div></div>';
 }
 
@@ -1694,8 +1711,7 @@ document.getElementById('bt').onclick=function(){var t=new Date();curY=t.getFull
 document.getElementById('userPill').onclick=function(){showUserPicker();};
 // 圖例列最右邊的「行事曆」：切換自訂編輯，再點一次回總表
 document.getElementById('togCal').onclick=function(){
-  if(calMode){setMode('');render();toast('已回到總表瀏覽');}
-  else{setMode('',true);render();toast('已切換為自訂編輯，點日期新增行程');}
+  activateMode('',!calMode);
 };
 function showUserPicker(){
   var body=document.getElementById('sbS');
@@ -1703,15 +1719,17 @@ function showUserPicker(){
     <div style="font-size:13px;color:var(--t2);margin-bottom:14px;text-align:center">選擇模式</div>
     <div style="display:flex;flex-direction:column;gap:8px" id="pickerBtns">
       <button class="person-card ${!currentUser&&!calMode?'on':''}" id="pickOverview" style="display:flex;align-items:center;justify-content:center;gap:10px"><span class="pick-dot" style="background:var(--paper)"></span>總表瀏覽</button>
+      <button class="person-card ${calMode?'on':''}" id="pickCalendar" style="display:flex;align-items:center;justify-content:center;gap:10px"><span class="pick-dot" style="background:var(--ev)"></span>行事曆（新增／編輯行程）</button>
       <button class="person-card ${currentUser==='syue'?'on':''}" id="pickSyue" style="display:flex;align-items:center;justify-content:center;gap:10px"><span class="pick-dot" style="background:var(--syue)"></span>編輯 學 的班表</button>
       <button class="person-card ${currentUser==='ling'?'on':''}" id="pickLing" style="display:flex;align-items:center;justify-content:center;gap:10px"><span class="pick-dot" style="background:var(--ling)"></span>編輯 綾 的班表</button>
     </div>
     ${FIREBASE_READY&&!cloudOn()?'<button class="fr-btn2" id="pickJoin" style="margin-top:12px">☁️ 輸入同步代碼（班表是空的？）</button>':''}
-    <div style="font-size:11px;color:var(--t3);margin-top:12px;text-align:center;line-height:1.6">總表模式只看不能改<br>選編輯模式才能修改班別<br>要加約會、生日等行程，點月曆上方的「行事曆」</div>`;
+    <div style="font-size:11px;color:var(--t3);margin-top:12px;text-align:center;line-height:1.6">總表模式只看不能改<br>點學／綾的班別狀態即可編輯該人的班表<br>選「行事曆」可新增約會、生日等行程</div>`;
   if(document.getElementById('pickJoin'))document.getElementById('pickJoin').onclick=function(){closeOv('ovS');showJoinPrompt();};
-  document.getElementById('pickOverview').onclick=function(){setMode('');closeOv('ovS');render();toast('已切換為總表瀏覽');};
-  document.getElementById('pickSyue').onclick=function(){setMode('syue');closeOv('ovS');render();toast('已切換為編輯 學');};
-  document.getElementById('pickLing').onclick=function(){setMode('ling');closeOv('ovS');render();toast('已切換為編輯 綾');};
+  document.getElementById('pickOverview').onclick=function(){activateMode('');};
+  document.getElementById('pickCalendar').onclick=function(){activateMode('',true);};
+  document.getElementById('pickSyue').onclick=function(){editSchedule('syue');};
+  document.getElementById('pickLing').onclick=function(){editSchedule('ling');};
   document.getElementById('ovS').className='ov on';
 }
 function closeOv(id){document.getElementById(id).className='ov';}
@@ -2541,12 +2559,26 @@ function petMake(k){
   el.addEventListener('contextmenu',function(e){e.preventDefault();});
   return p;
 }
+// 每次進頁面從不同位置出現；避開頁首，並盡量讓兩隻不要重疊。
+function petSpawn(p,placed){
+  var b=petBounds(p),y0=Math.max(b.y0,b.y1-180),best=null,bestScore=-1;
+  for(var i=0;i<28;i++){
+    var x=i<24?b.x0+Math.random()*(b.x1-b.x0):(i%2?b.x1:b.x0);
+    var y=i<24?y0+Math.random()*(b.y1-y0):(i<26?y0:b.y1);
+    var clear=true,score=Infinity;
+    placed.forEach(function(q){
+      if(x<q.x+q.def.W+14&&x+p.def.W+14>q.x&&y<q.y+q.def.H+14&&y+p.def.H+14>q.y)clear=false;
+      score=Math.min(score,Math.hypot(x+p.def.W/2-q.x-q.def.W/2,y+p.def.H/2-q.y-q.def.H/2));
+    });
+    if(score>bestScore){best={x:x,y:y};bestScore=score;}
+    if(clear){best={x:x,y:y};break;}
+  }
+  p.x=best.x;p.y=best.y;p.dir=p.x+p.def.W/2<window.innerWidth/2?1:-1;petPlace(p);
+}
 function petInit(){
   try{var s=JSON.parse(lsGet('catV1')||'null');if(s){petData.syue=s.syue?petClean(s.syue):null;petData.ling=s.ling?petClean(s.ling):null;}}catch(e){}
   pets.cat=petMake('cat');pets.pg=petMake('pg');
-  var bc=petBounds(pets.cat),bp=petBounds(pets.pg);
-  pets.cat.x=bc.x1-10;pets.cat.y=bc.y1;pets.cat.dir=-1;petPlace(pets.cat);
-  pets.pg.x=bp.x0+16;pets.pg.y=bp.y1;pets.pg.dir=1;petPlace(pets.pg);
+  petSpawn(pets.cat,[]);petSpawn(pets.pg,[pets.cat]);
   petUpdHome();
   // 最黏你的那隻：偶爾跑到你點的地方
   document.addEventListener('pointerdown',function(e){
