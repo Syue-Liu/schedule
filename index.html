@@ -531,26 +531,26 @@ b{font-weight:400;color:var(--t);box-shadow:inset 0 -.4em 0 var(--yellow);}
 @keyframes bookNibble{from{transform:none;}to{transform:translateY(1px) rotate(2deg);}}
 @keyframes bookGreeting{from{transform:rotate(-3deg);}to{transform:rotate(3deg) translateY(-1px);}}
 @keyframes bookGroom{from{transform:rotate(-3deg);}to{transform:rotate(1deg) scale(1.02,.98);}}
-/* 技能專用姿勢，短暫交疊淡入，並與整段動作共用時間。 */
-.cat[data-book-pose] .book-frame{display:inline;animation:none;opacity:0;visibility:hidden;transition:opacity .08s linear,visibility 0s .08s;}
-.cat[data-book-pose="idle"] .book-idle{opacity:1;visibility:visible;transition:opacity .08s linear;}
-.cat[data-book-pose="walk-a"] .book-walk-a{opacity:1;visibility:visible;transition:opacity .08s linear;}
-.cat[data-book-pose="walk-b"] .book-walk-b{opacity:1;visibility:visible;transition:opacity .08s linear;}
-.cat[data-book-pose="happy"] .book-happy{opacity:1;visibility:visible;transition:opacity .08s linear;}
-.cat[data-book-pose="eat"] .book-eat{opacity:1;visibility:visible;transition:opacity .08s linear;}
-.cat[data-book-pose="sleep"] .book-sleep{opacity:1;visibility:visible;transition:opacity .08s linear;}
-.cat[data-book-pose="stretch-start"] .book-stretch-start{opacity:1;visibility:visible;transition:opacity .08s linear;}
-.cat[data-book-pose="stretch"] .book-stretch{opacity:1;visibility:visible;transition:opacity .08s linear;}
-.cat[data-book-pose="roll"] .book-roll{opacity:1;visibility:visible;transition:opacity .08s linear;}
-.cat[data-book-pose="wave"] .book-wave{opacity:1;visibility:visible;transition:opacity .08s linear;}
-.cat[data-book-pose="pounce"] .book-pounce{opacity:1;visibility:visible;transition:opacity .08s linear;}
-.cat[data-book-pose="groom"] .book-groom{opacity:1;visibility:visible;transition:opacity .08s linear;}
-.cat[data-book-pose="flap-up"] .book-flap-up{opacity:1;visibility:visible;transition:opacity .08s linear;}
-.cat[data-book-pose="flap-down"] .book-flap-down{opacity:1;visibility:visible;transition:opacity .08s linear;}
-.cat[data-book-pose="salute"] .book-salute{opacity:1;visibility:visible;transition:opacity .08s linear;}
-.cat[data-book-pose="slide"] .book-slide{opacity:1;visibility:visible;transition:opacity .08s linear;}
-.cat[data-book-pose="preen"] .book-preen{opacity:1;visibility:visible;transition:opacity .08s linear;}
-.cat[data-book-pose="dance"] .book-dance{opacity:1;visibility:visible;transition:opacity .08s linear;}
+/* 技能專用姿勢，逐格切換，並與整段動作共用時間。 */
+.cat[data-book-pose] .book-frame{display:none;animation:none;opacity:1;visibility:visible;transition:none;}
+.cat[data-book-pose="idle"] .book-idle{display:inline;}
+.cat[data-book-pose="walk-a"] .book-walk-a{display:inline;}
+.cat[data-book-pose="walk-b"] .book-walk-b{display:inline;}
+.cat[data-book-pose="happy"] .book-happy{display:inline;}
+.cat[data-book-pose="eat"] .book-eat{display:inline;}
+.cat[data-book-pose="sleep"] .book-sleep{display:inline;}
+.cat[data-book-pose="stretch-start"] .book-stretch-start{display:inline;}
+.cat[data-book-pose="stretch"] .book-stretch{display:inline;}
+.cat[data-book-pose="roll"] .book-roll{display:inline;}
+.cat[data-book-pose="wave"] .book-wave{display:inline;}
+.cat[data-book-pose="pounce"] .book-pounce{display:inline;}
+.cat[data-book-pose="groom"] .book-groom{display:inline;}
+.cat[data-book-pose="flap-up"] .book-flap-up{display:inline;}
+.cat[data-book-pose="flap-down"] .book-flap-down{display:inline;}
+.cat[data-book-pose="salute"] .book-salute{display:inline;}
+.cat[data-book-pose="slide"] .book-slide{display:inline;}
+.cat[data-book-pose="preen"] .book-preen{display:inline;}
+.cat[data-book-pose="dance"] .book-dance{display:inline;}
 
 .cat:is(.sk-jump,.sk-flip,.sk-spin,.sk-love) .cat-sk{animation-duration:var(--skill-time);}
 .cat.sk-stretch .cat-sk{animation:bookStretch var(--skill-time) ease-in-out;}
