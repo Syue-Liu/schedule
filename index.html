@@ -468,6 +468,13 @@ button.sc{font-family:inherit;color:var(--t);}
 @keyframes dropBob{from{transform:translateY(0) rotate(-6deg);}to{transform:translateY(-5px) rotate(6deg);}}
 .cat-bowl{position:fixed;z-index:24;width:36px;height:20px;pointer-events:none;animation:dropIn .4s var(--pop);}
 .cat-bowl svg,.cat-yarn svg{width:100%;height:100%;display:block;}
+.pet-snack{position:fixed;z-index:26;width:24px;height:24px;pointer-events:none;animation:snackEat 2.6s ease-in forwards;}
+/* 小魚頭朝嘴巴；透抽轉橫的，觸手在嘴裡 */
+.pet-snack.squid{transform:rotate(90deg);}
+.pet-snack.left{transform:scaleX(-1);}
+.pet-snack.left.squid{transform:scaleX(-1) rotate(90deg);}
+.pet-snack svg{width:100%;height:100%;display:block;animation:dropIn .35s var(--pop);}
+@keyframes snackEat{0%,15%{opacity:1;scale:1;}80%{opacity:1;scale:.45;}100%{opacity:0;scale:.3;}}
 .cat-yarn{position:fixed;left:0;top:0;z-index:26;width:22px;height:22px;pointer-events:none;transition:transform 1.1s cubic-bezier(.2,.7,.3,1),opacity .4s;}
 /* 貓咪狀態卡 */
 .cs-name{border:none;background:none;font-size:19px;color:var(--t);cursor:pointer;padding:0;}
@@ -1899,7 +1906,7 @@ var PET_QUESTS=[
   {id:'ev1',t:'新增或修改一個行程',k:'ev',n:1,r:{kib:2,fish:1}},
   {id:'pet5',t:'摸摸寵物 5 次',k:'pet',n:5,r:{kib:2}},
   {id:'min5',t:'在班表停留 5 分鐘',k:'min',n:5,r:{fish:2}},
-  {id:'ntf1',t:'傳一次變更通知給對方',k:'ntf',n:1,r:{can:1}},
+  {id:'ntf1',t:'傳一次變更通知給對方',k:'ntf',n:1,r:{can:1,squid:1}},
   {id:'nav2',t:'翻翻前後月份的班表 2 次',k:'nav',n:2,r:{fish:2}},
   {id:'skill2',t:'讓寵物表演 2 次技能',k:'skill',n:2,r:{kib:2}},
   {id:'feed1',t:'餵寵物吃一頓飯',k:'feed',n:1,r:{kib:1,fish:1}}
@@ -1907,14 +1914,15 @@ var PET_QUESTS=[
 var FOODS={
   kib:{name:'飼料',pet:'cat',full:30,aff:2,eat:'開動～',done:'好飽～'},
   can:{name:'罐頭',pet:'cat',full:60,aff:6,eat:'罐罐！！',done:'最喜歡罐罐了♥'},
-  fish:{name:'小魚',pet:'pg',full:35,aff:3,eat:'有魚！嘎！',done:'好好吃～嘎♥'}
+  fish:{name:'小魚',pet:'pg',full:35,aff:3,eat:'有魚！嘎！',done:'好好吃～嘎♥'},
+  squid:{name:'透抽',pet:'pg',full:60,aff:6,eat:'透抽！！嘎！',done:'最喜歡透抽了♥'}
 };
 var PET_DEF={
   cat:{name:'Pillow',ic:'🐱',W:112,H:94,hide:'catHide',foods:['kib','can'],idle:'groom',
     say:{tap:['喵～','喵？','喵嗚'],fav:['喵♥','最喜歡你了','（蹭蹭）'],aloof:['哼～','（假裝沒看到）','喵。'],hungry:['肚子餓了…','想吃罐罐','（肚子咕嚕咕嚕）'],
       idle:['喵～','（發呆）','喵？','（盯）'],pet:['呼嚕呼嚕～','好舒服～','再摸一下'],busy:['（看你排班）','我陪你～','加油喵'],
       wake:'喵…？（被吵醒）',sleepy:'嗯…呼嚕…',weak:'太餓了，沒力氣…',full:'吃不下了～',back:'喵～我回來了',meet:'喵？',jump:['嘿咻！','看我的！']}},
-  pg:{name:'雪球',ic:'🐧',W:86,H:86,hide:'pgHide',foods:['fish'],idle:'preen',
+  pg:{name:'雪球',ic:'🐧',W:86,H:86,hide:'pgHide',foods:['fish','squid'],idle:'preen',
     say:{tap:['嘎！','嘎？','（歪頭）'],fav:['嘎♥','最喜歡你了','（拍拍翅膀）'],aloof:['哼～','（轉身）','嘎。'],hungry:['想吃魚…','肚子餓扁了','（盯著魚看）'],
       idle:['嘎～','（發呆）','（左看右看）'],pet:['嘎嘎～','好舒服～','再摸一下'],busy:['（陪你排班）','嘎！加油','（站好）'],
       wake:'嘎…？（被吵醒）',sleepy:'嘎…呼…',weak:'太餓了，走不動…',full:'吃不下了嘎～',back:'嘎！我回來了',meet:'嘎！',jump:['嘎！','看我的！']}}
@@ -1975,6 +1983,7 @@ var CAT_ART={
   kib:'<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 9h16l2 18a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2Z" fill="#F6D27A" stroke="#3E3A39" stroke-width="2.2" stroke-linejoin="round"/><path d="M8 9l1.5-5h13L24 9Z" fill="#F2A497" stroke="#3E3A39" stroke-width="2.2" stroke-linejoin="round"/><path d="M10.5 19.5q5-5 9.5 0q-4.5 5-9.5 0Zm9.5 0 3-2.5v5Z" fill="#FFFCF6" stroke="#3E3A39" stroke-width="1.6" stroke-linejoin="round"/></svg>',
   can:'<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6 10v14c0 2.5 4.5 4 10 4s10-1.5 10-4V10" fill="#A8D3E6" stroke="#3E3A39" stroke-width="2.2"/><ellipse cx="16" cy="10" rx="10" ry="4" fill="#FFFCF6" stroke="#3E3A39" stroke-width="2.2"/><path d="M6 15.5c3 1.6 17 1.6 20 0v6c-3 1.6-17 1.6-20 0Z" fill="#F2A497" stroke="#3E3A39" stroke-width="1.8"/><path d="M11.5 18.7q3.5-3 6.5 0q-3 3-6.5 0Zm6.5 0 2.5-2v4Z" fill="#FFFCF6" stroke="#3E3A39" stroke-width="1.4" stroke-linejoin="round"/></svg>',
   fish:'<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M4 16q10-10 20 0q-10 10-20 0Zm20 0 5-5v10Z" fill="#A8D3E6" stroke="#3E3A39" stroke-width="2.2" stroke-linejoin="round"/><circle cx="9" cy="15" r="1.4" fill="#3E3A39"/><path d="M13 12q2 4 0 8M17 12q2 4 0 8" fill="none" stroke="#FFFCF6" stroke-width="1.6" stroke-linecap="round"/></svg>',
+  squid:'<svg viewBox="0 0 32 32" aria-hidden="true"><g stroke="#3E3A39" stroke-linejoin="round" stroke-linecap="round"><path d="M11.5 21.5q-1.5 3-.5 6.5M14.2 22v6.6M17.8 22v6.6M20.5 21.5q1.5 3 .5 6.5" fill="none" stroke-width="2"/><path d="M12 8 6.5 13l5.5 1.2ZM20 8l5.5 5-5.5 1.2Z" fill="#F8C4BA" stroke-width="2"/><path d="M16 2.5c4.6 3.6 6 10 5 19.5H11C10 12.5 11.4 6.1 16 2.5Z" fill="#F8C4BA" stroke-width="2.2"/><circle cx="14" cy="10" r="1.2" fill="#F2A497" stroke="none"/><circle cx="18.2" cy="13" r="1.4" fill="#F2A497" stroke="none"/><circle cx="15" cy="15.6" r="1" fill="#F2A497" stroke="none"/><circle cx="13.6" cy="19" r="1.3" fill="#3E3A39" stroke="none"/><circle cx="18.4" cy="19" r="1.3" fill="#3E3A39" stroke="none"/></g></svg>',
   bowl:'<svg viewBox="0 0 40 22" aria-hidden="true"><path d="M7 8q13-8 26 0Z" fill="#E8C27A" stroke="#3E3A39" stroke-width="2" stroke-linejoin="round"/><path d="M3 8h34l-4 11a3 3 0 0 1-3 2H10a3 3 0 0 1-3-2Z" fill="#F2A497" stroke="#3E3A39" stroke-width="2.4" stroke-linejoin="round"/><path d="M15 14q2.5 2 5 0q2.5 2 5 0" fill="none" stroke="#FFFCF6" stroke-width="1.8" stroke-linecap="round"/></svg>',
   yarn:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="#F2A497" stroke="#3E3A39" stroke-width="2.2"/><path d="M5 8c4 1 10 6 12 12M8 4.5c4 3 9 9 10 14M3.5 13c3 0 7 3 9 7.5" fill="none" stroke="#3E3A39" stroke-width="1.5" stroke-linecap="round"/></svg>'
 };
@@ -1990,7 +1999,7 @@ function catClamp(v,a,b){return Math.max(a,Math.min(b,v));}
 function catHash(s){var h=2166136261;for(var i=0;i<s.length;i++)h=Math.imul(h^s.charCodeAt(i),16777619);return h>>>0;}
 function catToday(){var t=new Date();return evDateStr(t.getFullYear(),t.getMonth()+1,t.getDate());}
 function petNewStat(){return {aff:0,fedAt:0,fedFull:0,name:'',nameAt:0};}
-function petNewRec(){var r=petNewStat();r.nameSchema=2;r.pts=0;r.kib=3;r.can=1;r.fish=2;r.last='';r.pg=petNewStat();r.d=null;return r;}
+function petNewRec(){var r=petNewStat();r.nameSchema=2;r.pts=0;r.kib=3;r.can=1;r.fish=2;r.squid=1;r.last='';r.pg=petNewStat();r.d=null;return r;}
 function petCleanStat(o,t){
   ['aff','fedAt','fedFull','nameAt'].forEach(function(k){var v=+o[k];if(isFinite(v)&&v>=0)t[k]=v;});
   if(typeof o.name==='string')t.name=o.name.slice(0,8);
@@ -1998,7 +2007,7 @@ function petCleanStat(o,t){
 function petClean(o){
   var r=petNewRec();
   if(!o||typeof o!=='object')return r;
-  ['pts','kib','can','fish'].forEach(function(k){var v=+o[k];if(isFinite(v)&&v>=0)r[k]=v;});
+  ['pts','kib','can','fish','squid'].forEach(function(k){var v=+o[k];if(isFinite(v)&&v>=0)r[k]=v;});
   petCleanStat(o,r);
   if(o.pg&&typeof o.pg==='object')petCleanStat(o.pg,r.pg);
   // 修正舊版的物種／預設名字對應；之後自行取的新名字仍保留。
@@ -2020,7 +2029,7 @@ function ps(r,k){return k==='cat'?r:r.pg;}
 // 新手機第一次收到雲端資料時：本機先玩到的跟雲端的合在一起，不會蓋掉雲端的點數
 function petMerge(a,b){
   var m=petClean(b);
-  ['pts','kib','can','fish'].forEach(function(k){m[k]=Math.max(a[k],m[k]);});
+  ['pts','kib','can','fish','squid'].forEach(function(k){m[k]=Math.max(a[k],m[k]);});
   ['cat','pg'].forEach(function(k){
     var x=ps(a,k),y=ps(m,k);
     y.aff=Math.max(x.aff,y.aff);
@@ -2519,8 +2528,11 @@ function petFeed(p,food){
   if(p.k==='cat'){
     bowl=document.createElement('div');bowl.className='cat-bowl';bowl.innerHTML=CAT_ART.bowl;
     bowl.style.left=(p.dir>0?p.x+p.def.W-14:p.x-22)+'px';bowl.style.top=(p.y+p.def.H-17)+'px';
-    document.body.appendChild(bowl);
+  }else{
+    bowl=document.createElement('div');bowl.className='pet-snack '+food+(p.dir<0?' left':'');bowl.innerHTML=CAT_ART[food];
+    bowl.style.left=(p.dir>0?p.x+p.def.W*.72:p.x+p.def.W*.28-24)+'px';bowl.style.top=(p.y+p.def.H*.5)+'px';
   }
+  document.body.appendChild(bowl);
   setTimeout(function(){
     if(bowl)bowl.remove();
     petMode(p,'');p.act='';
@@ -2529,7 +2541,7 @@ function petFeed(p,food){
   },catReduce?900:2600);
   return true;
 }
-// 偶爾：畫面上冒出飼料、小魚或罐頭，點一下撿起來；愛吃那個的寵物會跑過去
+// 偶爾：畫面上冒出飼料、小魚、罐頭或透抽，點一下撿起來；愛吃那個的寵物會跑過去
 function petScheduleDrop(){clearTimeout(petDropT);petDropT=setTimeout(petTryDrop,(80+Math.random()*160)*1000);}
 function petTryDrop(){
   petScheduleDrop();
@@ -2537,7 +2549,7 @@ function petTryDrop(){
   if(!me||!petSynced||document.hidden||!sh.length||document.querySelector('.cat-drop'))return;
   var r=petDay(me);
   if(r.d.drop>=PET_DAY_DROP||Math.random()>.55)return;
-  var rnd=Math.random(),food=rnd<.5?'kib':rnd<.78?'fish':'can',p=pets[FOODS[food].pet];
+  var rnd=Math.random(),food=rnd<.45?'kib':rnd<.7?'fish':rnd<.85?'can':'squid',p=pets[FOODS[food].pet];
   if(petHidden(p))p=sh[0];
   var b=petBounds(p),x=b.x0+10+Math.random()*(b.x1-b.x0),y=b.y0+10+Math.random()*(b.y1-b.y0);
   var el=document.createElement('button');el.className='cat-drop';el.setAttribute('aria-label','撿起'+FOODS[food].name);
@@ -2579,7 +2591,7 @@ function petOpenSheet(k){
     '<div class="cs-bar"><i style="width:'+full+'%;background:'+(full<30?'var(--coral)':'var(--wakatake)')+'"></i></div></div>';
   if(me){
     var r=petDay(me),q=r.d.q,def=q&&petQuestDef(q.id);
-    h+='<div class="cs-sec"><div class="cs-h"><span>'+USERS[me].label+' 的糧食</span><b>'+['kib','can','fish'].map(function(f){return FOODS[f].name+' '+r[f];}).join('・')+'</b></div><div class="cs-food">'+
+    h+='<div class="cs-sec"><div class="cs-h"><span>'+USERS[me].label+' 的糧食</span><b>'+['kib','can','fish','squid'].map(function(f){return FOODS[f].name+' '+r[f];}).join('・')+'</b></div><div class="cs-food">'+
       p.def.foods.map(function(f){return '<button class="cs-btn'+(r[f]?'':' off')+'" data-feed="'+f+'">'+CAT_ART[f]+'餵'+FOODS[f].name+' ×'+r[f]+'</button>';}).join('')+'</div></div>';
     if(def){
       if(!q.seen){q.seen=true;petSave();petUpdMark();}
@@ -2596,7 +2608,7 @@ function petOpenSheet(k){
   h+='</div></div>';
   h+='<div class="cs-sec"><div class="cs-h"><span>怎麼讓寵物升級</span></div><div class="cs-rules">'+
     '改一天班表 +1⭐・新增／修改行程 +3⭐・傳變更通知 +2⭐<br>（每人每天最多 '+PET_DAY_PTS+'⭐，同一天改來改去只算一次）<br>'+
-    '每天第一次來送飼料和小魚・完成今日支線拿糧食<br>飼料、罐頭給貓咪，小魚給企鵝<br>畫面上偶爾會冒出糧食，看到記得點一下撿起來</div></div>';
+    '每天第一次來送飼料和小魚・完成今日支線拿糧食<br>飼料、罐頭給貓咪，小魚、透抽給企鵝<br>畫面上偶爾會冒出糧食，看到記得點一下撿起來</div></div>';
   h+='<div class="cs-sec"><div class="cs-seg">'+(me?'這支手機是 <button data-me="syue"'+(me==='syue'?' class="on"':'')+'>學</button><button data-me="ling"'+(me==='ling'?' class="on"':'')+'>綾</button>':'')+
     '<button id="csHide">'+(petHidden(p)?'叫'+safeHtml(name)+'出來':'讓'+safeHtml(name)+'去休息（隱藏）')+'</button></div></div>';
   h+='</div>';
