@@ -359,8 +359,6 @@ button.sc{font-family:inherit;color:var(--t);}
 .cat.walk .lf2,.cat.walk .lb1{animation:catLeg .44s ease-in-out infinite alternate-reverse;}
 .cat.run .c-leg{animation-duration:.2s!important;}
 @keyframes catLeg{from{transform:rotate(-24deg);}to{transform:rotate(24deg);}}
-.cat.walk .cat-bob{animation:catBob .22s ease-in-out infinite alternate;}
-@keyframes catBob{from{transform:translateY(0);}to{transform:translateY(-2px);}}
 /* 睡覺：換成縮成一團的那張，肚子起伏 */
 .c-sleep{display:none;}
 .cat.sleep .c-stand{display:none;}
@@ -408,11 +406,9 @@ button.sc{font-family:inherit;color:var(--t);}
 .p-lie{transform-origin:50% 100%;}
 .p-ec,.p-eh,.p-bo,.p-fishm,.p-lie,.p-lc,.p-lh,.p-spd{display:none;}
 .pg .p-eo{transform-box:fill-box;transform-origin:50% 50%;animation:catBlink 4.6s infinite;}
-.cat.pg.walk .cat-bob{animation:pgWaddle .34s ease-in-out infinite alternate;transform-origin:50% 95%;}
-@keyframes pgWaddle{from{transform:rotate(-8deg);}to{transform:rotate(8deg);}}
 .cat.pg.walk .pf1{animation:pgStep .34s ease-in-out infinite alternate;}
 .cat.pg.walk .pf2{animation:pgStep .34s ease-in-out infinite alternate-reverse;}
-.cat.pg.run .cat-bob,.cat.pg.run .p-foot{animation-duration:.18s!important;}
+.cat.pg.run .p-foot{animation-duration:.18s!important;}
 @keyframes pgStep{from{transform:translateY(0);}to{transform:translateY(-2.5px);}}
 .cat.pg.sleep .p-stand,.cat.pg.sk-slide .p-stand{display:none;}
 .cat.pg.sleep .p-lie,.cat.pg.sleep .p-lc,.cat.pg.sk-slide .p-lie,.cat.pg.sk-slide .p-lh,.cat.pg.sk-slide .p-spd{display:inline;}
@@ -515,13 +511,22 @@ button.sc{font-family:inherit;color:var(--t);}
 .book-idle{display:inline;}
 .book-walk-a{opacity:1;}
 .book-walk-b{opacity:0;}
-.cat.walk .book-idle{display:none;}
-.cat.walk .book-walk-a,.cat.walk .book-walk-b{display:inline;}
-.cat.walk .book-walk-a{animation:bookStepA .64s step-end infinite;}
-.cat.walk .book-walk-b{animation:bookStepB .64s step-end infinite;}
-.cat.run .book-walk-a,.cat.run .book-walk-b{animation-duration:.32s;}
-@keyframes bookStepA{0%,100%{opacity:1;}50%{opacity:0;}}
-@keyframes bookStepB{0%,100%{opacity:0;}50%{opacity:1;}}
+/* 走路：四格循環（跨一步 → 收腳 → 跨另一步 → 收腳），收腳時身體往上彈；企鵝還會左右搖擺 */
+.cat{--walk-cycle:.9s;}
+.cat.pg{--walk-cycle:.8s;}
+.cat.run{--walk-cycle:.45s;}
+.cat.pg.run{--walk-cycle:.4s;}
+.cat.walk .book-idle,.cat.walk .book-walk-a,.cat.walk .book-walk-b{display:inline;}
+.cat.walk .book-walk-a{animation:walkA var(--walk-cycle) step-end infinite;}
+.cat.walk .book-idle{animation:walkPass var(--walk-cycle) step-end infinite;}
+.cat.walk .book-walk-b{animation:walkB var(--walk-cycle) step-end infinite;}
+@keyframes walkA{0%{opacity:1;}25%,100%{opacity:0;}}
+@keyframes walkPass{0%{opacity:0;}25%{opacity:1;}50%{opacity:0;}75%,100%{opacity:1;}}
+@keyframes walkB{0%,25%{opacity:0;}50%{opacity:1;}75%,100%{opacity:0;}}
+.cat.walk .cat-bob{animation:walkBob var(--walk-cycle) ease-in-out infinite;}
+@keyframes walkBob{0%,50%,100%{transform:translateY(1px);}25%,75%{transform:translateY(-3px);}}
+.cat.pg.walk .cat-bob{animation:walkWaddle var(--walk-cycle) ease-in-out infinite;transform-origin:50% 95%;}
+@keyframes walkWaddle{0%,100%{transform:rotate(-5deg) translateY(1px);}25%,75%{transform:translateY(-3px);}50%{transform:rotate(5deg) translateY(1px);}}
 .cat:is(.happy,.pet,.sk-wave,.sk-groom,.sk-love,.sk-dance,.sk-salute,.sk-flap,.sk-preen) .book-frame{display:none;animation:none;opacity:1;}
 .cat:is(.happy,.pet,.sk-wave,.sk-groom,.sk-love,.sk-dance,.sk-salute,.sk-flap,.sk-preen) .book-happy{display:inline;}
 .cat.eat .book-frame{display:none;animation:none;opacity:1;}
@@ -587,6 +592,7 @@ button.sc{font-family:inherit;color:var(--t);}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition-duration:.01ms!important;}
   .zz{opacity:1;}
+  .cat.walk .book-idle,.cat.walk .book-walk-b{display:none!important;}
 }
 </style>
 </head>
