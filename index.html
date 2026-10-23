@@ -281,18 +281,20 @@ b{font-weight:400;color:var(--t);box-shadow:inset 0 -.4em 0 var(--yellow);}
 .fr-btn2{width:100%;padding:12px;background:var(--paper);color:var(--t2);border:var(--lw2) solid var(--ink);border-radius:14px;font-size:14px;cursor:pointer;}
 .fr-btn2:active{background:var(--press);}
 
-/* ── 頁尾小插圖：在書堆上睡午覺的波斯貓、底片相機、盆栽 ── */
+/* ── 頁尾小插圖：寵物設施（貓跳台、玩具、飯碗、企鵝的冰屋和水池）；寵物去休息時才會出現在這裡 ── */
 .scene{max-width:380px;margin:4px auto 0;padding:0 14px;}
 .scene svg{display:block;width:100%;height:auto;overflow:visible;}
-.tail{transform-box:fill-box;transform-origin:100% 100%;animation:tail 2.2s ease-in-out infinite alternate;}
 @keyframes tail{from{transform:rotate(-8deg);}to{transform:rotate(10deg);}}
 .breath{transform-box:fill-box;transform-origin:50% 100%;animation:breath 3.2s ease-in-out infinite;}
 @keyframes breath{0%,100%{transform:scaleY(1);}50%{transform:scaleY(1.06);}}
 .zz{transform-box:fill-box;transform-origin:50% 50%;opacity:0;animation:zz 3s ease-in-out infinite;}
 .zz.z2{animation-delay:-1.5s;}
 @keyframes zz{0%{opacity:0;transform:translate(0,4px) scale(.7);}30%{opacity:1;}100%{opacity:0;transform:translate(7px,-12px) scale(1.1);}}
-.plant{transform-box:fill-box;transform-origin:50% 100%;animation:plant 3.8s ease-in-out infinite alternate;}
-@keyframes plant{from{transform:rotate(-4deg);}to{transform:rotate(4deg);}}
+.toy-sway{transform-box:fill-box;transform-origin:50% 0;animation:toySway 2.6s ease-in-out infinite alternate;}
+@keyframes toySway{from{transform:rotate(-10deg);}to{transform:rotate(10deg);}}
+.spark.s2{animation-delay:-2s;}
+.scene .home-cat,.scene .home-pg{display:none;}
+.scene.cat-away .home-cat,.scene.pg-away .home-pg{display:inline;}
 .spark{transform-box:fill-box;transform-origin:50% 50%;animation:spark 4s ease-in-out infinite;}
 @keyframes spark{0%,72%,100%{opacity:0;transform:scale(.3);}82%{opacity:1;transform:scale(1.1);}90%{opacity:1;transform:scale(1);}}
 
@@ -391,10 +393,50 @@ b{font-weight:400;color:var(--t);box-shadow:inset 0 -.4em 0 var(--yellow);}
 @keyframes skYarn{0%{transform:none;}30%{transform:translateY(3px) scale(1.06,.88);}60%{transform:translate(46px,-34px) rotate(-10deg);}85%,100%{transform:translate(90px,0);}}
 .cat.sk-love .cat-sk{animation:skLove 1.6s ease-in-out;}
 @keyframes skLove{0%,100%{transform:none;}25%,75%{transform:scale(1.1);}50%{transform:scale(1.18) translateY(-6px);}}
+/* 企鵝：走路左右搖擺、兩腳輪流抬；睡覺和滑行換成趴著的那張 */
+.cat.pg{width:50px;height:60px;}
+.p-foot,.p-fl,.p-fr,.p-head,.p-lie{transform-box:fill-box;}
+.p-fl{transform-origin:90% 5%;}
+.p-fr{transform-origin:10% 5%;}
+.p-head{transform-origin:50% 90%;transition:transform .3s;}
+.p-lie{transform-origin:50% 100%;}
+.p-ec,.p-eh,.p-bo,.p-fishm,.p-lie,.p-lc,.p-lh,.p-spd{display:none;}
+.pg .p-eo{transform-box:fill-box;transform-origin:50% 50%;animation:catBlink 4.6s infinite;}
+.cat.pg.walk .cat-bob{animation:pgWaddle .34s ease-in-out infinite alternate;transform-origin:50% 95%;}
+@keyframes pgWaddle{from{transform:rotate(-8deg);}to{transform:rotate(8deg);}}
+.cat.pg.walk .pf1{animation:pgStep .34s ease-in-out infinite alternate;}
+.cat.pg.walk .pf2{animation:pgStep .34s ease-in-out infinite alternate-reverse;}
+.cat.pg.run .cat-bob,.cat.pg.run .p-foot{animation-duration:.18s!important;}
+@keyframes pgStep{from{transform:translateY(0);}to{transform:translateY(-2.5px);}}
+.cat.pg.sleep .p-stand,.cat.pg.sk-slide .p-stand{display:none;}
+.cat.pg.sleep .p-lie,.cat.pg.sleep .p-lc,.cat.pg.sk-slide .p-lie,.cat.pg.sk-slide .p-lh,.cat.pg.sk-slide .p-spd{display:inline;}
+.cat.pg.sleep .p-lie{animation:breath 3.2s ease-in-out infinite;}
+.cat.pg.happy .p-eo,.cat.pg.sk-dance .p-eo,.cat.pg.sk-spin .p-eo,.cat.pg.sk-love .p-eo,.cat.pg.sk-preen .p-eo{display:none;}
+.cat.pg.happy .p-eh,.cat.pg.sk-dance .p-eh,.cat.pg.sk-spin .p-eh,.cat.pg.sk-love .p-eh,.cat.pg.sk-preen .p-eh{display:inline;}
+.cat.pg.meow .p-bc,.cat.pg.eat .p-bc{display:none;}
+.cat.pg.meow .p-bo,.cat.pg.eat .p-fishm{display:inline;}
+.cat.pg.eat .p-head{animation:pgGulp .3s ease-in-out infinite alternate;}
+@keyframes pgGulp{from{transform:rotate(-4deg);}to{transform:rotate(-12deg) translateY(-1px);}}
+.cat.pg.pet .p-fl,.cat.pg.sk-dance .p-fl{animation:pgFlapL .26s ease-in-out infinite alternate;}
+.cat.pg.pet .p-fr,.cat.pg.sk-dance .p-fr,.cat.pg.sk-preen .p-fr{animation:pgFlapR .26s ease-in-out infinite alternate;}
+@keyframes pgFlapL{from{transform:none;}to{transform:rotate(40deg);}}
+@keyframes pgFlapR{from{transform:none;}to{transform:rotate(-40deg);}}
+/* 企鵝技能 */
+.cat.pg.sk-flap .p-fl{animation:pgFlapL .14s ease-in-out infinite alternate;}
+.cat.pg.sk-flap .p-fr{animation:pgFlapR .14s ease-in-out infinite alternate;}
+.cat.pg.sk-flap .cat-sk{animation:pgHop .5s ease-in-out 3;}
+@keyframes pgHop{0%,100%{transform:none;}50%{transform:translateY(-8px);}}
+.cat.pg.sk-dance .cat-sk{animation:pgDance 1.8s ease-in-out;transform-origin:50% 95%;}
+@keyframes pgDance{0%,100%{transform:none;}12%,37%,62%{transform:rotate(-14deg);}25%,50%,75%{transform:rotate(14deg) translateY(-4px);}87%{transform:rotate(-6deg);}}
+.cat.pg.sk-slide .cat-sk{animation:pgSlide 1.6s cubic-bezier(.3,.6,.4,1) forwards;}
+@keyframes pgSlide{from{transform:none;}to{transform:translateX(110px);}}
+.cat.pg.sk-salute .p-fr{animation:pgHello 1.9s ease-in-out;}
+@keyframes pgHello{0%,100%{transform:none;}20%,50%,82%{transform:rotate(-140deg);}35%,65%{transform:rotate(-115deg);}}
+.cat.pg.sk-preen .p-head{transform:rotate(16deg);}
 /* 對話泡泡、支線任務的驚嘆號 */
-.cat-say{position:absolute;left:50%;bottom:100%;margin-bottom:6px;transform:translateX(-50%) scale(.6);opacity:0;background:var(--paper);border:var(--lw2) solid var(--ink);border-radius:14px;padding:3px 10px;font-size:13px;line-height:1.5;white-space:nowrap;color:var(--t);pointer-events:none;transition:opacity .2s,transform .35s var(--pop);}
-.cat-say.on{opacity:1;transform:translateX(-50%) scale(1);}
-.cat-say::after{content:'';position:absolute;left:50%;top:100%;margin-left:-5px;border:5px solid transparent;border-top-color:var(--ink);}
+.cat-say{position:absolute;left:50%;bottom:100%;margin-bottom:6px;transform:translateX(calc(-50% + var(--sx,0px))) scale(.6);opacity:0;background:var(--paper);border:var(--lw2) solid var(--ink);border-radius:14px;padding:3px 10px;font-size:13px;line-height:1.5;white-space:nowrap;color:var(--t);pointer-events:none;transition:opacity .2s,transform .35s var(--pop);}
+.cat-say.on{opacity:1;transform:translateX(calc(-50% + var(--sx,0px))) scale(1);}
+.cat-say::after{content:'';position:absolute;left:calc(50% - var(--sx,0px));top:100%;margin-left:-5px;border:5px solid transparent;border-top-color:var(--ink);}
 .cat-mark{position:absolute;right:0;top:-8px;width:20px;height:20px;border-radius:50%;background:var(--yellow);border:var(--lw2) solid var(--ink);font-size:12px;line-height:1;display:none;align-items:center;justify-content:center;pointer-events:none;animation:markBob .8s ease-in-out infinite alternate;}
 .cat.has-q .cat-mark{display:flex;}
 @keyframes markBob{from{transform:translateY(0);}to{transform:translateY(-4px);}}
@@ -455,6 +497,10 @@ b{font-weight:400;color:var(--t);box-shadow:inset 0 -.4em 0 var(--yellow);}
 .cs-seg button{height:34px;padding:0 14px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);font-size:13px;color:var(--t);cursor:pointer;}
 .cs-seg button.on{background:var(--yellow);}
 .scene{cursor:pointer;}
+/* 寵物狀態卡上面切換貓咪／企鵝 */
+.cs-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:2px 0 4px;}
+.cs-tabs button{height:40px;border:var(--lw2) solid var(--ink);border-radius:14px;background:var(--paper);font-size:15px;color:var(--t);cursor:pointer;}
+.cs-tabs button.on{background:var(--yellow);}
 /* 系統開了「減少動態效果」：插圖停住，彈跳、滑動、淡入都關掉，全部直接停在最後的樣子 */
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition-duration:.01ms!important;}
@@ -540,42 +586,62 @@ b{font-weight:400;color:var(--t);box-shadow:inset 0 -.4em 0 var(--yellow);}
 </div>
 <div class="sm" id="sm"></div>
 <div class="ht"><span id="hintText"></span></div>
-<!-- 頁尾小插圖：書堆上睡午覺的波斯貓、底片相機、盆栽（點一下打開貓咪狀態） -->
-<div class="scene" id="scene" role="button" aria-label="貓咪狀態">
+<!-- 頁尾小插圖：寵物設施（點左邊打開貓咪、點冰屋那邊打開企鵝的狀態卡） -->
+<div class="scene" id="scene" role="button" aria-label="寵物狀態">
   <svg viewBox="0 0 360 124">
+    <defs><clipPath id="iglooClip"><path d="M297.5 113A26.5 26.5 0 0 1 350.5 113Z"/></clipPath></defs>
     <g stroke="#3E3A39" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
-      <!-- 書堆 -->
-      <rect x="38" y="94" width="104" height="20" rx="5" fill="#F2A497"/>
-      <path d="M52 94v20" stroke-width="2.4" fill="none"/>
-      <rect x="48" y="76" width="88" height="18" rx="5" fill="#A8D3E6"/>
-      <path d="M122 76v18" stroke-width="2.4" fill="none"/>
-      <rect x="44" y="60" width="82" height="16" rx="5" fill="#F6D27A"/>
-      <path d="M58 68h22" stroke-width="2.4" fill="none"/>
-      <!-- 底片相機 -->
-      <rect x="178" y="74" width="24" height="12" rx="4" fill="#FFFCF6"/>
-      <rect x="222" y="77" width="10" height="8" rx="2.5" fill="#F2A497" stroke-width="2.6"/>
-      <rect x="168" y="82" width="72" height="32" rx="8" fill="#B9DAA5"/>
-      <rect x="174" y="88" width="13" height="8" rx="2.5" fill="#F6D27A" stroke-width="2.4"/>
-      <circle cx="205" cy="98" r="12.5" fill="#FFFCF6"/>
-      <circle cx="205" cy="98" r="6" fill="#A8D3E6" stroke-width="2.6"/>
-      <circle cx="202.6" cy="95.6" r="1.8" fill="#FFFCF6" stroke="none"/>
-      <path class="spark" d="M248 62q1.5 6.5 8 8-6.5 1.5-8 8-1.5-6.5-8-8 6.5-1.5 8-8Z" fill="#F6D27A" stroke-width="2"/>
-      <!-- 盆栽：葉子輕輕晃 -->
-      <g class="plant">
-        <path d="M300 84V50" fill="none"/>
-        <path d="M300 70c-13 0-21-8-21-20 12 0 21 8 21 20Z" fill="#B9DAA5" stroke-width="2.6"/>
-        <path d="M300 62c13 0 22-8 22-20-12 0-22 8-22 20Z" fill="#B9DAA5" stroke-width="2.6"/>
-        <path d="M300 52c-6-7-6-17 0-24 6 7 6 17 0 24Z" fill="#B9DAA5" stroke-width="2.6"/>
+      <!-- 貓跳台：麻繩柱、跳台、有圓洞的小屋、吊著的毛球 -->
+      <rect x="40" y="46" width="13" height="60" fill="#EBC98B"/>
+      <path d="M40 54h13M40 62h13M40 70h13M40 78h13M40 86h13M40 94h13M40 102h13" fill="none" stroke-width="1.6"/>
+      <rect x="92" y="34" width="11" height="32" fill="#EBC98B"/>
+      <path d="M92 41h11M92 48h11M92 55h11M92 62h11" fill="none" stroke-width="1.6"/>
+      <rect x="64" y="70" width="54" height="36" rx="7" fill="#A8D3E6"/>
+      <ellipse cx="91" cy="90" rx="11" ry="10" fill="#55606B"/>
+      <path d="M84 84q4-4 9-2" fill="none" stroke="#FFFCF6" stroke-width="1.6" opacity=".6"/>
+      <rect x="60" y="63" width="62" height="9" rx="4.5" fill="#F2A497"/>
+      <rect x="22" y="40" width="50" height="9" rx="4.5" fill="#F2A497"/>
+      <rect x="80" y="28" width="36" height="8" rx="4" fill="#F6D27A"/>
+      <g class="toy-sway"><path d="M28 49v20" fill="none" stroke-width="1.6"/><circle cx="28" cy="73" r="5" fill="#F6D27A"/><path d="M24.5 70l7 6M31.5 70l-7 6" fill="none" stroke-width="1.4"/></g>
+      <rect x="18" y="104" width="108" height="10" rx="4" fill="#F2A497"/>
+      <!-- 玩具：毛線球、玩具老鼠 -->
+      <circle cx="142" cy="105" r="9" fill="#F2A497"/>
+      <path d="M135 101c4 1 9 5 11 11M138 97.5c4 3 8 8 9 13M133 106c3 0 6 3 8 7" fill="none" stroke-width="1.4"/>
+      <path d="M151 108c5 1 6 5 10 5" fill="none" stroke-width="1.6"/>
+<g transform="translate(-8 0)">
+      <path d="M176 112c0-6 5-10 11-10 4 0 7 3 8 6l3 1-3 2c-1 2-3 2-6 2Z" fill="#D9D4CE"/>
+      <circle cx="183" cy="102.5" r="3.4" fill="#F8C4BA" stroke-width="2"/>
+      <circle cx="191" cy="106" r="1" fill="#3E3A39" stroke="none"/>
+      <path d="M176 110c-6 0-8-5-4-7" fill="none" stroke-width="1.6"/>
       </g>
-      <path d="M281 92h38l-5 22h-28Z" fill="#F2A497"/>
-      <rect x="276" y="82" width="48" height="10" rx="4" fill="#F2A497"/>
-      <!-- 桌面 -->
-      <path d="M16 115.5H344" fill="none"/>
+      <!-- 兩個碗：貓的飼料、企鵝的魚 -->
+      <g transform="translate(-12 0)">
+      <path d="M207 104q11-7 22 0Z" fill="#E8C27A" stroke-width="2.4"/>
+      <path d="M203 104h30l-3 9a3 3 0 0 1-3 2h-18a3 3 0 0 1-3-2Z" fill="#F2A497"/>
+      <path d="M213 109.5q2.5 2 5 0q2.5 2 5 0" fill="none" stroke="#FFFCF6" stroke-width="1.6"/>
+      <path d="M246 101q4-4 9-1l3-3v8l-3-3q-5 3-9-1Z" fill="#A8D3E6" stroke-width="2"/>
+      <path d="M240 104h30l-3 9a3 3 0 0 1-3 2h-18a3 3 0 0 1-3-2Z" fill="#A8D3E6"/>
+      <path d="M250 109.5q2.5 2 5 0q2.5 2 5 0" fill="none" stroke="#FFFCF6" stroke-width="1.6"/>
+      </g>
+      <!-- 企鵝的冰屋＋小水池 -->
+      <ellipse cx="276" cy="110.5" rx="15" ry="4.6" fill="#A8D3E6"/>
+      <path d="M267 110q3.4-2 6.8 0M278 111.6q3.4-2 6.8 0" fill="none" stroke="#FFFCF6" stroke-width="1.6"/>
+      <path d="M296 113A28 28 0 0 1 352 113Z" fill="#FFFCF6"/>
+      <path clip-path="url(#iglooClip)" d="M298.6 103Q324 99 349.4 103M304 93Q324 89.5 344 93M311.5 85Q324 82.5 336.5 85M314 103v-9.6M334 103v-9.6M324 93v-8.4M309 113v-9.8M339 113v-9.8" fill="none" stroke="#A8D3E6" stroke-width="2"/>
+      <path d="M314 113v-9a10 10 0 0 1 20 0v9Z" fill="#55606B"/>
+      <path class="spark" d="M284 72q1.2 5 6 6-4.8 1-6 6-1.2-5-6-6 4.8-1 6-6Z" fill="#A8D3E6" stroke-width="1.8"/>
+      <path class="spark s2" d="M350 58q1 4 5 5-4 1-5 5-1-4-5-5 4-1 5-5Z" fill="#F6D27A" stroke-width="1.8"/>
+      <!-- 地面 -->
+      <path d="M12 115.5H352" fill="none"/>
     </g>
-    <!-- 書上睡覺的波斯貓：肚子會起伏 -->
-    <g transform="translate(38.8 1.1) scale(.8)"><defs><clipPath id="fcS"><ellipse cx="43" cy="52" rx="27" ry="11"/><circle cx="17" cy="52" r="5"/><circle cx="18.9" cy="48.1" r="5"/><circle cx="24.3" cy="44.7" r="5"/><circle cx="32.4" cy="42.4" r="5"/><circle cx="42.1" cy="41.5" r="5"/><circle cx="51.9" cy="42.1" r="5"/><circle cx="60.4" cy="44.2" r="5"/><circle cx="66.4" cy="47.4" r="5"/><circle cx="68.9" cy="51.3" r="5"/></clipPath></defs><g class="breath"><g fill="#3E3A39" stroke="#3E3A39" stroke-width="7.2"><ellipse cx="43" cy="52" rx="27" ry="11"/><circle cx="17" cy="52" r="5"/><circle cx="18.9" cy="48.1" r="5"/><circle cx="24.3" cy="44.7" r="5"/><circle cx="32.4" cy="42.4" r="5"/><circle cx="42.1" cy="41.5" r="5"/><circle cx="51.9" cy="42.1" r="5"/><circle cx="60.4" cy="44.2" r="5"/><circle cx="66.4" cy="47.4" r="5"/><circle cx="68.9" cy="51.3" r="5"/></g><g fill="#FFFCF6" stroke="none"><ellipse cx="43" cy="52" rx="27" ry="11"/><circle cx="17" cy="52" r="5"/><circle cx="18.9" cy="48.1" r="5"/><circle cx="24.3" cy="44.7" r="5"/><circle cx="32.4" cy="42.4" r="5"/><circle cx="42.1" cy="41.5" r="5"/><circle cx="51.9" cy="42.1" r="5"/><circle cx="60.4" cy="44.2" r="5"/><circle cx="66.4" cy="47.4" r="5"/><circle cx="68.9" cy="51.3" r="5"/></g><g clip-path="url(#fcS)"><ellipse cx="43" cy="64" rx="32" ry="5" fill="#F1E9DC"/></g><path d="M28 46l1.4 2.6M30.6 46l1.4 2.6M39 44l1.4 2.6M41.6 44l1.4 2.6" fill="none" stroke="#D8CCBA" stroke-width="1.2" stroke-linecap="round"/></g><g fill="#3E3A39" stroke="#3E3A39" stroke-width="7.2"><circle cx="18" cy="56" r="5.4"/><circle cx="17.2" cy="58.4" r="5.3"/><circle cx="17.4" cy="60.4" r="5.2"/><circle cx="18.5" cy="62" r="5.1"/><circle cx="20.3" cy="63.3" r="5.1"/><circle cx="22.9" cy="64.3" r="5"/><circle cx="26.2" cy="65.1" r="4.9"/><circle cx="30" cy="65.5" r="4.8"/><circle cx="34.3" cy="65.7" r="4.7"/><circle cx="39" cy="65.7" r="4.6"/><circle cx="44.1" cy="65.5" r="4.5"/><circle cx="49.4" cy="65.1" r="4.5"/><circle cx="54.8" cy="64.5" r="4.4"/><circle cx="60.4" cy="63.8" r="4.3"/><circle cx="66" cy="63" r="4.2"/></g><g fill="#FFFCF6" stroke="none"><circle cx="18" cy="56" r="5.4"/><circle cx="17.2" cy="58.4" r="5.3"/><circle cx="17.4" cy="60.4" r="5.2"/><circle cx="18.5" cy="62" r="5.1"/><circle cx="20.3" cy="63.3" r="5.1"/><circle cx="22.9" cy="64.3" r="5"/><circle cx="26.2" cy="65.1" r="4.9"/><circle cx="30" cy="65.5" r="4.8"/><circle cx="34.3" cy="65.7" r="4.7"/><circle cx="39" cy="65.7" r="4.6"/><circle cx="44.1" cy="65.5" r="4.5"/><circle cx="49.4" cy="65.1" r="4.5"/><circle cx="54.8" cy="64.5" r="4.4"/><circle cx="60.4" cy="63.8" r="4.3"/><circle cx="66" cy="63" r="4.2"/></g><path d="M57.6 41Q55.1 25.6 59.7 21.5Q65.8 22.5 71.5 31Z" fill="#FFFCF6" stroke="#3E3A39" stroke-width="2.6" stroke-linejoin="round"/><path d="M60.2 35Q58.6 25.1 66.3 29Z" fill="#F8C4BA"/><path d="M63 34q-1 -4 -2.4 -7M64.5 33.5q0.4 -3 -0.4 -5" fill="none" stroke="#D8CCBA" stroke-width="1.1" stroke-linecap="round"/><path d="M96.4 41Q98.9 25.6 94.3 21.5Q88.2 22.5 82.5 31Z" fill="#FFFCF6" stroke="#3E3A39" stroke-width="2.6" stroke-linejoin="round"/><path d="M93.8 35Q95.4 25.1 87.7 29Z" fill="#F8C4BA"/><path d="M91 34q1 -4 2.4 -7M89.5 33.5q-0.4 -3 0.4 -5" fill="none" stroke="#D8CCBA" stroke-width="1.1" stroke-linecap="round"/><g fill="#3E3A39" stroke="#3E3A39" stroke-width="7.2" stroke-linejoin="round"><path d="M80.9 31.5Q81.4 29.7 87.9 31Q90.6 34.8 87.6 35.4ZM86.5 34.4Q87.7 32.9 93 36.8Q94 41.3 91 40.6ZM90.4 39.2Q92.1 38.3 95.4 44.1Q94.4 48.6 92 46.8ZM92 45.2Q96.9 45 99.8 53.4Q95.3 57.7 90.4 52.8ZM91 51.4Q95.6 53.2 94.8 62.1Q89 64.2 86.5 57.6ZM87.6 56.6Q89.5 58.6 85.1 64.3Q80.1 64.5 80.9 60.5ZM82.3 60Q83.3 62.6 77 66Q72.3 64.1 74.7 60.8ZM76.2 61Q76 63.7 68.9 64.3Q65.3 60.7 68.9 58.6ZM70.2 59.4Q68.9 61.8 62.1 59.4Q60.4 54.6 64.4 54.2ZM65.3 55.4Q61.5 58.5 54.2 53.4Q55.3 47.3 62.2 48.4ZM62.5 49.9Q57.7 51.1 53.1 43.5Q56.6 38.3 62.5 42.1ZM62.2 43.6Q60.3 43.3 61 36.8Q64.5 33.6 65.3 36.6ZM64.4 37.8Q62.8 36.8 66.1 31Q70.6 29.6 70.2 32.6Z"/><circle cx="77" cy="47" r="16.5"/></g><g fill="#FFFCF6" stroke="none"><path d="M80.9 31.5Q81.4 29.7 87.9 31Q90.6 34.8 87.6 35.4ZM86.5 34.4Q87.7 32.9 93 36.8Q94 41.3 91 40.6ZM90.4 39.2Q92.1 38.3 95.4 44.1Q94.4 48.6 92 46.8ZM92 45.2Q96.9 45 99.8 53.4Q95.3 57.7 90.4 52.8ZM91 51.4Q95.6 53.2 94.8 62.1Q89 64.2 86.5 57.6ZM87.6 56.6Q89.5 58.6 85.1 64.3Q80.1 64.5 80.9 60.5ZM82.3 60Q83.3 62.6 77 66Q72.3 64.1 74.7 60.8ZM76.2 61Q76 63.7 68.9 64.3Q65.3 60.7 68.9 58.6ZM70.2 59.4Q68.9 61.8 62.1 59.4Q60.4 54.6 64.4 54.2ZM65.3 55.4Q61.5 58.5 54.2 53.4Q55.3 47.3 62.2 48.4ZM62.5 49.9Q57.7 51.1 53.1 43.5Q56.6 38.3 62.5 42.1ZM62.2 43.6Q60.3 43.3 61 36.8Q64.5 33.6 65.3 36.6ZM64.4 37.8Q62.8 36.8 66.1 31Q70.6 29.6 70.2 32.6Z"/><circle cx="77" cy="47" r="16.5"/></g><ellipse cx="77" cy="47" rx="17" ry="14.6" fill="#FFFCF6"/><path d="M63 50q-3 2-4 6M91 50q3 2 4 6M66 55q-2 2-2.4 4.6M88 55q2 2 2.4 4.6M74.4 33.5l1.2 3M77 33v3.2M79.6 33.5l-1.2 3" fill="none" stroke="#D8CCBA" stroke-width="1.2" stroke-linecap="round"/><path d="M66.8 47.6q3.6 3 7.2 0M80 47.6q3.6 3 7.2 0" fill="none" stroke="#3E3A39" stroke-width="2" stroke-linecap="round"/><ellipse cx="66" cy="52.6" rx="2.6" ry="1.6" fill="#F2A497" opacity=".7"/><ellipse cx="88" cy="52.6" rx="2.6" ry="1.6" fill="#F2A497" opacity=".7"/><ellipse cx="75" cy="52.6" rx="2.8" ry="2.7" fill="#F1E9DC"/><ellipse cx="79" cy="52.6" rx="2.8" ry="2.7" fill="#F1E9DC"/><path d="M75.4 50.2h3.2l-1.6 1.9Z" fill="#F2A497" stroke="#3E3A39" stroke-width="1.1" stroke-linejoin="round"/><circle cx="76.4" cy="50.7" r=".45" fill="#FFFCF6"/><path class="c-mc" d="M77 52.1v.9M74.8 53q1.15 1.3 2.2 0q1.05 1.3 2.2 0" fill="none" stroke="#3E3A39" stroke-width="1.2" stroke-linecap="round"/><path d="M72.4 52 62 50M72.4 53.2 62.4 54M72.6 54.4 63.8 57.4" fill="none" stroke="#3E3A39" stroke-width=".85" stroke-linecap="round" opacity=".45"/><path d="M81.6 52 92 50M81.6 53.2 91.6 54M81.4 54.4 90.2 57.4" fill="none" stroke="#3E3A39" stroke-width=".85" stroke-linecap="round" opacity=".45"/></g>
-    <text class="zz" x="124" y="22" font-size="13" fill="#3E3A39">z</text>
-    <text class="zz z2" x="131" y="14" font-size="10" fill="#3E3A39">z</text>
+    <!-- 寵物休息中（被藏起來）才出現：貓睡在跳台上、企鵝在冰屋門口打瞌睡 -->
+    <g class="home-cat"><g transform="translate(17.5 1.7) scale(.5)"><defs><clipPath id="hcS"><ellipse cx="43" cy="52" rx="27" ry="11"/><circle cx="17" cy="52" r="5"/><circle cx="18.9" cy="48.1" r="5"/><circle cx="24.3" cy="44.7" r="5"/><circle cx="32.4" cy="42.4" r="5"/><circle cx="42.1" cy="41.5" r="5"/><circle cx="51.9" cy="42.1" r="5"/><circle cx="60.4" cy="44.2" r="5"/><circle cx="66.4" cy="47.4" r="5"/><circle cx="68.9" cy="51.3" r="5"/></clipPath></defs><g class="breath"><g fill="#3E3A39" stroke="#3E3A39" stroke-width="10.8"><ellipse cx="43" cy="52" rx="27" ry="11"/><circle cx="17" cy="52" r="5"/><circle cx="18.9" cy="48.1" r="5"/><circle cx="24.3" cy="44.7" r="5"/><circle cx="32.4" cy="42.4" r="5"/><circle cx="42.1" cy="41.5" r="5"/><circle cx="51.9" cy="42.1" r="5"/><circle cx="60.4" cy="44.2" r="5"/><circle cx="66.4" cy="47.4" r="5"/><circle cx="68.9" cy="51.3" r="5"/></g><g fill="#FFFCF6" stroke="none"><ellipse cx="43" cy="52" rx="27" ry="11"/><circle cx="17" cy="52" r="5"/><circle cx="18.9" cy="48.1" r="5"/><circle cx="24.3" cy="44.7" r="5"/><circle cx="32.4" cy="42.4" r="5"/><circle cx="42.1" cy="41.5" r="5"/><circle cx="51.9" cy="42.1" r="5"/><circle cx="60.4" cy="44.2" r="5"/><circle cx="66.4" cy="47.4" r="5"/><circle cx="68.9" cy="51.3" r="5"/></g><g clip-path="url(#hcS)"><ellipse cx="43" cy="64" rx="32" ry="5" fill="#F1E9DC"/></g><path d="M28 46l1.4 2.6M30.6 46l1.4 2.6M39 44l1.4 2.6M41.6 44l1.4 2.6" fill="none" stroke="#D8CCBA" stroke-width="1.2" stroke-linecap="round"/></g><g fill="#3E3A39" stroke="#3E3A39" stroke-width="10.8"><circle cx="18" cy="56" r="5.4"/><circle cx="17.2" cy="58.4" r="5.3"/><circle cx="17.4" cy="60.4" r="5.2"/><circle cx="18.5" cy="62" r="5.1"/><circle cx="20.3" cy="63.3" r="5.1"/><circle cx="22.9" cy="64.3" r="5"/><circle cx="26.2" cy="65.1" r="4.9"/><circle cx="30" cy="65.5" r="4.8"/><circle cx="34.3" cy="65.7" r="4.7"/><circle cx="39" cy="65.7" r="4.6"/><circle cx="44.1" cy="65.5" r="4.5"/><circle cx="49.4" cy="65.1" r="4.5"/><circle cx="54.8" cy="64.5" r="4.4"/><circle cx="60.4" cy="63.8" r="4.3"/><circle cx="66" cy="63" r="4.2"/></g><g fill="#FFFCF6" stroke="none"><circle cx="18" cy="56" r="5.4"/><circle cx="17.2" cy="58.4" r="5.3"/><circle cx="17.4" cy="60.4" r="5.2"/><circle cx="18.5" cy="62" r="5.1"/><circle cx="20.3" cy="63.3" r="5.1"/><circle cx="22.9" cy="64.3" r="5"/><circle cx="26.2" cy="65.1" r="4.9"/><circle cx="30" cy="65.5" r="4.8"/><circle cx="34.3" cy="65.7" r="4.7"/><circle cx="39" cy="65.7" r="4.6"/><circle cx="44.1" cy="65.5" r="4.5"/><circle cx="49.4" cy="65.1" r="4.5"/><circle cx="54.8" cy="64.5" r="4.4"/><circle cx="60.4" cy="63.8" r="4.3"/><circle cx="66" cy="63" r="4.2"/></g><path d="M57.6 41Q55.1 25.6 59.7 21.5Q65.8 22.5 71.5 31Z" fill="#FFFCF6" stroke="#3E3A39" stroke-width="2.6" stroke-linejoin="round"/><path d="M60.2 35Q58.6 25.1 66.3 29Z" fill="#F8C4BA"/><path d="M63 34q-1 -4 -2.4 -7M64.5 33.5q0.4 -3 -0.4 -5" fill="none" stroke="#D8CCBA" stroke-width="1.1" stroke-linecap="round"/><path d="M96.4 41Q98.9 25.6 94.3 21.5Q88.2 22.5 82.5 31Z" fill="#FFFCF6" stroke="#3E3A39" stroke-width="2.6" stroke-linejoin="round"/><path d="M93.8 35Q95.4 25.1 87.7 29Z" fill="#F8C4BA"/><path d="M91 34q1 -4 2.4 -7M89.5 33.5q-0.4 -3 0.4 -5" fill="none" stroke="#D8CCBA" stroke-width="1.1" stroke-linecap="round"/><g fill="#3E3A39" stroke="#3E3A39" stroke-width="10.8" stroke-linejoin="round"><path d="M80.9 31.5Q81.4 29.7 87.9 31Q90.6 34.8 87.6 35.4ZM86.5 34.4Q87.7 32.9 93 36.8Q94 41.3 91 40.6ZM90.4 39.2Q92.1 38.3 95.4 44.1Q94.4 48.6 92 46.8ZM92 45.2Q96.9 45 99.8 53.4Q95.3 57.7 90.4 52.8ZM91 51.4Q95.6 53.2 94.8 62.1Q89 64.2 86.5 57.6ZM87.6 56.6Q89.5 58.6 85.1 64.3Q80.1 64.5 80.9 60.5ZM82.3 60Q83.3 62.6 77 66Q72.3 64.1 74.7 60.8ZM76.2 61Q76 63.7 68.9 64.3Q65.3 60.7 68.9 58.6ZM70.2 59.4Q68.9 61.8 62.1 59.4Q60.4 54.6 64.4 54.2ZM65.3 55.4Q61.5 58.5 54.2 53.4Q55.3 47.3 62.2 48.4ZM62.5 49.9Q57.7 51.1 53.1 43.5Q56.6 38.3 62.5 42.1ZM62.2 43.6Q60.3 43.3 61 36.8Q64.5 33.6 65.3 36.6ZM64.4 37.8Q62.8 36.8 66.1 31Q70.6 29.6 70.2 32.6Z"/><circle cx="77" cy="47" r="16.5"/></g><g fill="#FFFCF6" stroke="none"><path d="M80.9 31.5Q81.4 29.7 87.9 31Q90.6 34.8 87.6 35.4ZM86.5 34.4Q87.7 32.9 93 36.8Q94 41.3 91 40.6ZM90.4 39.2Q92.1 38.3 95.4 44.1Q94.4 48.6 92 46.8ZM92 45.2Q96.9 45 99.8 53.4Q95.3 57.7 90.4 52.8ZM91 51.4Q95.6 53.2 94.8 62.1Q89 64.2 86.5 57.6ZM87.6 56.6Q89.5 58.6 85.1 64.3Q80.1 64.5 80.9 60.5ZM82.3 60Q83.3 62.6 77 66Q72.3 64.1 74.7 60.8ZM76.2 61Q76 63.7 68.9 64.3Q65.3 60.7 68.9 58.6ZM70.2 59.4Q68.9 61.8 62.1 59.4Q60.4 54.6 64.4 54.2ZM65.3 55.4Q61.5 58.5 54.2 53.4Q55.3 47.3 62.2 48.4ZM62.5 49.9Q57.7 51.1 53.1 43.5Q56.6 38.3 62.5 42.1ZM62.2 43.6Q60.3 43.3 61 36.8Q64.5 33.6 65.3 36.6ZM64.4 37.8Q62.8 36.8 66.1 31Q70.6 29.6 70.2 32.6Z"/><circle cx="77" cy="47" r="16.5"/></g><ellipse cx="77" cy="47" rx="17" ry="14.6" fill="#FFFCF6"/><path d="M63 50q-3 2-4 6M91 50q3 2 4 6M66 55q-2 2-2.4 4.6M88 55q2 2 2.4 4.6M74.4 33.5l1.2 3M77 33v3.2M79.6 33.5l-1.2 3" fill="none" stroke="#D8CCBA" stroke-width="1.2" stroke-linecap="round"/><path d="M66.8 47.6q3.6 3 7.2 0M80 47.6q3.6 3 7.2 0" fill="none" stroke="#3E3A39" stroke-width="2" stroke-linecap="round"/><ellipse cx="66" cy="52.6" rx="2.6" ry="1.6" fill="#F2A497" opacity=".7"/><ellipse cx="88" cy="52.6" rx="2.6" ry="1.6" fill="#F2A497" opacity=".7"/><ellipse cx="75" cy="52.6" rx="2.8" ry="2.7" fill="#F1E9DC"/><ellipse cx="79" cy="52.6" rx="2.8" ry="2.7" fill="#F1E9DC"/><path d="M75.4 50.2h3.2l-1.6 1.9Z" fill="#F2A497" stroke="#3E3A39" stroke-width="1.1" stroke-linejoin="round"/><circle cx="76.4" cy="50.7" r=".45" fill="#FFFCF6"/><path class="c-mc" d="M77 52.1v.9M74.8 53q1.15 1.3 2.2 0q1.05 1.3 2.2 0" fill="none" stroke="#3E3A39" stroke-width="1.2" stroke-linecap="round"/><path d="M72.4 52 62 50M72.4 53.2 62.4 54M72.6 54.4 63.8 57.4" fill="none" stroke="#3E3A39" stroke-width=".85" stroke-linecap="round" opacity=".45"/><path d="M81.6 52 92 50M81.6 53.2 91.6 54M81.4 54.4 90.2 57.4" fill="none" stroke="#3E3A39" stroke-width=".85" stroke-linecap="round" opacity=".45"/></g><text class="zz" x="66" y="16" font-size="11" fill="#3E3A39">z</text><text class="zz z2" x="72" y="9" font-size="8" fill="#3E3A39">z</text></g>
+    <g class="home-pg" stroke="#3E3A39" stroke-linejoin="round" stroke-linecap="round">
+      <circle cx="320.5" cy="106" r="4.6" fill="#FFFCF6" stroke="none"/><circle cx="327.5" cy="106" r="4.6" fill="#FFFCF6" stroke="none"/>
+      <path d="M317.8 106q2 2 4 0M325.2 106q2 2 4 0" fill="none" stroke-width="1.4"/>
+      <path d="M321.8 108.4h4.4l-2.2 2.4Z" fill="#F6C064" stroke-width="1.2"/>
+      <text class="zz" x="349" y="92" font-size="10" fill="#3E3A39" stroke="none">z</text><text class="zz z2" x="354" y="85" font-size="7" fill="#3E3A39" stroke="none">z</text>
+    </g>
   </svg>
 </div>
 
@@ -772,7 +838,7 @@ function startListener(code){
       var sig=docSig(raw);
       if(sig!==lastDocSig){lastDocSig=sig;isRemoteUpdate=true;readRemoteDocData(raw);saveLocalOnly();render();isRemoteUpdate=false;}
     }
-    catFromRemote(raw);
+    petFromRemote(raw);
     // 雲端還沒有行程：把這支手機之前加的行程傳上去
     if((!raw||raw.events===undefined)&&Object.keys(calEvents).length)uploadAllEvents();
     setDot('ok');
@@ -828,7 +894,7 @@ function recordEventChange(act,ev){
   rec.text=verb[rec.act]+' '+evText(ev);
   pendingChanges.push(rec);
   saveChanges();renderChgBar();
-  catGain('ev');
+  petGain('ev');
 }
 
 function renderChgBar(){
@@ -867,7 +933,7 @@ function buildChangeMsg(){
 function sendChangeNotification(){
   var msg=buildChangeMsg();
   if(!msg){toast('沒有待通知的變更');return;}
-  catGain('ntf');catFlush();
+  petGain('ntf');petFlush();
   window.location.href='https://wa.me/?text='+encodeURIComponent(msg);
   pendingChanges=[];saveChanges();
   setTimeout(function(){renderChgBar();},500);
@@ -1178,7 +1244,7 @@ function shiftBadge(uid,idx){
 }
 // 某一天：兩人的班＋這天的行程；readOnly＝總表瀏覽時只看不改
 function showDaySheet(y,m,d,readOnly){
-  catBusy();
+  petBusy();
   var key=evDateStr(y,m,d),dow=DOW[new Date(y,m-1,d).getDay()],list=eventsOn(y,m,d);
   var si=shiftIndexAt('syue',y,m,d),li=shiftIndexAt('ling',y,m,d);
   var info=(isOffAt('syue',si)&&isOffAt('ling',li))?'<div class="popup-item-badge" style="background:var(--common);color:var(--t)">共同休假</div>':shiftBadge('syue',si)+shiftBadge('ling',li);
@@ -1412,7 +1478,7 @@ function applyShift(dd,dw,next){
   sd(cd,uid);saveAll();
   var newIdx=shiftIndex(uid,dd);
   recordChange(uid,curY,curM,dd,dw,oldIdx,newIdx);
-  catGain('chg',uid+'|'+curY+'-'+curM+'-'+dd);catBusy();
+  petGain('chg',uid+'|'+curY+'-'+curM+'-'+dd);petBusy();
   // 重畫會換掉整個月曆，記下是哪天，讓新的格子彈一下
   popDay=dd;clearTimeout(popT2);popT2=setTimeout(function(){popDay=0;},500);
   render();
@@ -1536,8 +1602,8 @@ function render(){
     '<div class="sc common" onclick="showPopup(\'common\')"><div class="sc-dot" style="background:var(--common)"></div><div class="sn">'+cnt.common+'</div><div class="sl2">共同休假</div></div>';
 }
 
-document.getElementById('bp').onclick=function(){curM--;if(curM<1){curM=12;curY--;}monthAnim='prev';render();catQuest('nav',1);catSave();};
-document.getElementById('bn').onclick=function(){curM++;if(curM>12){curM=1;curY++;}monthAnim='next';render();catQuest('nav',1);catSave();};
+document.getElementById('bp').onclick=function(){curM--;if(curM<1){curM=12;curY--;}monthAnim='prev';render();petQuest('nav',1);petSave();};
+document.getElementById('bn').onclick=function(){curM++;if(curM>12){curM=1;curY++;}monthAnim='next';render();petQuest('nav',1);petSave();};
 
 /* 左右滑動換月 */
 (function(){
@@ -1696,35 +1762,66 @@ function showSyncSetup(){
   setTimeout(()=>document.getElementById('frInp').focus(),60);
 }
 
-/* ── 波斯貓：在畫面上散步，可以摸、餵、看牠表演 ──
+/* ── 寵物：波斯貓和企鵝在畫面上散步，可以摸、餵、看牠們表演 ──
    每人一筆紀錄（雲端欄位 cat_syue／cat_ling，JSON 字串），每支手機只寫自己那筆，兩人同時玩不會互蓋
-   - 升級點數：兩人維護班表賺的點數加起來，貓咪升級、學新技能
-   - 親密度：各自算。常來、常排班、摸摸、餵食的人，貓咪比較黏
-   - 貓糧：各自的。每天第一次來送一包、今日支線、貓咪偶爾叼來的 */
-var CAT_LV=[0,12,35,70,120,190,280,400,550]; // 第 i 格＝升到 Lv(i+1) 要的總點數
-var CAT_SKILLS=[
-  {id:'stretch',lv:1,name:'伸懶腰',ic:'🙆'},
-  {id:'roll',lv:2,name:'打滾',ic:'🌀'},
-  {id:'jump',lv:3,name:'跳高高',ic:'⤴️'},
-  {id:'flip',lv:4,name:'翻跟斗',ic:'🤸'},
-  {id:'wave',lv:5,name:'招財貓',ic:'👋'},
-  {id:'spin',lv:6,name:'轉圈圈',ic:'💫'},
-  {id:'yarn',lv:7,name:'玩毛線球',ic:'🧶'},
-  {id:'love',lv:8,name:'愛心光波',ic:'💖'}
-];
-var CAT_SK_MS={stretch:1600,roll:1200,jump:900,flip:1300,wave:2200,spin:1400,yarn:2050,love:1700,groom:1900};
-var CAT_QUESTS=[
+   - 升級點數：兩人維護班表賺的點數加起來，兩隻寵物一起升級、各自學新技能
+   - 親密度、飽足度：每隻寵物各自算（貓的放在紀錄最外層，企鵝的放在 pg 裡）
+   - 糧食：各自的。飼料、罐頭給貓吃，小魚給企鵝吃 */
+var PET_LV=[0,12,35,70,120,190,280,400,550]; // 第 i 格＝升到 Lv(i+1) 要的總點數
+var PET_SKILLS={
+  cat:[
+    {id:'stretch',lv:1,name:'伸懶腰',ic:'🙆'},
+    {id:'roll',lv:2,name:'打滾',ic:'🌀'},
+    {id:'jump',lv:3,name:'跳高高',ic:'⤴️'},
+    {id:'flip',lv:4,name:'翻跟斗',ic:'🤸'},
+    {id:'wave',lv:5,name:'招財貓',ic:'👋'},
+    {id:'spin',lv:6,name:'轉圈圈',ic:'💫'},
+    {id:'yarn',lv:7,name:'玩毛線球',ic:'🧶'},
+    {id:'love',lv:8,name:'愛心光波',ic:'💖'}
+  ],
+  pg:[
+    {id:'flap',lv:1,name:'拍翅膀',ic:'🐧'},
+    {id:'dance',lv:2,name:'搖擺舞',ic:'💃'},
+    {id:'jump',lv:3,name:'跳高高',ic:'⤴️'},
+    {id:'slide',lv:4,name:'肚子滑行',ic:'🛷'},
+    {id:'salute',lv:5,name:'舉手打招呼',ic:'🙋'},
+    {id:'spin',lv:6,name:'轉圈圈',ic:'💫'},
+    {id:'flip',lv:7,name:'後空翻',ic:'🤸'},
+    {id:'love',lv:8,name:'愛心光波',ic:'💖'}
+  ]
+};
+var PET_SK_MS={
+  cat:{stretch:1600,roll:1200,jump:900,flip:1300,wave:2200,spin:1400,yarn:2050,love:1700,groom:1900},
+  pg:{flap:1500,dance:1800,jump:900,slide:1650,salute:1900,spin:1400,flip:1300,love:1700,preen:1600}
+};
+var PET_SK_SAY={wave:'招財進寶～',salute:'嗨～！',dance:'嘎嘎嘎♪',slide:'咻～'};
+var PET_QUESTS=[
   {id:'chg3',t:'幫忙更新 3 天的班表',k:'chg',n:3,r:{can:1}},
-  {id:'ev1',t:'新增或修改一個行程',k:'ev',n:1,r:{kib:3}},
-  {id:'pet5',t:'摸摸貓咪 5 次',k:'pet',n:5,r:{kib:2}},
-  {id:'min5',t:'在班表停留 5 分鐘',k:'min',n:5,r:{kib:2}},
+  {id:'ev1',t:'新增或修改一個行程',k:'ev',n:1,r:{kib:2,fish:1}},
+  {id:'pet5',t:'摸摸寵物 5 次',k:'pet',n:5,r:{kib:2}},
+  {id:'min5',t:'在班表停留 5 分鐘',k:'min',n:5,r:{fish:2}},
   {id:'ntf1',t:'傳一次變更通知給對方',k:'ntf',n:1,r:{can:1}},
-  {id:'nav2',t:'翻翻前後月份的班表 2 次',k:'nav',n:2,r:{kib:2}},
-  {id:'skill2',t:'讓貓咪表演 2 次技能',k:'skill',n:2,r:{kib:2}},
-  {id:'feed1',t:'餵貓咪吃一頓飯',k:'feed',n:1,r:{kib:2}}
+  {id:'nav2',t:'翻翻前後月份的班表 2 次',k:'nav',n:2,r:{fish:2}},
+  {id:'skill2',t:'讓寵物表演 2 次技能',k:'skill',n:2,r:{kib:2}},
+  {id:'feed1',t:'餵寵物吃一頓飯',k:'feed',n:1,r:{kib:1,fish:1}}
 ];
+var FOODS={
+  kib:{name:'飼料',pet:'cat',full:30,aff:2,eat:'開動～',done:'好飽～'},
+  can:{name:'罐頭',pet:'cat',full:60,aff:6,eat:'罐罐！！',done:'最喜歡罐罐了♥'},
+  fish:{name:'小魚',pet:'pg',full:35,aff:3,eat:'有魚！嘎！',done:'好好吃～嘎♥'}
+};
+var PET_DEF={
+  cat:{name:'雪球',ic:'🐱',W:84,H:60,hide:'catHide',foods:['kib','can'],idle:'groom',
+    say:{tap:['喵～','喵？','喵嗚'],fav:['喵♥','最喜歡你了','（蹭蹭）'],aloof:['哼～','（假裝沒看到）','喵。'],hungry:['肚子餓了…','想吃罐罐','（肚子咕嚕咕嚕）'],
+      idle:['喵～','（發呆）','喵？','（盯）'],pet:['呼嚕呼嚕～','好舒服～','再摸一下'],busy:['（看你排班）','我陪你～','加油喵'],
+      wake:'喵…？（被吵醒）',sleepy:'嗯…呼嚕…',weak:'太餓了，沒力氣…',full:'吃不下了～',back:'喵～我回來了',meet:'喵？',jump:['嘿咻！','看我的！']}},
+  pg:{name:'嘟嘟',ic:'🐧',W:50,H:60,hide:'pgHide',foods:['fish'],idle:'preen',
+    say:{tap:['嘎！','嘎？','（歪頭）'],fav:['嘎♥','最喜歡你了','（拍拍翅膀）'],aloof:['哼～','（轉身）','嘎。'],hungry:['想吃魚…','肚子餓扁了','（盯著魚看）'],
+      idle:['嘎～','（發呆）','（左看右看）'],pet:['嘎嘎～','好舒服～','再摸一下'],busy:['（陪你排班）','嘎！加油','（站好）'],
+      wake:'嘎…？（被吵醒）',sleepy:'嘎…呼…',weak:'太餓了，走不動…',full:'吃不下了嘎～',back:'嘎！我回來了',meet:'嘎！',jump:['嘎！','看我的！']}}
+};
 // 每人每天的上限，避免一直點同一格刷點數
-var CAT_DAY_PTS=30,CAT_DAY_MIN=30,CAT_DAY_PET=10,CAT_DAY_DROP=3,CAT_DAY_EV=3;
+var PET_DAY_PTS=30,PET_DAY_MIN=30,PET_DAY_PET=10,PET_DAY_DROP=3,PET_DAY_EV=3;
 var CAT_ART={
   // 白色藍眼的波斯貓（扁臉、半瞇眼）。c-stand 站著、c-sleep 縮成一團睡覺，用 .cat.sleep 切換
   cat:'<svg viewBox="0 0 100 72" aria-hidden="true"><defs><clipPath id="pcB"><ellipse cx="45" cy="41" rx="25" ry="12.5"/><circle cx="69" cy="41" r="5"/><circle cx="66.9" cy="45.9" r="5"/><circle cx="61.1" cy="49.9" r="4.2"/><circle cx="52.4" cy="52.4" r="4.2"/><circle cx="42.5" cy="52.9" r="4.2"/><circle cx="33" cy="51.4" r="4.2"/><circle cx="25.6" cy="48.1" r="4.2"/><circle cx="21.5" cy="43.5" r="5"/><circle cx="21.5" cy="38.5" r="5"/><circle cx="25.6" cy="33.9" r="5"/><circle cx="33" cy="30.6" r="5"/><circle cx="42.5" cy="29.1" r="5"/><circle cx="52.4" cy="29.6" r="5"/><circle cx="61.1" cy="32.1" r="5"/><circle cx="66.9" cy="36.1" r="5"/></clipPath><clipPath id="pcsS"><ellipse cx="43" cy="52" rx="27" ry="11"/><circle cx="17" cy="52" r="5"/><circle cx="18.9" cy="48.1" r="5"/><circle cx="24.3" cy="44.7" r="5"/><circle cx="32.4" cy="42.4" r="5"/><circle cx="42.1" cy="41.5" r="5"/><circle cx="51.9" cy="42.1" r="5"/><circle cx="60.4" cy="44.2" r="5"/><circle cx="66.4" cy="47.4" r="5"/><circle cx="68.9" cy="51.3" r="5"/></clipPath></defs><g class="c-stand">'+
@@ -1734,445 +1831,516 @@ var CAT_ART={
     '<g class="c-head"><path d="M56.6 25Q54.1 9.6 58.7 5.5Q64.8 6.5 70.5 15Z" fill="#FFFCF6" stroke="#3E3A39" stroke-width="2.6" stroke-linejoin="round"/><path d="M59.2 19Q57.6 9.1 65.3 13Z" fill="#F8C4BA"/><path d="M62 18q-1 -4 -2.4 -7M63.5 17.5q0.4 -3 -0.4 -5" fill="none" stroke="#D8CCBA" stroke-width="1.1" stroke-linecap="round"/><path d="M95.4 25Q97.9 9.6 93.3 5.5Q87.2 6.5 81.5 15Z" fill="#FFFCF6" stroke="#3E3A39" stroke-width="2.6" stroke-linejoin="round"/><path d="M92.8 19Q94.4 9.1 86.7 13Z" fill="#F8C4BA"/><path d="M90 18q1 -4 2.4 -7M88.5 17.5q-0.4 -3 0.4 -5" fill="none" stroke="#D8CCBA" stroke-width="1.1" stroke-linecap="round"/><g fill="#3E3A39" stroke="#3E3A39" stroke-width="5.6" stroke-linejoin="round"><path d="M79.9 15.5Q80.4 13.7 86.9 15Q89.6 18.8 86.6 19.4ZM85.5 18.4Q86.7 16.9 92 20.8Q93 25.3 90 24.6ZM89.4 23.2Q91.1 22.3 94.4 28.1Q93.4 32.6 91 30.8ZM91 29.2Q95.9 29 98.8 37.4Q94.3 41.7 89.4 36.8ZM90 35.4Q94.6 37.2 93.8 46.1Q88 48.2 85.5 41.6ZM86.6 40.6Q88.5 42.6 84.1 48.3Q79.1 48.5 79.9 44.5ZM81.3 44Q82.3 46.6 76 50Q71.3 48.1 73.7 44.8ZM75.2 45Q75 47.7 67.9 48.3Q64.3 44.7 67.9 42.6ZM69.2 43.4Q67.9 45.8 61.1 43.4Q59.4 38.6 63.4 38.2ZM64.3 39.4Q60.5 42.5 53.2 37.4Q54.3 31.3 61.2 32.4ZM61.5 33.9Q56.7 35.1 52.1 27.5Q55.6 22.3 61.5 26.1ZM61.2 27.6Q59.3 27.3 60 20.8Q63.5 17.6 64.3 20.6ZM63.4 21.8Q61.8 20.8 65.1 15Q69.6 13.6 69.2 16.6Z"/><circle cx="76" cy="31" r="16.5"/></g><g fill="#FFFCF6" stroke="none"><path d="M79.9 15.5Q80.4 13.7 86.9 15Q89.6 18.8 86.6 19.4ZM85.5 18.4Q86.7 16.9 92 20.8Q93 25.3 90 24.6ZM89.4 23.2Q91.1 22.3 94.4 28.1Q93.4 32.6 91 30.8ZM91 29.2Q95.9 29 98.8 37.4Q94.3 41.7 89.4 36.8ZM90 35.4Q94.6 37.2 93.8 46.1Q88 48.2 85.5 41.6ZM86.6 40.6Q88.5 42.6 84.1 48.3Q79.1 48.5 79.9 44.5ZM81.3 44Q82.3 46.6 76 50Q71.3 48.1 73.7 44.8ZM75.2 45Q75 47.7 67.9 48.3Q64.3 44.7 67.9 42.6ZM69.2 43.4Q67.9 45.8 61.1 43.4Q59.4 38.6 63.4 38.2ZM64.3 39.4Q60.5 42.5 53.2 37.4Q54.3 31.3 61.2 32.4ZM61.5 33.9Q56.7 35.1 52.1 27.5Q55.6 22.3 61.5 26.1ZM61.2 27.6Q59.3 27.3 60 20.8Q63.5 17.6 64.3 20.6ZM63.4 21.8Q61.8 20.8 65.1 15Q69.6 13.6 69.2 16.6Z"/><circle cx="76" cy="31" r="16.5"/></g><ellipse cx="76" cy="31" rx="17" ry="14.6" fill="#FFFCF6"/><path d="M62 34q-3 2-4 6M90 34q3 2 4 6M65 39q-2 2-2.4 4.6M87 39q2 2 2.4 4.6M73.4 17.5l1.2 3M76 17v3.2M78.6 17.5l-1.2 3" fill="none" stroke="#D8CCBA" stroke-width="1.2" stroke-linecap="round"/><g class="c-eo"><circle cx="69.4" cy="31.2" r="3.9" fill="#8FC3DA" stroke="#3E3A39" stroke-width="1.3"/><circle cx="69.4" cy="31.2" r="2.8" fill="none" stroke="#5E9DBA" stroke-width="1.1"/><ellipse cx="69.4" cy="31.4" rx="1.6" ry="2.4" fill="#3E3A39"/><path d="M64.1 31.2A5.3 5.3 0 0 1 74.7 31.2Q69.4 31.5 64.1 31.2Z" fill="#FFFCF6"/><path d="M65.1 30.1Q69.4 28.7 73.7 30.1" fill="none" stroke="#3E3A39" stroke-width="1.8" stroke-linecap="round"/><circle cx="70.6" cy="31.6" r="1.2" fill="#FFFCF6"/><circle cx="68" cy="32.8" r="0.6" fill="#FFFCF6"/><circle cx="82.6" cy="31.2" r="3.9" fill="#8FC3DA" stroke="#3E3A39" stroke-width="1.3"/><circle cx="82.6" cy="31.2" r="2.8" fill="none" stroke="#5E9DBA" stroke-width="1.1"/><ellipse cx="82.6" cy="31.4" rx="1.6" ry="2.4" fill="#3E3A39"/><path d="M77.3 31.2A5.3 5.3 0 0 1 87.9 31.2Q82.6 31.5 77.3 31.2Z" fill="#FFFCF6"/><path d="M78.3 30.1Q82.6 28.7 86.9 30.1" fill="none" stroke="#3E3A39" stroke-width="1.8" stroke-linecap="round"/><circle cx="83.8" cy="31.6" r="1.2" fill="#FFFCF6"/><circle cx="81.2" cy="32.8" r="0.6" fill="#FFFCF6"/></g><path class="c-ec" d="M65.8 31.2q3.6 3 7.2 0M79 31.2q3.6 3 7.2 0" fill="none" stroke="#3E3A39" stroke-width="2" stroke-linecap="round"/><path class="c-eh" d="M65.8 32.2q3.6-3.4 7.2 0M79 32.2q3.6-3.4 7.2 0" fill="none" stroke="#3E3A39" stroke-width="2" stroke-linecap="round"/><ellipse cx="65" cy="36.6" rx="2.6" ry="1.6" fill="#F2A497" opacity=".7"/><ellipse cx="87" cy="36.6" rx="2.6" ry="1.6" fill="#F2A497" opacity=".7"/><ellipse cx="74" cy="36.6" rx="2.8" ry="2.7" fill="#F1E9DC"/><ellipse cx="78" cy="36.6" rx="2.8" ry="2.7" fill="#F1E9DC"/><path d="M74.4 34.2h3.2l-1.6 1.9Z" fill="#F2A497" stroke="#3E3A39" stroke-width="1.1" stroke-linejoin="round"/><circle cx="75.4" cy="34.7" r=".45" fill="#FFFCF6"/><path class="c-mc" d="M76 36.1v.9M73.8 37q1.15 1.3 2.2 0q1.05 1.3 2.2 0" fill="none" stroke="#3E3A39" stroke-width="1.2" stroke-linecap="round"/><ellipse class="c-mo" cx="76" cy="38.4" rx="1.9" ry="2.3" fill="#F2A497" stroke="#3E3A39" stroke-width="1.2"/><path d="M71.4 36 61 34M71.4 37.2 61.4 38M71.6 38.4 62.8 41.4" fill="none" stroke="#3E3A39" stroke-width=".85" stroke-linecap="round" opacity=".45"/><path d="M80.6 36 91 34M80.6 37.2 90.6 38M80.4 38.4 89.2 41.4" fill="none" stroke="#3E3A39" stroke-width=".85" stroke-linecap="round" opacity=".45"/></g>'+
     '<g class="c-paw"><path d="M54 52 57.5 32" fill="none" stroke="#3E3A39" stroke-width="11" stroke-linecap="round"/><path d="M54 52 57.5 32" fill="none" stroke="#FFFCF6" stroke-width="5.6" stroke-linecap="round"/><circle cx="57.8" cy="29.6" r="4.6" fill="#FFFCF6" stroke="#3E3A39" stroke-width="2.2"/><ellipse cx="57.8" cy="30.8" rx="2" ry="1.6" fill="#F8C4BA"/><circle cx="55.6" cy="28.2" r=".9" fill="#F8C4BA"/><circle cx="57.8" cy="27.2" r=".9" fill="#F8C4BA"/><circle cx="60" cy="28.2" r=".9" fill="#F8C4BA"/></g>'+
     '</g><g class="c-sleep"><g class="c-sbody"><g fill="#3E3A39" stroke="#3E3A39" stroke-width="5.6"><ellipse cx="43" cy="52" rx="27" ry="11"/><circle cx="17" cy="52" r="5"/><circle cx="18.9" cy="48.1" r="5"/><circle cx="24.3" cy="44.7" r="5"/><circle cx="32.4" cy="42.4" r="5"/><circle cx="42.1" cy="41.5" r="5"/><circle cx="51.9" cy="42.1" r="5"/><circle cx="60.4" cy="44.2" r="5"/><circle cx="66.4" cy="47.4" r="5"/><circle cx="68.9" cy="51.3" r="5"/></g><g fill="#FFFCF6" stroke="none"><ellipse cx="43" cy="52" rx="27" ry="11"/><circle cx="17" cy="52" r="5"/><circle cx="18.9" cy="48.1" r="5"/><circle cx="24.3" cy="44.7" r="5"/><circle cx="32.4" cy="42.4" r="5"/><circle cx="42.1" cy="41.5" r="5"/><circle cx="51.9" cy="42.1" r="5"/><circle cx="60.4" cy="44.2" r="5"/><circle cx="66.4" cy="47.4" r="5"/><circle cx="68.9" cy="51.3" r="5"/></g><g clip-path="url(#pcsS)"><ellipse cx="43" cy="64" rx="32" ry="5" fill="#F1E9DC"/></g><path d="M28 46l1.4 2.6M30.6 46l1.4 2.6M39 44l1.4 2.6M41.6 44l1.4 2.6" fill="none" stroke="#D8CCBA" stroke-width="1.2" stroke-linecap="round"/></g><g fill="#3E3A39" stroke="#3E3A39" stroke-width="5.6"><circle cx="18" cy="56" r="5.4"/><circle cx="17.2" cy="58.4" r="5.3"/><circle cx="17.4" cy="60.4" r="5.2"/><circle cx="18.5" cy="62" r="5.1"/><circle cx="20.3" cy="63.3" r="5.1"/><circle cx="22.9" cy="64.3" r="5"/><circle cx="26.2" cy="65.1" r="4.9"/><circle cx="30" cy="65.5" r="4.8"/><circle cx="34.3" cy="65.7" r="4.7"/><circle cx="39" cy="65.7" r="4.6"/><circle cx="44.1" cy="65.5" r="4.5"/><circle cx="49.4" cy="65.1" r="4.5"/><circle cx="54.8" cy="64.5" r="4.4"/><circle cx="60.4" cy="63.8" r="4.3"/><circle cx="66" cy="63" r="4.2"/></g><g fill="#FFFCF6" stroke="none"><circle cx="18" cy="56" r="5.4"/><circle cx="17.2" cy="58.4" r="5.3"/><circle cx="17.4" cy="60.4" r="5.2"/><circle cx="18.5" cy="62" r="5.1"/><circle cx="20.3" cy="63.3" r="5.1"/><circle cx="22.9" cy="64.3" r="5"/><circle cx="26.2" cy="65.1" r="4.9"/><circle cx="30" cy="65.5" r="4.8"/><circle cx="34.3" cy="65.7" r="4.7"/><circle cx="39" cy="65.7" r="4.6"/><circle cx="44.1" cy="65.5" r="4.5"/><circle cx="49.4" cy="65.1" r="4.5"/><circle cx="54.8" cy="64.5" r="4.4"/><circle cx="60.4" cy="63.8" r="4.3"/><circle cx="66" cy="63" r="4.2"/></g><path d="M57.6 41Q55.1 25.6 59.7 21.5Q65.8 22.5 71.5 31Z" fill="#FFFCF6" stroke="#3E3A39" stroke-width="2.6" stroke-linejoin="round"/><path d="M60.2 35Q58.6 25.1 66.3 29Z" fill="#F8C4BA"/><path d="M63 34q-1 -4 -2.4 -7M64.5 33.5q0.4 -3 -0.4 -5" fill="none" stroke="#D8CCBA" stroke-width="1.1" stroke-linecap="round"/><path d="M96.4 41Q98.9 25.6 94.3 21.5Q88.2 22.5 82.5 31Z" fill="#FFFCF6" stroke="#3E3A39" stroke-width="2.6" stroke-linejoin="round"/><path d="M93.8 35Q95.4 25.1 87.7 29Z" fill="#F8C4BA"/><path d="M91 34q1 -4 2.4 -7M89.5 33.5q-0.4 -3 0.4 -5" fill="none" stroke="#D8CCBA" stroke-width="1.1" stroke-linecap="round"/><g fill="#3E3A39" stroke="#3E3A39" stroke-width="5.6" stroke-linejoin="round"><path d="M80.9 31.5Q81.4 29.7 87.9 31Q90.6 34.8 87.6 35.4ZM86.5 34.4Q87.7 32.9 93 36.8Q94 41.3 91 40.6ZM90.4 39.2Q92.1 38.3 95.4 44.1Q94.4 48.6 92 46.8ZM92 45.2Q96.9 45 99.8 53.4Q95.3 57.7 90.4 52.8ZM91 51.4Q95.6 53.2 94.8 62.1Q89 64.2 86.5 57.6ZM87.6 56.6Q89.5 58.6 85.1 64.3Q80.1 64.5 80.9 60.5ZM82.3 60Q83.3 62.6 77 66Q72.3 64.1 74.7 60.8ZM76.2 61Q76 63.7 68.9 64.3Q65.3 60.7 68.9 58.6ZM70.2 59.4Q68.9 61.8 62.1 59.4Q60.4 54.6 64.4 54.2ZM65.3 55.4Q61.5 58.5 54.2 53.4Q55.3 47.3 62.2 48.4ZM62.5 49.9Q57.7 51.1 53.1 43.5Q56.6 38.3 62.5 42.1ZM62.2 43.6Q60.3 43.3 61 36.8Q64.5 33.6 65.3 36.6ZM64.4 37.8Q62.8 36.8 66.1 31Q70.6 29.6 70.2 32.6Z"/><circle cx="77" cy="47" r="16.5"/></g><g fill="#FFFCF6" stroke="none"><path d="M80.9 31.5Q81.4 29.7 87.9 31Q90.6 34.8 87.6 35.4ZM86.5 34.4Q87.7 32.9 93 36.8Q94 41.3 91 40.6ZM90.4 39.2Q92.1 38.3 95.4 44.1Q94.4 48.6 92 46.8ZM92 45.2Q96.9 45 99.8 53.4Q95.3 57.7 90.4 52.8ZM91 51.4Q95.6 53.2 94.8 62.1Q89 64.2 86.5 57.6ZM87.6 56.6Q89.5 58.6 85.1 64.3Q80.1 64.5 80.9 60.5ZM82.3 60Q83.3 62.6 77 66Q72.3 64.1 74.7 60.8ZM76.2 61Q76 63.7 68.9 64.3Q65.3 60.7 68.9 58.6ZM70.2 59.4Q68.9 61.8 62.1 59.4Q60.4 54.6 64.4 54.2ZM65.3 55.4Q61.5 58.5 54.2 53.4Q55.3 47.3 62.2 48.4ZM62.5 49.9Q57.7 51.1 53.1 43.5Q56.6 38.3 62.5 42.1ZM62.2 43.6Q60.3 43.3 61 36.8Q64.5 33.6 65.3 36.6ZM64.4 37.8Q62.8 36.8 66.1 31Q70.6 29.6 70.2 32.6Z"/><circle cx="77" cy="47" r="16.5"/></g><ellipse cx="77" cy="47" rx="17" ry="14.6" fill="#FFFCF6"/><path d="M63 50q-3 2-4 6M91 50q3 2 4 6M66 55q-2 2-2.4 4.6M88 55q2 2 2.4 4.6M74.4 33.5l1.2 3M77 33v3.2M79.6 33.5l-1.2 3" fill="none" stroke="#D8CCBA" stroke-width="1.2" stroke-linecap="round"/><path d="M66.8 47.6q3.6 3 7.2 0M80 47.6q3.6 3 7.2 0" fill="none" stroke="#3E3A39" stroke-width="2" stroke-linecap="round"/><ellipse cx="66" cy="52.6" rx="2.6" ry="1.6" fill="#F2A497" opacity=".7"/><ellipse cx="88" cy="52.6" rx="2.6" ry="1.6" fill="#F2A497" opacity=".7"/><ellipse cx="75" cy="52.6" rx="2.8" ry="2.7" fill="#F1E9DC"/><ellipse cx="79" cy="52.6" rx="2.8" ry="2.7" fill="#F1E9DC"/><path d="M75.4 50.2h3.2l-1.6 1.9Z" fill="#F2A497" stroke="#3E3A39" stroke-width="1.1" stroke-linejoin="round"/><circle cx="76.4" cy="50.7" r=".45" fill="#FFFCF6"/><path class="c-mc" d="M77 52.1v.9M74.8 53q1.15 1.3 2.2 0q1.05 1.3 2.2 0" fill="none" stroke="#3E3A39" stroke-width="1.2" stroke-linecap="round"/><path d="M72.4 52 62 50M72.4 53.2 62.4 54M72.6 54.4 63.8 57.4" fill="none" stroke="#3E3A39" stroke-width=".85" stroke-linecap="round" opacity=".45"/><path d="M81.6 52 92 50M81.6 53.2 91.6 54M81.4 54.4 90.2 57.4" fill="none" stroke="#3E3A39" stroke-width=".85" stroke-linecap="round" opacity=".45"/></g></svg>',
+  pg:'<svg viewBox="0 0 60 72" aria-hidden="true"><g stroke="#3E3A39" stroke-linejoin="round" stroke-linecap="round">'+
+    // 站著：腳、翅膀、身體、白肚子、頭（臉、眼睛、嘴）、粉紅圍巾
+    '<g class="p-stand"><g class="p-foot pf2"><ellipse cx="38" cy="68" rx="6" ry="2.8" fill="#F6C064" stroke-width="2.2"/></g><g class="p-foot pf1"><ellipse cx="24" cy="68" rx="6" ry="2.8" fill="#F6C064" stroke-width="2.2"/></g>'+
+    '<path class="p-fl" d="M10 32C2 39 2 50 6 56 10 50 12 41 12 34Z" fill="#55606B" stroke-width="2.6"/><path class="p-fr" d="M50 32C58 39 58 50 54 56 50 50 48 41 48 34Z" fill="#55606B" stroke-width="2.6"/>'+
+    '<path d="M30 5C44 5 52 19 52 38 52 56 43 67 30 67S8 56 8 38C8 19 16 5 30 5Z" fill="#55606B" stroke-width="3"/>'+
+    '<path d="M32 25C42 25 46 35 46 46 46 58 39 64 32 64S17 58 17 46C17 35 22 25 32 25Z" fill="#FFFCF6" stroke="none"/>'+
+    '<path d="M29 51q1.4 2 2.8 0M33 55q1.4 2 2.8 0M27 45q1.4 2 2.8 0" fill="none" stroke="#D8CCBA" stroke-width="1.2"/>'+
+    '<g class="p-head"><circle cx="25.5" cy="21.5" r="7.2" fill="#FFFCF6" stroke="none"/><circle cx="38.5" cy="21.5" r="7.2" fill="#FFFCF6" stroke="none"/><path d="M32 18v8" stroke="#FFFCF6" stroke-width="6"/>'+
+    '<path d="M27 8q2-2.6 4.6-2.2" fill="none" stroke="#7A8590" stroke-width="1.4"/>'+
+    '<g class="p-eo"><ellipse cx="26.5" cy="21" rx="2.3" ry="2.9" fill="#3E3A39" stroke="none"/><ellipse cx="37.5" cy="21" rx="2.3" ry="2.9" fill="#3E3A39" stroke="none"/><circle cx="27.4" cy="19.9" r=".9" fill="#FFFCF6" stroke="none"/><circle cx="38.4" cy="19.9" r=".9" fill="#FFFCF6" stroke="none"/></g>'+
+    '<path class="p-ec" d="M24 21q2.5 2.4 5 0M35 21q2.5 2.4 5 0" fill="none" stroke-width="1.8"/><path class="p-eh" d="M24 22q2.5-2.6 5 0M35 22q2.5-2.6 5 0" fill="none" stroke-width="1.8"/>'+
+    '<ellipse cx="22" cy="26.4" rx="2.6" ry="1.6" fill="#F2A497" stroke="none" opacity=".8"/><ellipse cx="42" cy="26.4" rx="2.6" ry="1.6" fill="#F2A497" stroke="none" opacity=".8"/>'+
+    '<path class="p-bc" d="M28.6 25h6.8l-3.4 3.8Z" fill="#F6C064" stroke-width="1.6"/>'+
+    '<g class="p-bo"><path d="M28.6 23.8h6.8l-3.4 2.8Z" fill="#F6C064" stroke-width="1.6"/><path d="M29.6 28.4h4.8l-2.4 2.6Z" fill="#F6C064" stroke-width="1.6"/></g>'+
+    '<g class="p-fishm"><path d="M33 27.6q4.6-3.6 9.4 0q-4.8 3.6-9.4 0Zm9.4 0 3-2.4v4.8Z" fill="#A8D3E6" stroke-width="1.4"/><path d="M28.6 25h6.8l-3.4 3.8Z" fill="#F6C064" stroke-width="1.6"/></g></g>'+
+    '<path d="M14 33Q30 40 46 33" fill="none" stroke-width="7.4"/><path d="M14 33Q30 40 46 33" fill="none" stroke="#F2A497" stroke-width="3.8"/><path d="M38 36.5l2.5 9 4-1-1.6-9Z" fill="#F2A497" stroke-width="2"/></g>'+
+    // 趴著：睡覺（閉眼）和肚子滑行（瞇眼＋速度線）共用
+    '<g class="p-lie"><path class="p-spd" d="M-10 52h8M-7 58h6M-11 64h9" fill="none" stroke="#A8D3E6" stroke-width="2.4"/>'+
+    '<ellipse cx="6" cy="53" rx="5" ry="2.4" fill="#F6C064" stroke-width="2" transform="rotate(-30 6 53)"/><ellipse cx="7" cy="60" rx="5" ry="2.4" fill="#F6C064" stroke-width="2" transform="rotate(10 7 60)"/>'+
+    '<path d="M8 59C8 50 18 44 31 44S52 48 54 55C55 61 49 67 35 67H16C11 67 8 64 8 59Z" fill="#55606B" stroke-width="3"/>'+
+    '<path d="M12 63C18 66 38 66 50 61 47 65 40 67 34 67H16C13 67 12 65 12 63Z" fill="#FFFCF6" stroke="none"/>'+
+    '<path d="M34 52C28 53 21 56 16 58 22 60 29 59 35 56Z" fill="#55606B" stroke-width="2.2"/>'+
+    '<circle cx="46.5" cy="51" r="4.6" fill="#FFFCF6" stroke="none"/><circle cx="52.5" cy="51" r="4.6" fill="#FFFCF6" stroke="none"/>'+
+    '<path class="p-lc" d="M44.3 51.4q2 2 4 0M50.5 51.4q2 2 4 0" fill="none" stroke-width="1.6"/><path class="p-lh" d="M44.3 52q2-2.3 4 0M50.5 52q2-2.3 4 0" fill="none" stroke-width="1.6"/>'+
+    '<ellipse cx="44" cy="55.4" rx="2" ry="1.2" fill="#F2A497" stroke="none" opacity=".8"/><path d="M55.4 53.4l5 1.2-4.4 2.2Z" fill="#F6C064" stroke-width="1.4"/>'+
+    '<path d="M40.5 46.5q2.4 6 .4 12" fill="none" stroke-width="6.4"/><path d="M40.5 46.5q2.4 6 .4 12" fill="none" stroke="#F2A497" stroke-width="3"/></g></g></svg>',
   kib:'<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 9h16l2 18a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2Z" fill="#F6D27A" stroke="#3E3A39" stroke-width="2.2" stroke-linejoin="round"/><path d="M8 9l1.5-5h13L24 9Z" fill="#F2A497" stroke="#3E3A39" stroke-width="2.2" stroke-linejoin="round"/><path d="M10.5 19.5q5-5 9.5 0q-4.5 5-9.5 0Zm9.5 0 3-2.5v5Z" fill="#FFFCF6" stroke="#3E3A39" stroke-width="1.6" stroke-linejoin="round"/></svg>',
   can:'<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6 10v14c0 2.5 4.5 4 10 4s10-1.5 10-4V10" fill="#A8D3E6" stroke="#3E3A39" stroke-width="2.2"/><ellipse cx="16" cy="10" rx="10" ry="4" fill="#FFFCF6" stroke="#3E3A39" stroke-width="2.2"/><path d="M6 15.5c3 1.6 17 1.6 20 0v6c-3 1.6-17 1.6-20 0Z" fill="#F2A497" stroke="#3E3A39" stroke-width="1.8"/><path d="M11.5 18.7q3.5-3 6.5 0q-3 3-6.5 0Zm6.5 0 2.5-2v4Z" fill="#FFFCF6" stroke="#3E3A39" stroke-width="1.4" stroke-linejoin="round"/></svg>',
+  fish:'<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M4 16q10-10 20 0q-10 10-20 0Zm20 0 5-5v10Z" fill="#A8D3E6" stroke="#3E3A39" stroke-width="2.2" stroke-linejoin="round"/><circle cx="9" cy="15" r="1.4" fill="#3E3A39"/><path d="M13 12q2 4 0 8M17 12q2 4 0 8" fill="none" stroke="#FFFCF6" stroke-width="1.6" stroke-linecap="round"/></svg>',
   bowl:'<svg viewBox="0 0 40 22" aria-hidden="true"><path d="M7 8q13-8 26 0Z" fill="#E8C27A" stroke="#3E3A39" stroke-width="2" stroke-linejoin="round"/><path d="M3 8h34l-4 11a3 3 0 0 1-3 2H10a3 3 0 0 1-3-2Z" fill="#F2A497" stroke="#3E3A39" stroke-width="2.4" stroke-linejoin="round"/><path d="M15 14q2.5 2 5 0q2.5 2 5 0" fill="none" stroke="#FFFCF6" stroke-width="1.8" stroke-linecap="round"/></svg>',
   yarn:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="#F2A497" stroke="#3E3A39" stroke-width="2.2"/><path d="M5 8c4 1 10 6 12 12M8 4.5c4 3 9 9 10 14M3.5 13c3 0 7 3 9 7.5" fill="none" stroke="#3E3A39" stroke-width="1.5" stroke-linecap="round"/></svg>'
 };
-var CAT_W=84,CAT_H=60;
-var catData={syue:null,ling:null},catSynced=false,catDirty=false,catWT=null,catGift=false,catBusyUntil=0,catSecs=0,catDropT=null;
-var cat={el:null,x:0,y:0,dir:1,raf:0,timer:null,sayT:null,act:'',menu:false,pet:false,pd:null,lpT:null,tapT:null,sleepT:null};
+var petData={syue:null,ling:null},petSynced=false,petDirty=false,petWT=null,petGift=false,petBusyUntil=0,petSecs=0,petDropT=null,menuPet=null;
+var pets={};
 var catReduce=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
 
 function catPick(a){return a[Math.floor(Math.random()*a.length)];}
 function catClamp(v,a,b){return Math.max(a,Math.min(b,v));}
 function catHash(s){var h=2166136261;for(var i=0;i<s.length;i++)h=Math.imul(h^s.charCodeAt(i),16777619);return h>>>0;}
 function catToday(){var t=new Date();return evDateStr(t.getFullYear(),t.getMonth()+1,t.getDate());}
-function catNewRec(){return {pts:0,aff:0,kib:3,can:1,fedAt:0,fedFull:0,last:'',name:'',nameAt:0,d:null};}
-function catClean(o){
-  var r=catNewRec();
+function petNewStat(){return {aff:0,fedAt:0,fedFull:0,name:'',nameAt:0};}
+function petNewRec(){var r=petNewStat();r.pts=0;r.kib=3;r.can=1;r.fish=2;r.last='';r.pg=petNewStat();r.d=null;return r;}
+function petCleanStat(o,t){
+  ['aff','fedAt','fedFull','nameAt'].forEach(function(k){var v=+o[k];if(isFinite(v)&&v>=0)t[k]=v;});
+  if(typeof o.name==='string')t.name=o.name.slice(0,8);
+}
+function petClean(o){
+  var r=petNewRec();
   if(!o||typeof o!=='object')return r;
-  ['pts','aff','kib','can','fedAt','fedFull','nameAt'].forEach(function(k){var v=+o[k];if(isFinite(v)&&v>=0)r[k]=v;});
+  ['pts','kib','can','fish'].forEach(function(k){var v=+o[k];if(isFinite(v)&&v>=0)r[k]=v;});
+  petCleanStat(o,r);
+  if(o.pg&&typeof o.pg==='object')petCleanStat(o.pg,r.pg);
   if(/^\d{4}-\d{2}-\d{2}$/.test(o.last||''))r.last=o.last;
-  if(typeof o.name==='string')r.name=o.name.slice(0,8);
   var d=o.d;
   if(d&&typeof d==='object'&&/^\d{4}-\d{2}-\d{2}$/.test(d.day||'')){
-    r.d={day:d.day,pts:+d.pts||0,min:+d.min||0,pet:+d.pet||0,ev:+d.ev||0,ntf:+d.ntf||0,drop:+d.drop||0,
+    r.d={day:d.day,pts:+d.pts||0,min:+d.min||0,pet:+d.pet||0,ppet:+d.ppet||0,ev:+d.ev||0,ntf:+d.ntf||0,drop:+d.drop||0,
       chg:Array.isArray(d.chg)?d.chg.filter(function(x){return typeof x==='string';}).slice(-60):[],
       q:d.q&&typeof d.q==='object'?{id:String(d.q.id||''),p:+d.q.p||0,done:!!d.q.done,seen:!!d.q.seen}:null};
   }
   return r;
 }
+// 這隻寵物在某人紀錄裡的親密度／飽足度／名字：貓在最外層、企鵝在 pg
+function ps(r,k){return k==='cat'?r:r.pg;}
 // 新手機第一次收到雲端資料時：本機先玩到的跟雲端的合在一起，不會蓋掉雲端的點數
-function catMerge(a,b){
-  var m=catClean(b);
-  ['pts','aff','kib','can'].forEach(function(k){m[k]=Math.max(a[k],b[k]);});
-  if(a.fedAt>b.fedAt){m.fedAt=a.fedAt;m.fedFull=a.fedFull;}
-  if(a.nameAt>b.nameAt){m.name=a.name;m.nameAt=a.nameAt;}
-  if(a.last>b.last)m.last=a.last;
-  if(a.d&&(!b.d||a.d.day>b.d.day))m.d=a.d;
+function petMerge(a,b){
+  var m=petClean(b);
+  ['pts','kib','can','fish'].forEach(function(k){m[k]=Math.max(a[k],m[k]);});
+  ['cat','pg'].forEach(function(k){
+    var x=ps(a,k),y=ps(m,k);
+    y.aff=Math.max(x.aff,y.aff);
+    if(x.fedAt>y.fedAt){y.fedAt=x.fedAt;y.fedFull=x.fedFull;}
+    if(x.nameAt>y.nameAt){y.name=x.name;y.nameAt=x.nameAt;}
+  });
+  if(a.last>m.last)m.last=a.last;
+  if(a.d&&(!m.d||a.d.day>m.d.day))m.d=a.d;
   return m;
 }
-function catRec(uid){if(!catData[uid])catData[uid]=catNewRec();return catData[uid];}
-// 這支手機是誰：第一次登入／選身份時記下來，之後在貓咪狀態卡可以改
-function catWho(){
+function petRec(uid){if(!petData[uid])petData[uid]=petNewRec();return petData[uid];}
+// 這支手機是誰：第一次登入／選身份時記下來，之後在寵物狀態卡可以改
+function petWho(){
   var me=lsGet('catMe');
   if(me==='syue'||me==='ling')return me;
   if(currentUser){lsSet('catMe',currentUser);return currentUser;}
   return '';
 }
 // 很久沒來，親密度每天淡掉 3%
-function catEffAff(r){
+function petEffAff(r,k){
   if(!r)return 0;
-  if(!r.last)return r.aff;
-  return r.aff*Math.pow(.97,Math.max(0,dayDiff(r.last,catToday())-1));
+  var a=ps(r,k).aff;
+  return r.last?a*Math.pow(.97,Math.max(0,dayDiff(r.last,catToday())-1)):a;
 }
-// 每天第一次：重設今天的計數、抽今日支線、送一包飼料
-function catDay(uid){
-  var r=catRec(uid),today=catToday();
+// 每天第一次：重設今天的計數、抽今日支線、送飼料和小魚
+function petDay(uid){
+  var r=petRec(uid),today=catToday();
   if(r.d&&r.d.day===today)return r;
-  r.aff=Math.round(catEffAff(r));
-  var rnd=seeded(catHash(today+uid)),q=CAT_QUESTS[Math.floor(rnd()*CAT_QUESTS.length)];
-  r.d={day:today,pts:0,min:0,pet:0,ev:0,ntf:0,drop:0,chg:[],q:{id:q.id,p:0,done:false,seen:false}};
-  r.last=today;r.kib+=1;r.aff+=2;catGift=true;
+  r.aff=Math.round(petEffAff(r,'cat'));r.pg.aff=Math.round(petEffAff(r,'pg'));
+  var rnd=seeded(catHash(today+uid)),q=PET_QUESTS[Math.floor(rnd()*PET_QUESTS.length)];
+  r.d={day:today,pts:0,min:0,pet:0,ppet:0,ev:0,ntf:0,drop:0,chg:[],q:{id:q.id,p:0,done:false,seen:false}};
+  r.last=today;r.kib+=1;r.fish+=1;r.aff+=2;r.pg.aff+=2;petGift=true;
   return r;
 }
-function catPts(){return (catData.syue?catData.syue.pts:0)+(catData.ling?catData.ling.pts:0);}
-function catLevel(p){var lv=1;for(var i=1;i<CAT_LV.length;i++)if(p>=CAT_LV[i])lv=i+1;return lv;}
-function catSkills(){var lv=catLevel(catPts());return CAT_SKILLS.filter(function(s){return s.lv<=lv;});}
-function catName(){
-  var a=catData.syue,b=catData.ling,ta=a&&a.name?a.nameAt:-1,tb=b&&b.name?b.nameAt:-1;
-  if(ta<0&&tb<0)return '三花';
+function petPts(){return (petData.syue?petData.syue.pts:0)+(petData.ling?petData.ling.pts:0);}
+function petLevel(p){var lv=1;for(var i=1;i<PET_LV.length;i++)if(p>=PET_LV[i])lv=i+1;return lv;}
+function petSkills(k){var lv=petLevel(petPts());return PET_SKILLS[k].filter(function(s){return s.lv<=lv;});}
+function petName(k){
+  var a=petData.syue&&ps(petData.syue,k),b=petData.ling&&ps(petData.ling,k),ta=a&&a.name?a.nameAt:-1,tb=b&&b.name?b.nameAt:-1;
+  if(ta<0&&tb<0)return PET_DEF[k].name;
   return ta>=tb?a.name:b.name;
 }
 // 飽足度：誰最後餵的就從那次開始算，每小時少 4
-function catFull(){
+function petFull(k){
   var best=0;
-  ['syue','ling'].forEach(function(u){var r=catData[u];if(r&&r.fedAt){var f=r.fedFull-(Date.now()-r.fedAt)/3600000*4;if(f>best)best=f;}});
+  ['syue','ling'].forEach(function(u){var r=petData[u];if(!r)return;var s=ps(r,k);if(s.fedAt){var f=s.fedFull-(Date.now()-s.fedAt)/3600000*4;if(f>best)best=f;}});
   return catClamp(best,0,100);
 }
-function catFav(){
-  var a=catEffAff(catData.syue),b=catEffAff(catData.ling);
+function petFav(k){
+  var a=petEffAff(petData.syue,k),b=petEffAff(petData.ling,k);
   if(Math.max(a,b)<10)return '';
   if(a>=b*1.15)return 'syue';
   if(b>=a*1.15)return 'ling';
   return 'both';
 }
-function catQuestDef(id){return CAT_QUESTS.filter(function(q){return q.id===id;})[0];}
-function catQuestTxt(def){return def.r.can?'罐頭 ×'+def.r.can:'飼料 ×'+def.r.kib;}
+function petQuestDef(id){return PET_QUESTS.filter(function(q){return q.id===id;})[0];}
+function petRewardTxt(rw){return Object.keys(rw).map(function(k){return FOODS[k].name+' ×'+rw[k];}).join('、');}
 
-function catSave(){
-  lsSet('catV1',JSON.stringify(catData));
-  var me=catWho();
-  if(!me||!cloudOn()||!catSynced)return;
-  catDirty=true;clearTimeout(catWT);catWT=setTimeout(catFlush,2500);
+function petSave(){
+  lsSet('catV1',JSON.stringify(petData));
+  var me=petWho();
+  if(!me||!cloudOn()||!petSynced)return;
+  petDirty=true;clearTimeout(petWT);petWT=setTimeout(petFlush,2500);
 }
-function catFlush(){
-  clearTimeout(catWT);catWT=null;
-  var me=catWho();
-  if(!catDirty||!me||!cloudOn()||!catData[me])return;
-  var p={};p['cat_'+me]=JSON.stringify(catData[me]);
+function petFlush(){
+  clearTimeout(petWT);petWT=null;
+  var me=petWho();
+  if(!petDirty||!me||!cloudOn()||!petData[me])return;
+  var p={};p['cat_'+me]=JSON.stringify(petData[me]);
   setDoc(doc(db,'banbiao',syncCode),p,{merge:true})
-    .then(function(){if(!catWT)catDirty=false;})
-    .catch(function(e){console.error('cat write error',e);});
+    .then(function(){if(!petWT)petDirty=false;})
+    .catch(function(e){console.error('pet write error',e);});
 }
 // 雲端有變：對方的紀錄直接換；自己的還沒寫上去就先不收
-function catFromRemote(raw){
-  var me=catWho();
+function petFromRemote(raw){
+  var me=petWho();
   ['syue','ling'].forEach(function(u){
     var s=raw&&raw['cat_'+u];
     if(typeof s!=='string')return;
-    var rr;try{rr=catClean(JSON.parse(s));}catch(e){return;}
+    var rr;try{rr=petClean(JSON.parse(s));}catch(e){return;}
     if(u===me){
-      if(catDirty)return;
-      if(!catSynced&&catData[u]&&catData[u].d){catData[u]=catMerge(catData[u],rr);return;}
+      if(petDirty)return;
+      if(!petSynced&&petData[u]&&petData[u].d){petData[u]=petMerge(petData[u],rr);return;}
     }
-    catData[u]=rr;
+    petData[u]=rr;
   });
-  lsSet('catV1',JSON.stringify(catData));
-  if(!catSynced){catSynced=true;catReady();}
-  else{catCheckLevel();catUpdMark();}
+  lsSet('catV1',JSON.stringify(petData));
+  if(!petSynced){petSynced=true;petReady();}
+  else{petCheckLevel();petUpdMark();}
 }
 // 資料準備好了（本機模式一開始；雲端模式收到第一筆）
-function catReady(){
-  var me=catWho();
-  if(me){catDay(me);catSave();if(cloudOn())catFlush();}
-  catCheckLevel();catUpdMark();
-  setTimeout(catGreet,900);
+function petReady(){
+  var me=petWho();
+  if(me){petDay(me);petSave();if(cloudOn())petFlush();}
+  petCheckLevel();petUpdMark();
+  setTimeout(petGreet,900);
 }
+function petList(){return [pets.cat,pets.pg].filter(Boolean);}
+function petShown(){return petList().filter(function(p){return !petHidden(p);});}
 
-/* 賺點數：改班表、改行程、傳通知 */
-function catGain(kind,key){
-  var me=catWho();if(!me)return;
-  var r=catDay(me),d=r.d,p=0,a=0;
+/* 賺點數：改班表、改行程、傳通知（親密度兩隻都加） */
+function petGain(kind,key){
+  var me=petWho();if(!me)return;
+  var r=petDay(me),d=r.d,p=0,a=0;
   if(kind==='chg'){if(d.chg.indexOf(key)>-1)return;d.chg.push(key);if(d.chg.length>60)d.chg.shift();p=1;a=1;}
-  else if(kind==='ev'){if(d.ev<CAT_DAY_EV){d.ev++;p=3;a=2;}}
+  else if(kind==='ev'){if(d.ev<PET_DAY_EV){d.ev++;p=3;a=2;}}
   else if(kind==='ntf'){if(!d.ntf){d.ntf=1;p=2;a=2;}}
-  p=Math.max(0,Math.min(p,CAT_DAY_PTS-d.pts));
-  d.pts+=p;r.pts+=p;r.aff+=a;
-  catQuest(kind,1);
-  catSave();
-  if(p)catFloat('+'+p+' ⭐');
-  catCheckLevel();
+  p=Math.max(0,Math.min(p,PET_DAY_PTS-d.pts));
+  d.pts+=p;r.pts+=p;r.aff+=a;r.pg.aff+=a;
+  petQuest(kind,1);
+  petSave();
+  var sp=petShown()[0];
+  if(p&&sp)petFloat(sp,'+'+p+' ⭐');
+  petCheckLevel();
 }
-function catQuest(k,n){
-  var me=catWho();if(!me)return;
-  var r=catDay(me),q=r.d.q,def=q&&catQuestDef(q.id);
+function petQuest(k,n){
+  var me=petWho();if(!me)return;
+  var r=petDay(me),q=r.d.q,def=q&&petQuestDef(q.id);
   if(!def||q.done||def.k!==k)return;
   q.p+=n;
   if(q.p>=def.n){
     q.done=true;q.seen=true;
-    if(def.r.kib)r.kib+=def.r.kib;
-    if(def.r.can)r.can+=def.r.can;
-    setTimeout(function(){catSay('支線完成！',2200);catFloat('+ '+catQuestTxt(def));toast('🎁 今日支線完成：獲得 '+catQuestTxt(def));},500);
+    Object.keys(def.r).forEach(function(f){r[f]+=def.r[f];});
+    setTimeout(function(){
+      var sp=petShown()[0];
+      if(sp){petSay(sp,'支線完成！',2200);petFloat(sp,'+ '+petRewardTxt(def.r));}
+      toast('🎁 今日支線完成：獲得 '+petRewardTxt(def.r));
+    },500);
   }
-  catUpdMark();
+  petUpdMark();
 }
-function catBusy(){
-  catBusyUntil=Date.now()+20000;
-  if(!cat.el||cat.act||cat.menu||cat.pet)return;
-  if(cat.el.classList.contains('sleep'))catWake();
-  catNext(400);
+function petBusy(){
+  petBusyUntil=Date.now()+20000;
+  petList().forEach(function(p){
+    if(p.act||p.menu||p.pet)return;
+    if(p.el.classList.contains('sleep'))petWake(p);
+    petNext(p,400+Math.random()*400);
+  });
 }
-function catCheckLevel(){
-  if(!catSynced)return;
-  var lv=catLevel(catPts()),seen=+lsGet('catLvSeen')||0;
+function petCheckLevel(){
+  if(!petSynced)return;
+  var lv=petLevel(petPts()),seen=+lsGet('catLvSeen')||0;
   if(!seen){lsSet('catLvSeen',lv);return;}
   if(lv<=seen)return;
   lsSet('catLvSeen',lv);
-  var sk=CAT_SKILLS.filter(function(s){return s.lv===lv;})[0];
+  var learn=['cat','pg'].map(function(k){var sk=PET_SKILLS[k].filter(function(s){return s.lv===lv;})[0];return sk?{k:k,sk:sk}:null;}).filter(Boolean);
   // 晚一點再跳，免得被「已新增」之類的提示蓋掉
-  setTimeout(function(){toast('🎉 '+catName()+' 升到 Lv'+lv+(sk?'，學會「'+sk.name+'」':''));},900);
-  if(!cat.el||catHidden())return;
-  catSay('升到 Lv'+lv+'！',2600);catBurst(ART.star,8);
-  if(sk)setTimeout(function(){catDo(sk.id,false,true);},1400);
+  setTimeout(function(){toast('🎉 升到 Lv'+lv+(learn.length?'！'+learn.map(function(x){return petName(x.k)+'學會「'+x.sk.name+'」';}).join('、'):''));},900);
+  petShown().forEach(function(p,i){
+    petSay(p,'升到 Lv'+lv+'！',2600);petBurst(p,ART.star,8);
+    var x=learn.filter(function(l){return l.k===p.k;})[0];
+    if(x)setTimeout(function(){petDo(p,x.sk.id,false,true);},1400+i*700);
+  });
 }
-function catUpdMark(){
-  if(!cat.el)return;
-  var me=catWho(),r=me&&catData[me],q=r&&r.d&&r.d.day===catToday()&&r.d.q;
-  cat.el.classList.toggle('has-q',!!(q&&!q.seen&&!q.done));
+function petUpdMark(){
+  var me=petWho(),r=me&&petData[me],q=r&&r.d&&r.d.day===catToday()&&r.d.q,on=!!(q&&!q.seen&&!q.done);
+  petList().forEach(function(p){p.el.classList.toggle('has-q',on);});
 }
-function catGreet(){
-  if(!cat.el||catHidden())return;
-  var me=catWho(),fav=catFav();
-  if(catGift&&me){
-    catGift=false;
-    catSay('今天也來看我了！送你飼料',2600);catFloat('+ 飼料 ×1');
+function petGreet(){
+  var sh=petShown();if(!sh.length)return;
+  var me=petWho();
+  if(petGift&&me){
+    petGift=false;
+    petSay(sh[0],'今天也來看我們了！送你點心',2600);petFloat(sh[0],'+ 飼料 ×1、小魚 ×1');
+    if(sh[1])setTimeout(function(){petSay(sh[1],catPick(sh[1].def.say.fav),1800);},700);
     return;
   }
-  if(me&&fav===me){catSay(catPick(['歡迎回來♥','等你好久了～','喵♥（蹭蹭）']),2200);catHearts(3);}
-  else catSay(catPick(['喵～','喵？','（伸懶腰）']));
+  sh.forEach(function(p,i){
+    setTimeout(function(){
+      if(me&&petFav(p.k)===me){petSay(p,catPick(['歡迎回來♥','等你好久了～',catPick(p.def.say.fav)]),2200);petHearts(p,3);}
+      else petSay(p,catPick(p.def.say.tap));
+    },i*600);
+  });
 }
 
-/* ── 畫面上的貓咪 ── */
-function catHidden(){return lsGet('catHide')==='1';}
-function catBounds(){
+/* ── 畫面上的寵物 ── */
+function petHidden(p){return lsGet(p.def.hide)==='1';}
+function petBounds(p){
   var vw=window.innerWidth,vh=window.innerHeight,hdr=document.querySelector('.hdr').getBoundingClientRect().bottom;
   var bar=document.getElementById('chgBar').classList.contains('show')?100:12;
-  var y0=Math.max(hdr+10,10),y1=Math.max(y0,vh-CAT_H-bar);
-  return {x0:6,x1:Math.max(6,vw-CAT_W-6),y0:y0,y1:y1};
+  var y0=Math.max(hdr+10,10),y1=Math.max(y0,vh-p.def.H-bar);
+  return {x0:6,x1:Math.max(6,vw-p.def.W-6),y0:y0,y1:y1};
 }
-function catPlace(){
-  cat.el.style.transform='translate3d('+cat.x.toFixed(1)+'px,'+cat.y.toFixed(1)+'px,0)';
-  cat.el.classList.toggle('left',cat.dir<0);
+function petPlace(p){
+  p.el.style.transform='translate3d('+p.x.toFixed(1)+'px,'+p.y.toFixed(1)+'px,0)';
+  p.el.classList.toggle('left',p.dir<0);
 }
-function catMode(m){
-  ['walk','run','sleep','eat','pet','happy'].forEach(function(c){cat.el.classList.remove(c);});
-  if(m)m.split(' ').forEach(function(c){cat.el.classList.add(c);});
+function petMode(p,m){
+  ['walk','run','sleep','eat','pet','happy'].forEach(function(c){p.el.classList.remove(c);});
+  if(m)m.split(' ').forEach(function(c){p.el.classList.add(c);});
 }
-function catStop(){cancelAnimationFrame(cat.raf);cat.raf=0;clearTimeout(cat.timer);clearTimeout(cat.sleepT);if(cat.el.classList.contains('walk'))catMode('');}
-function catWalkTo(tx,ty,speed,done){
-  catStop();
-  var b=catBounds();tx=catClamp(tx,b.x0,b.x1);ty=catClamp(ty,b.y0,b.y1);
-  if(Math.abs(tx-cat.x)>2)cat.dir=tx<cat.x?-1:1;
-  if(catReduce){cat.x=tx;cat.y=ty;catPlace();if(done)done();return;}
-  catMode(speed>70?'walk run':'walk');catPlace();
+function petStop(p){cancelAnimationFrame(p.raf);p.raf=0;clearTimeout(p.timer);clearTimeout(p.sleepT);if(p.el.classList.contains('walk'))petMode(p,'');}
+function petWalkTo(p,tx,ty,speed,done){
+  petStop(p);
+  var b=petBounds(p);tx=catClamp(tx,b.x0,b.x1);ty=catClamp(ty,b.y0,b.y1);
+  if(Math.abs(tx-p.x)>2)p.dir=tx<p.x?-1:1;
+  if(catReduce){p.x=tx;p.y=ty;petPlace(p);if(done)done();return;}
+  petMode(p,speed>70?'walk run':'walk');petPlace(p);
   var last=performance.now();
   function step(t){
     var dt=Math.min(.05,(t-last)/1000);last=t;
-    var dx=tx-cat.x,dy=ty-cat.y,dist=Math.hypot(dx,dy),mv=speed*dt;
-    if(dist<=mv){cat.x=tx;cat.y=ty;catPlace();catMode('');cat.raf=0;if(done)done();return;}
-    cat.x+=dx/dist*mv;cat.y+=dy/dist*mv;catPlace();
-    cat.raf=requestAnimationFrame(step);
+    var dx=tx-p.x,dy=ty-p.y,dist=Math.hypot(dx,dy),mv=speed*dt;
+    if(dist<=mv){p.x=tx;p.y=ty;petPlace(p);petMode(p,'');p.raf=0;if(done)done();return;}
+    p.x+=dx/dist*mv;p.y+=dy/dist*mv;petPlace(p);
+    p.raf=requestAnimationFrame(step);
   }
-  cat.raf=requestAnimationFrame(step);
+  p.raf=requestAnimationFrame(step);
 }
-function catNext(ms){clearTimeout(cat.timer);cat.timer=setTimeout(catThink,ms==null?1800+Math.random()*3500:ms);}
+function petNext(p,ms){clearTimeout(p.timer);p.timer=setTimeout(function(){petThink(p);},ms==null?1800+Math.random()*3500:ms);}
+function petIdle(p){return !p.menu&&!p.pet&&!p.act&&!petHidden(p)&&!p.el.classList.contains('sleep');}
 // 自己決定下一步要做什麼
-function catThink(){
-  if(!cat.el)return;
-  if(cat.menu||cat.pet||cat.act||catHidden()||document.hidden){catNext(3000);return;}
-  if(cat.el.classList.contains('sleep'))return;
-  var b=catBounds(),r=Math.random(),hr=new Date().getHours(),night=hr>=23||hr<7,full=catFull();
-  // 有人在排班：走到下面坐著陪，不擋月曆
-  if(catBusyUntil>Date.now()){
-    if(Math.abs(cat.y-b.y1)>6&&!catReduce)catWalkTo(cat.x+(Math.random()-.5)*100,b.y1,75,function(){catNext(4000);});
-    else{if(Math.random()<.3)catSay(catPick(['（看你排班）','我陪你～','加油喵']));catNext(5000);}
+function petThink(p){
+  if(p.menu||p.pet||p.act||petHidden(p)||document.hidden){petNext(p,3000);return;}
+  if(p.el.classList.contains('sleep'))return;
+  var b=petBounds(p),r=Math.random(),hr=new Date().getHours(),night=hr>=23||hr<7,full=petFull(p.k),S=p.def.say;
+  // 有人在排班：走到下面待著陪，不擋月曆
+  if(petBusyUntil>Date.now()){
+    if(Math.abs(p.y-b.y1)>6&&!catReduce)petWalkTo(p,p.x+(Math.random()-.5)*100,b.y1,75,function(){petNext(p,4000);});
+    else{if(Math.random()<.3)petSay(p,catPick(S.busy));petNext(p,5000);}
     return;
   }
-  if(full<20&&r<.25){catSay(catPick(['肚子餓了…','想吃罐罐','（肚子咕嚕咕嚕）']),2200);catNext(4000);return;}
-  if((night&&r<.5)||r<.07){catSleep(9000+Math.random()*14000);return;}
+  if(full<20&&r<.25){petSay(p,catPick(S.hungry),2200);petNext(p,4000);return;}
+  if((night&&r<.5)||r<.07){petSleep(p,9000+Math.random()*14000);return;}
+  // 偶爾去找另一隻玩
+  var o=p.k==='cat'?pets.pg:pets.cat;
+  if(r<.13&&o&&petIdle(o)&&!catReduce){
+    var tx=o.x<p.x?o.x+o.def.W-6:o.x-p.def.W+6;
+    petWalkTo(p,tx,o.y+o.def.H-p.def.H,60,function(){
+      p.dir=o.x<p.x?-1:1;petPlace(p);petSay(p,S.meet);
+      if(petIdle(o)){o.dir=p.x<o.x?-1:1;petPlace(o);setTimeout(function(){petSay(o,o.def.say.meet);petHearts(o,1);petHearts(p,1);},500);petNext(o,4000);}
+      petNext(p,3500);
+    });
+    return;
+  }
   if(r<.55&&!catReduce){
-    catWalkTo(b.x0+Math.random()*(b.x1-b.x0),b.y0+Math.random()*(b.y1-b.y0),full<20?28:44,function(){catNext();});
+    petWalkTo(p,b.x0+Math.random()*(b.x1-b.x0),b.y0+Math.random()*(b.y1-b.y0),full<20?28:(p.k==='pg'?36:44),function(){petNext(p);});
     return;
   }
-  if(r<.66){catDo('groom');return;}
-  if(r<.78&&full>=15){var sk=catSkills();if(sk.length){catDo(catPick(sk).id);return;}}
-  if(r<.86)catSay(catPick(['喵～','（發呆）','喵？','（盯）']));
-  catNext();
+  if(r<.66){petDo(p,p.def.idle);return;}
+  if(r<.78&&full>=15){var sk=petSkills(p.k);if(sk.length){petDo(p,catPick(sk).id);return;}}
+  if(r<.86)petSay(p,catPick(S.idle));
+  petNext(p);
 }
-function catSleep(ms){
-  catStop();catMode('sleep');catSay('Zzz…',2000);
-  cat.sleepT=setTimeout(catWake,ms);
+function petSleep(p,ms){
+  petStop(p);petMode(p,'sleep');petSay(p,'Zzz…',2000);
+  p.sleepT=setTimeout(function(){petWake(p);},ms);
 }
-function catWake(){clearTimeout(cat.sleepT);if(cat.el.classList.contains('sleep'))catMode('');catNext();}
-function catSay(t,ms){
-  if(!cat.el)return;
-  var s=cat.el.querySelector('.cat-say');s.textContent=t;s.classList.add('on');
-  clearTimeout(cat.sayT);cat.sayT=setTimeout(function(){s.classList.remove('on');},ms||1800);
+function petWake(p){clearTimeout(p.sleepT);if(p.el.classList.contains('sleep'))petMode(p,'');petNext(p);}
+function petSay(p,t,ms){
+  var s=p.el.querySelector('.cat-say');s.textContent=t;
+  // 寵物在畫面邊邊時，泡泡往內挪，尾巴還是指著寵物
+  var w=s.offsetWidth,vw=window.innerWidth,l=p.x+p.def.W/2-w/2,sx=l<6?6-l:l+w>vw-6?vw-6-l-w:0;
+  s.style.setProperty('--sx',sx+'px');s.classList.add('on');
+  clearTimeout(p.sayT);p.sayT=setTimeout(function(){s.classList.remove('on');},ms||1800);
 }
-function catMeow(){cat.el.classList.add('meow');setTimeout(function(){cat.el.classList.remove('meow');},600);}
+function petMeow(p){p.el.classList.add('meow');setTimeout(function(){p.el.classList.remove('meow');},600);}
 function catFx(html,cls,x,y,dx,dy){
   var e=document.createElement('div');e.className='cat-fx'+(cls?' '+cls:'');e.innerHTML=html;
   e.style.left=x+'px';e.style.top=y+'px';e.style.setProperty('--dx',(dx||0)+'px');e.style.setProperty('--dy',(dy==null?-60:dy)+'px');
   document.body.appendChild(e);setTimeout(function(){e.remove();},1500);
 }
-function catFloat(txt){if(!cat.el||catHidden())return;catFx(safeHtml(txt),'pt',cat.x+CAT_W/2-26,cat.y-14,0,-44);}
-function catHearts(n){
+function petFloat(p,txt){if(petHidden(p))return;catFx(safeHtml(txt),'pt',p.x+p.def.W/2-26,p.y-14,0,-44);}
+function petHearts(p,n){
   for(var i=0;i<n;i++)(function(i){setTimeout(function(){
-    catFx(ART.heart,'',cat.x+CAT_W/2-9+(Math.random()-.5)*34,cat.y+4,(Math.random()-.5)*40,-50-Math.random()*30);
+    catFx(ART.heart,'',p.x+p.def.W/2-9+(Math.random()-.5)*34,p.y+4,(Math.random()-.5)*40,-50-Math.random()*30);
   },i*140);})(i);
 }
-function catBurst(svg,n){
-  for(var i=0;i<n;i++){var a=Math.PI*2*i/n;catFx(svg,'',cat.x+CAT_W/2-9,cat.y+CAT_H/2-9,Math.cos(a)*70,Math.sin(a)*60-20);}
+function petBurst(p,svg,n){
+  for(var i=0;i<n;i++){var a=Math.PI*2*i/n;catFx(svg,'',p.x+p.def.W/2-9,p.y+p.def.H/2-9,Math.cos(a)*70,Math.sin(a)*60-20);}
 }
 // 表演：fromUser＝有人按的（算支線、太餓不表演）；force＝升級時的示範
-function catDo(id,fromUser,force){
-  if(cat.act||(!force&&(cat.menu||cat.pet)))return false;
-  if(fromUser&&id!=='groom'&&catFull()<15){catSay('太餓了，沒力氣…');catMeow();return false;}
-  catStop();catMode('');
-  cat.act=id;cat.el.classList.add('sk-'+id);
-  if(id==='wave')catSay('招財進寶～',2000);
-  if(id==='love')setTimeout(function(){catBurst(ART.heart,10);},500);
-  if(id==='yarn')catYarn();
-  if(id==='flip'||id==='jump')setTimeout(function(){catSay(catPick(['嘿咻！','看我的！']),1200);},100);
-  var ms=CAT_SK_MS[id]||1500;
+function petDo(p,id,fromUser,force){
+  if(p.act||(!force&&(p.menu||p.pet)))return false;
+  if(fromUser&&id!==p.def.idle&&petFull(p.k)<15){petSay(p,p.def.say.weak);petMeow(p);return false;}
+  petStop(p);petMode(p,'');
+  p.act=id;p.el.classList.add('sk-'+id);
+  if(PET_SK_SAY[id])petSay(p,PET_SK_SAY[id],2000);
+  if(id==='love')setTimeout(function(){petBurst(p,ART.heart,10);},500);
+  if(id==='yarn')catYarn(p);
+  if(id==='flip'||id==='jump')setTimeout(function(){petSay(p,catPick(p.def.say.jump),1200);},100);
+  var ms=PET_SK_MS[p.k][id]||1500;
   setTimeout(function(){
-    cat.el.classList.remove('sk-'+id);cat.act='';
-    // 毛線球：貓咪撲出去了，把位置留在落地的地方
-    if(id==='yarn'&&!catReduce){var b=catBounds();cat.x=catClamp(cat.x+cat.dir*90,b.x0,b.x1);catPlace();}
-    catNext();
+    p.el.classList.remove('sk-'+id);p.act='';
+    // 毛線球、滑行：整隻衝出去了，把位置留在停下來的地方
+    var go=id==='yarn'?90:id==='slide'?110:0;
+    if(go&&!catReduce){var b=petBounds(p);p.x=catClamp(p.x+p.dir*go,b.x0,b.x1);petPlace(p);}
+    petNext(p);
   },catReduce?700:ms);
-  if(fromUser&&id!=='groom'){catQuest('skill',1);catSave();}
+  if(fromUser&&id!==p.def.idle){petQuest('skill',1);petSave();}
   return true;
 }
-function catYarn(){
+function catYarn(p){
   var y=document.createElement('div');y.className='cat-yarn';y.innerHTML=CAT_ART.yarn;
-  var sx=cat.dir>0?cat.x+CAT_W-8:cat.x-14,sy=cat.y+CAT_H-22;
+  var sx=p.dir>0?p.x+p.def.W-8:p.x-14,sy=p.y+p.def.H-22;
   y.style.transform='translate('+sx+'px,'+sy+'px)';document.body.appendChild(y);
-  requestAnimationFrame(function(){requestAnimationFrame(function(){y.style.transform='translate('+(sx+cat.dir*120)+'px,'+sy+'px) rotate('+(cat.dir*540)+'deg)';});});
-  setTimeout(function(){y.style.transition='transform .6s cubic-bezier(.2,.7,.3,1),opacity .4s';y.style.transform='translate('+(sx+cat.dir*150)+'px,'+(sy-6)+'px) rotate('+(cat.dir*720)+'deg)';},1500);
+  requestAnimationFrame(function(){requestAnimationFrame(function(){y.style.transform='translate('+(sx+p.dir*120)+'px,'+sy+'px) rotate('+(p.dir*540)+'deg)';});});
+  setTimeout(function(){y.style.transition='transform .6s cubic-bezier(.2,.7,.3,1),opacity .4s';y.style.transform='translate('+(sx+p.dir*150)+'px,'+(sy-6)+'px) rotate('+(p.dir*720)+'deg)';},1500);
   setTimeout(function(){y.style.opacity='0';},2300);
   setTimeout(function(){y.remove();},2800);
 }
-// 摸摸：手指在貓咪身上滑、或長按
-function catPetStart(){
-  if(cat.pet)return;
-  if(cat.act)return;
-  catCloseMenu();clearTimeout(cat.sleepT);catStop();
-  var wasSleep=cat.el.classList.contains('sleep');
-  cat.pet=true;catMode('pet happy');
-  var me=catWho(),fav=catFav();
-  if(me&&fav&&fav!=='both'&&fav!==me&&Math.random()<.3)catSay('哼～（我比較黏'+USERS[fav].label+'）',2200);
-  else catSay(wasSleep?'嗯…呼嚕…':catPick(['呼嚕呼嚕～','好舒服～','再摸一下']),2000);
-  catHearts(me&&fav===me?3:2);
+// 摸摸：手指在寵物身上滑、或長按
+function petPetStart(p){
+  if(p.pet||p.act)return;
+  petCloseMenu();clearTimeout(p.sleepT);petStop(p);
+  var wasSleep=p.el.classList.contains('sleep');
+  p.pet=true;petMode(p,'pet happy');
+  var me=petWho(),fav=petFav(p.k);
+  if(me&&fav&&fav!=='both'&&fav!==me&&Math.random()<.3)petSay(p,'哼～（我比較黏'+USERS[fav].label+'）',2200);
+  else petSay(p,wasSleep?p.def.say.sleepy:catPick(p.def.say.pet),2000);
+  petHearts(p,me&&fav===me?3:2);
 }
-function catPetEnd(){
-  if(!cat.pet)return;
-  cat.pet=false;catMode('');
-  var me=catWho();
-  if(me){var r=catDay(me);if(r.d.pet<CAT_DAY_PET){r.d.pet++;r.aff+=1;}catQuest('pet',1);catSave();}
-  catNext(2500);
+function petPetEnd(p){
+  if(!p.pet)return;
+  p.pet=false;petMode(p,'');
+  var me=petWho();
+  if(me){var r=petDay(me),key=p.k==='cat'?'pet':'ppet';if(r.d[key]<PET_DAY_PET){r.d[key]++;ps(r,p.k).aff+=1;}petQuest('pet',1);petSave();}
+  petNext(p,2500);
 }
-function catTap(){
-  catMeow();
-  if(cat.el.classList.contains('sleep')){catWake();catSay('喵…？（被吵醒）');}
+function petTap(p){
+  petMeow(p);
+  if(p.el.classList.contains('sleep')){petWake(p);petSay(p,p.def.say.wake);}
   else{
-    var me=catWho(),fav=catFav();
-    if(me&&fav===me)catSay(catPick(['喵♥','最喜歡你了','（蹭蹭）']));
-    else if(me&&fav&&fav!=='both'&&Math.random()<.35)catSay(catPick(['哼～','（假裝沒看到）','喵。']));
-    else catSay(catPick(['喵～','喵？','喵嗚']));
+    var me=petWho(),fav=petFav(p.k),S=p.def.say;
+    if(me&&fav===me)petSay(p,catPick(S.fav));
+    else if(me&&fav&&fav!=='both'&&Math.random()<.35)petSay(p,catPick(S.aloof));
+    else petSay(p,catPick(S.tap));
   }
-  catOpenMenu();
+  petOpenMenu(p);
 }
-function catCloseMenu(){
+function petCloseMenu(){
   document.querySelectorAll('.cat-menu,.cat-menu-bd').forEach(function(e){e.remove();});
-  if(cat.menu){cat.menu=false;catNext(2500);}
+  if(menuPet){var p=menuPet;menuPet=null;p.menu=false;petNext(p,2500);}
 }
-function catPosMenu(m){
+function petPosMenu(p,m){
   var w=m.offsetWidth,h=m.offsetHeight,vw=window.innerWidth;
-  var left=catClamp(cat.x+CAT_W/2-w/2,8,vw-w-8),top=cat.y-h-34;
-  if(top<8)top=cat.y+CAT_H+8;
+  var left=catClamp(p.x+p.def.W/2-w/2,8,vw-w-8),top=p.y-h-34;
+  if(top<8)top=p.y+p.def.H+8;
   m.style.left=left+'px';m.style.top=top+'px';
 }
-function catOpenMenu(skills){
-  catCloseMenu();
-  var me=catWho();
-  if(!me){catOpenSheet();return;}
-  var r=catDay(me);
-  cat.menu=true;catStop();
-  var bd=document.createElement('div');bd.className='cat-menu-bd';bd.onclick=catCloseMenu;
+function petOpenMenu(p,skills){
+  petCloseMenu();
+  var me=petWho();
+  if(!me){petOpenSheet(p.k);return;}
+  var r=petDay(me);
+  p.menu=true;menuPet=p;petStop(p);
+  var bd=document.createElement('div');bd.className='cat-menu-bd';bd.onclick=petCloseMenu;
   var m=document.createElement('div');m.className='cat-menu';
   var h='';
   if(skills){
-    catSkills().forEach(function(s){h+='<button data-sk="'+s.id+'"><span class="ic">'+s.ic+'</span>'+s.name+'</button>';});
-    var nx=CAT_SKILLS.filter(function(s){return s.lv>catLevel(catPts());})[0];
+    petSkills(p.k).forEach(function(s){h+='<button data-sk="'+s.id+'"><span class="ic">'+s.ic+'</span>'+s.name+'</button>';});
+    var nx=PET_SKILLS[p.k].filter(function(s){return s.lv>petLevel(petPts());})[0];
     h+='<button data-a="back"><span class="ic">‹</span>返回</button>';
     if(nx)h+='<div class="cat-menu-q">Lv'+nx.lv+' 會學「'+nx.name+'」・維護班表可以升級</div>';
   }else{
-    var q=r.d.q,def=q&&catQuestDef(q.id);
-    h+='<button data-a="pet"><span class="ic">🐾</span>摸摸</button>'+
-      '<button data-a="kib"'+(r.kib?'':' class="off"')+'><span class="ic">'+CAT_ART.kib+'</span>飼料 '+r.kib+'</button>'+
-      '<button data-a="can"'+(r.can?'':' class="off"')+'><span class="ic">'+CAT_ART.can+'</span>罐頭 '+r.can+'</button>'+
-      '<button data-a="sk"><span class="ic">✨</span>技能</button>'+
-      '<button data-a="info"><span class="ic">📋</span>狀態</button>';
-    if(def)h+='<div class="cat-menu-q">'+(q.done?'✓ ':'❗ ')+'今日支線：'+safeHtml(def.t)+'（'+Math.min(q.p,def.n)+'/'+def.n+'）→ '+catQuestTxt(def)+'</div>';
-    if(q&&!q.seen){q.seen=true;catSave();catUpdMark();}
+    var q=r.d.q,def=q&&petQuestDef(q.id);
+    h+='<button data-a="pet"><span class="ic">🐾</span>摸摸</button>';
+    p.def.foods.forEach(function(f){h+='<button data-food="'+f+'"'+(r[f]?'':' class="off"')+'><span class="ic">'+CAT_ART[f]+'</span>'+FOODS[f].name+' '+r[f]+'</button>';});
+    h+='<button data-a="sk"><span class="ic">✨</span>技能</button><button data-a="info"><span class="ic">📋</span>狀態</button>';
+    if(def)h+='<div class="cat-menu-q">'+(q.done?'✓ ':'❗ ')+'今日支線：'+safeHtml(def.t)+'（'+Math.min(q.p,def.n)+'/'+def.n+'）→ '+petRewardTxt(def.r)+'</div>';
+    if(q&&!q.seen){q.seen=true;petSave();petUpdMark();}
   }
   m.innerHTML=h;
   document.body.appendChild(bd);document.body.appendChild(m);
-  catPosMenu(m);
+  petPosMenu(p,m);
   m.onclick=function(e){
     var b=e.target.closest('button');if(!b)return;
-    var a=b.getAttribute('data-a'),sk=b.getAttribute('data-sk');
-    if(sk){catCloseMenu();catDo(sk,true);return;}
-    if(a==='back'){catOpenMenu(false);return;}
-    if(a==='sk'){catOpenMenu(true);return;}
-    catCloseMenu();
-    if(a==='pet'){catPetStart();setTimeout(catPetEnd,1800);}
-    else if(a==='kib'||a==='can')catFeed(a);
-    else if(a==='info')catOpenSheet();
+    var a=b.getAttribute('data-a'),sk=b.getAttribute('data-sk'),food=b.getAttribute('data-food');
+    if(sk){petCloseMenu();petDo(p,sk,true);return;}
+    if(a==='back'){petOpenMenu(p,false);return;}
+    if(a==='sk'){petOpenMenu(p,true);return;}
+    petCloseMenu();
+    if(a==='pet'){petPetStart(p);setTimeout(function(){petPetEnd(p);},1800);}
+    else if(food)petFeed(p,food);
+    else if(a==='info')petOpenSheet(p.k);
   };
 }
-function catFeed(kind){
-  var me=catWho();if(!me){catOpenSheet();return;}
-  var r=catDay(me),full=catFull(),have=kind==='can'?r.can:r.kib;
-  if(!have){catSay(kind==='can'?'沒有罐頭了…':'沒有飼料了…');toast('完成今日支線、撿貓咪找到的東西，就有貓糧');return false;}
-  if(full>=92){catSay('吃不下了～');catMeow();return false;}
-  if(cat.act||cat.pet)return false;
-  if(kind==='can')r.can--;else r.kib--;
-  r.fedAt=Date.now();r.fedFull=Math.min(100,full+(kind==='can'?60:30));r.aff+=kind==='can'?6:2;
-  catQuest('feed',1);catSave();
-  catStop();clearTimeout(cat.sleepT);
-  // 碗放在比較有空間的那一邊
-  cat.dir=cat.x+CAT_W/2>window.innerWidth/2?-1:1;catPlace();
-  cat.act='eat';catMode('eat happy');catSay(kind==='can'?'罐罐！！':'開動～');
-  var bowl=document.createElement('div');bowl.className='cat-bowl';bowl.innerHTML=CAT_ART.bowl;
-  bowl.style.left=(cat.dir>0?cat.x+CAT_W-14:cat.x-22)+'px';bowl.style.top=(cat.y+CAT_H-17)+'px';
-  document.body.appendChild(bowl);
+function petFeed(p,food){
+  var me=petWho();if(!me){petOpenSheet(p.k);return false;}
+  var r=petDay(me),F=FOODS[food],full=petFull(p.k);
+  if(!r[food]){petSay(p,'沒有'+F.name+'了…');toast('完成今日支線、撿寵物找到的東西，就有糧食');return false;}
+  if(full>=92){petSay(p,p.def.say.full);petMeow(p);return false;}
+  if(p.act||p.pet)return false;
+  r[food]--;
+  var st=ps(r,p.k);st.fedAt=Date.now();st.fedFull=Math.min(100,full+F.full);st.aff+=F.aff;
+  petQuest('feed',1);petSave();
+  petStop(p);clearTimeout(p.sleepT);
+  // 面向比較有空間的那一邊（貓的碗放在前面）
+  p.dir=p.x+p.def.W/2>window.innerWidth/2?-1:1;petPlace(p);
+  p.act='eat';petMode(p,'eat happy');petSay(p,F.eat);
+  var bowl=null;
+  if(p.k==='cat'){
+    bowl=document.createElement('div');bowl.className='cat-bowl';bowl.innerHTML=CAT_ART.bowl;
+    bowl.style.left=(p.dir>0?p.x+p.def.W-14:p.x-22)+'px';bowl.style.top=(p.y+p.def.H-17)+'px';
+    document.body.appendChild(bowl);
+  }
   setTimeout(function(){
-    bowl.remove();catMode('');cat.act='';
-    catSay(kind==='can'?'最喜歡罐罐了♥':'好飽～',2000);catHearts(kind==='can'?5:2);
-    catNext(2500);
+    if(bowl)bowl.remove();
+    petMode(p,'');p.act='';
+    petSay(p,F.done,2000);petHearts(p,F.aff>=6?5:2);
+    petNext(p,2500);
   },catReduce?900:2600);
   return true;
 }
-// 偶爾：貓咪在畫面上找到飼料或罐頭，點一下撿起來
-function catScheduleDrop(){clearTimeout(catDropT);catDropT=setTimeout(catTryDrop,(80+Math.random()*160)*1000);}
-function catTryDrop(){
-  catScheduleDrop();
-  var me=catWho();
-  if(!me||!catSynced||document.hidden||catHidden()||document.querySelector('.cat-drop'))return;
-  var r=catDay(me);
-  if(r.d.drop>=CAT_DAY_DROP||Math.random()>.55)return;
-  var can=Math.random()<.25,b=catBounds(),x=b.x0+10+Math.random()*(b.x1-b.x0),y=b.y0+10+Math.random()*(b.y1-b.y0);
-  var el=document.createElement('button');el.className='cat-drop';el.setAttribute('aria-label',can?'撿起罐頭':'撿起貓飼料');
-  el.innerHTML=can?CAT_ART.can:CAT_ART.kib;el.style.left=x+'px';el.style.top=y+'px';
+// 偶爾：畫面上冒出飼料、小魚或罐頭，點一下撿起來；愛吃那個的寵物會跑過去
+function petScheduleDrop(){clearTimeout(petDropT);petDropT=setTimeout(petTryDrop,(80+Math.random()*160)*1000);}
+function petTryDrop(){
+  petScheduleDrop();
+  var me=petWho(),sh=petShown();
+  if(!me||!petSynced||document.hidden||!sh.length||document.querySelector('.cat-drop'))return;
+  var r=petDay(me);
+  if(r.d.drop>=PET_DAY_DROP||Math.random()>.55)return;
+  var rnd=Math.random(),food=rnd<.5?'kib':rnd<.78?'fish':'can',p=pets[FOODS[food].pet];
+  if(petHidden(p))p=sh[0];
+  var b=petBounds(p),x=b.x0+10+Math.random()*(b.x1-b.x0),y=b.y0+10+Math.random()*(b.y1-b.y0);
+  var el=document.createElement('button');el.className='cat-drop';el.setAttribute('aria-label','撿起'+FOODS[food].name);
+  el.innerHTML=CAT_ART[food];el.style.left=x+'px';el.style.top=y+'px';
   document.body.appendChild(el);
-  if(!cat.menu&&!cat.act&&!cat.pet&&!cat.el.classList.contains('sleep'))
-    catWalkTo(x>cat.x?x-CAT_W+4:x+36,y+42-CAT_H,80,function(){catSay(can?'你看！罐罐！':'找到飼料了！',2400);catMeow();catNext(5000);});
+  if(petIdle(p))
+    petWalkTo(p,x>p.x?x-p.def.W+4:x+36,y+42-p.def.H,80,function(){petSay(p,'你看！有'+FOODS[food].name+'！',2400);petMeow(p);petNext(p,5000);});
   var gone=setTimeout(function(){el.classList.add('bye');setTimeout(function(){el.remove();},450);},45000);
   el.onclick=function(){
     clearTimeout(gone);el.remove();
-    var r=catDay(catWho());r.d.drop++;if(can)r.can++;else r.kib++;catSave();
-    catFx(can?'+ 罐頭 ×1':'+ 飼料 ×1','pt',x-14,y-8,0,-40);
-    toast(can?'撿到罐頭 ×1':'撿到貓飼料 ×1');
+    var r=petDay(petWho());r.d.drop++;r[food]++;petSave();
+    catFx('+ '+FOODS[food].name+' ×1','pt',x-14,y-8,0,-40);
+    toast('撿到'+FOODS[food].name+' ×1');
   };
 }
 
-/* 貓咪狀態卡 */
-function catOpenSheet(){
-  catCloseMenu();
-  var me=catWho(),pts=catPts(),lv=catLevel(pts),nx=CAT_LV[lv],prev=CAT_LV[lv-1],fav=catFav(),full=Math.round(catFull()),name=catName();
+/* 寵物狀態卡：上面切換貓咪／企鵝 */
+function petOpenSheet(k){
+  k=k||'cat';
+  petCloseMenu();
+  var p=pets[k],me=petWho(),pts=petPts(),lv=petLevel(pts),nx=PET_LV[lv],prev=PET_LV[lv-1],fav=petFav(k),full=Math.round(petFull(k)),name=petName(k);
   var h='<div class="popup-grabber"></div><div class="popup-top"><div class="popup-dot" style="background:var(--yellow)"></div><div class="popup-title"><button class="cs-name" id="csName">'+safeHtml(name)+' ✎</button></div><div class="popup-count">Lv'+lv+'</div><button class="popup-close" onclick="closePopup()">✕</button></div><div class="popup-body">';
+  h+='<div class="cs-tabs">'+['cat','pg'].map(function(x){return '<button data-pk="'+x+'"'+(x===k?' class="on"':'')+'>'+PET_DEF[x].ic+' '+safeHtml(petName(x))+'</button>';}).join('')+'</div>';
   if(!me){
-    h+='<div class="cs-sec"><div class="cs-h"><span>你是誰？</span></div><div class="cs-note" style="margin:0 0 10px">貓咪要記得是誰在照顧牠，點數和貓糧會算在你身上。</div><div class="cs-seg"><button data-me="syue">我是 學</button><button data-me="ling">我是 綾</button></div></div>';
+    h+='<div class="cs-sec"><div class="cs-h"><span>你是誰？</span></div><div class="cs-note" style="margin:0 0 10px">寵物要記得是誰在照顧牠們，點數和糧食會算在你身上。</div><div class="cs-seg"><button data-me="syue">我是 學</button><button data-me="ling">我是 綾</button></div></div>';
   }
-  var nsk=CAT_SKILLS.filter(function(s){return s.lv===lv+1;})[0];
+  var nsk=PET_SKILLS[k].filter(function(s){return s.lv===lv+1;})[0];
   h+='<div class="cs-sec"><div class="cs-h"><span>升級點數（兩人一起）</span><b>⭐ '+pts+(nx?' / '+nx:'')+'</b></div>'+
     '<div class="cs-bar"><i style="width:'+(nx?Math.round((pts-prev)/(nx-prev)*100):100)+'%;background:var(--yellow)"></i></div>'+
-    '<div class="cs-note">'+(nx?'再 '+(nx-pts)+' 點升到 Lv'+(lv+1)+(nsk?'，學會「'+nsk.name+'」':''):'已經是最高等級，所有技能都學會了！')+'</div></div>';
-  var aff={syue:Math.round(catEffAff(catData.syue)),ling:Math.round(catEffAff(catData.ling))},mx=Math.max(aff.syue,aff.ling,1);
+    '<div class="cs-note">'+(nx?'再 '+(nx-pts)+' 點升到 Lv'+(lv+1)+(nsk?'，'+safeHtml(name)+'會學「'+nsk.name+'」':''):'已經是最高等級，所有技能都學會了！')+'</div></div>';
+  var aff={syue:Math.round(petEffAff(petData.syue,k)),ling:Math.round(petEffAff(petData.ling,k))},mx=Math.max(aff.syue,aff.ling,1);
   h+='<div class="cs-sec"><div class="cs-h"><span>親密度</span></div>';
   ['syue','ling'].forEach(function(u){
     h+='<div class="cs-aff"><span class="cs-who" style="background:var(--'+u+')">'+USERS[u].label+'</span><div class="cs-bar"><i style="width:'+Math.round(aff[u]/mx*100)+'%;background:var(--'+u+')"></i></div><span class="cs-num">'+aff[u]+' ♥'+(fav===u?' 👑':'')+'</span></div>';
@@ -2182,112 +2350,133 @@ function catOpenSheet(){
   h+='<div class="cs-sec"><div class="cs-h"><span>肚子</span><b>'+(full>=80?'飽飽的':full>=40?'還好':full>=15?'有點餓':'好餓…')+'</b></div>'+
     '<div class="cs-bar"><i style="width:'+full+'%;background:'+(full<30?'var(--coral)':'var(--wakatake)')+'"></i></div></div>';
   if(me){
-    var r=catDay(me),q=r.d.q,def=q&&catQuestDef(q.id);
-    h+='<div class="cs-sec"><div class="cs-h"><span>'+USERS[me].label+' 的貓糧</span></div><div class="cs-food">'+
-      '<button class="cs-btn'+(r.kib?'':' off')+'" data-feed="kib">'+CAT_ART.kib+'餵飼料 ×'+r.kib+'</button>'+
-      '<button class="cs-btn'+(r.can?'':' off')+'" data-feed="can">'+CAT_ART.can+'餵罐頭 ×'+r.can+'</button></div></div>';
+    var r=petDay(me),q=r.d.q,def=q&&petQuestDef(q.id);
+    h+='<div class="cs-sec"><div class="cs-h"><span>'+USERS[me].label+' 的糧食</span><b>'+['kib','can','fish'].map(function(f){return FOODS[f].name+' '+r[f];}).join('・')+'</b></div><div class="cs-food">'+
+      p.def.foods.map(function(f){return '<button class="cs-btn'+(r[f]?'':' off')+'" data-feed="'+f+'">'+CAT_ART[f]+'餵'+FOODS[f].name+' ×'+r[f]+'</button>';}).join('')+'</div></div>';
     if(def){
-      if(!q.seen){q.seen=true;catSave();catUpdMark();}
+      if(!q.seen){q.seen=true;petSave();petUpdMark();}
+      var rk=Object.keys(def.r)[0];
       h+='<div class="cs-sec"><div class="cs-h"><span>今日支線</span><b>'+(q.done?'完成 ✓':Math.min(q.p,def.n)+' / '+def.n)+'</b></div>'+
-        '<div class="cs-quest'+(q.done?' done':'')+'">'+(def.r.can?CAT_ART.can:CAT_ART.kib)+'<div class="q-main">'+safeHtml(def.t)+'<div class="q-sub">獎勵：'+catQuestTxt(def)+'</div></div></div></div>';
+        '<div class="cs-quest'+(q.done?' done':'')+'">'+CAT_ART[rk]+'<div class="q-main">'+safeHtml(def.t)+'<div class="q-sub">獎勵：'+petRewardTxt(def.r)+'</div></div></div></div>';
     }
   }
-  h+='<div class="cs-sec"><div class="cs-h"><span>技能</span><b>點一下讓牠表演</b></div><div class="cs-skills">';
-  CAT_SKILLS.forEach(function(s){
+  h+='<div class="cs-sec"><div class="cs-h"><span>'+safeHtml(name)+' 的技能</span><b>點一下讓牠表演</b></div><div class="cs-skills">';
+  PET_SKILLS[k].forEach(function(s){
     var ok=s.lv<=lv;
     h+='<button class="cs-sk'+(ok?'':' lock')+'"'+(ok?' data-sk="'+s.id+'"':'')+'><span class="ic">'+(ok?s.ic:'🔒')+'</span>'+(ok?s.name:'Lv'+s.lv)+'</button>';
   });
   h+='</div></div>';
-  h+='<div class="cs-sec"><div class="cs-h"><span>怎麼讓貓咪升級</span></div><div class="cs-rules">'+
-    '改一天班表 +1⭐・新增／修改行程 +3⭐・傳變更通知 +2⭐<br>（每人每天最多 '+CAT_DAY_PTS+'⭐，同一天改來改去只算一次）<br>'+
-    '每天第一次來送飼料 ×1・完成今日支線拿貓糧<br>貓咪偶爾會找到飼料或罐頭，看到記得點一下撿起來</div></div>';
+  h+='<div class="cs-sec"><div class="cs-h"><span>怎麼讓寵物升級</span></div><div class="cs-rules">'+
+    '改一天班表 +1⭐・新增／修改行程 +3⭐・傳變更通知 +2⭐<br>（每人每天最多 '+PET_DAY_PTS+'⭐，同一天改來改去只算一次）<br>'+
+    '每天第一次來送飼料和小魚・完成今日支線拿糧食<br>飼料、罐頭給貓咪，小魚給企鵝<br>畫面上偶爾會冒出糧食，看到記得點一下撿起來</div></div>';
   h+='<div class="cs-sec"><div class="cs-seg">'+(me?'這支手機是 <button data-me="syue"'+(me==='syue'?' class="on"':'')+'>學</button><button data-me="ling"'+(me==='ling'?' class="on"':'')+'>綾</button>':'')+
-    '<button id="csHide">'+(catHidden()?'叫貓咪出來':'讓貓咪去睡（隱藏）')+'</button></div></div>';
+    '<button id="csHide">'+(petHidden(p)?'叫'+safeHtml(name)+'出來':'讓'+safeHtml(name)+'去休息（隱藏）')+'</button></div></div>';
   h+='</div>';
   openPopupCard(h);
   var card=document.getElementById('popupCard');
+  card.querySelectorAll('[data-pk]').forEach(function(b){b.onclick=function(){petOpenSheet(b.getAttribute('data-pk'));};});
   card.querySelectorAll('[data-me]').forEach(function(b){b.onclick=function(){
-    lsSet('catMe',b.getAttribute('data-me'));catDay(catWho());catSave();if(cloudOn())catFlush();catUpdMark();catOpenSheet();
+    lsSet('catMe',b.getAttribute('data-me'));petDay(petWho());petSave();if(cloudOn())petFlush();petUpdMark();petOpenSheet(k);
   };});
   card.querySelectorAll('[data-feed]').forEach(function(b){b.onclick=function(){
-    if(catHidden()){toast('先叫貓咪出來才能餵喔');return;}
-    var k=b.getAttribute('data-feed'),have=catData[catWho()][k];
-    if(!have){toast('完成今日支線、撿貓咪找到的東西，就有貓糧');return;}
-    closePopup();setTimeout(function(){catFeed(k);},350);
+    if(petHidden(p)){toast('先叫'+name+'出來才能餵喔');return;}
+    var f=b.getAttribute('data-feed');
+    if(!petData[petWho()][f]){toast('完成今日支線、撿寵物找到的東西，就有糧食');return;}
+    closePopup();setTimeout(function(){petFeed(p,f);},350);
   };});
   card.querySelectorAll('[data-sk]').forEach(function(b){b.onclick=function(){
-    if(catHidden()){toast('先叫貓咪出來才能表演喔');return;}
-    closePopup();var id=b.getAttribute('data-sk');setTimeout(function(){catDo(id,true);},350);
+    if(petHidden(p)){toast('先叫'+name+'出來才能表演喔');return;}
+    closePopup();var id=b.getAttribute('data-sk');setTimeout(function(){petDo(p,id,true);},350);
   };});
   document.getElementById('csHide').onclick=function(){
-    var hide=!catHidden();lsSet('catHide',hide?'1':'');cat.el.classList.toggle('hide',hide);
-    if(!hide){var bb=catBounds();cat.x=catClamp(cat.x,bb.x0,bb.x1);cat.y=bb.y1;catPlace();catNext(800);setTimeout(function(){catSay('喵～我回來了');},400);}
+    var hide=!petHidden(p);lsSet(p.def.hide,hide?'1':'');p.el.classList.toggle('hide',hide);petUpdHome();
+    if(!hide){var bb=petBounds(p);p.x=catClamp(p.x,bb.x0,bb.x1);p.y=bb.y1;petPlace(p);petNext(p,800);setTimeout(function(){petSay(p,p.def.say.back);},400);}
+    else{petStop(p);petMode(p,'');}
     closePopup();
   };
   document.getElementById('csName').onclick=function(){
-    if(!catWho()){toast('先選你是誰');return;}
-    var v=prompt('幫貓咪取名字（8 個字以內）',name);
+    if(!petWho()){toast('先選你是誰');return;}
+    var v=prompt('幫'+(k==='cat'?'貓咪':'企鵝')+'取名字（8 個字以內）',name);
     if(v==null)return;v=v.trim().slice(0,8);if(!v)return;
-    var r=catRec(catWho());r.name=v;r.nameAt=Date.now();catSave();catOpenSheet();
+    var st=ps(petRec(petWho()),k);st.name=v;st.nameAt=Date.now();petSave();petOpenSheet(k);
   };
 }
+// 頁尾設施：寵物去休息時，貓睡在跳台上、企鵝在冰屋門口打瞌睡
+function petUpdHome(){
+  var sc=document.getElementById('scene');
+  sc.classList.toggle('cat-away',petHidden(pets.cat));
+  sc.classList.toggle('pg-away',petHidden(pets.pg));
+}
 
-function catInit(){
-  try{var s=JSON.parse(lsGet('catV1')||'null');if(s){catData.syue=s.syue?catClean(s.syue):null;catData.ling=s.ling?catClean(s.ling):null;}}catch(e){}
-  var el=document.createElement('div');el.className='cat';el.id='cat';
-  el.setAttribute('role','button');el.setAttribute('aria-label','貓咪');
-  el.innerHTML='<div class="cat-face"><div class="cat-sk"><div class="cat-bob">'+CAT_ART.cat+'</div></div></div><div class="cat-say"></div><div class="cat-mark">!</div>';
-  document.body.appendChild(el);cat.el=el;
-  if(catHidden())el.classList.add('hide');
-  var b=catBounds();cat.x=b.x1-10;cat.y=b.y1;cat.dir=-1;catPlace();
-  // 手指在貓咪身上滑＝摸摸；點一下＝選單；長按也算摸摸
+function petMake(k){
+  var d=PET_DEF[k],p={k:k,def:d,el:null,x:0,y:0,dir:1,raf:0,timer:null,sayT:null,act:'',menu:false,pet:false,pd:null,lpT:null,tapT:null,sleepT:null};
+  var el=document.createElement('div');el.className='cat'+(k==='pg'?' pg':'');
+  el.setAttribute('role','button');el.setAttribute('aria-label',k==='cat'?'貓咪':'企鵝');
+  el.innerHTML='<div class="cat-face"><div class="cat-sk"><div class="cat-bob">'+CAT_ART[k]+'</div></div></div><div class="cat-say"></div><div class="cat-mark">!</div>';
+  document.body.appendChild(el);p.el=el;
+  if(petHidden(p))el.classList.add('hide');
+  // 手指在寵物身上滑＝摸摸；點一下＝選單；長按也算摸摸
   el.addEventListener('pointerdown',function(e){
     e.preventDefault();
-    cat.pd={x:e.clientX,y:e.clientY,t:Date.now(),dist:0,acc:0};
+    p.pd={x:e.clientX,y:e.clientY,t:Date.now(),dist:0,acc:0};
     try{el.setPointerCapture(e.pointerId);}catch(_){}
-    clearTimeout(cat.lpT);cat.lpT=setTimeout(function(){if(cat.pd)catPetStart();},450);
+    clearTimeout(p.lpT);p.lpT=setTimeout(function(){if(p.pd)petPetStart(p);},450);
   });
   el.addEventListener('pointermove',function(e){
-    var p=cat.pd;if(!p)return;
-    var d=Math.hypot(e.clientX-p.x,e.clientY-p.y);p.x=e.clientX;p.y=e.clientY;p.dist+=d;p.acc+=d;
-    if(p.dist>22)catPetStart();
-    if(cat.pet&&p.acc>90){p.acc=0;catHearts(1);}
+    var q=p.pd;if(!q)return;
+    var dd=Math.hypot(e.clientX-q.x,e.clientY-q.y);q.x=e.clientX;q.y=e.clientY;q.dist+=dd;q.acc+=dd;
+    if(q.dist>22)petPetStart(p);
+    if(p.pet&&q.acc>90){q.acc=0;petHearts(p,1);}
   });
   // 點一下要等 click 才開選單：iPhone 手指放開後還會補一個 click，先開的話會點到選單外面又關掉
   function up(tap){
-    clearTimeout(cat.lpT);
-    var p=cat.pd;cat.pd=null;if(!p)return;
-    if(cat.pet){catPetEnd();return;}
-    if(tap&&p.dist<12){clearTimeout(cat.tapT);cat.tapT=setTimeout(function(){cat.tapT=null;catTap();},450);}
+    clearTimeout(p.lpT);
+    var q=p.pd;p.pd=null;if(!q)return;
+    if(p.pet){petPetEnd(p);return;}
+    if(tap&&q.dist<12){clearTimeout(p.tapT);p.tapT=setTimeout(function(){p.tapT=null;petTap(p);},450);}
   }
   el.addEventListener('pointerup',function(){up(true);});
   el.addEventListener('pointercancel',function(){up(false);});
-  el.addEventListener('click',function(){if(cat.tapT){clearTimeout(cat.tapT);cat.tapT=null;catTap();}});
+  el.addEventListener('click',function(){if(p.tapT){clearTimeout(p.tapT);p.tapT=null;petTap(p);}});
   el.addEventListener('contextmenu',function(e){e.preventDefault();});
-  // 最黏你的話：偶爾跑到你點的地方
+  return p;
+}
+function petInit(){
+  try{var s=JSON.parse(lsGet('catV1')||'null');if(s){petData.syue=s.syue?petClean(s.syue):null;petData.ling=s.ling?petClean(s.ling):null;}}catch(e){}
+  pets.cat=petMake('cat');pets.pg=petMake('pg');
+  var bc=petBounds(pets.cat),bp=petBounds(pets.pg);
+  pets.cat.x=bc.x1-10;pets.cat.y=bc.y1;pets.cat.dir=-1;petPlace(pets.cat);
+  pets.pg.x=bp.x0+16;pets.pg.y=bp.y1;pets.pg.dir=1;petPlace(pets.pg);
+  petUpdHome();
+  // 最黏你的那隻：偶爾跑到你點的地方
   document.addEventListener('pointerdown',function(e){
-    if(catHidden()||cat.menu||cat.act||cat.pet||catReduce||catBusyUntil>Date.now())return;
+    if(catReduce||petBusyUntil>Date.now())return;
     if(e.target.closest('.cw,.popup-ov,.ov,.frov,.cat,.cat-menu,.cat-drop,.chg-bar,.hdr,.smenu'))return;
-    var me=catWho();if(!me||catFav()!==me||Math.random()>.3)return;
-    var x=e.clientX,y=e.clientY;
-    setTimeout(function(){if(!cat.menu&&!cat.act&&!cat.pet){clearTimeout(cat.sleepT);catMode('');catWalkTo(x-CAT_W/2+(x>cat.x?-30:30),y-CAT_H+10,95,function(){catSay('♥');catNext();});}},250);
+    var me=petWho();if(!me||Math.random()>.3)return;
+    var c=petShown().filter(function(p){return petIdle(p)&&petFav(p.k)===me;});
+    if(!c.length)return;
+    var p=catPick(c),x=e.clientX,y=e.clientY;
+    setTimeout(function(){if(petIdle(p))petWalkTo(p,x-p.def.W/2+(x>p.x?-30:30),y-p.def.H+10,95,function(){petSay(p,'♥');petNext(p);});},250);
   },{passive:true});
-  window.addEventListener('resize',function(){var b=catBounds();cat.x=catClamp(cat.x,b.x0,b.x1);cat.y=catClamp(cat.y,b.y0,b.y1);catPlace();});
-  document.addEventListener('visibilitychange',function(){if(document.hidden)catFlush();});
-  window.addEventListener('pagehide',catFlush);
-  // 停留時間：畫面開著每滿一分鐘，親密度 +1
+  window.addEventListener('resize',function(){petList().forEach(function(p){var b=petBounds(p);p.x=catClamp(p.x,b.x0,b.x1);p.y=catClamp(p.y,b.y0,b.y1);petPlace(p);});});
+  document.addEventListener('visibilitychange',function(){if(document.hidden)petFlush();});
+  window.addEventListener('pagehide',petFlush);
+  // 停留時間：畫面開著每滿一分鐘，兩隻的親密度各 +1
   setInterval(function(){
-    if(document.hidden||!catSynced)return;
-    catSecs+=15;if(catSecs<60)return;catSecs=0;
-    var me=catWho();if(!me)return;
-    var r=catDay(me);r.d.min++;if(r.d.min<=CAT_DAY_MIN)r.aff+=1;
-    catQuest('min',1);catSave();
-    if(catGift)catGreet();
+    if(document.hidden||!petSynced)return;
+    petSecs+=15;if(petSecs<60)return;petSecs=0;
+    var me=petWho();if(!me)return;
+    var r=petDay(me);r.d.min++;if(r.d.min<=PET_DAY_MIN){r.aff+=1;r.pg.aff+=1;}
+    petQuest('min',1);petSave();
+    if(petGift)petGreet();
   },15000);
-  document.getElementById('scene').addEventListener('click',catOpenSheet);
-  catSynced=!(syncCode&&syncCode!=='LOCAL');
-  if(catSynced)catReady();
-  catNext(2500);catScheduleDrop();
+  // 點頁尾：右邊（冰屋那邊）開企鵝，其他開貓咪
+  document.getElementById('scene').addEventListener('click',function(e){
+    var b=this.getBoundingClientRect();petOpenSheet(e.clientX>b.left+b.width*.68?'pg':'cat');
+  });
+  petSynced=!(syncCode&&syncCode!=='LOCAL');
+  if(petSynced)petReady();
+  petNext(pets.cat,2500);petNext(pets.pg,3200);petScheduleDrop();
 }
 
 (function init(){
@@ -2333,13 +2522,13 @@ function catInit(){
   buildFlags();renderPhoto();
   if(!syncCode){syncCode='LOCAL';lsSet('syncCode','LOCAL');}
   document.getElementById('frOv').style.display='none';
-  catInit();
+  petInit();
   // 一律載入 Firebase：本機模式的新手機也能在設定裡輸入同步代碼加入
   initFirebase().then(function(){
     if(cloudOn()){startListener(syncCode);return;}
     setDot('');
-    // 連不上雲端：貓咪先用這支手機的資料
-    if(!catSynced){catSynced=true;catReady();}
+    // 連不上雲端：寵物先用這支手機的資料
+    if(!petSynced){petSynced=true;petReady();}
     if(FIREBASE_READY&&lsGet('skipJoin')!=='1')showJoinPrompt();
   });
 })();
