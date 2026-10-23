@@ -571,6 +571,16 @@ button.sc{font-family:inherit;color:var(--t);}
 @keyframes bookFlap{0%,100%{transform:none;}14%,42%,70%{transform:translateY(-6px) scale(.98,1.025);}28%,56%,84%{transform:translateY(1px) scale(1.02,.98);}}
 @keyframes bookPounce{0%,20%{transform:none;}34%{transform:translateY(3px) scale(1.03,.96);}52%{transform:translate(45px,-28px) rotate(-5deg);}70%,100%{transform:translate(90px,0);}}
 @keyframes bookSlide{0%,10%{transform:none;}20%{transform:translateX(5px);}90%,100%{transform:translateX(110px);}}
+/* 雙寵碰面合體：短暫合作表演，效果不攔截班表操作。 */
+.cat.sk-combo{transition:transform .24s ease-out;}
+.cat.sk-combo .cat-sk{animation:comboCat 4s ease-in-out;}
+.cat.pg.sk-combo .cat-sk{animation:comboPenguin 4s ease-in-out;}
+.pet-combo-fx{position:fixed;width:180px;height:150px;z-index:30;pointer-events:none;color:var(--ink);}
+.combo-title{position:absolute;top:0;left:0;width:100%;text-align:center;font-size:14px;font-weight:bold;color:#76605C;background:var(--paper);border:2px solid #D9ABAA;border-radius:999px;padding:4px 7px;box-sizing:border-box;}
+.combo-ring{position:absolute;width:120px;height:120px;left:30px;top:30px;opacity:.75;animation:comboRing 4s ease-in-out;}
+@keyframes comboCat{0%,100%{transform:none;}10%{transform:scale(1.05,.93);}24%{transform:translateY(-40px) rotate(-7deg);}38%{transform:translateY(0) scale(1.04,.96);}54%,72%{transform:translateY(-9px) rotate(3deg);}62%,82%{transform:translateY(-3px) rotate(-3deg);}}
+@keyframes comboPenguin{0%,100%{transform:none;}15%,43%,71%{transform:translateY(-9px) rotate(7deg);}29%,57%,85%{transform:translateY(1px) rotate(-7deg);}}
+@keyframes comboRing{0%{opacity:0;transform:scale(.4) rotate(-25deg);}20%,75%{opacity:.8;transform:scale(1) rotate(8deg);}90%,100%{opacity:0;transform:scale(1.3) rotate(30deg);}}
 /* 系統開了「減少動態效果」：插圖停住，彈跳、滑動、淡入都關掉，全部直接停在最後的樣子 */
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition-duration:.01ms!important;}
@@ -1898,11 +1908,11 @@ var FOODS={
   fish:{name:'小魚',pet:'pg',full:35,aff:3,eat:'有魚！嘎！',done:'好好吃～嘎♥'}
 };
 var PET_DEF={
-  cat:{name:'雪球',ic:'🐱',W:112,H:94,hide:'catHide',foods:['kib','can'],idle:'groom',
+  cat:{name:'Pillow',ic:'🐱',W:112,H:94,hide:'catHide',foods:['kib','can'],idle:'groom',
     say:{tap:['喵～','喵？','喵嗚'],fav:['喵♥','最喜歡你了','（蹭蹭）'],aloof:['哼～','（假裝沒看到）','喵。'],hungry:['肚子餓了…','想吃罐罐','（肚子咕嚕咕嚕）'],
       idle:['喵～','（發呆）','喵？','（盯）'],pet:['呼嚕呼嚕～','好舒服～','再摸一下'],busy:['（看你排班）','我陪你～','加油喵'],
       wake:'喵…？（被吵醒）',sleepy:'嗯…呼嚕…',weak:'太餓了，沒力氣…',full:'吃不下了～',back:'喵～我回來了',meet:'喵？',jump:['嘿咻！','看我的！']}},
-  pg:{name:'嘟嘟',ic:'🐧',W:86,H:86,hide:'pgHide',foods:['fish'],idle:'preen',
+  pg:{name:'雪球',ic:'🐧',W:86,H:86,hide:'pgHide',foods:['fish'],idle:'preen',
     say:{tap:['嘎！','嘎？','（歪頭）'],fav:['嘎♥','最喜歡你了','（拍拍翅膀）'],aloof:['哼～','（轉身）','嘎。'],hungry:['想吃魚…','肚子餓扁了','（盯著魚看）'],
       idle:['嘎～','（發呆）','（左看右看）'],pet:['嘎嘎～','好舒服～','再摸一下'],busy:['（陪你排班）','嘎！加油','（站好）'],
       wake:'嘎…？（被吵醒）',sleepy:'嘎…呼…',weak:'太餓了，走不動…',full:'吃不下了嘎～',back:'嘎！我回來了',meet:'嘎！',jump:['嘎！','看我的！']}}
@@ -1969,13 +1979,17 @@ var CAT_ART={
 var petData={syue:null,ling:null},petSynced=false,petDirty=false,petWT=null,petGift=false,petBusyUntil=0,petSecs=0,petDropT=null,menuPet=null;
 var pets={};
 var catReduce=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
+var PET_COMBO_COOLDOWN=90000;
+var petCombo={active:false,armed:true,nextAt:(+lsGet('petComboAt')||0)+PET_COMBO_COOLDOWN,timers:[],fx:null,waiting:null,waitT:null};
+PET_BOOK_SKILLS.cat.combo=[[0,'pounce'],[.16,'wave'],[.35,'happy'],[.50,'wave'],[.80,'happy'],[.95,'idle']];
+PET_BOOK_SKILLS.pg.combo=[[0,'flap-down'],[.14,'flap-up'],[.28,'flap-down'],[.42,'flap-up'],[.56,'flap-down'],[.70,'flap-up'],[.84,'flap-down'],[.96,'idle']];
 
 function catPick(a){return a[Math.floor(Math.random()*a.length)];}
 function catClamp(v,a,b){return Math.max(a,Math.min(b,v));}
 function catHash(s){var h=2166136261;for(var i=0;i<s.length;i++)h=Math.imul(h^s.charCodeAt(i),16777619);return h>>>0;}
 function catToday(){var t=new Date();return evDateStr(t.getFullYear(),t.getMonth()+1,t.getDate());}
 function petNewStat(){return {aff:0,fedAt:0,fedFull:0,name:'',nameAt:0};}
-function petNewRec(){var r=petNewStat();r.pts=0;r.kib=3;r.can=1;r.fish=2;r.last='';r.pg=petNewStat();r.d=null;return r;}
+function petNewRec(){var r=petNewStat();r.nameSchema=2;r.pts=0;r.kib=3;r.can=1;r.fish=2;r.last='';r.pg=petNewStat();r.d=null;return r;}
 function petCleanStat(o,t){
   ['aff','fedAt','fedFull','nameAt'].forEach(function(k){var v=+o[k];if(isFinite(v)&&v>=0)t[k]=v;});
   if(typeof o.name==='string')t.name=o.name.slice(0,8);
@@ -1986,6 +2000,11 @@ function petClean(o){
   ['pts','kib','can','fish'].forEach(function(k){var v=+o[k];if(isFinite(v)&&v>=0)r[k]=v;});
   petCleanStat(o,r);
   if(o.pg&&typeof o.pg==='object')petCleanStat(o.pg,r.pg);
+  // 修正舊版的物種／預設名字對應；之後自行取的新名字仍保留。
+  if((+o.nameSchema||0)<2){
+    if(r.name==='雪球'||r.name==='嘟嘟')r.name='Pillow';
+    if(r.pg.name==='嘟嘟'||r.pg.name==='Pillow')r.pg.name='雪球';
+  }
   if(/^\d{4}-\d{2}-\d{2}$/.test(o.last||''))r.last=o.last;
   var d=o.d;
   if(d&&typeof d==='object'&&/^\d{4}-\d{2}-\d{2}$/.test(d.day||'')){
@@ -2198,20 +2217,94 @@ function petWalkTo(p,tx,ty,speed,done){
   petStop(p);
   var b=petBounds(p);tx=catClamp(tx,b.x0,b.x1);ty=catClamp(ty,b.y0,b.y1);
   if(Math.abs(tx-p.x)>2)p.dir=tx<p.x?-1:1;
-  if(catReduce){p.x=tx;p.y=ty;petPlace(p);if(done)done();return;}
+  if(catReduce){p.x=tx;p.y=ty;petPlace(p);if(petTryCombo())return;if(done)done();return;}
   petMode(p,speed>70?'walk run':'walk');petPlace(p);
   var last=performance.now();
   function step(t){
     var dt=Math.min(.05,(t-last)/1000);last=t;
     var dx=tx-p.x,dy=ty-p.y,dist=Math.hypot(dx,dy),mv=speed*dt;
-    if(dist<=mv){p.x=tx;p.y=ty;petPlace(p);petMode(p,'');p.raf=0;if(done)done();return;}
+    if(dist<=mv){p.x=tx;p.y=ty;petPlace(p);petMode(p,'');p.raf=0;if(petTryCombo())return;if(done)done();return;}
     p.x+=dx/dist*mv;p.y+=dy/dist*mv;petPlace(p);
+    if(petTryCombo())return;
     p.raf=requestAnimationFrame(step);
   }
   p.raf=requestAnimationFrame(step);
 }
 function petNext(p,ms){clearTimeout(p.timer);p.timer=setTimeout(function(){petThink(p);},ms==null?1800+Math.random()*3500:ms);}
 function petIdle(p){return !p.menu&&!p.pet&&!p.act&&!petHidden(p)&&!p.el.classList.contains('sleep');}
+function petTouching(a,b){
+  var feet=Math.abs(a.y+a.def.H-b.y-b.def.H);
+  return feet<Math.min(a.def.H,b.def.H)*.55&&a.x+a.def.W+8>=b.x&&b.x+b.def.W+8>=a.x;
+}
+function petReleaseComboWait(){
+  clearTimeout(petCombo.waitT);petCombo.waitT=null;
+  var p=petCombo.waiting;petCombo.waiting=null;
+  if(p&&p.act!=='combo')petNext(p,1000);
+}
+function petEndCombo(){
+  petReleaseComboWait();
+  if(!petCombo.active)return;
+  petCombo.active=false;petCombo.timers.forEach(clearTimeout);petCombo.timers=[];
+  if(petCombo.fx){petCombo.fx.remove();petCombo.fx=null;}
+  petList().forEach(function(p){
+    if(p.act!=='combo')return;
+    petBookReset(p);p.el.classList.remove('sk-combo');p.act='';petNext(p,2600+Math.random()*1400);
+  });
+}
+function petComboBurst(){
+  if(!petCombo.active||catReduce)return;
+  var a=pets.cat,b=pets.pg,x=(a.x+a.def.W/2+b.x+b.def.W/2)/2,y=Math.min(a.y,b.y)+20;
+  for(var i=0;i<12;i++){
+    var angle=Math.PI*2*i/12;
+    catFx(i%2?ART.heart:'❄','',x-9,y,Math.cos(angle)*85,Math.sin(angle)*55-40);
+  }
+}
+function petTryCombo(){
+  var a=pets.cat,b=pets.pg;
+  if(petCombo.active||document.hidden||!a||!b)return false;
+  if(!petTouching(a,b)){petCombo.armed=true;return false;}
+  if(!petCombo.armed||Date.now()<petCombo.nextAt||!petIdle(a)||!petIdle(b))return false;
+  petReleaseComboWait();
+  petCombo.active=true;petCombo.armed=false;petCombo.nextAt=Date.now()+PET_COMBO_COOLDOWN;
+  lsSet('petComboAt',Date.now());
+  var pair=a.x+a.def.W/2<b.x+b.def.W/2?[a,b]:[b,a];
+  var mid=(a.x+a.def.W/2+b.x+b.def.W/2)/2,ground=Math.max(a.y+a.def.H,b.y+b.def.H);
+  var total=a.def.W+b.def.W+6,start=catClamp(mid-total/2,6,Math.max(6,window.innerWidth-total-6));
+  pair.forEach(function(p,i){
+    petStop(p);petMode(p,'');p.act='combo';p.el.classList.add('sk-combo');
+    var bounds=petBounds(p);p.x=catClamp(start+(i?pair[0].def.W+6:0),bounds.x0,bounds.x1);
+    p.y=catClamp(ground-p.def.H,bounds.y0,bounds.y1);p.dir=i?-1:1;petPlace(p);
+    petBookPlay(p,'combo',4000);petSay(p,p.k==='cat'?'冰雪愛心陣！':'一起上！',2600);
+  });
+  var fx=document.createElement('div');fx.className='pet-combo-fx';fx.setAttribute('aria-hidden','true');
+  fx.style.left=catClamp(start+total/2-90,6,Math.max(6,window.innerWidth-186))+'px';
+  fx.style.top=Math.max(document.querySelector('.hdr').getBoundingClientRect().bottom+4,ground-150)+'px';
+  fx.innerHTML='<div class="combo-title">❄ 冰雪愛心陣 ♥</div><svg class="combo-ring" viewBox="0 0 120 120"><circle cx="60" cy="60" r="48" fill="none" stroke="#A8D3E6" stroke-width="3" stroke-dasharray="8 7"/><circle cx="60" cy="60" r="36" fill="none" stroke="#F2A497" stroke-width="2"/><path d="M60 15v90M21 37l78 46M21 83l78-46" fill="none" stroke="#A8D3E6" stroke-width="2" opacity=".65"/><path d="M60 76C33 59 43 39 60 50C77 39 87 59 60 76Z" fill="#F2A497" stroke="#FFFCF6" stroke-width="3"/></svg>';
+  document.body.appendChild(fx);petCombo.fx=fx;
+  if(!catReduce){petCombo.timers.push(setTimeout(petComboBurst,700),setTimeout(petComboBurst,1900));}
+  petCombo.timers.push(setTimeout(petEndCombo,catReduce?1000:4000));
+  return true;
+}
+function petInviteCombo(p){
+  var o=p.k==='cat'?pets.pg:pets.cat;
+  if(petCombo.active){toast('正在合體表演中～');return;}
+  var remaining=Math.ceil((petCombo.nextAt-Date.now())/1000);
+  if(remaining>0){toast('合體技能冷卻中，再等 '+remaining+' 秒');return;}
+  if(petHidden(o)){toast('先叫'+petName(o.k)+'出來，才能一起合體');return;}
+  if(o.el.classList.contains('sleep'))petWake(o);
+  if(!petIdle(p)||!petIdle(o)){toast('等牠們忙完，再一起合體吧');return;}
+  petReleaseComboWait();
+  petCombo.armed=true;
+  if(petTryCombo())return;
+  var tx=p.x<o.x?o.x-p.def.W+4:o.x+o.def.W-4;
+  var ty=o.y+o.def.H-p.def.H,distance=Math.hypot(tx-p.x,ty-p.y),speed=Math.max(90,distance/5);
+  petStop(o);petCombo.waiting=o;
+  petCombo.waitT=setTimeout(petReleaseComboWait,Math.round(distance/speed*1000)+1800);
+  petWalkTo(p,tx,ty,speed,function(){
+    if(!petTryCombo()){petReleaseComboWait();petNext(p,2000);}
+  });
+  petSay(p,'來一起合體！',2200);
+}
 // 自己決定下一步要做什麼
 function petThink(p){
   if(p.menu||p.pet||p.act||petHidden(p)||document.hidden){petNext(p,3000);return;}
@@ -2230,8 +2323,9 @@ function petThink(p){
   if(r<.13&&o&&petIdle(o)&&!catReduce){
     var tx=o.x<p.x?o.x+o.def.W-6:o.x-p.def.W+6;
     petWalkTo(p,tx,o.y+o.def.H-p.def.H,60,function(){
+      if(petTryCombo())return;
       p.dir=o.x<p.x?-1:1;petPlace(p);petSay(p,S.meet);
-      if(petIdle(o)){o.dir=p.x<o.x?-1:1;petPlace(o);setTimeout(function(){petSay(o,o.def.say.meet);petHearts(o,1);petHearts(p,1);},500);petNext(o,4000);}
+      if(petIdle(o)){o.dir=p.x<o.x?-1:1;petPlace(o);setTimeout(function(){if(p.act||o.act)return;petSay(o,o.def.say.meet);petHearts(o,1);petHearts(p,1);},500);petNext(o,4000);}
       petNext(p,3500);
     });
     return;
@@ -2360,6 +2454,7 @@ function petOpenMenu(p,skills){
     h+='<button data-a="pet"><span class="ic">🐾</span>摸摸</button>';
     if(r)p.def.foods.forEach(function(f){h+='<button data-food="'+f+'"'+(r[f]?'':' class="off"')+'><span class="ic">'+CAT_ART[f]+'</span>'+FOODS[f].name+' '+r[f]+'</button>';});
     h+='<button data-a="sk"><span class="ic">✨</span>技能</button><button data-a="info"><span class="ic">📋</span>狀態</button>';
+    h+='<button data-a="combo"><span class="ic">💞</span>找夥伴合體</button>';
     h+='<button data-a="sleep"><span class="ic">💤</span>回去睡覺</button>';
     if(def)h+='<div class="cat-menu-q">'+(q.done?'✓ ':'❗ ')+'今日支線：'+safeHtml(def.t)+'（'+Math.min(q.p,def.n)+'/'+def.n+'）→ '+petRewardTxt(def.r)+'</div>';
     if(q&&!q.seen){q.seen=true;petSave();petUpdMark();}
@@ -2377,6 +2472,7 @@ function petOpenMenu(p,skills){
     if(a==='pet'){petPetStart(p);setTimeout(function(){petPetEnd(p);},1800);}
     else if(food)petFeed(p,food);
     else if(a==='info')petOpenSheet(p.k);
+    else if(a==='combo')petInviteCombo(p);
     else if(a==='sleep')petSetResting(p,true);
   };
 }
@@ -2507,6 +2603,7 @@ function petOpenSheet(k){
 }
 // 點寵物選單或狀態卡都使用同一個休息開關，重新整理後也保留。
 function petSetResting(p,hide){
+  petEndCombo();
   petCloseMenu();petStop(p);clearTimeout(p.sleepT);clearTimeout(p.sayT);
   clearTimeout(p.skillT);p.skillT=0;
   if(p.act&&p.act!=='eat'){p.el.classList.remove('sk-'+p.act);p.act='';}
@@ -2590,8 +2687,8 @@ function petInit(){
     var p=catPick(c),x=e.clientX,y=e.clientY;
     setTimeout(function(){if(petIdle(p))petWalkTo(p,x-p.def.W/2+(x>p.x?-30:30),y-p.def.H+10,95,function(){petSay(p,'♥');petNext(p);});},250);
   },{passive:true});
-  window.addEventListener('resize',function(){petList().forEach(function(p){var b=petBounds(p);p.x=catClamp(p.x,b.x0,b.x1);p.y=catClamp(p.y,b.y0,b.y1);petPlace(p);});});
-  document.addEventListener('visibilitychange',function(){if(document.hidden)petFlush();});
+  window.addEventListener('resize',function(){petEndCombo();petList().forEach(function(p){var b=petBounds(p);p.x=catClamp(p.x,b.x0,b.x1);p.y=catClamp(p.y,b.y0,b.y1);petPlace(p);});});
+  document.addEventListener('visibilitychange',function(){if(document.hidden){petEndCombo();petFlush();}});
   window.addEventListener('pagehide',petFlush);
   // 停留時間：畫面開著每滿一分鐘，兩隻的親密度各 +1
   setInterval(function(){
@@ -2611,6 +2708,7 @@ function petInit(){
   petSynced=!(syncCode&&syncCode!=='LOCAL');
   if(petSynced)petReady();
   petNext(pets.cat,2500);petNext(pets.pg,3200);petScheduleDrop();
+  setInterval(petTryCombo,350);
 }
 
 (function init(){
