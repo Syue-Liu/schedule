@@ -535,6 +535,9 @@ body:has(.chg-bar.show){padding-bottom:calc(124px + env(safe-area-inset-bottom))
 /* 衣櫃・配件轉盤 */
 .wd-open{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:42px;margin:6px 0 2px;border:var(--lw2) solid var(--ink);border-radius:14px;background:var(--ling-bg);font-size:15px;color:var(--t);cursor:pointer;}
 .wd-open b,.wd-spin b{font-size:12px;font-weight:400;padding:1px 8px;border-radius:999px;background:var(--paper);border:1.5px solid var(--ink);}
+.wd-try-toggle{display:block;width:100%;min-height:38px;margin:8px 0;padding:7px 10px;border:var(--lw2) solid var(--ink);border-radius:12px;background:var(--ev-bg);font-size:13px;color:var(--t);cursor:pointer;}
+.wd-try-toggle[aria-pressed="true"]{background:var(--ribbon-bg);}
+.wd-try-note{font-size:12px;line-height:1.6;color:var(--t2);padding:2px 4px 4px;}
 .wd-top{display:grid;grid-template-columns:136px minmax(0,1fr);gap:12px;align-items:center;padding:10px 2px 4px;}
 .wd-stage{background:var(--paper2);border:var(--lw2) solid var(--ink);border-radius:18px;padding:8px 6px 4px;}
 .wd-pet{display:block;width:100%;height:auto;overflow:visible;}
@@ -2247,6 +2250,20 @@ function accWorn(k,slot){
   ['syue','ling'].forEach(function(u){var r=petData[u],e=r&&r.eq&&r.eq[k+'.'+slot];if(e&&e[1]>best[1])best=e;});
   return ACC_BY[best[0]]?best[0]:'';
 }
+// Temporary fitting stays in this page's memory; saved equipment remains separate.
+var accFitting={active:false,eq:{}};
+function accDisplayed(k,slot){
+  var key=k+'.'+slot;
+  return accFitting.active&&Object.prototype.hasOwnProperty.call(accFitting.eq,key)?accFitting.eq[key]:accWorn(k,slot);
+}
+function accTryWear(k,slot,id){
+  if(!accFitting.active||PET_KEYS.indexOf(k)<0||['head','neck'].indexOf(slot)<0)return false;
+  var a=ACC_BY[id];if(id&&(!a||a.slot!==slot||!accFits(a,k)))return false;
+  accFitting.eq[k+'.'+slot]=id||'';accApply(k);return true;
+}
+function accToggleFitting(){
+  accFitting.active=!accFitting.active;accFitting.eq={};accApply();
+}
 function accSetWorn(k,slot,id){
   var me=petWho();if(!me){toast('先在狀態卡選你是誰');return false;}
   var r=petRec(me);r.eq[k+'.'+slot]=[id||'',Date.now()];petSave();accApply(k);return true;
@@ -2268,7 +2285,7 @@ function accApply(k){
   list.forEach(function(p){
     if(!p)return;
     ['head','neck'].forEach(function(slot){
-      var a=ACC_BY[accWorn(p.k,slot)];if(a&&!accFits(a,p.k))a=null;
+      var a=ACC_BY[accDisplayed(p.k,slot)];if(a&&!accFits(a,p.k))a=null;
       p.el.querySelectorAll('.acc-'+slot).forEach(function(g){accPlace(g,a,slot);});
     });
   });
@@ -2276,49 +2293,54 @@ function accApply(k){
 // 衣櫃裡的預覽：站姿＋現在戴的配件
 function accPreview(k){
   var name={cat:'snowball',pg:'dudu',dg:'samoyed'}[k],h=k==='pg'?384:320;
-  var s='<svg viewBox="0 0 384 '+h+'" class="wd-pet"><image href="assets/pets/'+name+'-idle.svg" width="384" height="'+h+'"/>'+accSlots(name,'idle')+'</svg>';
+  var hat=ACC_BY[accDisplayed(k,'head')],anchor=ACC_ANCHORS[name].idle.H,top=0;
+  if(hat){var bw=anchor[2]*hat.size,tilt=(anchor[3]+(hat.rot||0))*Math.PI/180;top=Math.min(0,Math.floor(anchor[1]-bw+(hat.sink||.2)*anchor[2]-Math.abs(Math.sin(tilt)*bw/2)-10));}
+  var s='<svg viewBox="0 '+top+' 384 '+(h-top+8)+'" class="wd-pet"><image href="assets/pets/'+name+'-idle.svg" width="384" height="'+h+'"/>'+accSlots(name,'idle')+'</svg>';
   var d=document.createElement('div');d.innerHTML=s;
-  ['head','neck'].forEach(function(slot){var a=ACC_BY[accWorn(k,slot)];d.querySelectorAll('.acc-'+slot).forEach(function(g){accPlace(g,a&&accFits(a,k)?a:null,slot);});});
+  ['head','neck'].forEach(function(slot){var a=ACC_BY[accDisplayed(k,slot)];d.querySelectorAll('.acc-'+slot).forEach(function(g){accPlace(g,a&&accFits(a,k)?a:null,slot);});});
   return d.innerHTML;
 }
 
 /* 衣櫃：看收藏、幫寵物換配件、去轉盤 */
 function accOpenWardrobe(k){
   k=k||'cat';petCloseMenu();
-  var me=petWho(),own=accOwned(),r=me?petDay(me):null,tix=r?r.tix:0;
+  var me=petWho(),own=accOwned(),r=me?petDay(me):null,tix=r?r.tix:0,trial=accFitting.active;
   var have=ACC_LIST.filter(function(a){return own[a.id];}).length;
-  var h='<div class="popup-grabber"></div><div class="popup-top"><div class="popup-dot" style="background:var(--coral)"></div><div class="popup-title">🎀 '+safeHtml(petName(k))+' 的衣櫃</div><button class="popup-close" onclick="closePopup()">✕</button></div><div class="popup-body">';
+  var h='<div class="popup-grabber"></div><div class="popup-top"><div class="popup-dot" style="background:var(--coral)"></div><div class="popup-title">'+(trial?'🪞 ':'🎀 ')+safeHtml(petName(k))+(trial?' 的試衣間':' 的衣櫃')+'</div><button class="popup-close" onclick="closePopup()">✕</button></div><div class="popup-body">';
   h+='<div class="cs-tabs">'+PET_KEYS.map(function(x){return '<button data-pk="'+x+'"'+(x===k?' class="on"':'')+'>'+PET_DEF[x].ic+' '+safeHtml(petName(x))+'</button>';}).join('')+'</div>';
+  h+='<button class="wd-try-toggle" id="wdTry" aria-pressed="'+trial+'">'+(trial?'🪞 結束本機試戴':'🪞 本機試戴全部配件')+'</button>';
+  if(trial)h+='<div class="wd-try-note">全部 '+ACC_LIST.length+' 款都能試戴，效果只在這台裝置顯示。結束試戴或重新整理會恢復原本造型。</div>';
   h+='<div class="wd-top"><div class="wd-stage">'+accPreview(k)+'</div><div class="wd-slots">';
   ['head','neck'].forEach(function(slot){
     var fits=ACC_LIST.some(function(a){return a.slot===slot&&accFits(a,k);});
     if(!fits)return;
-    var a=ACC_BY[accWorn(k,slot)];
+    var a=ACC_BY[accDisplayed(k,slot)];
     h+='<div class="wd-slot"><span class="wd-slot-name">'+ACC_SLOT[slot]+'</span>'+(a?'<div class="wd-slot-detail"><img src="'+a.img+'" alt=""><span>'+safeHtml(a.name)+'</span></div><button data-off="'+slot+'">卸下</button>':'<span class="wd-empty">還沒戴</span>')+'</div>';
   });
-  h+='<button class="wd-spin" id="wdSpin">🎡 轉盤抽配件<b>券 ×'+tix+'</b></button></div></div>';
-  h+='<div class="cs-sec"><div class="cs-h"><span>我們的收藏</span><b>'+have+' / '+ACC_LIST.length+'</b></div><div class="wd-grid">';
+  h+='<button class="wd-spin" id="wdSpin">'+(trial?'‹ 回到我的收藏':'🎡 轉盤抽配件<b>券 ×'+tix+'</b>')+'</button></div></div>';
+  h+='<div class="cs-sec"><div class="cs-h"><span>'+(trial?'所有配件・自由試戴':'我們的收藏')+'</span><b>'+(trial?ACC_LIST.length+' 款':have+' / '+ACC_LIST.length)+'</b></div><div class="wd-grid">';
   ACC_LIST.forEach(function(a){
-    var ok=!!own[a.id],fit=accFits(a,k),on=accWorn(k,a.slot)===a.id,R=ACC_RARE[a.rare];
+    var ok=trial||!!own[a.id],fit=accFits(a,k),on=accDisplayed(k,a.slot)===a.id,R=ACC_RARE[a.rare];
     h+='<button class="wd-item'+(ok?'':' lock')+(on?' on':'')+(ok&&!fit?' nofit':'')+'" data-acc="'+a.id+'" style="--rc:'+R.color+'">'+
       (ok?'<img src="'+a.img+'" alt="">':'<span class="wd-q">？</span>')+'<span class="wd-n">'+(ok?safeHtml(a.name):R.name)+'</span><span class="wd-r">'+R.star+'</span></button>';
   });
-  h+='</div><div class="cs-note">點收藏裡的配件就會幫 '+safeHtml(petName(k))+' 戴上，再點一次拿下來。完成今日支線可以拿到轉盤券。</div></div></div>';
+  h+='</div><div class="cs-note">'+(trial?'點配件即可試戴，再點一次拿下。收藏配件可透過轉盤取得。':'點收藏裡的配件就會幫 '+safeHtml(petName(k))+' 戴上，再點一次拿下來。完成今日支線可以拿到轉盤券。')+'</div></div></div>';
   openPopupCard(h);
   var card=document.getElementById('popupCard');
+  document.getElementById('wdTry').onclick=function(){accToggleFitting();accOpenWardrobe(k);};
   card.querySelectorAll('[data-pk]').forEach(function(b){b.onclick=function(){accOpenWardrobe(b.getAttribute('data-pk'));};});
-  card.querySelectorAll('[data-off]').forEach(function(b){b.onclick=function(){if(accSetWorn(k,b.getAttribute('data-off'),''))accOpenWardrobe(k);};});
+  card.querySelectorAll('[data-off]').forEach(function(b){b.onclick=function(){var slot=b.getAttribute('data-off');if(trial?accTryWear(k,slot,''):accSetWorn(k,slot,''))accOpenWardrobe(k);};});
   card.querySelectorAll('[data-acc]').forEach(function(b){b.onclick=function(){
     var a=ACC_BY[b.getAttribute('data-acc')];
-    if(!own[a.id]){toast('還沒抽到這個配件，去轉盤試試');return;}
+    if(!trial&&!own[a.id]){toast('還沒抽到這個配件，可以先用本機試戴看看');return;}
     if(!accFits(a,k)){toast(petName(k)+' 戴不了'+a.name);return;}
-    var on=accWorn(k,a.slot)===a.id;
-    if(accSetWorn(k,a.slot,on?'':a.id)){
+    var on=accDisplayed(k,a.slot)===a.id;
+    if(trial?accTryWear(k,a.slot,on?'':a.id):accSetWorn(k,a.slot,on?'':a.id)){
       if(!on){var p=pets[k];if(p&&!petHidden(p)){petSay(p,catPick(['好看嗎？','新造型！','（轉一圈）']),1800);petHearts(p,2);}}
       accOpenWardrobe(k);
     }
   };});
-  document.getElementById('wdSpin').onclick=function(){accOpenWheel(k);};
+  document.getElementById('wdSpin').onclick=function(){if(trial){accToggleFitting();accOpenWardrobe(k);}else accOpenWheel(k);};
 }
 
 /* 轉盤：用一張券轉一次，抽到的配件放進收藏 */
@@ -3359,6 +3381,7 @@ function petInit(){
 </script>
 </body>
 </html>
+
 
 
 
