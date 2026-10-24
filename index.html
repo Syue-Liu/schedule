@@ -452,6 +452,10 @@ body:has(.chg-bar.show){padding-bottom:calc(124px + env(safe-area-inset-bottom))
 /* 點貓咪跳出來的選單 */
 .cat-menu-bd{position:fixed;inset:0;z-index:44;}
 .cat-menu{position:fixed;z-index:45;display:flex;flex-wrap:wrap;gap:6px;width:max-content;max-width:min(330px,calc(100vw - 16px));padding:6px;background:var(--paper);border:var(--lw) solid var(--ink);border-radius:18px;box-shadow:0 3px 0 var(--ink);animation:menuIn .3s var(--pop);}
+.cat-menu button,.cs-sk{position:relative;}
+.cd-on{opacity:.5;}
+.cd-on .ic{filter:grayscale(1);}
+.cd{position:absolute;top:2px;right:4px;font-size:10px;line-height:1;color:var(--t2);}
 .cat-menu button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:52px;height:54px;padding:4px 6px;border:var(--lw2) solid var(--ink);border-radius:14px;background:var(--paper);font-size:11px;color:var(--t);cursor:pointer;}
 .cat-menu button:active{background:var(--press);}
 .cat-menu button.off{opacity:.45;}
@@ -2118,6 +2122,22 @@ var petData={syue:null,ling:null},petSynced=false,petDirty=false,petWT=null,petG
 var pets={};
 var catReduce=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
 var petCombo={active:false,armed:{},members:[],type:'',timers:[],fx:null,waiting:[],invite:null,waitT:null};
+// 冷卻時間：自己按的小技能每個 10 秒；三隻合體 20 秒（不管是自己碰到還是按的，記在這支手機，重新整理也算）
+var PET_SKILL_CD=10000,PET_TRIO_CD=20000,petCd={};
+function petCdLeft(key){
+  var until=key==='all'?(+lsGet('petTrioAt')||0)+PET_TRIO_CD:(petCd[key]||0);
+  return Math.max(0,Math.ceil((until-Date.now())/1000));
+}
+function petCdStart(key){if(key==='all')lsSet('petTrioAt',Date.now());else petCd[key]=Date.now()+PET_SKILL_CD;}
+function petSkillName(k,id){var s=PET_SKILLS[k].filter(function(x){return x.id===id;})[0];return s?s.name:'技能';}
+// 選單、狀態卡上有 data-cd 的按鈕：冷卻中變淡、右上角顯示剩幾秒
+function petCdPaint(){
+  document.querySelectorAll('[data-cd]').forEach(function(b){
+    var l=petCdLeft(b.getAttribute('data-cd')),c=b.querySelector('.cd');
+    b.classList.toggle('cd-on',!!l);if(c)c.textContent=l?l+'s':'';
+  });
+}
+setInterval(petCdPaint,500);
 PET_BOOK_SKILLS.cat.combo=[[0,'pounce'],[.16,'wave'],[.35,'happy'],[.50,'wave'],[.80,'happy'],[.95,'idle']];
 PET_BOOK_SKILLS.pg.combo=[[0,'flap-down'],[.14,'flap-up'],[.28,'flap-down'],[.42,'flap-up'],[.56,'flap-down'],[.70,'flap-up'],[.84,'flap-down'],[.96,'idle']];
 
@@ -2450,6 +2470,7 @@ function petStartCombo(list){
   petReleaseComboWait();
   var key=petComboKey(list),def=PET_COMBOS[key],ms=key==='all'?9000:4000;
   petCombo.active=true;petCombo.type=key;petCombo.members=list.slice();petCombo.armed[key]=false;
+  if(key==='all')petCdStart('all');
   list.forEach(function(a,i){list.slice(i+1).forEach(function(b){petCombo.armed[petComboKey([a,b])]=false;});});
   var pair=list.slice().sort(function(a,b){return a.x+a.def.W/2-b.x-b.def.W/2;});
   var mid=list.reduce(function(v,p){return v+p.x+p.def.W/2;},0)/list.length;
@@ -2506,12 +2527,12 @@ function petTryCombo(){
   if(!petConnected(all))petCombo.armed.all=true;
   var ready=all.filter(function(p){return petIdle(p)||p.act==='combo';});
   if(petCombo.active){
-    if(petCombo.members.length===2&&ready.length===3&&petConnected(ready)){
+    if(petCombo.members.length===2&&ready.length===3&&petConnected(ready)&&!petCdLeft('all')){
       petEndCombo();return petStartCombo(ready);
     }
     return false;
   }
-  if(ready.length===3&&petConnected(ready)&&petCombo.armed.all!==false)return petStartCombo(ready);
+  if(ready.length===3&&petConnected(ready)&&petCombo.armed.all!==false&&!petCdLeft('all'))return petStartCombo(ready);
   // 邀請三隻時先一起集合，避免第一對提早開招而打斷第三隻走過來。
   if(petCombo.invite&&petCombo.invite.length===3)return false;
   for(var i=0;i<ready.length;i++)for(var j=i+1;j<ready.length;j++){
@@ -2522,6 +2543,7 @@ function petTryCombo(){
 }
 function petInviteCombo(p,target){
   if(petCombo.active){toast('正在合體表演中～');return;}
+  if(target==='all'&&petCdLeft('all')){toast('三隻合體冷卻中，再等 '+petCdLeft('all')+' 秒');return;}
   var others=petShown().filter(function(q){return q!==p;});
   var list=target==='all'?petList():[p,target?pets[target]:others.sort(function(a,b){return Math.hypot(a.x-p.x,a.y-p.y)-Math.hypot(b.x-p.x,b.y-p.y);})[0]];
   if(list.some(function(q){return !q||petHidden(q);})){toast(target==='all'?'先把三隻都叫出來吧':'先叫夥伴出來，才能一起合體');return;}
@@ -2579,7 +2601,7 @@ function petThink(p){
     return;
   }
   if(r<.66){petDo(p,p.def.idle);return;}
-  if(r<.78&&full>=15){var sk=petSkills(p.k);if(sk.length){petDo(p,catPick(sk).id);return;}}
+  if(r<.78&&full>=15){var sk=petSkills(p.k).filter(function(s){return !petCdLeft(p.k+':'+s.id);});if(sk.length){petDo(p,catPick(sk).id);return;}}
   if(r<.86)petSay(p,catPick(S.idle));
   petNext(p);
 }
@@ -2615,7 +2637,11 @@ function petBurst(p,svg,n){
 function petDo(p,id,fromUser,force){
   if(p.act||(!force&&(p.menu||p.pet)))return false;
   if(fromUser&&id!==p.def.idle&&petFull(p.k)<15){petSay(p,p.def.say.weak);petMeow(p);return false;}
+  var cdKey=p.k+':'+id,left=petCdLeft(cdKey);
+  if(fromUser&&id!==p.def.idle&&left){toast('「'+petSkillName(p.k,id)+'」冷卻中，再等 '+left+' 秒');return false;}
+  if(!fromUser&&!force&&left)return false;
   petStop(p);petMode(p,'');
+  if(fromUser&&id!==p.def.idle)petCdStart(cdKey);
   var ms=PET_SK_MS[p.k][id]||1500;
   p.el.style.setProperty('--skill-time',ms+'ms');
   p.act=id;p.el.classList.add('sk-'+id);petBookPlay(p,id,ms);
@@ -2695,9 +2721,9 @@ function petOpenMenu(p,skills){
   var h='';
   if(skills==='combo'){
     PET_KEYS.filter(function(k){return k!==p.k;}).forEach(function(k){h+='<button data-combo="'+k+'"><span class="ic">'+PET_DEF[k].ic+'</span>和'+safeHtml(petName(k))+'合體</button>';});
-    h+='<button data-combo="all"><span class="ic">🌟</span>三隻一起合體</button><button data-a="back"><span class="ic">‹</span>返回</button>';
+    h+='<button data-combo="all" data-cd="all"><span class="ic">🌟</span>三隻一起合體<span class="cd"></span></button><button data-a="back"><span class="ic">‹</span>返回</button>';
   }else if(skills){
-    petSkills(p.k).forEach(function(s){h+='<button data-sk="'+s.id+'"><span class="ic">'+s.ic+'</span>'+s.name+'</button>';});
+    petSkills(p.k).forEach(function(s){h+='<button data-sk="'+s.id+'" data-cd="'+p.k+':'+s.id+'"><span class="ic">'+s.ic+'</span>'+s.name+'<span class="cd"></span></button>';});
     var nx=PET_SKILLS[p.k].filter(function(s){return s.lv>petLevel(petPts());})[0];
     h+='<button data-a="back"><span class="ic">‹</span>返回</button>';
     if(nx)h+='<div class="cat-menu-q">Lv'+nx.lv+' 會學「'+nx.name+'」・維護班表可以升級</div>';
@@ -2713,12 +2739,14 @@ function petOpenMenu(p,skills){
   }
   m.innerHTML=h;
   document.body.appendChild(bd);document.body.appendChild(m);
-  petPosMenu(p,m);
+  petPosMenu(p,m);petCdPaint();
   m.onclick=function(e){
     var b=e.target.closest('button');if(!b)return;
     var a=b.getAttribute('data-a'),sk=b.getAttribute('data-sk'),food=b.getAttribute('data-food'),combo=b.getAttribute('data-combo');
+    if(combo==='all'&&petCdLeft('all')){toast('三隻合體冷卻中，再等 '+petCdLeft('all')+' 秒');return;}
     if(combo){petCloseMenu();petInviteCombo(p,combo);return;}
     if(a==='combo'){petOpenMenu(p,'combo');return;}
+    if(sk&&petCdLeft(p.k+':'+sk)){toast('「'+petSkillName(p.k,sk)+'」冷卻中，再等 '+petCdLeft(p.k+':'+sk)+' 秒');return;}
     if(sk){petCloseMenu();petDo(p,sk,true);return;}
     if(a==='back'){petOpenMenu(p,false);return;}
     if(a==='sk'){petOpenMenu(p,true);return;}
@@ -2821,7 +2849,7 @@ function petOpenSheet(k){
   h+='<div class="cs-sec"><div class="cs-h"><span>'+safeHtml(name)+' 的技能</span><b>點一下讓牠表演</b></div><div class="cs-skills">';
   PET_SKILLS[k].forEach(function(s){
     var ok=s.lv<=lv;
-    h+='<button class="cs-sk'+(ok?'':' lock')+'"'+(ok?' data-sk="'+s.id+'"':'')+'><span class="ic">'+(ok?s.ic:'🔒')+'</span>'+(ok?s.name:'Lv'+s.lv)+'</button>';
+    h+='<button class="cs-sk'+(ok?'':' lock')+'"'+(ok?' data-sk="'+s.id+'" data-cd="'+k+':'+s.id+'"':'')+'><span class="ic">'+(ok?s.ic:'🔒')+'</span>'+(ok?s.name:'Lv'+s.lv)+'<span class="cd"></span></button>';
   });
   h+='</div></div>';
   h+='<div class="cs-sec"><div class="cs-h"><span>怎麼讓寵物升級</span></div><div class="cs-rules">'+
@@ -2830,7 +2858,7 @@ function petOpenSheet(k){
   h+='<div class="cs-sec"><div class="cs-seg">'+(me?'這支手機是 <button data-me="syue"'+(me==='syue'?' class="on"':'')+'>學</button><button data-me="ling"'+(me==='ling'?' class="on"':'')+'>綾</button>':'')+
     '<button id="csHide">'+(petHidden(p)?'叫'+safeHtml(name)+'出來':'讓'+safeHtml(name)+'去休息（隱藏）')+'</button></div></div>';
   h+='</div>';
-  openPopupCard(h);
+  openPopupCard(h);petCdPaint();
   var card=document.getElementById('popupCard');
   card.querySelectorAll('[data-pk]').forEach(function(b){b.onclick=function(){petOpenSheet(b.getAttribute('data-pk'));};});
   card.querySelectorAll('[data-me]').forEach(function(b){b.onclick=function(){
@@ -2844,6 +2872,8 @@ function petOpenSheet(k){
   };});
   card.querySelectorAll('[data-sk]').forEach(function(b){b.onclick=function(){
     if(petHidden(p)){toast('先叫'+name+'出來才能表演喔');return;}
+    var l=petCdLeft(k+':'+b.getAttribute('data-sk'));
+    if(l){toast('「'+petSkillName(k,b.getAttribute('data-sk'))+'」冷卻中，再等 '+l+' 秒');return;}
     closePopup();var id=b.getAttribute('data-sk');setTimeout(function(){petDo(p,id,true);},350);
   };});
   document.getElementById('csHide').onclick=function(){
