@@ -299,8 +299,8 @@ button.sc{font-family:inherit;color:var(--t);}
 .toy-sway{transform-box:fill-box;transform-origin:50% 0;animation:toySway 2.6s ease-in-out infinite alternate;}
 @keyframes toySway{from{transform:rotate(-10deg);}to{transform:rotate(10deg);}}
 .spark.s2{animation-delay:-2s;}
-.scene .home-cat,.scene .home-pg{display:none;}
-.scene.cat-away .home-cat,.scene.pg-away .home-pg{display:inline;}
+.scene .home-cat,.scene .home-pg,.scene .home-dg{display:none;}
+.scene.cat-away .home-cat,.scene.pg-away .home-pg,.scene.dg-away .home-dg{display:inline;}
 .spark{transform-box:fill-box;transform-origin:50% 50%;animation:spark 4s ease-in-out infinite;}
 @keyframes spark{0%,72%,100%{opacity:0;transform:scale(.3);}82%{opacity:1;transform:scale(1.1);}90%{opacity:1;transform:scale(1);}}
 
@@ -507,8 +507,8 @@ button.sc{font-family:inherit;color:var(--t);}
 .cs-seg button.on{background:var(--yellow);}
 .scene{cursor:pointer;}
 /* 寵物狀態卡上面切換貓咪／企鵝 */
-.cs-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:2px 0 4px;}
-.cs-tabs button{height:40px;border:var(--lw2) solid var(--ink);border-radius:14px;background:var(--paper);font-size:15px;color:var(--t);cursor:pointer;}
+.cs-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:2px 0 4px;}
+.cs-tabs button{height:40px;min-width:0;border:var(--lw2) solid var(--ink);border-radius:14px;background:var(--paper);font-size:13px;color:var(--t);cursor:pointer;}
 .cs-tabs button.on{background:var(--yellow);}
 /* 精緻繪本寵物：透明姿勢圖，沿用原本的移動、技能與養成狀態。 */
 .cat{width:112px;height:94px;}
@@ -595,6 +595,64 @@ button.sc{font-family:inherit;color:var(--t);}
 @keyframes comboCat{0%,100%{transform:none;}10%{transform:scale(1.05,.93);}24%{transform:translateY(-40px) rotate(-7deg);}38%{transform:translateY(0) scale(1.04,.96);}54%,72%{transform:translateY(-9px) rotate(3deg);}62%,82%{transform:translateY(-3px) rotate(-3deg);}}
 @keyframes comboPenguin{0%,100%{transform:none;}15%,43%,71%{transform:translateY(-9px) rotate(7deg);}29%,57%,85%{transform:translateY(1px) rotate(-7deg);}}
 @keyframes comboRing{0%{opacity:0;transform:scale(.4) rotate(-25deg);}20%,75%{opacity:.8;transform:scale(1) rotate(8deg);}90%,100%{opacity:0;transform:scale(1.3) rotate(30deg);}}
+
+/* 薩摩耶：四步連續步態及專屬犬類動作。 */
+.cat.dg{width:126px;height:105px;--walk-cycle:.9s;}
+.cat.dg.run{--walk-cycle:.5s;}
+.cat.dg.walk .book-frame{display:none;animation:none;opacity:1;}
+.cat.dg.walk .book-walk-a,.cat.dg.walk .book-walk-c,.cat.dg.walk .book-walk-b,.cat.dg.walk .book-walk-d{display:inline;opacity:0;animation:dogStep var(--walk-cycle) linear infinite;}
+.cat.dg.walk .book-walk-c{animation-delay:calc(var(--walk-cycle) * -.75);}
+.cat.dg.walk .book-walk-b{animation-delay:calc(var(--walk-cycle) * -.5);}
+.cat.dg.walk .book-walk-d{animation-delay:calc(var(--walk-cycle) * -.25);}
+@keyframes dogStep{0%,20%{opacity:1;}25%,95%{opacity:0;}100%{opacity:1;}}
+.cat.dg.walk .cat-bob{animation:dogBob calc(var(--walk-cycle) / 2) ease-in-out infinite;}
+@keyframes dogBob{0%,100%{transform:translateY(0);}50%{transform:translateY(-1.5px);}}
+.cat.dg.sk-paw .cat-sk{animation:dogPaw var(--skill-time) ease-in-out;transform-origin:50% 95%;}
+@keyframes dogPaw{0%,100%{transform:none;}25%,65%{transform:rotate(-3deg);}45%,80%{transform:rotate(2deg);}}
+.cat.dg.sk-wag .cat-sk{animation:dogWag .32s ease-in-out infinite alternate;transform-origin:50% 95%;}
+@keyframes dogWag{from{transform:rotate(-1.8deg);}to{transform:rotate(1.8deg);}}
+.cat.dg.sk-shake .cat-sk,.cat.dg.sk-cloud .cat-sk{animation:dogShake .18s ease-in-out infinite alternate;}
+@keyframes dogShake{from{transform:translateX(-2px) rotate(-2deg);}to{transform:translateX(2px) rotate(2deg);}}
+.cat.dg.sk-howl .cat-sk{animation:dogHowl var(--skill-time) ease-in-out;transform-origin:50% 95%;}
+@keyframes dogHowl{0%,100%{transform:none;}25%,80%{transform:scale(1,1.025) translateY(-2px);}}
+.cat.dg.sk-bow .cat-sk{animation:dogBow var(--skill-time) ease-in-out;transform-origin:65% 95%;}
+@keyframes dogBow{0%,100%{transform:none;}35%,70%{transform:translateX(3px) scale(1.025,.99);}}
+.cat.dg.sk-chase .cat-sk{animation:dogChase var(--skill-time) ease-in-out;}
+@keyframes dogChase{0%,100%{transform:none;}25%{transform:rotate(-9deg) translateX(-4px);}50%{transform:rotateY(180deg) translateX(5px);}75%{transform:rotateY(330deg) translateX(3px);}}
+.cat.dg.sk-zoom .cat-sk{animation:dogZoom var(--skill-time) ease-in-out;}
+@keyframes dogZoom{0%,100%{transform:none;}20%{transform:translateX(15px) translateY(-3px);}45%{transform:translateX(-15px);}70%{transform:translateX(12px) translateY(-3px);}}
+.cat[data-book-pose="bow-start"] .book-bow-start{display:inline;}
+.cat[data-book-pose="bow"] .book-bow{display:inline;}
+.cat[data-book-pose="paw"] .book-paw{display:inline;}
+.cat[data-book-pose="wag"] .book-wag{display:inline;}
+.cat[data-book-pose="shake-left"] .book-shake-left{display:inline;}
+.cat[data-book-pose="shake-right"] .book-shake-right{display:inline;}
+.cat[data-book-pose="howl"] .book-howl{display:inline;}
+.cat[data-book-pose="chase"] .book-chase{display:inline;}
+.cat[data-book-pose="trot"] .book-trot{display:inline;}
+.cat[data-book-pose="beg"] .book-beg{display:inline;}
+.cat[data-book-pose="walk-c"] .book-walk-c{display:inline;}
+.cat[data-book-pose="walk-d"] .book-walk-d{display:inline;}
+
+
+.cat.dg.sk-combo .cat-sk{animation:dogCombo 4s ease-in-out;}
+@keyframes dogCombo{0%,100%{transform:none;}20%,60%{transform:translateY(-12px) rotate(-4deg);}40%,80%{transform:translateY(-3px) rotate(4deg);}}
+.cat[data-combo-kind="cloud"].sk-combo .cat-sk{animation:cloudHighFive 4s ease-in-out;}
+@keyframes cloudHighFive{0%,100%{transform:none;}25%,55%{transform:translateY(-22px) rotate(5deg);}40%,70%{transform:translateY(-5px) rotate(-4deg);}}
+.cat[data-combo-kind="aurora"].sk-combo .cat-sk{animation:auroraSled 4s ease-in-out;}
+@keyframes auroraSled{0%,100%{transform:none;}25%{transform:translateX(-10px) rotate(-4deg);}65%{transform:translateX(10px) rotate(4deg);}}
+.cat[data-combo-kind="all"].sk-combo .cat-sk{animation:ensembleJump 5.2s ease-in-out;}
+@keyframes ensembleJump{0%,100%{transform:none;}20%,60%{transform:translateY(-30px) scale(1.04);}40%,80%{transform:translateY(-4px) rotate(4deg);}}
+.combo-caption{position:absolute;top:143px;left:0;width:100%;text-align:center;font-size:11px;color:var(--t2);}
+.pet-combo-fx.all{inset:0;width:100vw;height:100vh;z-index:29;overflow:hidden;}
+.combo-aurora{position:absolute;inset:-20%;background:conic-gradient(from 40deg at 50% 60%,#A8D3E650,#B9DAA570,#F6D27A45,#F2A49755,#A8D3E650);animation:skyDance 5.2s ease-in-out;}
+@keyframes skyDance{0%,100%{opacity:0;transform:scale(.85) rotate(-8deg);}25%,75%{opacity:1;transform:scale(1.05) rotate(8deg);}}
+.combo-sky-ring{position:absolute;left:50%;top:60%;width:min(65vw,65vh);aspect-ratio:1;border:4px dashed #FFFCF6;border-radius:50%;animation:skyRipple 5.2s ease-out;}
+.combo-sky-ring.second{animation-delay:.45s;border-color:#A8D3E6;}
+@keyframes skyRipple{0%{opacity:0;transform:translate(-50%,-50%) scale(.2) rotate(0deg);}30%{opacity:.7;}100%{opacity:0;transform:translate(-50%,-50%) scale(2.8) rotate(80deg);}}
+.combo-finale{position:absolute;left:50%;transform:translateX(-50%);padding:10px 16px;border:2px solid #D9ABAA;border-radius:20px;background:#FFFCF6E6;color:var(--ink);font-size:clamp(13px,3.6vw,21px);font-weight:bold;white-space:nowrap;}
+@media(prefers-reduced-motion:reduce){.combo-aurora{opacity:.2;}.combo-sky-ring{display:none;}}
+
 /* 系統開了「減少動態效果」：插圖停住，彈跳、滑動、淡入都關掉，全部直接停在最後的樣子 */
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition-duration:.01ms!important;}
@@ -683,7 +741,7 @@ button.sc{font-family:inherit;color:var(--t);}
 <div class="ht"><span id="hintText"></span></div>
 <!-- 頁尾小插圖：寵物設施（點左邊打開貓咪、點冰屋那邊打開企鵝的狀態卡） -->
 <div class="scene" id="scene" role="button" aria-label="寵物狀態">
-  <svg viewBox="0 0 360 124">
+  <svg viewBox="0 0 360 160">
     <defs><clipPath id="iglooClip"><path d="M297.5 113A26.5 26.5 0 0 1 350.5 113Z"/></clipPath></defs>
     <g stroke="#3E3A39" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
       <!-- 貓跳台：麻繩柱、跳台、有圓洞的小屋、吊著的毛球 -->
@@ -730,6 +788,12 @@ button.sc{font-family:inherit;color:var(--t);}
       <path d="M12 115.5H352" fill="none"/>
     </g>
     <!-- 寵物休息中（被藏起來）才出現：貓睡在跳台上、企鵝在冰屋門口打瞌睡 -->
+    <rect x="135" y="137" width="100" height="15" rx="7" fill="#B9DAA5" stroke="#3E3A39" stroke-width="2.5"/>
+    <g class="home-dg">
+      <image href="assets/pets/samoyed-sleep.svg" x="134" y="84" width="102" height="70"/>
+      <text class="zz" x="224" y="120" font-size="10" fill="#3E3A39">z</text>
+      <text class="zz z2" x="232" y="111" font-size="8" fill="#3E3A39">z</text>
+    </g>
     <g class="home-cat">
       <image href="assets/pets/snowball-sleep.svg" x="17" y="0" width="59" height="43" preserveAspectRatio="none"/>
       <text class="zz" x="66" y="16" font-size="11" fill="#3E3A39">z</text>
@@ -1560,12 +1624,12 @@ function renderProfileUI(){
   pill.textContent=isOverview?'總表 ▾':u.label+' ✎ ▾';
   pill.style.background=isOverview?'var(--paper)':(currentUser==='syue'?'var(--syue)':'var(--ling)');
   document.getElementById('loginName').textContent=isOverview?'瀏覽模式・點擊切換編輯':'編輯中：'+u.label;
-  document.getElementById('hintText').innerHTML=isOverview?'瀏覽模式・點上方 <b>總表</b> 切換為編輯模式・點有行程的日期可看詳細':'目前編輯：<b>'+u.label+'</b>・點一下切換班別・點兩下選擇・長按取消';
+  document.getElementById('hintText').innerHTML=isOverview?'瀏覽模式・點上方 <b>總表</b> 切換為編輯模式・點有行程的日期可看詳細':'目前編輯：<b>'+u.label+'</b>・點日期切換班別・點標籤／點兩下選擇・切換人請用上方選單';
 }
 function dayHtmlFor(uid,d,dow,compact){
   var sidx=shiftIndex(uid,d), sh=sidx?shifts(uid)[sidx-1]:null;
   if(!sh)return '';
-  return '<button type="button" class="bg2 '+(compact?'mini':'')+'" data-shift-user="'+uid+'" title="編輯'+USERS[uid].label+'的班表" style="background:'+sh.bdg+';color:'+sh.txt+'">'+USERS[uid].label+' '+safeHtml(sh.name)+'</button>';
+  return '<button type="button" class="bg2 '+(compact?'mini':'')+'" data-shift-user="'+uid+'" title="編輯'+USERS[currentUser&&!calMode?currentUser:uid].label+'的班表" style="background:'+sh.bdg+';color:'+sh.txt+'">'+USERS[uid].label+' '+safeHtml(sh.name)+'</button>';
 }
 // monthAnim：換月份時讓日期格彈進來（'next'／'prev'／'pop'）；popDay：剛點的那天彈一下
 var monthAnim='',popDay=0,popT2;
@@ -1670,9 +1734,9 @@ function render(){
       div.addEventListener('click',function(e){
         if(longFired){longFired=false;return;}
         var badge=e.target.closest('[data-shift-user]');
-        if(badge){
-          var owner=badge.getAttribute('data-shift-user');
-          setMode(owner,false);render();petBusy();showShiftMenu(dd,dw);return;
+        if(badge&&!calMode){
+          if(!currentUser){var owner=badge.getAttribute('data-shift-user');setMode(owner,false);render();}
+          clearTimeout(tapT);tapT=null;tapFn=null;petBusy();showShiftMenu(dd,dw);return;
         }
         if(calMode||!currentUser){bounce(div,'pop');openDay();return;}
         // 班別模式：點一下切換、點兩下跳出選單。先等一下，看會不會有第二下
@@ -1880,6 +1944,7 @@ function showSyncSetup(){
    - 親密度、飽足度：每隻寵物各自算（貓的放在紀錄最外層，企鵝的放在 pg 裡）
    - 糧食：各自的。飼料、罐頭給貓吃，小魚給企鵝吃 */
 var PET_LV=[0,12,35,70,120,190,280,400,550]; // 第 i 格＝升到 Lv(i+1) 要的總點數
+var PET_KEYS=['cat','pg','dg'];
 var PET_SKILLS={
   cat:[
     {id:'stretch',lv:1,name:'伸懶腰',ic:'🙆'},
@@ -1902,11 +1967,14 @@ var PET_SKILLS={
     {id:'love',lv:8,name:'愛心光波',ic:'💖'}
   ]
 };
+PET_SKILLS.dg=[{id:'paw',lv:1,name:'握手',ic:'🐾'},{id:'wag',lv:2,name:'搖尾歡迎',ic:'🐕'},{id:'shake',lv:3,name:'甩甩毛',ic:'💦'},{id:'howl',lv:4,name:'仰頭嗷嗚',ic:'🎵'},{id:'bow',lv:5,name:'邀玩鞠躬',ic:'🙇'},{id:'chase',lv:6,name:'追尾巴',ic:'🌀'},{id:'zoom',lv:7,name:'快樂小碎步',ic:'💨'},{id:'cloud',lv:8,name:'棉花糖風暴',ic:'☁️'}];
 var PET_SK_MS={
   cat:{stretch:3000,roll:2300,jump:1300,flip:1700,wave:2600,spin:1800,yarn:2600,love:2200,groom:2400},
   pg:{flap:2300,dance:2600,jump:1300,slide:2200,salute:2400,spin:1800,flip:1700,love:2200,preen:2400}
 };
+PET_SK_MS.dg={paw:2400,wag:2600,shake:2400,howl:3000,bow:3200,chase:2800,zoom:2800,cloud:3600};
 var PET_SK_SAY={stretch:'伸個大懶腰～',wave:'招財進寶～',salute:'嗨～！',dance:'嘎嘎嘎♪',slide:'咻～'};
+Object.assign(PET_SK_SAY,{paw:'握握手～',wag:'你回來啦！',shake:'甩甩～蓬！',howl:'嗷嗚～～♪',bow:'來玩嘛～',chase:'抓到尾巴了嗎？',zoom:'汪！小碎步！',cloud:'棉花糖風暴！'});
 var PET_QUESTS=[
   {id:'chg3',t:'幫忙更新 3 天的班表',k:'chg',n:3,r:{can:1}},
   {id:'ev1',t:'新增或修改一個行程',k:'ev',n:1,r:{kib:2,fish:1}},
@@ -1933,6 +2001,8 @@ var PET_DEF={
       idle:['嘎～','（發呆）','（左看右看）'],pet:['嘎嘎～','好舒服～','再摸一下'],busy:['（陪你排班）','嘎！加油','（站好）'],
       wake:'嘎…？（被吵醒）',sleepy:'嘎…呼…',weak:'太餓了，走不動…',full:'吃不下了嘎～',back:'嘎！我回來了',meet:'嘎！',jump:['嘎！','看我的！']}}
 };
+PET_DEF.dg={name:'薩摩耶',species:'薩摩耶',ic:'🐶',W:126,H:105,hide:'dgHide',foods:['kib','can'],idle:'wag',say:{tap:['汪～','嘿嘿～','（瞇眼傻笑）'],fav:['汪♥','最喜歡你了','（搖尾巴）'],aloof:['（歪頭）','汪？','（看看你）'],hungry:['想吃點心…','肚子咕嚕嚕','有飼料嗎？'],idle:['（瞇眼笑）','（搖搖尾巴）','嘿嘿～'],pet:['好舒服～','再摸一下～','（尾巴停不下來）'],busy:['我陪你排班～','加油汪！','（乖乖坐好）'],wake:'汪…？睡醒了',sleepy:'呼…好想睡…',weak:'好餓…先吃飯好嗎？',full:'吃飽飽了～',back:'汪！我回來啦！',meet:'一起玩！',jump:['汪！','嘿咻！']}};
+PET_DEF.cat.species='貓咪';PET_DEF.pg.species='企鵝';
 // 每人每天的上限，避免一直點同一格刷點數
 var PET_DAY_PTS=30,PET_DAY_MIN=30,PET_DAY_PET=10,PET_DAY_DROP=3,PET_DAY_EV=3;
 // 專用關鍵姿勢與技能節奏，數字為整段技能的時間比例。
@@ -1964,6 +2034,18 @@ var PET_BOOK_SKILLS={
     preen:[[0,'idle'],[.15,'preen'],[.38,'idle'],[.54,'preen'],[.80,'preen'],[.94,'idle']]
   }
 };
+PET_BOOK_EXTRA.samoyed=['bow-start','bow','paw','wag','shake-left','shake-right','howl','chase','beg','walk-c','walk-d'];
+PET_BOOK_SKILLS.dg={
+ paw:[[0,'happy'],[.16,'paw'],[.38,'happy'],[.54,'paw'],[.86,'happy'],[.97,'idle']],
+ wag:[[0,'idle'],[.12,'wag'],[.25,'idle'],[.38,'wag'],[.51,'idle'],[.64,'wag'],[.77,'idle'],[.90,'wag'],[.98,'idle']],
+ shake:[[0,'idle'],[.12,'shake-left'],[.22,'shake-right'],[.32,'shake-left'],[.42,'shake-right'],[.52,'shake-left'],[.62,'shake-right'],[.72,'shake-left'],[.84,'shake-right'],[.97,'idle']],
+ howl:[[0,'happy'],[.18,'howl'],[.80,'howl'],[.94,'happy']],
+ bow:[[0,'idle'],[.12,'bow-start'],[.30,'bow'],[.78,'bow-start'],[.94,'idle']],
+ chase:[[0,'idle'],[.14,'chase'],[.86,'chase'],[.96,'idle']],
+ zoom:[[0,'walk-a'],[.12,'walk-c'],[.24,'walk-b'],[.36,'walk-d'],[.48,'walk-a'],[.60,'walk-c'],[.72,'walk-b'],[.84,'walk-d'],[.97,'idle']],
+ cloud:[[0,'beg'],[.18,'shake-left'],[.30,'shake-right'],[.42,'shake-left'],[.54,'shake-right'],[.70,'paw'],[.88,'happy'],[.98,'idle']],
+ combo:[[0,'happy'],[.16,'paw'],[.32,'wag'],[.48,'beg'],[.66,'paw'],[.84,'happy'],[.98,'idle']]
+};
 function petBookReset(p){
   (p.bookTimers||[]).forEach(clearTimeout);p.bookTimers=[];
   p.el.removeAttribute('data-book-pose');
@@ -1986,6 +2068,7 @@ function petBookArt(name,w,h){
 var CAT_ART={
   cat:petBookArt('snowball',384,320),
   pg:petBookArt('dudu',384,384),
+  dg:petBookArt('samoyed',384,320),
   kib:'<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 9h16l2 18a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2Z" fill="#F6D27A" stroke="#3E3A39" stroke-width="2.2" stroke-linejoin="round"/><path d="M8 9l1.5-5h13L24 9Z" fill="#F2A497" stroke="#3E3A39" stroke-width="2.2" stroke-linejoin="round"/><path d="M10.5 19.5q5-5 9.5 0q-4.5 5-9.5 0Zm9.5 0 3-2.5v5Z" fill="#FFFCF6" stroke="#3E3A39" stroke-width="1.6" stroke-linejoin="round"/></svg>',
   can:'<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6 10v14c0 2.5 4.5 4 10 4s10-1.5 10-4V10" fill="#A8D3E6" stroke="#3E3A39" stroke-width="2.2"/><ellipse cx="16" cy="10" rx="10" ry="4" fill="#FFFCF6" stroke="#3E3A39" stroke-width="2.2"/><path d="M6 15.5c3 1.6 17 1.6 20 0v6c-3 1.6-17 1.6-20 0Z" fill="#F2A497" stroke="#3E3A39" stroke-width="1.8"/><path d="M11.5 18.7q3.5-3 6.5 0q-3 3-6.5 0Zm6.5 0 2.5-2v4Z" fill="#FFFCF6" stroke="#3E3A39" stroke-width="1.4" stroke-linejoin="round"/></svg>',
   fish:'<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M4 16q10-10 20 0q-10 10-20 0Zm20 0 5-5v10Z" fill="#A8D3E6" stroke="#3E3A39" stroke-width="2.2" stroke-linejoin="round"/><circle cx="9" cy="15" r="1.4" fill="#3E3A39"/><path d="M13 12q2 4 0 8M17 12q2 4 0 8" fill="none" stroke="#FFFCF6" stroke-width="1.6" stroke-linecap="round"/></svg>',
@@ -1996,7 +2079,7 @@ var CAT_ART={
 var petData={syue:null,ling:null},petSynced=false,petDirty=false,petWT=null,petGift=false,petBusyUntil=0,petSecs=0,petDropT=null,menuPet=null;
 var pets={};
 var catReduce=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
-var petCombo={active:false,armed:true,timers:[],fx:null,waiting:null,waitT:null};
+var petCombo={active:false,armed:{},members:[],type:'',timers:[],fx:null,waiting:[],invite:null,waitT:null};
 PET_BOOK_SKILLS.cat.combo=[[0,'pounce'],[.16,'wave'],[.35,'happy'],[.50,'wave'],[.80,'happy'],[.95,'idle']];
 PET_BOOK_SKILLS.pg.combo=[[0,'flap-down'],[.14,'flap-up'],[.28,'flap-down'],[.42,'flap-up'],[.56,'flap-down'],[.70,'flap-up'],[.84,'flap-down'],[.96,'idle']];
 
@@ -2005,7 +2088,7 @@ function catClamp(v,a,b){return Math.max(a,Math.min(b,v));}
 function catHash(s){var h=2166136261;for(var i=0;i<s.length;i++)h=Math.imul(h^s.charCodeAt(i),16777619);return h>>>0;}
 function catToday(){var t=new Date();return evDateStr(t.getFullYear(),t.getMonth()+1,t.getDate());}
 function petNewStat(){return {aff:0,fedAt:0,fedFull:0,name:'',nameAt:0};}
-function petNewRec(){var r=petNewStat();r.nameSchema=2;r.pts=0;r.kib=3;r.can=1;r.fish=2;r.squid=1;r.last='';r.pg=petNewStat();r.d=null;return r;}
+function petNewRec(){var r=petNewStat();r.nameSchema=2;r.pts=0;r.kib=3;r.can=1;r.fish=2;r.squid=1;r.last='';r.pg=petNewStat();r.dg=petNewStat();r.d=null;return r;}
 function petCleanStat(o,t){
   ['aff','fedAt','fedFull','nameAt'].forEach(function(k){var v=+o[k];if(isFinite(v)&&v>=0)t[k]=v;});
   if(typeof o.name==='string')t.name=o.name.slice(0,8);
@@ -2016,6 +2099,7 @@ function petClean(o){
   ['pts','kib','can','fish','squid'].forEach(function(k){var v=+o[k];if(isFinite(v)&&v>=0)r[k]=v;});
   petCleanStat(o,r);
   if(o.pg&&typeof o.pg==='object')petCleanStat(o.pg,r.pg);
+  if(o.dg&&typeof o.dg==='object')petCleanStat(o.dg,r.dg);
   // 修正舊版的物種／預設名字對應；之後自行取的新名字仍保留。
   if((+o.nameSchema||0)<2){
     if(r.name==='雪球'||r.name==='嘟嘟')r.name='Pillow';
@@ -2024,19 +2108,19 @@ function petClean(o){
   if(/^\d{4}-\d{2}-\d{2}$/.test(o.last||''))r.last=o.last;
   var d=o.d;
   if(d&&typeof d==='object'&&/^\d{4}-\d{2}-\d{2}$/.test(d.day||'')){
-    r.d={day:d.day,pts:+d.pts||0,min:+d.min||0,pet:+d.pet||0,ppet:+d.ppet||0,ev:+d.ev||0,ntf:+d.ntf||0,drop:+d.drop||0,
+    r.d={day:d.day,pts:+d.pts||0,min:+d.min||0,pet:+d.pet||0,ppet:+d.ppet||0,dpet:+d.dpet||0,ev:+d.ev||0,ntf:+d.ntf||0,drop:+d.drop||0,
       chg:Array.isArray(d.chg)?d.chg.filter(function(x){return typeof x==='string';}).slice(-60):[],
       q:d.q&&typeof d.q==='object'?{id:String(d.q.id||''),p:+d.q.p||0,done:!!d.q.done,seen:!!d.q.seen}:null};
   }
   return r;
 }
 // 這隻寵物在某人紀錄裡的親密度／飽足度／名字：貓在最外層、企鵝在 pg
-function ps(r,k){return k==='cat'?r:r.pg;}
+function ps(r,k){return k==='cat'?r:r[k];}
 // 新手機第一次收到雲端資料時：本機先玩到的跟雲端的合在一起，不會蓋掉雲端的點數
 function petMerge(a,b){
   var m=petClean(b);
   ['pts','kib','can','fish','squid'].forEach(function(k){m[k]=Math.max(a[k],m[k]);});
-  ['cat','pg'].forEach(function(k){
+  PET_KEYS.forEach(function(k){
     var x=ps(a,k),y=ps(m,k);
     y.aff=Math.max(x.aff,y.aff);
     if(x.fedAt>y.fedAt){y.fedAt=x.fedAt;y.fedFull=x.fedFull;}
@@ -2064,10 +2148,10 @@ function petEffAff(r,k){
 function petDay(uid){
   var r=petRec(uid),today=catToday();
   if(r.d&&r.d.day===today)return r;
-  r.aff=Math.round(petEffAff(r,'cat'));r.pg.aff=Math.round(petEffAff(r,'pg'));
+  PET_KEYS.forEach(function(k){ps(r,k).aff=Math.round(petEffAff(r,k));});
   var rnd=seeded(catHash(today+uid)),q=PET_QUESTS[Math.floor(rnd()*PET_QUESTS.length)];
-  r.d={day:today,pts:0,min:0,pet:0,ppet:0,ev:0,ntf:0,drop:0,chg:[],q:{id:q.id,p:0,done:false,seen:false}};
-  r.last=today;r.kib+=1;r.fish+=1;r.aff+=2;r.pg.aff+=2;petGift=true;
+  r.d={day:today,pts:0,min:0,pet:0,ppet:0,dpet:0,ev:0,ntf:0,drop:0,chg:[],q:{id:q.id,p:0,done:false,seen:false}};
+  r.last=today;r.kib+=1;r.fish+=1;PET_KEYS.forEach(function(k){ps(r,k).aff+=2;});petGift=true;
   return r;
 }
 function petPts(){return (petData.syue?petData.syue.pts:0)+(petData.ling?petData.ling.pts:0);}
@@ -2133,7 +2217,7 @@ function petReady(){
   petCheckLevel();petUpdMark();
   setTimeout(petGreet,900);
 }
-function petList(){return [pets.cat,pets.pg].filter(Boolean);}
+function petList(){return PET_KEYS.map(function(k){return pets[k];}).filter(Boolean);}
 function petShown(){return petList().filter(function(p){return !petHidden(p);});}
 
 /* 賺點數：改班表、改行程、傳通知（親密度兩隻都加） */
@@ -2144,7 +2228,7 @@ function petGain(kind,key){
   else if(kind==='ev'){if(d.ev<PET_DAY_EV){d.ev++;p=3;a=2;}}
   else if(kind==='ntf'){if(!d.ntf){d.ntf=1;p=2;a=2;}}
   p=Math.max(0,Math.min(p,PET_DAY_PTS-d.pts));
-  d.pts+=p;r.pts+=p;r.aff+=a;r.pg.aff+=a;
+  d.pts+=p;r.pts+=p;PET_KEYS.forEach(function(k){ps(r,k).aff+=a;});
   petQuest(kind,1);
   petSave();
   var sp=petShown()[0];
@@ -2181,7 +2265,7 @@ function petCheckLevel(){
   if(!seen){lsSet('catLvSeen',lv);return;}
   if(lv<=seen)return;
   lsSet('catLvSeen',lv);
-  var learn=['cat','pg'].map(function(k){var sk=PET_SKILLS[k].filter(function(s){return s.lv===lv;})[0];return sk?{k:k,sk:sk}:null;}).filter(Boolean);
+  var learn=PET_KEYS.map(function(k){var sk=PET_SKILLS[k].filter(function(s){return s.lv===lv;})[0];return sk?{k:k,sk:sk}:null;}).filter(Boolean);
   // 晚一點再跳，免得被「已新增」之類的提示蓋掉
   setTimeout(function(){toast('🎉 升到 Lv'+lv+(learn.length?'！'+learn.map(function(x){return petName(x.k)+'學會「'+x.sk.name+'」';}).join('、'):''));},900);
   petShown().forEach(function(p,i){
@@ -2233,15 +2317,15 @@ function petWalkTo(p,tx,ty,speed,done){
   petStop(p);
   var b=petBounds(p);tx=catClamp(tx,b.x0,b.x1);ty=catClamp(ty,b.y0,b.y1);
   if(Math.abs(tx-p.x)>2)p.dir=tx<p.x?-1:1;
-  if(catReduce){p.x=tx;p.y=ty;petPlace(p);if(petTryCombo())return;if(done)done();return;}
+  if(catReduce){p.x=tx;p.y=ty;petPlace(p);if(petTryCombo()&&p.act==='combo')return;if(done)done();return;}
   petMode(p,speed>70?'walk run':'walk');petPlace(p);
   var last=performance.now();
   function step(t){
     var dt=Math.min(.05,(t-last)/1000);last=t;
     var dx=tx-p.x,dy=ty-p.y,dist=Math.hypot(dx,dy),mv=speed*dt;
-    if(dist<=mv){p.x=tx;p.y=ty;petPlace(p);petMode(p,'');p.raf=0;if(petTryCombo())return;if(done)done();return;}
+    if(dist<=mv){p.x=tx;p.y=ty;petPlace(p);petMode(p,'');p.raf=0;if(petTryCombo()&&p.act==='combo')return;if(done)done();return;}
     p.x+=dx/dist*mv;p.y+=dy/dist*mv;petPlace(p);
-    if(petTryCombo())return;
+    if(petTryCombo()&&p.act==='combo')return;
     p.raf=requestAnimationFrame(step);
   }
   p.raf=requestAnimationFrame(step);
@@ -2252,99 +2336,155 @@ function petTouching(a,b){
   var feet=Math.abs(a.y+a.def.H-b.y-b.def.H);
   return feet<Math.min(a.def.H,b.def.H)*.55&&a.x+a.def.W+8>=b.x&&b.x+b.def.W+8>=a.x;
 }
+var PET_COMBOS={
+  'cat+pg':{name:'冰雪愛心陣',kind:'ice',say:{cat:'冰雪愛心陣！',pg:'一起上！'},particles:['❄',ART.heart]},
+  'cat+dg':{name:'雲朵擊掌',kind:'cloud',say:{cat:'雲朵擊掌！',dg:'汪！接住！'},particles:['☁','🐾',ART.heart]},
+  'dg+pg':{name:'極光雪橇',kind:'aurora',say:{pg:'極光雪橇！',dg:'汪！出發！'},particles:['❄','✦','✨']},
+  all:{name:'三重奏・星光大冒險',kind:'all',say:{cat:'一起閃耀！',pg:'嘎！冰晶！',dg:'汪！衝呀！'},particles:['❄','☁',ART.heart,'✦']}
+};
+function petComboKey(list){return list.length===3?'all':list.map(function(p){return p.k;}).sort().join('+');}
+function petConnected(list){
+  if(!list.length)return false;
+  var seen=[list[0]];
+  for(var i=0;i<seen.length;i++)list.forEach(function(p){if(seen.indexOf(p)<0&&petTouching(seen[i],p))seen.push(p);});
+  return seen.length===list.length;
+}
 function petReleaseComboWait(){
   clearTimeout(petCombo.waitT);petCombo.waitT=null;
-  var p=petCombo.waiting;petCombo.waiting=null;
-  if(p&&p.act!=='combo')petNext(p,1000);
+  var waiting=petCombo.waiting||[];petCombo.waiting=[];petCombo.invite=null;
+  waiting.forEach(function(p){if(p.act!=='combo')petNext(p,1000);});
 }
 function petEndCombo(){
   petReleaseComboWait();
   if(!petCombo.active)return;
   petCombo.active=false;petCombo.timers.forEach(clearTimeout);petCombo.timers=[];
   if(petCombo.fx){petCombo.fx.remove();petCombo.fx=null;}
-  petList().forEach(function(p){
+  (petCombo.members||[]).forEach(function(p){
     if(p.act!=='combo')return;
-    petBookReset(p);p.el.querySelector('.cat-say').classList.remove('on','combo-below');p.el.classList.remove('sk-combo');p.act='';petNext(p,2600+Math.random()*1400);
+    petBookReset(p);p.el.querySelector('.cat-say').classList.remove('on','combo-below');
+    p.el.classList.remove('sk-combo');p.el.removeAttribute('data-combo-kind');p.act='';petNext(p,2600+Math.random()*1400);
   });
+  petCombo.members=[];
 }
 function petComboBurst(){
   if(!petCombo.active||catReduce)return;
-  var a=pets.cat,b=pets.pg,x=(a.x+a.def.W/2+b.x+b.def.W/2)/2,y=Math.min(a.y,b.y)+20;
-  for(var i=0;i<12;i++){
-    var angle=Math.PI*2*i/12;
-    catFx(i%2?ART.heart:'❄','',x-9,y,Math.cos(angle)*85,Math.sin(angle)*55-40);
+  var list=petCombo.members,def=PET_COMBOS[petCombo.type];
+  var x=list.reduce(function(v,p){return v+p.x+p.def.W/2;},0)/list.length,y=Math.min.apply(null,list.map(function(p){return p.y;}))+20;
+  var n=def.kind==='all'?24:12;
+  for(var i=0;i<n;i++){
+    var angle=Math.PI*2*i/n,token=def.particles[i%def.particles.length];
+    if(def.kind==='all')catFx(token,'',Math.random()*(window.innerWidth-24),Math.random()*window.innerHeight,Math.cos(angle)*70,-40-Math.random()*100);
+    else catFx(token,'',x-9,y,Math.cos(angle)*85,Math.sin(angle)*55-40);
   }
 }
-// 合體泡泡共用一排，量出寬度後留出間距，並避開整段跳躍範圍。
-function petComboDialogue(pair){
-  var gap=12,vw=window.innerWidth,hdr=document.querySelector('.hdr').getBoundingClientRect().bottom;
-  var bubbles=pair.map(function(p){
-    var s=p.el.querySelector('.cat-say');clearTimeout(p.sayT);
-    s.textContent=p.k==='cat'?'冰雪愛心陣！':'一起上！';
+// 保留角色對話，依實際泡泡寬度排成一列，避開彼此與最高跳躍位置。
+function petComboDialogue(list,def){
+  var gap=list.length===3?8:12,vw=window.innerWidth,hdr=document.querySelector('.hdr').getBoundingClientRect().bottom;
+  var sorted=list.slice().sort(function(a,b){return a.x+a.def.W/2-b.x-b.def.W/2;});
+  var bubbles=sorted.map(function(p){
+    var s=p.el.querySelector('.cat-say');clearTimeout(p.sayT);s.textContent=def.say[p.k];
     return {p:p,s:s,w:s.offsetWidth,h:s.offsetHeight};
   });
-  var left=bubbles[0],right=bubbles[1];
-  var x0=left.p.x+left.p.def.W/2-left.w/2;
-  var x1=Math.max(right.p.x+right.p.def.W/2-right.w/2,x0+left.w+gap);
-  var shift=Math.min(0,vw-6-x1-right.w);x0+=shift;x1+=shift;
-  if(x0<6){x1+=6-x0;x0=6;}
-  var top=Math.min(pair[0].y,pair[1].y)-40-Math.max(left.h,right.h)-14;
-  var below=top<hdr+8;
-  if(below)top=Math.max(pair[0].y+pair[0].def.H,pair[1].y+pair[1].def.H)+12;
-  bubbles.forEach(function(b,i){
-    var x=i?x1:x0;
+  var width=bubbles.reduce(function(v,b){return v+b.w;},0)+gap*(bubbles.length-1);
+  var mid=sorted.reduce(function(v,p){return v+p.x+p.def.W/2;},0)/sorted.length;
+  var x=catClamp(mid-width/2,6,Math.max(6,vw-width-6));
+  var high=Math.min.apply(null,list.map(function(p){return p.y;})),ground=Math.max.apply(null,list.map(function(p){return p.y+p.def.H;}));
+  var top=high-40-Math.max.apply(null,bubbles.map(function(b){return b.h;}))-14,below=top<hdr+8;
+  if(below)top=ground+12;
+  bubbles.forEach(function(b){
     b.s.style.setProperty('--sx',(x-(b.p.x+b.p.def.W/2-b.w/2))+'px');
     b.s.style.setProperty('--combo-say-top',(top-b.p.y)+'px');
-    b.s.classList.toggle('combo-below',below);b.s.classList.add('on');
+    b.s.classList.toggle('combo-below',below);b.s.classList.add('on');x+=b.w+gap;
   });
+}
+function petStartCombo(list){
+  petReleaseComboWait();
+  var key=petComboKey(list),def=PET_COMBOS[key],ms=key==='all'?5200:4000;
+  petCombo.active=true;petCombo.type=key;petCombo.members=list.slice();petCombo.armed[key]=false;
+  list.forEach(function(a,i){list.slice(i+1).forEach(function(b){petCombo.armed[petComboKey([a,b])]=false;});});
+  var pair=list.slice().sort(function(a,b){return a.x+a.def.W/2-b.x-b.def.W/2;});
+  var mid=list.reduce(function(v,p){return v+p.x+p.def.W/2;},0)/list.length;
+  var ground=Math.max.apply(null,list.map(function(p){return p.y+p.def.H;}));
+  var total=key==='all'?Math.max(pets.cat.def.W+pets.pg.def.W+8,pets.dg.def.W):pair[0].def.W+pair[1].def.W+6;
+  var start=catClamp(mid-total/2,6,Math.max(6,window.innerWidth-total-6));
+  list.forEach(function(p){
+    petStop(p);petMode(p,'');p.act='combo';p.el.classList.add('sk-combo');p.el.setAttribute('data-combo-kind',def.kind);
+    var bounds=petBounds(p);
+    if(key==='all'){
+      p.x=p.k==='cat'?start:p.k==='pg'?start+total-p.def.W:start+(total-p.def.W)/2;
+      p.y=ground-p.def.H-(p.k==='dg'?70:0);p.dir=p.k==='pg'?-1:1;
+    }else{var i=pair.indexOf(p);p.x=start+(i?pair[0].def.W+6:0);p.y=ground-p.def.H;p.dir=i?-1:1;}
+    p.x=catClamp(p.x,bounds.x0,bounds.x1);p.y=catClamp(p.y,bounds.y0,bounds.y1);petPlace(p);
+    petBookPlay(p,'combo',ms);clearTimeout(p.sayT);p.el.querySelector('.cat-say').classList.remove('on');
+  });
+  petComboDialogue(list,def);
+  var fx=document.createElement('div');fx.className='pet-combo-fx '+def.kind;fx.setAttribute('aria-hidden','true');
+  if(key==='all'){
+    fx.innerHTML='<div class="combo-aurora"></div><div class="combo-sky-ring"></div><div class="combo-sky-ring second"></div><div class="combo-finale">❄ '+def.name+' ☁</div>';
+    fx.querySelector('.combo-finale').style.top=(document.querySelector('.hdr').getBoundingClientRect().bottom+14)+'px';
+    fx.querySelector('.combo-finale').textContent='❄ '+def.name+' ☁';
+  }else{
+    fx.style.left=catClamp(start+total/2-90,6,Math.max(6,window.innerWidth-186))+'px';
+    fx.style.top=Math.max(document.querySelector('.hdr').getBoundingClientRect().bottom+4,ground-150)+'px';
+    var inner=def.kind==='ice'?'<circle cx="60" cy="60" r="48" fill="none" stroke="#A8D3E6" stroke-width="3" stroke-dasharray="8 7"/><path d="M60 15v90M21 37l78 46M21 83l78-46" fill="none" stroke="#A8D3E6" stroke-width="2"/><path d="M60 76C33 59 43 39 60 50C77 39 87 59 60 76Z" fill="#F2A497" stroke="#FFFCF6" stroke-width="3"/>':
+      def.kind==='cloud'?'<path d="M25 82C5 82 8 49 29 50C23 21 66 16 73 43C97 26 122 62 99 78Z" fill="#FFFCF6" fill-opacity=".8" stroke="#B9DAA5" stroke-width="3"/><path d="M60 82C35 64 45 45 60 56C75 45 85 64 60 82Z" fill="#F2A497"/>':
+      '<path d="M12 70Q38 10 60 55T108 40M12 85Q38 25 60 70T108 55" fill="none" stroke="#B9DAA5" stroke-width="12" opacity=".8"/><path d="M12 87Q38 27 60 72T108 57" fill="none" stroke="#A8D3E6" stroke-width="7"/><path d="M61 18l4 10 11 1-9 7 3 11-9-6-9 6 3-11-9-7 11-1Z" fill="#F6D27A"/>';
+    fx.innerHTML='<svg class="combo-ring" viewBox="0 0 120 120">'+inner+'</svg>';
+  }
+  document.body.appendChild(fx);petCombo.fx=fx;
+  if(!catReduce)[650,1700,2900].forEach(function(t){petCombo.timers.push(setTimeout(petComboBurst,t));});
+  petCombo.timers.push(setTimeout(petEndCombo,catReduce?1500:ms));return true;
 }
 function petTryCombo(){
-  var a=pets.cat,b=pets.pg;
-  if(petCombo.active||document.hidden||!a||!b)return false;
-  if(!petTouching(a,b)){petCombo.armed=true;return false;}
-  if(!petCombo.armed||!petIdle(a)||!petIdle(b))return false;
-  petReleaseComboWait();
-  petCombo.active=true;petCombo.armed=false;
-  var pair=a.x+a.def.W/2<b.x+b.def.W/2?[a,b]:[b,a];
-  var mid=(a.x+a.def.W/2+b.x+b.def.W/2)/2,ground=Math.max(a.y+a.def.H,b.y+b.def.H);
-  var total=a.def.W+b.def.W+6,start=catClamp(mid-total/2,6,Math.max(6,window.innerWidth-total-6));
-  pair.forEach(function(p,i){
-    petStop(p);petMode(p,'');p.act='combo';p.el.classList.add('sk-combo');
-    var bounds=petBounds(p);p.x=catClamp(start+(i?pair[0].def.W+6:0),bounds.x0,bounds.x1);
-    p.y=catClamp(ground-p.def.H,bounds.y0,bounds.y1);p.dir=i?-1:1;petPlace(p);
-    petBookPlay(p,'combo',4000);
-    clearTimeout(p.sayT);p.el.querySelector('.cat-say').classList.remove('on');
-  });
-  petComboDialogue(pair);
-  var fx=document.createElement('div');fx.className='pet-combo-fx';fx.setAttribute('aria-hidden','true');
-  fx.style.left=catClamp(start+total/2-90,6,Math.max(6,window.innerWidth-186))+'px';
-  var headerBottom=document.querySelector('.hdr').getBoundingClientRect().bottom;
-  var effectTop=Math.max(headerBottom+4,ground-150);
-  fx.style.top=effectTop+'px';
-  fx.innerHTML='<svg class="combo-ring" viewBox="0 0 120 120"><circle cx="60" cy="60" r="48" fill="none" stroke="#A8D3E6" stroke-width="3" stroke-dasharray="8 7"/><circle cx="60" cy="60" r="36" fill="none" stroke="#F2A497" stroke-width="2"/><path d="M60 15v90M21 37l78 46M21 83l78-46" fill="none" stroke="#A8D3E6" stroke-width="2" opacity=".65"/><path d="M60 76C33 59 43 39 60 50C77 39 87 59 60 76Z" fill="#F2A497" stroke="#FFFCF6" stroke-width="3"/></svg>';
-  document.body.appendChild(fx);petCombo.fx=fx;
-  if(!catReduce){petCombo.timers.push(setTimeout(petComboBurst,700),setTimeout(petComboBurst,1900));}
-  petCombo.timers.push(setTimeout(petEndCombo,catReduce?1000:4000));
-  return true;
+  if(document.hidden)return false;
+  var all=petList();
+  all.forEach(function(a,i){all.slice(i+1).forEach(function(b){if(!petTouching(a,b))petCombo.armed[petComboKey([a,b])]=true;});});
+  if(!petConnected(all))petCombo.armed.all=true;
+  var ready=all.filter(function(p){return petIdle(p)||p.act==='combo';});
+  if(petCombo.active){
+    if(petCombo.members.length===2&&ready.length===3&&petConnected(ready)){
+      petEndCombo();return petStartCombo(ready);
+    }
+    return false;
+  }
+  if(ready.length===3&&petConnected(ready)&&petCombo.armed.all!==false)return petStartCombo(ready);
+  // 邀請三隻時先一起集合，避免第一對提早開招而打斷第三隻走過來。
+  if(petCombo.invite&&petCombo.invite.length===3)return false;
+  for(var i=0;i<ready.length;i++)for(var j=i+1;j<ready.length;j++){
+    var pair=[ready[i],ready[j]],key=petComboKey(pair);
+    if(petTouching(pair[0],pair[1])&&petCombo.armed[key]!==false)return petStartCombo(pair);
+  }
+  return false;
 }
-function petInviteCombo(p){
-  var o=p.k==='cat'?pets.pg:pets.cat;
+function petInviteCombo(p,target){
   if(petCombo.active){toast('正在合體表演中～');return;}
-  if(petHidden(o)){toast('先叫'+petName(o.k)+'出來，才能一起合體');return;}
-  if(o.el.classList.contains('sleep'))petWake(o);
-  if(!petIdle(p)||!petIdle(o)){toast('等牠們忙完，再一起合體吧');return;}
+  var others=petShown().filter(function(q){return q!==p;});
+  var list=target==='all'?petList():[p,target?pets[target]:others.sort(function(a,b){return Math.hypot(a.x-p.x,a.y-p.y)-Math.hypot(b.x-p.x,b.y-p.y);})[0]];
+  if(list.some(function(q){return !q||petHidden(q);})){toast(target==='all'?'先把三隻都叫出來吧':'先叫夥伴出來，才能一起合體');return;}
+  list.forEach(function(q){if(q.el.classList.contains('sleep'))petWake(q);});
+  if(!list.every(petIdle)){toast('等牠們忙完，再一起合體吧');return;}
   petReleaseComboWait();
-  petCombo.armed=true;
-  if(petTryCombo())return;
-  var tx=p.x<o.x?o.x-p.def.W+4:o.x+o.def.W-4;
-  var ty=o.y+o.def.H-p.def.H,distance=Math.hypot(tx-p.x,ty-p.y),speed=Math.max(90,distance/5);
-  petStop(o);petCombo.waiting=o;
-  petCombo.waitT=setTimeout(petReleaseComboWait,Math.round(distance/speed*1000)+1800);
-  petWalkTo(p,tx,ty,speed,function(){
-    if(!petTryCombo()){petReleaseComboWait();petNext(p,2000);}
+  list.forEach(function(q){petStop(q);});
+  petCombo.armed[petComboKey(list)]=true;petCombo.invite=list.map(function(q){return q.k;});petCombo.waiting=list.slice();
+  petCombo.waitT=setTimeout(function checkArrival(){
+    if(!petCombo.invite)return;
+    if(list.some(function(q){return !!q.raf;})){petCombo.waitT=setTimeout(checkArrival,3000);return;}
+    petReleaseComboWait();
+  },6500);
+  var width=list.length===3?pets.cat.def.W+pets.pg.def.W+6:list[0].def.W+list[1].def.W+6;
+  var start=catClamp(window.innerWidth/2-width/2,6,Math.max(6,window.innerWidth-width-6));
+  var ground=Math.min.apply(null,list.map(function(q){return petBounds(q).y1+q.def.H;}))-20;
+  list.forEach(function(q,i){
+    if(petCombo.active&&petCombo.members.indexOf(q)>-1)return;
+    var tx,ty=ground-q.def.H;
+    if(list.length===3){tx=q.k==='cat'?start:q.k==='pg'?start+width-q.def.W:start+(width-q.def.W)/2;}
+    else tx=start+(i?list[0].def.W+6:0);
+    var speed=Math.max(90,Math.hypot(tx-q.x,ty-q.y)/4);
+    petWalkTo(q,tx,ty,speed,function(){if(!petTryCombo()&&!petCombo.invite)petNext(q,1600);});
   });
-  petSay(p,'來一起合體！',2200);
+  petSay(p,target==='all'?'大家一起來！':'來一起合體！',2200);petTryCombo();
 }
+
 // 自己決定下一步要做什麼
 function petThink(p){
   if(p.menu||p.pet||p.act||petHidden(p)||document.hidden){petNext(p,3000);return;}
@@ -2359,11 +2499,11 @@ function petThink(p){
   if(full<20&&r<.25){petSay(p,catPick(S.hungry),2200);petNext(p,4000);return;}
   if((night&&r<.5)||r<.07){petSleep(p,9000+Math.random()*14000);return;}
   // 偶爾去找另一隻玩
-  var o=p.k==='cat'?pets.pg:pets.cat;
+  var o=catPick(petShown().filter(function(q){return q!==p;}));
   if(r<.13&&o&&petIdle(o)&&!catReduce){
     var tx=o.x<p.x?o.x+o.def.W-6:o.x-p.def.W+6;
     petWalkTo(p,tx,o.y+o.def.H-p.def.H,60,function(){
-      if(petTryCombo())return;
+      if(petTryCombo()&&p.act==='combo')return;
       p.dir=o.x<p.x?-1:1;petPlace(p);petSay(p,S.meet);
       if(petIdle(o)){o.dir=p.x<o.x?-1:1;petPlace(o);setTimeout(function(){if(p.act||o.act)return;petSay(o,o.def.say.meet);petHearts(o,1);petHearts(p,1);},500);petNext(o,4000);}
       petNext(p,3500);
@@ -2418,6 +2558,10 @@ function petDo(p,id,fromUser,force){
   if(PET_SK_SAY[id])petSay(p,PET_SK_SAY[id],2000);
   if(id==='love')p.bookTimers.push(setTimeout(function(){petBurst(p,ART.heart,10);},500));
   if(id==='yarn')catYarn(p);
+  if(p.k==='dg'&&['shake','howl','cloud'].indexOf(id)>-1){
+    var token=id==='howl'?'♪':id==='cloud'?'☁':'✦';
+    [500,1100,1700].forEach(function(t){p.bookTimers.push(setTimeout(function(){if(p.act===id&&!catReduce)petBurst(p,token,id==='cloud'?9:4);},t));});
+  }
   if(id==='flip'||id==='jump')p.bookTimers.push(setTimeout(function(){petSay(p,catPick(p.def.say.jump),1200);},100));
   p.skillT=setTimeout(function(){
     petBookReset(p);p.skillT=0;p.el.classList.remove('sk-'+id);p.act='';
@@ -2453,7 +2597,7 @@ function petPetEnd(p){
   if(!p.pet)return;
   p.pet=false;petMode(p,'');
   var me=petWho();
-  if(me){var r=petDay(me),key=p.k==='cat'?'pet':'ppet';if(r.d[key]<PET_DAY_PET){r.d[key]++;ps(r,p.k).aff+=1;}petQuest('pet',1);petSave();}
+  if(me){var r=petDay(me),key=p.k==='cat'?'pet':p.k==='pg'?'ppet':'dpet';if(r.d[key]<PET_DAY_PET){r.d[key]++;ps(r,p.k).aff+=1;}petQuest('pet',1);petSave();}
   petNext(p,2500);
 }
 function petTap(p){
@@ -2485,7 +2629,10 @@ function petOpenMenu(p,skills){
   var bd=document.createElement('div');bd.className='cat-menu-bd';bd.onclick=petCloseMenu;
   var m=document.createElement('div');m.className='cat-menu';
   var h='';
-  if(skills){
+  if(skills==='combo'){
+    PET_KEYS.filter(function(k){return k!==p.k;}).forEach(function(k){h+='<button data-combo="'+k+'"><span class="ic">'+PET_DEF[k].ic+'</span>和'+safeHtml(petName(k))+'合體</button>';});
+    h+='<button data-combo="all"><span class="ic">🌟</span>三隻一起合體</button><button data-a="back"><span class="ic">‹</span>返回</button>';
+  }else if(skills){
     petSkills(p.k).forEach(function(s){h+='<button data-sk="'+s.id+'"><span class="ic">'+s.ic+'</span>'+s.name+'</button>';});
     var nx=PET_SKILLS[p.k].filter(function(s){return s.lv>petLevel(petPts());})[0];
     h+='<button data-a="back"><span class="ic">‹</span>返回</button>';
@@ -2505,7 +2652,9 @@ function petOpenMenu(p,skills){
   petPosMenu(p,m);
   m.onclick=function(e){
     var b=e.target.closest('button');if(!b)return;
-    var a=b.getAttribute('data-a'),sk=b.getAttribute('data-sk'),food=b.getAttribute('data-food');
+    var a=b.getAttribute('data-a'),sk=b.getAttribute('data-sk'),food=b.getAttribute('data-food'),combo=b.getAttribute('data-combo');
+    if(combo){petCloseMenu();petInviteCombo(p,combo);return;}
+    if(a==='combo'){petOpenMenu(p,'combo');return;}
     if(sk){petCloseMenu();petDo(p,sk,true);return;}
     if(a==='back'){petOpenMenu(p,false);return;}
     if(a==='sk'){petOpenMenu(p,true);return;}
@@ -2513,7 +2662,6 @@ function petOpenMenu(p,skills){
     if(a==='pet'){petPetStart(p);setTimeout(function(){petPetEnd(p);},1800);}
     else if(food)petFeed(p,food);
     else if(a==='info')petOpenSheet(p.k);
-    else if(a==='combo')petInviteCombo(p);
     else if(a==='sleep')petSetResting(p,true);
   };
 }
@@ -2531,7 +2679,7 @@ function petFeed(p,food){
   p.dir=p.x+p.def.W/2>window.innerWidth/2?-1:1;petPlace(p);
   p.act='eat';petMode(p,'eat happy');petSay(p,F.eat);
   var bowl=null;
-  if(p.k==='cat'){
+  if(p.k==='cat'||p.k==='dg'){
     bowl=document.createElement('div');bowl.className='cat-bowl';bowl.innerHTML=CAT_ART.bowl;
     bowl.style.left=(p.dir>0?p.x+p.def.W-14:p.x-22)+'px';bowl.style.top=(p.y+p.def.H-17)+'px';
   }else{
@@ -2578,7 +2726,7 @@ function petOpenSheet(k){
   petCloseMenu();
   var p=pets[k],me=petWho(),pts=petPts(),lv=petLevel(pts),nx=PET_LV[lv],prev=PET_LV[lv-1],fav=petFav(k),full=Math.round(petFull(k)),name=petName(k);
   var h='<div class="popup-grabber"></div><div class="popup-top"><div class="popup-dot" style="background:var(--yellow)"></div><div class="popup-title"><button class="cs-name" id="csName">'+safeHtml(name)+' ✎</button></div><div class="popup-count">Lv'+lv+'</div><button class="popup-close" onclick="closePopup()">✕</button></div><div class="popup-body">';
-  h+='<div class="cs-tabs">'+['cat','pg'].map(function(x){return '<button data-pk="'+x+'"'+(x===k?' class="on"':'')+'>'+PET_DEF[x].ic+' '+safeHtml(petName(x))+'</button>';}).join('')+'</div>';
+  h+='<div class="cs-tabs">'+PET_KEYS.map(function(x){return '<button data-pk="'+x+'"'+(x===k?' class="on"':'')+'>'+PET_DEF[x].ic+' '+safeHtml(petName(x))+'</button>';}).join('')+'</div>';
   if(!me){
     h+='<div class="cs-sec"><div class="cs-h"><span>你是誰？</span></div><div class="cs-note" style="margin:0 0 10px">寵物要記得是誰在照顧牠們，點數和糧食會算在你身上。</div><div class="cs-seg"><button data-me="syue">我是 學</button><button data-me="ling">我是 綾</button></div></div>';
   }
@@ -2614,7 +2762,7 @@ function petOpenSheet(k){
   h+='</div></div>';
   h+='<div class="cs-sec"><div class="cs-h"><span>怎麼讓寵物升級</span></div><div class="cs-rules">'+
     '改一天班表 +1⭐・新增／修改行程 +3⭐・傳變更通知 +2⭐<br>（每人每天最多 '+PET_DAY_PTS+'⭐，同一天改來改去只算一次）<br>'+
-    '每天第一次來送飼料和小魚・完成今日支線拿糧食<br>飼料、罐頭給貓咪，小魚、透抽給企鵝<br>畫面上偶爾會冒出糧食，看到記得點一下撿起來</div></div>';
+    '每天第一次來送飼料和小魚・完成今日支線拿糧食<br>飼料、罐頭給貓咪和薩摩耶，小魚、透抽給企鵝<br>畫面上偶爾會冒出糧食，看到記得點一下撿起來</div></div>';
   h+='<div class="cs-sec"><div class="cs-seg">'+(me?'這支手機是 <button data-me="syue"'+(me==='syue'?' class="on"':'')+'>學</button><button data-me="ling"'+(me==='ling'?' class="on"':'')+'>綾</button>':'')+
     '<button id="csHide">'+(petHidden(p)?'叫'+safeHtml(name)+'出來':'讓'+safeHtml(name)+'去休息（隱藏）')+'</button></div></div>';
   h+='</div>';
@@ -2640,7 +2788,7 @@ function petOpenSheet(k){
   };
   document.getElementById('csName').onclick=function(){
     if(!petWho()){toast('先選你是誰');return;}
-    var v=prompt('幫'+(k==='cat'?'貓咪':'企鵝')+'取名字（8 個字以內）',name);
+    var v=prompt('幫'+PET_DEF[k].species+'取名字（8 個字以內）',name);
     if(v==null)return;v=v.trim().slice(0,8);if(!v)return;
     var st=ps(petRec(petWho()),k);st.name=v;st.nameAt=Date.now();petSave();petOpenSheet(k);
   };
@@ -2665,12 +2813,14 @@ function petUpdHome(){
   var sc=document.getElementById('scene');
   sc.classList.toggle('cat-away',petHidden(pets.cat));
   sc.classList.toggle('pg-away',petHidden(pets.pg));
+  sc.classList.toggle('dg-away',petHidden(pets.dg));
 }
 
 function petMake(k){
   var d=PET_DEF[k],p={k:k,def:d,el:null,x:0,y:0,dir:1,raf:0,timer:null,sayT:null,act:'',menu:false,pet:false,pd:null,lpT:null,tapT:null,sleepT:null};
-  var el=document.createElement('div');el.className='cat'+(k==='pg'?' pg':'');
-  el.setAttribute('role','button');el.setAttribute('aria-label',k==='cat'?'貓咪':'企鵝');
+  var el=document.createElement('div');el.className='cat'+(k==='cat'?'':' '+k);
+  el.setAttribute('role','button');el.setAttribute('aria-label',d.species);el.setAttribute('tabindex','0');
+  el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();petTap(p);}});
   el.innerHTML='<div class="cat-face"><div class="cat-sk"><div class="cat-bob">'+CAT_ART[k]+'</div></div></div><div class="cat-say"></div><div class="cat-mark">!</div>';
   document.body.appendChild(el);p.el=el;
   if(petHidden(p))el.classList.add('hide');
@@ -2718,8 +2868,8 @@ function petSpawn(p,placed){
 }
 function petInit(){
   try{var s=JSON.parse(lsGet('catV1')||'null');if(s){petData.syue=s.syue?petClean(s.syue):null;petData.ling=s.ling?petClean(s.ling):null;}}catch(e){}
-  pets.cat=petMake('cat');pets.pg=petMake('pg');
-  petSpawn(pets.cat,[]);petSpawn(pets.pg,[pets.cat]);
+  PET_KEYS.forEach(function(k){pets[k]=petMake(k);});
+  var placed=[];petList().forEach(function(p){petSpawn(p,placed);placed.push(p);});
   petUpdHome();
   // 最黏你的那隻：偶爾跑到你點的地方
   document.addEventListener('pointerdown',function(e){
@@ -2739,19 +2889,19 @@ function petInit(){
     if(document.hidden||!petSynced)return;
     petSecs+=15;if(petSecs<60)return;petSecs=0;
     var me=petWho();if(!me)return;
-    var r=petDay(me);r.d.min++;if(r.d.min<=PET_DAY_MIN){r.aff+=1;r.pg.aff+=1;}
+    var r=petDay(me);r.d.min++;if(r.d.min<=PET_DAY_MIN){PET_KEYS.forEach(function(k){ps(r,k).aff+=1;});}
     petQuest('min',1);petSave();
     if(petGift)petGreet();
   },15000);
   // 點頁尾：右邊（冰屋那邊）開企鵝，其他開貓咪
   document.getElementById('scene').addEventListener('click',function(e){
-    var home=e.target.closest('.home-cat,.home-pg');
-    if(home){petSetResting(home.classList.contains('home-cat')?pets.cat:pets.pg,false);return;}
-    var b=this.getBoundingClientRect();petOpenSheet(e.clientX>b.left+b.width*.68?'pg':'cat');
+    var home=e.target.closest('.home-cat,.home-pg,.home-dg');
+    if(home){petSetResting(home.classList.contains('home-cat')?pets.cat:home.classList.contains('home-dg')?pets.dg:pets.pg,false);return;}
+    var b=this.getBoundingClientRect();petOpenSheet(e.clientY>b.top+b.height*.76?'dg':e.clientX>b.left+b.width*.68?'pg':'cat');
   });
   petSynced=!(syncCode&&syncCode!=='LOCAL');
   if(petSynced)petReady();
-  petNext(pets.cat,2500);petNext(pets.pg,3200);petScheduleDrop();
+  petList().forEach(function(p,i){petNext(p,2500+i*700);});petScheduleDrop();
   setInterval(petTryCombo,350);
 }
 
@@ -2811,3 +2961,4 @@ function petInit(){
 </script>
 </body>
 </html>
+
