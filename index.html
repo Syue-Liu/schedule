@@ -15,7 +15,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Huninn&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="assets/pets/starlight-sled.svg">
 <style>
-/* 日系繪本風：和紙白底、墨灰粗線框、大圓角、平塗（不用漸層） */
+/* 日系繪本風：和紙白底、墨灰粗線框、大圓角，休假卡片用柔和粉彩。 */
 :root{
   --paper:#FFFCF6;--paper2:#F5EEE2;--ink:#3E3A39;
   --coral:#F2A497;--yellow:#F6D27A;--mizu:#A8D3E6;--wakatake:#B9DAA5;
@@ -67,13 +67,14 @@ b{font-weight:400;color:var(--t);box-shadow:inset 0 -.4em 0 var(--yellow);}
 @keyframes blink{0%,100%{opacity:1;}50%{opacity:.35;}}
 
 /* ── 下次共同休假：貼紙膠帶的拍立得＋坐在卡片上緣的咖啡杯 ── */
-.nxt-card{position:relative;margin:46px 10px 0;padding:14px;min-height:140px;background:var(--paper);border:var(--lw) solid var(--ink);border-radius:24px;}
+.nxt-card{position:relative;isolation:isolate;margin:46px 10px 0;padding:14px;min-height:140px;background:linear-gradient(115deg,#FFE0DF 0%,#FFF0C2 32%,#E0EFCF 64%,#D9EAF9 100%);border:var(--lw) solid var(--ink);border-radius:24px;}
+.nxt-card::before{content:'';position:absolute;inset:0;z-index:0;border-radius:inherit;pointer-events:none;background:radial-gradient(circle at 31% 23%,#FFFDF3 0 3px,transparent 3.5px),radial-gradient(circle at 41% 74%,#E9B1B0 0 2px,transparent 2.5px),radial-gradient(circle at 72% 17%,#FFFDF3 0 4px,transparent 4.5px),radial-gradient(circle at 82% 77%,#E5C18A 0 2.5px,transparent 3px),radial-gradient(circle at 91% 26%,#C6D9C1 0 3px,transparent 3.5px),radial-gradient(ellipse at 65% 100%,rgba(255,255,255,.4),transparent 66%);}
 .nxt-cup{position:absolute;right:22px;top:-41px;width:48px;height:40px;pointer-events:none;}
 .steam{animation:steam 2.8s ease-in-out infinite;}
 .steam.s2{animation-delay:-.9s;}.steam.s3{animation-delay:-1.8s;}
 @keyframes steam{0%{opacity:0;transform:translateY(5px);}35%{opacity:1;}100%{opacity:0;transform:translateY(-5px);}}
 .nxt-row{position:relative;z-index:1;display:flex;align-items:center;gap:14px;min-height:104px;}
-.nxt-family{position:absolute;left:56%;bottom:3px;transform:translateX(-50%);width:min(42%,420px);height:128px;object-fit:contain;object-position:center bottom;pointer-events:none;user-select:none;}
+.nxt-family{position:absolute;z-index:0;left:56%;bottom:3px;transform:translateX(-50%);width:min(42%,420px);height:128px;object-fit:contain;object-position:center bottom;pointer-events:none;user-select:none;}
 @media(max-width:899px){.nxt-card{padding-bottom:112px;}.nxt-row{min-height:76px;}.nxt-family{left:50%;width:min(80%,320px);height:104px;bottom:4px;}}
 .polaroid{position:relative;flex-shrink:0;width:66px;height:76px;padding:5px 5px 13px;background:var(--paper);border:var(--lw2) solid var(--ink);border-radius:6px;transform:rotate(-4deg);cursor:pointer;z-index:2;}
 .polaroid::before{content:'';position:absolute;left:50%;top:-9px;width:36px;height:13px;margin-left:-18px;background:var(--mizu);transform:rotate(5deg);clip-path:polygon(0 0,100% 0,95% 25%,100% 50%,95% 75%,100% 100%,0 100%,5% 75%,0 50%,5% 25%);z-index:1;}
@@ -86,7 +87,7 @@ b{font-weight:400;color:var(--t);box-shadow:inset 0 -.4em 0 var(--yellow);}
 .nxt-body{flex:1;min-width:0;}
 .nxt-label{font-size:12px;color:var(--t2);margin-bottom:5px;}
 .nxt-date{display:inline-block;font-size:20px;line-height:1.15;color:var(--t);padding:0 3px;box-shadow:inset 0 -.42em 0 var(--yellow);}
-.nxt-card.none .nxt-date{font-size:15px;color:var(--t3);box-shadow:none;padding:0;}
+.nxt-card.none .nxt-date{font-size:15px;color:var(--t2);box-shadow:none;padding:0;}
 .nxt-countdown{font-size:12px;color:var(--t2);margin-top:5px;}
 .nxt-actions{flex-shrink:0;display:flex;gap:6px;}
 .ical-btn{padding:7px 10px;background:var(--paper);border:var(--lw2) solid var(--ink);border-radius:12px;font-size:12px;color:var(--t);cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:5px;box-shadow:0 2px 0 var(--ink);}
@@ -3349,6 +3350,7 @@ function petInit(){
 </script>
 </body>
 </html>
+
 
 
 
