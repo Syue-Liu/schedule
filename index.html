@@ -559,6 +559,7 @@ body:has(.chg-bar.show){padding-bottom:calc(124px + env(safe-area-inset-bottom))
 .wd-open b,.wd-spin b{font-size:12px;font-weight:400;padding:1px 8px;border-radius:999px;background:var(--paper);border:1.5px solid var(--ink);}
 .wd-try-toggle{display:block;width:100%;min-height:38px;margin:8px 0;padding:7px 10px;border:var(--lw2) solid var(--ink);border-radius:12px;background:var(--ev-bg);font-size:13px;color:var(--t);cursor:pointer;}
 .wd-try-toggle[aria-pressed="true"]{background:var(--ribbon-bg);}
+.wd-event{margin:7px 0 12px;padding:10px 12px;border:1.5px solid #D3A47A;border-radius:12px;background:#FFF0D9;color:#7B472B;font-size:12px;line-height:1.65;}
 .wd-try-note{font-size:12px;line-height:1.6;color:var(--t2);padding:2px 4px 4px;}
 .wd-top{display:grid;grid-template-columns:136px minmax(0,1fr);gap:12px;align-items:center;padding:10px 2px 4px;}
 .wd-stage{background:var(--paper2);border:var(--lw2) solid var(--ink);border-radius:18px;padding:8px 6px 4px;}
@@ -2203,6 +2204,7 @@ function petBookPlay(p,id,ms){
    - 收藏兩個人共用；轉盤券各自的（各自完成支線拿到的）
    - 戴什麼：兩個人誰最後換的就算數，兩支手機看到的一樣 */
 var ACC_LIST=[
+  {id:'hw-pumpkin-cape',name:'南瓜蝙蝠套裝',slot:'skin',rare:2,size:1,ar:.83333,skin:'pumpkin-bat',freeAt:Date.parse('2026-10-31T00:00:00+08:00'),preview:true,img:'assets/skins/pumpkin-bat/samoyed-idle.svg'},
   {id:'yang-ribbon',name:'洋流飄帶',ar:1.3125,slot:'back',rare:0,free:true,size:1.32,effect:'ribbon'},
   // ar：圖的高÷寬（跟 SVG 的 viewBox 一樣，viewBox 要貼齊圖案）；size：寬度是頭寬（或脖子寬）的幾倍
   // sink：帽子底部往頭裡壓多少（頭寬的幾倍）；dx：往右偏；dy：頸飾往下移；rot：多轉幾度
@@ -2258,8 +2260,8 @@ ACC_LIST.forEach(function(a){
 });
 var ACC_BY={};ACC_LIST.forEach(function(a){ACC_BY[a.id]=a;});
 var ACC_RARE={0:{name:'免費',color:'#FFD6BC',star:'免費・免抽'},1:{name:'普通',color:'#F5EEE2',star:'★'},2:{name:'稀有',color:'#A8D3E6',star:'★★'},3:{name:'傳說',color:'#F6D27A',star:'★★★'}};
-// 衣服、鞋襪穿起來不合身，先拿掉（ACC_WEAR_POSES 的 body、feet 位置還留著，之後有合身的圖可以再加回來）
-var ACC_SLOT={head:'頭飾',neck:'頸飾',back:'背飾',prop:'小物',aura:'特效'};
+// 套裝使用完整姿勢皮膚；身體疊圖與鞋襪仍不開放。
+var ACC_SLOT={skin:'套裝',head:'頭飾',neck:'頸飾',back:'背飾',prop:'小物',aura:'特效'};
 var ACC_SLOT_KEYS=Object.keys(ACC_SLOT),accWardrobeFilter='all';
 // 轉盤 8 格：普通 5、稀有 2、傳說 1
 var ACC_WHEEL=[1,2,1,1,3,1,2,1];
@@ -2356,16 +2358,53 @@ function accSlots(name,pose,ox,layer){
     slots.push(['prop',wear.prop]);if(old.H)slots.push(['head',old.H]);
   }
   return slots.map(function(pair){var slot=pair[0],v=pair[1];if(!v||!ACC_SLOT[slot])return '';
-    return '<g class="acc acc-'+slot+'" data-w="'+v[2]+'" data-layer="'+(pair[2]||'front')+'" data-at="'+(pair[3]||'')+'" data-cut="'+(v[4]||'')+'" data-pet="'+name+'" transform="translate('+((ox||0)+v[0])+' '+v[1]+') rotate('+v[3]+')" style="display:none"><image class="acc-img"/></g>';
+    return '<g class="acc acc-'+slot+'" data-w="'+v[2]+'" data-layer="'+(pair[2]||'front')+'" data-at="'+(pair[3]||'')+'" data-cut="'+(v[4]||'')+'" data-pet="'+name+'" data-pose="'+pose+'" data-ox="'+(ox||0)+'" transform="translate('+((ox||0)+v[0])+' '+v[1]+') rotate('+v[3]+')" style="display:none"><image class="acc-img"/></g>';
   }).join('');
 }
 function accPoseArt(name,pose,w,h,ox){
-  return accSlots(name,pose,ox,'rear')+'<image x="'+(ox||0)+'" href="assets/pets/'+name+'-'+pose+'.svg" width="'+w+'" height="'+h+'"/>'+accSlots(name,pose,ox,'front');
+  return accSlots(name,pose,ox,'rear')+'<image data-pet-sprite="'+name+'" data-pose="'+pose+'" x="'+(ox||0)+'" href="assets/pets/'+name+'-'+pose+'.svg" width="'+w+'" height="'+h+'"/>'+accSlots(name,pose,ox,'front');
 }
+
+// Fixed Taiwan midnight: the Halloween outfit stays free from October 31 onward.
+function accIsFree(a,now){return !!a.free||!!(a.freeAt&&(now==null?Date.now():now)>=a.freeAt);}
+function accSkin(k){var a=ACC_BY[accDisplayed(k,'skin')];return a&&a.skin?a:null;}
+var PUMPKIN_ANCHORS={"snowball":{"idle":{"head":[258.7,91.9,124.7,0],"neck":[258.7,194.2,102.3,0.0],"back":[163.0,191.2,69.6,-8],"pack":[171.7,141.6,66.7,-5],"wings":[171.7,109.4,188.5,-6],"prop":[325.4,246.7,52.2,0],"aura":[192,178,340,0]},"walk-a":{"head":[262.6,92.7,131.2,0],"neck":[262.6,200.3,107.6,0.0],"back":[162.0,191.6,73.2,-8],"pack":[171.2,142.1,70.2,-5],"wings":[171.2,110.1,198.2,-6],"prop":[332.8,246.9,54.9,0],"aura":[192,178,340,0]},"walk-b":{"head":[262.6,96.4,131.2,0],"neck":[262.6,204.0,107.6,0.0],"back":[162.0,193.6,73.2,-8],"pack":[171.2,145.0,70.2,-5],"wings":[171.2,113.5,198.2,-6],"prop":[332.8,247.9,54.9,0],"aura":[192,178,340,0]},"happy":{"head":[224.8,79.4,129.1,-3],"neck":[224.8,185.3,105.9,-1.5],"back":[165.6,206.4,64.6,-8],"pack":[173.7,163.2,61.9,-5],"wings":[173.7,135.3,174.8,-6],"prop":[316.2,254.7,48.4,0],"aura":[192,178,340,0]},"eat":{"head":[254.6,202.0,130.6,4],"neck":[254.6,309.1,107.1,2.0],"back":[164.8,196.4,65.3,-8],"pack":[173.0,149.0,62.6,-5],"wings":[173.0,118.3,176.8,-6],"prop":[317.1,249.4,49.0,0],"aura":[192,178,340,0]},"sleep":{"head":[272.6,181.7,130.2,12],"neck":[272.6,288.5,106.8,6.0],"back":[161.0,238.8,74.4,-8],"pack":[170.3,209.4,71.3,-5],"wings":[170.3,190.4,201.5,-6],"prop":[334.6,271.7,55.8,0],"aura":[192,178,340,0]},"stretch-start":{"head":[261.9,162.1,130.1,5],"neck":[261.9,268.8,106.7,2.5],"back":[163.6,193.6,69.4,-8],"pack":[172.3,145.0,66.5,-5],"wings":[172.3,113.5,187.8,-6],"prop":[325.4,247.9,52.0,0],"aura":[192,178,340,0]},"stretch":{"head":[261.0,185.2,121.4,3],"neck":[261.0,284.7,99.5,1.5],"back":[164.4,198.8,66.2,-8],"pack":[172.7,152.4,63.5,-5],"wings":[172.7,122.4,179.4,-6],"prop":[319.0,250.7,49.7,0],"aura":[192,178,340,0]},"roll":{"head":[279.7,152.8,126.0,45],"neck":[279.7,256.1,103.3,22.5],"back":[160.2,218.0,77.5,-8],"pack":[169.9,179.8,74.3,-5],"wings":[169.9,155.0,210.0,-6],"prop":[341.1,260.8,58.1,0],"aura":[192,178,340,0]},"wave":{"head":[221.0,77.5,133.9,-4],"neck":[221.0,187.3,109.8,-2.0],"back":[164.0,204.4,68.4,-8],"pack":[172.6,160.4,65.5,-5],"wings":[172.6,131.9,185.2,-6],"prop":[323.6,253.6,51.3,0],"aura":[192,178,340,0]},"pounce":{"head":[271.0,193.6,136.8,4],"neck":[271.0,305.8,112.2,2.0],"back":[161.6,204.0,73.0,-8],"pack":[170.7,159.8,69.9,-5],"wings":[170.7,131.2,197.6,-6],"prop":[331.8,253.4,54.7,0],"aura":[192,178,340,0]},"groom":{"head":[249.1,91.4,130.2,-18],"neck":[249.1,198.2,106.8,-9.0],"back":[164.2,208.4,67.9,-8],"pack":[172.7,166.1,65.1,-5],"wings":[172.7,138.7,184.0,-6],"prop":[322.7,255.7,50.9,0],"aura":[192,178,340,0]}},"dudu":{"idle":{"head":[192.0,59.5,192.2,0],"neck":[192.0,217.1,157.6,0.0],"back":[113.7,240.4,85.4,-8],"pack":[167.1,184.5,81.9,-5],"wings":[167.1,148.3,231.4,-6],"prop":[355.8,302.9,64.1,0],"aura":[192,218,340,0]},"walk-a":{"head":[212.3,60.0,189.3,2],"neck":[212.3,215.2,155.2,1.0],"back":[117.6,242.0,81.1,-8],"pack":[168.3,186.8,77.7,-5],"wings":[168.3,151.0,219.7,-6],"prop":[347.5,303.8,60.8,0],"aura":[192,218,340,0]},"walk-b":{"head":[211.9,56.2,185.9,2],"neck":[211.9,208.6,152.4,1.0],"back":[119.0,240.4,79.7,-8],"pack":[168.8,184.5,76.4,-5],"wings":[168.8,148.3,215.8,-6],"prop":[344.7,302.9,59.8,0],"aura":[192,218,340,0]},"happy":{"head":[192.0,61.4,192.2,0],"neck":[192.0,219.0,157.6,0.0],"back":[113.7,241.2,85.4,-8],"pack":[167.1,185.6,81.9,-5],"wings":[167.1,149.6,231.4,-6],"prop":[355.8,303.3,64.1,0],"aura":[192,218,340,0]},"eat":{"head":[199.3,77.2,194.4,5],"neck":[199.3,236.6,159.4,2.5],"back":[117.5,245.2,81.8,-8],"pack":[168.6,191.3,78.4,-5],"wings":[168.6,156.4,221.7,-6],"prop":[349.4,305.4,61.4,0],"aura":[192,218,340,0]},"sleep":{"head":[192.0,95.6,192.6,3],"neck":[192.0,253.5,157.9,1.5],"back":[119.0,254.4,79.7,-8],"pack":[168.8,204.4,76.4,-5],"wings":[168.8,172.1,215.8,-6],"prop":[344.7,310.3,59.8,0],"aura":[192,218,340,0]},"flap-up":{"head":[195.6,65.8,181.6,0],"neck":[195.6,214.7,148.9,0.0],"back":[113.7,244.4,85.4,-8],"pack":[167.1,190.2,81.9,-5],"wings":[167.1,155.1,231.4,-6],"prop":[355.8,305.0,64.1,0],"aura":[192,218,340,0]},"flap-down":{"head":[192.0,68.6,185.1,0],"neck":[192.0,220.4,151.8,0.0],"back":[113.7,245.6,85.4,-8],"pack":[167.1,191.9,81.9,-5],"wings":[167.1,157.1,231.4,-6],"prop":[355.8,305.6,64.1,0],"aura":[192,218,340,0]},"salute":{"head":[195.3,53.3,180.4,2],"neck":[195.3,201.2,147.9,1.0],"back":[118.5,239.2,80.2,-8],"pack":[168.6,182.8,76.8,-5],"wings":[168.6,146.2,217.1,-6],"prop":[345.6,302.3,60.1,0],"aura":[192,218,340,0]},"slide":{"head":[284.6,193.4,156.6,10],"neck":[284.6,321.8,128.4,5.0],"back":[113.7,296.8,85.4,-8],"pack":[167.1,264.8,81.9,-5],"wings":[167.1,244.2,231.4,-6],"prop":[355.8,332.5,64.1,0],"aura":[192,218,340,0]},"preen":{"head":[218.3,59.5,190.6,16],"neck":[218.3,215.8,156.3,8.0],"back":[121.4,240.4,77.5,-8],"pack":[169.9,184.5,74.3,-5],"wings":[169.9,148.3,210.0,-6],"prop":[341.1,302.9,58.1,0],"aura":[192,218,340,0]},"dance":{"head":[215.0,52.8,183.7,-16],"neck":[215.0,203.4,150.6,-8.0],"back":[119.8,237.6,78.7,-8],"pack":[169.0,180.5,75.4,-5],"wings":[169.0,143.5,213.2,-6],"prop":[342.9,301.4,59.0,0],"aura":[192,218,340,0]}},"samoyed":{"idle":{"head":[250.2,45.2,92.9,-4],"neck":[250.2,121.4,76.2,-2.0],"back":[167.4,191.2,60.2,-8],"pack":[174.9,141.6,57.7,-5],"wings":[174.9,109.4,163.2,-6],"prop":[308.0,246.7,45.2,0],"aura":[192,178,340,0]},"walk-a":{"head":[254.8,49.7,100.3,-4],"neck":[254.8,131.9,82.2,-2.0],"back":[165.4,193.2,65.0,-8],"pack":[173.5,144.4,62.3,-5],"wings":[173.5,112.8,176.2,-6],"prop":[317.2,247.7,48.8,0],"aura":[192,178,340,0]},"walk-c":{"head":[252.7,48.8,97.7,-4],"neck":[252.7,128.9,80.1,-2.0],"back":[165.6,192.8,63.4,-8],"pack":[173.5,143.8,60.7,-5],"wings":[173.5,112.2,171.6,-6],"prop":[313.4,247.5,47.5,0],"aura":[192,178,340,0]},"walk-b":{"head":[255.8,46.1,101.8,-4],"neck":[255.8,129.6,83.5,-2.0],"back":[165.0,191.6,66.0,-8],"pack":[173.2,142.1,63.2,-5],"wings":[173.2,110.1,178.8,-6],"prop":[319.0,246.9,49.5,0],"aura":[192,178,340,0]},"walk-d":{"head":[254.1,47.9,99.9,-4],"neck":[254.1,129.8,81.9,-2.0],"back":[165.0,192.4,64.8,-8],"pack":[173.1,143.3,62.1,-5],"wings":[173.1,111.5,175.5,-6],"prop":[316.2,247.3,48.6,0],"aura":[192,178,340,0]},"happy":{"head":[223.4,49.7,117.9,-5],"neck":[223.4,146.4,96.7,-2.5],"back":[165.8,193.2,62.9,-8],"pack":[173.7,144.4,60.3,-5],"wings":[173.7,112.8,170.3,-6],"prop":[312.5,247.7,47.2,0],"aura":[192,178,340,0]},"eat":{"head":[260.1,198.9,127.3,5],"neck":[260.1,303.3,104.4,2.5],"back":[162.4,201.6,71.0,-8],"pack":[171.3,156.4,68.1,-5],"wings":[171.3,127.1,192.4,-6],"prop":[328.2,252.1,53.3,0],"aura":[192,178,340,0]},"sleep":{"head":[268.1,191.8,112.8,8],"neck":[268.1,284.3,92.5,4.0],"back":[163.8,237.6,67.7,-8],"pack":[172.3,207.7,64.9,-5],"wings":[172.3,188.3,183.3,-6],"prop":[321.7,271.0,50.8,0],"aura":[192,178,340,0]},"bow-start":{"head":[262.7,148.5,114.2,4],"neck":[262.7,242.1,93.6,2.0],"back":[164.8,198.0,65.3,-8],"pack":[173.0,151.2,62.6,-5],"wings":[173.0,121.0,176.8,-6],"prop":[317.1,250.2,49.0,0],"aura":[192,178,340,0]},"bow":{"head":[267.8,186.7,126.4,3],"neck":[267.8,290.3,103.6,1.5],"back":[162.4,204.8,72.2,-8],"pack":[171.4,160.9,69.2,-5],"wings":[171.4,132.6,195.7,-6],"prop":[331.0,253.8,54.2,0],"aura":[192,178,340,0]},"paw":{"head":[224.5,56.0,115.0,-5],"neck":[224.5,150.3,94.3,-2.5],"back":[167.0,196.0,60.0,-8],"pack":[174.5,148.4,57.5,-5],"wings":[174.5,117.6,162.5,-6],"prop":[307.0,249.2,45.0,0],"aura":[192,178,340,0]},"wag":{"head":[251.8,51.5,96.2,-4],"neck":[251.8,130.4,78.9,-2.0],"back":[166.0,194.0,62.4,-8],"pack":[173.8,145.6,59.8,-5],"wings":[173.8,114.2,169.0,-6],"prop":[311.6,248.2,46.8,0],"aura":[192,178,340,0]},"shake-left":{"head":[250.7,62.5,113.6,-18],"neck":[250.7,155.7,93.2,-9.0],"back":[164.8,196.4,66.5,-8],"pack":[173.1,149.0,63.7,-5],"wings":[173.1,118.3,180.1,-6],"prop":[319.9,249.4,49.9,0],"aura":[192,178,340,0]},"shake-right":{"head":[239.9,65.3,111.7,-24],"neck":[239.9,156.9,91.6,-12.0],"back":[165.4,196.4,63.8,-8],"pack":[173.4,149.0,61.2,-5],"wings":[173.4,118.3,172.9,-6],"prop":[314.4,249.4,47.9,0],"aura":[192,178,340,0]},"howl":{"head":[230.4,30.6,97.6,-30],"neck":[230.4,110.6,80.0,-15.0],"back":[165.4,193.6,65.0,-8],"pack":[173.5,145.0,62.3,-5],"wings":[173.5,113.5,176.2,-6],"prop":[317.2,247.9,48.8,0],"aura":[192,178,340,0]},"chase":{"head":[227.1,44.9,99.9,-38],"neck":[227.1,126.8,81.9,-19.0],"back":[165.0,197.2,64.8,-8],"pack":[173.1,150.1,62.1,-5],"wings":[173.1,119.6,175.5,-6],"prop":[316.2,249.8,48.6,0],"aura":[192,178,340,0]},"beg":{"head":[207.1,38.6,109.4,-10],"neck":[207.1,128.3,89.7,-5.0],"back":[168.2,189.6,58.3,-8],"pack":[175.5,139.3,55.9,-5],"wings":[175.5,106.7,158.0,-6],"prop":[304.3,245.8,43.7,0],"aura":[192,178,340,0]},"roll":{"head":[284.4,189.8,123.6,35],"neck":[284.4,291.2,101.4,17.5],"back":[160.8,222.0,76.1,-8],"pack":[170.3,185.4,72.9,-5],"wings":[170.3,161.8,206.1,-6],"prop":[338.3,262.9,57.1,0],"aura":[192,178,340,0]},"pounce":{"head":[264.0,163.3,126.0,5],"neck":[264.0,266.6,103.3,2.5],"back":[162.0,198.8,72.0,-8],"pack":[171.0,152.4,69.0,-5],"wings":[171.0,122.4,195.0,-6],"prop":[330.0,250.7,54.0,0],"aura":[192,178,340,0]},"trot":{"head":[259.0,69.8,115.6,-4],"neck":[259.0,164.6,94.8,-2.0],"back":[163.6,197.2,69.4,-8],"pack":[172.3,150.1,66.5,-5],"wings":[172.3,119.6,187.8,-6],"prop":[325.4,249.8,52.0,0],"aura":[192,178,340,0]}}};
+function accSkinRoot(root,k){
+  var skin=accSkin(k);
+  root.querySelectorAll('[data-pet-sprite]').forEach(function(img){
+    var name=img.getAttribute('data-pet-sprite'),pose=img.getAttribute('data-pose');
+    var src='assets/'+(skin?'skins/'+skin.skin+'/':'pets/')+name+'-'+pose+'.svg';
+    if(img.getAttribute('href')!==src)img.setAttribute('href',src);
+  });
+  root.querySelectorAll('.acc').forEach(function(g){
+    if(!g.hasAttribute('data-base-w')){g.setAttribute('data-base-w',g.getAttribute('data-w'));g.setAttribute('data-base-transform',g.getAttribute('transform'));}
+    var slot=Array.from(g.classList).filter(function(c){return c.indexOf('acc-')===0;})[0].slice(4),pose=g.getAttribute('data-pose'),name=g.getAttribute('data-pet');
+    var map=skin&&PUMPKIN_ANCHORS[name]&&PUMPKIN_ANCHORS[name][pose],key=slot;
+    if(slot==='back')key=g.getAttribute('data-layer')==='rear'?'wings':g.getAttribute('data-at')==='pack'?'pack':'back';
+    var v=map&&map[key];
+    g.setAttribute('data-w',v?v[2]:g.getAttribute('data-base-w'));
+    g.setAttribute('transform',v?'translate('+((+g.getAttribute('data-ox')||0)+v[0])+' '+v[1]+') rotate('+v[3]+')':g.getAttribute('data-base-transform'));
+  });
+}
+var accSkinWarmed=false;
+function accWarmSkins(){
+  if(accSkinWarmed)return;accSkinWarmed=true;
+  Object.keys(PUMPKIN_ANCHORS).forEach(function(name){Object.keys(PUMPKIN_ANCHORS[name]).concat(name==='samoyed'?['walk-strip']:[]).forEach(function(pose){var im=new Image();im.src='assets/skins/pumpkin-bat/'+name+'-'+pose+'.svg';});});
+}
+var accHalloweenOpen=accIsFree(ACC_BY['hw-pumpkin-cape']);
+function accCheckUnlock(){
+  var open=accIsFree(ACC_BY['hw-pumpkin-cape']);if(open===accHalloweenOpen)return;
+  accHalloweenOpen=open;accApply();
+  var ward=document.querySelector('[data-wardrobe-pet]');if(ward)accOpenWardrobe(ward.getAttribute('data-wardrobe-pet'));
+}
+setTimeout(accCheckUnlock,Math.max(0,Math.min(2147483647,ACC_BY['hw-pumpkin-cape'].freeAt-Date.now()+50)));
+setInterval(accCheckUnlock,30000);
+document.addEventListener('visibilitychange',function(){if(!document.hidden)accCheckUnlock();});
+
 function accOwned(){
   var o={};
   ['syue','ling'].forEach(function(u){var r=petData[u];if(r&&r.acc)Object.keys(r.acc).forEach(function(id){o[id]=(o[id]||0)+r.acc[id];});});
-  ACC_LIST.forEach(function(a){if(a.free)o[a.id]=Math.max(1,o[a.id]||0);});
+  ACC_LIST.forEach(function(a){if(accIsFree(a))o[a.id]=Math.max(1,o[a.id]||0);});
   return o;
 }
 function accFits(a,k){return !a.pets||a.pets.indexOf(k)>-1;}
@@ -2417,6 +2456,7 @@ function accApply(k){
   var list=k?[pets[k]]:petList();
   list.forEach(function(p){
     if(!p)return;
+    accSkinRoot(p.el,p.k);
     ACC_SLOT_KEYS.forEach(function(slot){
       var a=ACC_BY[accDisplayed(p.k,slot)];if(a&&!accFits(a,p.k))a=null;
       p.el.querySelectorAll('.acc-'+slot).forEach(function(g){accPlace(g,a,slot);});
@@ -2426,24 +2466,25 @@ function accApply(k){
 // 衣櫃裡的預覽：站姿＋現在戴的配件
 function accPreview(k){
   var name={cat:'snowball',pg:'dudu',dg:'samoyed'}[k],h=k==='pg'?384:320;
-  var hat=ACC_BY[accDisplayed(k,'head')],anchor=ACC_ANCHORS[name].idle.H,top=0;
+  var hat=ACC_BY[accDisplayed(k,'head')],anchor=accSkin(k)?PUMPKIN_ANCHORS[name].idle.head:ACC_ANCHORS[name].idle.H,top=0;
   if(hat){var bw=anchor[2]*hat.size,bh=bw*(hat.ar||1),tilt=(anchor[3]+(hat.rot||0))*Math.PI/180;top=Math.min(0,Math.floor(anchor[1]-bh+(hat.sink||.2)*anchor[2]-Math.abs(Math.sin(tilt)*bw/2)-10));}
   var s='<svg viewBox="0 '+top+' 384 '+(h-top+(accDisplayed(k,'aura')?40:8))+'" class="wd-pet">'+accPoseArt(name,'idle',384,h)+'</svg>';
-  var d=document.createElement('div');d.innerHTML=s;
+  var d=document.createElement('div');d.innerHTML=s;accSkinRoot(d,k);
   ACC_SLOT_KEYS.forEach(function(slot){var a=ACC_BY[accDisplayed(k,slot)];d.querySelectorAll('.acc-'+slot).forEach(function(g){accPlace(g,a&&accFits(a,k)?a:null,slot);});});
   return d.innerHTML;
 }
 
 /* 衣櫃：看收藏、幫寵物換配件、去轉盤 */
 function accOpenWardrobe(k){
-  k=k||'cat';petCloseMenu();
+  k=k||'cat';petCloseMenu();accWarmSkins();
   var me=petWho(),own=accOwned(),r=me?petDay(me):null,tix=r?r.tix:0,trial=accFitting.active;
   var items=ACC_LIST.filter(function(a){return accWardrobeFilter==='all'||a.slot===accWardrobeFilter;}),have=items.filter(function(a){return own[a.id];}).length;
-  var h='<div class="popup-grabber"></div><div class="popup-top"><div class="popup-dot" style="background:var(--coral)"></div><div class="popup-title">'+(trial?'🪞 ':'🎀 ')+safeHtml(petName(k))+(trial?' 的試衣間':' 的衣櫃')+'</div><button class="popup-close" onclick="closePopup()">✕</button></div><div class="popup-body">';
+  var h='<div class="popup-grabber"></div><div class="popup-top"><div class="popup-dot" style="background:var(--coral)"></div><div class="popup-title">'+(trial?'🪞 ':'🎀 ')+safeHtml(petName(k))+(trial?' 的試衣間':' 的衣櫃')+'</div><button class="popup-close" onclick="closePopup()">✕</button></div><div class="popup-body" data-wardrobe-pet="'+k+'">';
   h+='<div class="cs-tabs">'+PET_KEYS.map(function(x){return '<button data-pk="'+x+'"'+(x===k?' class="on"':'')+'>'+PET_DEF[x].ic+' '+safeHtml(petName(x))+'</button>';}).join('')+'</div>';
   h+='<button class="wd-try-toggle" id="wdTry" aria-pressed="'+trial+'">'+(trial?'🪞 結束本機試戴':'🪞 本機試戴全部配件')+'</button>';
   if(trial)h+='<div class="wd-try-note">全部 '+ACC_LIST.length+' 款都能試戴，效果只在這台裝置顯示。結束試戴或重新整理會恢復原本造型。</div>';
   else h+='<div class="wd-try-note">🎁 洋流飄帶免費開放，三隻都能直接裝備。在「背飾」或下方收藏點選即可。</div>';
+  h+='<div class="wd-event">🎃 南瓜蝙蝠套裝・'+(accIsFree(ACC_BY['hw-pumpkin-cape'])?'已免費開放，三隻都能直接裝備！':'目前可從轉盤抽得；台灣時間 10/31 起，三隻都能免費裝備。')+'</div>';
   h+='<div class="wd-top"><div class="wd-stage">'+accPreview(k)+'</div><div class="wd-slots">';
   ACC_SLOT_KEYS.forEach(function(slot){
     if(accWardrobeFilter!=='all'&&accWardrobeFilter!==slot)return;
@@ -2457,11 +2498,11 @@ function accOpenWardrobe(k){
   h+='<div class="wd-filters">'+['all'].concat(ACC_SLOT_KEYS).map(function(slot){return '<button data-slot-filter="'+slot+'" class="'+(accWardrobeFilter===slot?'on':'')+'">'+(slot==='all'?'全部':ACC_SLOT[slot])+'</button>';}).join('')+'</div>';
   h+='<div class="cs-sec"><div class="cs-h"><span>'+(trial?'所有配件・自由試戴':'我們的收藏')+'</span><b>'+(trial?items.length+' 款':have+' / '+items.length)+'</b></div><div class="wd-grid">';
   items.forEach(function(a){
-    var ok=trial||!!own[a.id],fit=accFits(a,k),on=accDisplayed(k,a.slot)===a.id,R=ACC_RARE[a.rare];
+    var ok=trial||!!own[a.id],fit=accFits(a,k),on=accDisplayed(k,a.slot)===a.id,R=ACC_RARE[accIsFree(a)?0:a.rare],show=ok||a.preview;
     h+='<button class="wd-item'+(ok?'':' lock')+(on?' on':'')+(ok&&!fit?' nofit':'')+'" data-acc="'+a.id+'" style="--rc:'+R.color+'">'+
-      (ok?'<img src="'+a.img+'" alt="">':'<span class="wd-q">？</span>')+'<span class="wd-n">'+(ok?safeHtml(a.name):R.name)+'</span><span class="wd-r">'+R.star+'</span></button>';
+      (show?'<img src="'+a.img+'" alt="">':'<span class="wd-q">？</span>')+'<span class="wd-n">'+(show?safeHtml(a.name):R.name)+'</span><span class="wd-r">'+R.star+'</span></button>';
   });
-  h+='</div><div class="cs-note">'+(trial?'點配件即可試戴，再點一次拿下。洋流飄帶免費開放，其餘收藏配件可透過轉盤取得。':'點收藏裡的配件就會幫 '+safeHtml(petName(k))+' 戴上，再點一次拿下來。洋流飄帶免費，其餘配件可完成今日支線取得轉盤券。')+'</div></div></div>';
+  h+='</div><div class="cs-note">'+(trial?'點配件即可試戴，再點一次拿下。標示「免費」的配件可直接裝備，其餘收藏配件可透過轉盤取得。':'點收藏裡的配件就會幫 '+safeHtml(petName(k))+' 戴上，再點一次拿下來。標示「免費」的配件可直接裝備，其餘配件可完成今日支線取得轉盤券。')+'</div></div></div>';
   openPopupCard(h);
   var card=document.getElementById('popupCard');
   card.querySelectorAll('[data-slot-filter]').forEach(function(b){b.onclick=function(){accWardrobeFilter=b.getAttribute('data-slot-filter');accOpenWardrobe(k);};});
@@ -2470,7 +2511,7 @@ function accOpenWardrobe(k){
   card.querySelectorAll('[data-off]').forEach(function(b){b.onclick=function(){var slot=b.getAttribute('data-off');if(trial?accTryWear(k,slot,''):accSetWorn(k,slot,''))accOpenWardrobe(k);};});
   card.querySelectorAll('[data-acc]').forEach(function(b){b.onclick=function(){
     var a=ACC_BY[b.getAttribute('data-acc')];
-    if(!trial&&!own[a.id]){toast('還沒抽到這個配件，可以先用本機試戴看看');return;}
+    if(!trial&&!own[a.id]){toast(a.skin?'目前需抽到才能裝備；10/31 起免費，也可以先用本機試戴':'還沒抽到這個配件，可以先用本機試戴看看');return;}
     if(!accFits(a,k)){toast(petName(k)+' 戴不了'+a.name);return;}
     var on=accDisplayed(k,a.slot)===a.id;
     if(trial?accTryWear(k,a.slot,on?'':a.id):accSetWorn(k,a.slot,on?'':a.id)){
@@ -2513,7 +2554,7 @@ function accSpin(k){
   if(!r.tix){toast('沒有轉盤券了，完成今日支線就會拿到');return;}
   r.tix--;
   var i=Math.floor(Math.random()*ACC_WHEEL.length),rare=ACC_WHEEL[i],own=accOwned();
-  var pool=ACC_LIST.filter(function(a){return !a.free&&a.rare===rare;}),fresh=pool.filter(function(a){return !own[a.id];});
+  var pool=ACC_LIST.filter(function(a){return !accIsFree(a)&&a.rare===rare;}),fresh=pool.filter(function(a){return !own[a.id];});
   var a=catPick(fresh.length?fresh:pool),dup=!fresh.length;
   r.acc[a.id]=(r.acc[a.id]||0)+1;
   if(dup){r.can+=1;r.squid+=1;}
@@ -2547,7 +2588,7 @@ function petBookArt(name,w,h){
   var poses=['idle','walk-a','walk-b','happy','eat','sleep'].concat(PET_BOOK_EXTRA[name]);
   return '<svg class="book-art" viewBox="0 0 '+w+' '+h+'" aria-hidden="true">'+poses.map(function(p){
     return '<g class="book-frame book-'+p+'">'+accPoseArt(name,p,w,h)+'</g>';
-  }).join('')+(name==='samoyed'?'<svg class="dog-walk-window" x="0" y="0" width="384" height="320" viewBox="0 0 384 320"><defs><clipPath id="dog-walk-accessory-clip" clipPathUnits="userSpaceOnUse"><rect x="0" y="-180" width="384" height="680"/></clipPath></defs><g clip-path="url(#dog-walk-accessory-clip)"><g class="dog-walk-strip">'+ACC_DOG_STRIP.map(function(p,i){return accSlots(name,p,i*384,'rear');}).join('')+'<image href="assets/pets/samoyed-walk-strip.svg" width="1536" height="320"/>'+
+  }).join('')+(name==='samoyed'?'<svg class="dog-walk-window" x="0" y="0" width="384" height="320" viewBox="0 0 384 320"><defs><clipPath id="dog-walk-accessory-clip" clipPathUnits="userSpaceOnUse"><rect x="0" y="-180" width="384" height="680"/></clipPath></defs><g clip-path="url(#dog-walk-accessory-clip)"><g class="dog-walk-strip">'+ACC_DOG_STRIP.map(function(p,i){return accSlots(name,p,i*384,'rear');}).join('')+'<image data-pet-sprite="samoyed" data-pose="walk-strip" href="assets/pets/samoyed-walk-strip.svg" width="1536" height="320"/>'+
     ACC_DOG_STRIP.map(function(p,i){return accSlots(name,p,i*384,'front');}).join('')+'</g></g></svg>':'')+'</svg>';
 }
 var CAT_ART={
@@ -2603,7 +2644,7 @@ function petClean(o){
   ['pts','kib','can','fish','squid','tix'].forEach(function(k){var v=+o[k];if(isFinite(v)&&v>=0)r[k]=v;});
   petCleanStat(o,r);
   if(o.acc&&typeof o.acc==='object')Object.keys(o.acc).forEach(function(id){var v=+o.acc[id];if(/^[a-z0-9-]{1,24}$/.test(id)&&isFinite(v)&&v>0)r.acc[id]=Math.floor(v);});
-  if(o.eq&&typeof o.eq==='object')Object.keys(o.eq).forEach(function(key){var e=o.eq[key];if(/^(cat|pg|dg)\.(head|neck|back|body|feet|prop|aura)$/.test(key)&&Array.isArray(e)&&typeof e[0]==='string'&&isFinite(+e[1]))r.eq[key]=[e[0].slice(0,24),+e[1]];});
+  if(o.eq&&typeof o.eq==='object')Object.keys(o.eq).forEach(function(key){var e=o.eq[key];if(/^(cat|pg|dg)\.(head|neck|back|body|feet|prop|aura|skin)$/.test(key)&&Array.isArray(e)&&typeof e[0]==='string'&&isFinite(+e[1]))r.eq[key]=[e[0].slice(0,24),+e[1]];});
   if(o.pg&&typeof o.pg==='object')petCleanStat(o.pg,r.pg);
   if(o.dg&&typeof o.dg==='object')petCleanStat(o.dg,r.dg);
   // 修正舊版的物種／預設名字對應；之後自行取的新名字仍保留。
@@ -3635,6 +3676,7 @@ function petInit(){
 </script>
 </body>
 </html>
+
 
 
 
