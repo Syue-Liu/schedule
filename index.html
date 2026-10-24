@@ -770,12 +770,13 @@ body:has(.chg-bar.show){padding-bottom:calc(124px + env(safe-area-inset-bottom))
 </div>
 <div class="sm" id="sm"></div>
 <div class="ht"><span id="hintText"></span></div>
-<!-- 頁尾小插圖：寵物設施（點左邊打開貓咪、點冰屋那邊打開企鵝的狀態卡） -->
+<!-- 頁尾小插圖：三隻寵物的家（點左邊貓跳台開貓咪、中間狗屋開薩摩耶、右邊冰屋開企鵝的狀態卡） -->
 <div class="scene" id="scene" role="button" aria-label="寵物狀態">
-  <svg viewBox="0 0 360 160">
-    <defs><clipPath id="iglooClip"><path d="M297.5 113A26.5 26.5 0 0 1 350.5 113Z"/></clipPath></defs>
+  <svg viewBox="0 26 360 140">
+    <defs><clipPath id="iglooClip"><path d="M265.5 146A42.5 42.5 0 0 1 350.5 146Z"/></clipPath><clipPath id="dogWallClip"><path d="M150 146V107L177 86L204 107V146Z"/></clipPath></defs>
     <g stroke="#3E3A39" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
       <!-- 貓跳台：麻繩柱、跳台、有圓洞的小屋、吊著的毛球 -->
+      <g transform="translate(-4 32)">
       <rect x="40" y="46" width="13" height="60" fill="#EBC98B"/>
       <path d="M40 54h13M40 62h13M40 70h13M40 78h13M40 86h13M40 94h13M40 102h13" fill="none" stroke-width="1.6"/>
       <rect x="92" y="34" width="11" height="32" fill="#EBC98B"/>
@@ -788,53 +789,58 @@ body:has(.chg-bar.show){padding-bottom:calc(124px + env(safe-area-inset-bottom))
       <rect x="80" y="28" width="36" height="8" rx="4" fill="#F6D27A"/>
       <g class="toy-sway"><path d="M28 49v20" fill="none" stroke-width="1.6"/><circle cx="28" cy="73" r="5" fill="#F6D27A"/><path d="M24.5 70l7 6M31.5 70l-7 6" fill="none" stroke-width="1.4"/></g>
       <rect x="18" y="104" width="108" height="10" rx="4" fill="#F2A497"/>
-      <!-- 玩具：毛線球、玩具老鼠 -->
-      <circle cx="142" cy="105" r="9" fill="#F2A497"/>
-      <path d="M135 101c4 1 9 5 11 11M138 97.5c4 3 8 8 9 13M133 106c3 0 6 3 8 7" fill="none" stroke-width="1.4"/>
-      <path d="M151 108c5 1 6 5 10 5" fill="none" stroke-width="1.6"/>
-<g transform="translate(-8 0)">
-      <path d="M176 112c0-6 5-10 11-10 4 0 7 3 8 6l3 1-3 2c-1 2-3 2-6 2Z" fill="#D9D4CE"/>
-      <circle cx="183" cy="102.5" r="3.4" fill="#F8C4BA" stroke-width="2"/>
-      <circle cx="191" cy="106" r="1" fill="#3E3A39" stroke="none"/>
-      <path d="M176 110c-6 0-8-5-4-7" fill="none" stroke-width="1.6"/>
       </g>
-      <!-- 兩個碗：貓的飼料、企鵝的魚 -->
-      <g transform="translate(-12 0)">
-      <path d="M207 104q11-7 22 0Z" fill="#E8C27A" stroke-width="2.4"/>
-      <path d="M203 104h30l-3 9a3 3 0 0 1-3 2h-18a3 3 0 0 1-3-2Z" fill="#F2A497"/>
-      <path d="M213 109.5q2.5 2 5 0q2.5 2 5 0" fill="none" stroke="#FFFCF6" stroke-width="1.6"/>
-      <path d="M246 101q4-4 9-1l3-3v8l-3-3q-5 3-9-1Z" fill="#A8D3E6" stroke-width="2"/>
-      <path d="M240 104h30l-3 9a3 3 0 0 1-3 2h-18a3 3 0 0 1-3-2Z" fill="#A8D3E6"/>
-      <path d="M250 109.5q2.5 2 5 0q2.5 2 5 0" fill="none" stroke="#FFFCF6" stroke-width="1.6"/>
-      </g>
-      <!-- 企鵝的冰屋＋小水池 -->
-      <ellipse cx="276" cy="110.5" rx="15" ry="4.6" fill="#A8D3E6"/>
-      <path d="M267 110q3.4-2 6.8 0M278 111.6q3.4-2 6.8 0" fill="none" stroke="#FFFCF6" stroke-width="1.6"/>
-      <path d="M296 113A28 28 0 0 1 352 113Z" fill="#FFFCF6"/>
-      <path clip-path="url(#iglooClip)" d="M298.6 103Q324 99 349.4 103M304 93Q324 89.5 344 93M311.5 85Q324 82.5 336.5 85M314 103v-9.6M334 103v-9.6M324 93v-8.4M309 113v-9.8M339 113v-9.8" fill="none" stroke="#A8D3E6" stroke-width="2"/>
-      <path d="M314 113v-9a10 10 0 0 1 20 0v9Z" fill="#55606B"/>
-      <path class="spark" d="M284 72q1.2 5 6 6-4.8 1-6 6-1.2-5-6-6 4.8-1 6-6Z" fill="#A8D3E6" stroke-width="1.8"/>
-      <path class="spark s2" d="M350 58q1 4 5 5-4 1-5 5-1-4-5-5 4-1 5-5Z" fill="#F6D27A" stroke-width="1.8"/>
+      <!-- 薩摩耶的狗屋：木板牆、斜屋頂、圓拱門、門上掛骨頭牌子 -->
+      <path d="M150 146V107L177 86L204 107V146Z" fill="#F6D27A"/>
+      <path clip-path="url(#dogWallClip)" d="M150 117h54M150 128h54M150 139h54M163 107v10M191 107v10M177 117v11M157 128v11M197 128v11" fill="none" stroke="#E0A84A" stroke-width="1.8"/>
+      <path d="M140 111L177 81L214 111" fill="none" stroke-width="11"/>
+      <path d="M140 111L177 81L214 111" fill="none" stroke="#F2A497" stroke-width="5.4"/>
+      <path d="M164 146v-17a13 13 0 0 1 26 0v17Z" fill="#55606B"/>
+      <g stroke-width="1.6"><rect x="170.5" y="97.5" width="13" height="5" rx="2.5" fill="#FFFCF6"/><circle cx="170.5" cy="97.6" r="2.6" fill="#FFFCF6"/><circle cx="170.5" cy="102.4" r="2.6" fill="#FFFCF6"/><circle cx="183.5" cy="97.6" r="2.6" fill="#FFFCF6"/><circle cx="183.5" cy="102.4" r="2.6" fill="#FFFCF6"/><path d="M171 100h12" stroke="#FFFCF6" stroke-width="3.4"/></g>
+      <!-- 企鵝的大冰屋 -->
+      <path d="M264 146A44 44 0 0 1 352 146Z" fill="#FFFCF6"/>
+      <path clip-path="url(#iglooClip)" d="M262 135.5Q308 130 354 135.5M264 124.5Q308 118.5 352 124.5M272 114Q308 108 344 114M284 105Q308 100.5 332 105M276 146v-10.5M340 146v-10.5M290 135v-10.5M326 135v-10.5M308 124v-10.5M294 114v-9M322 114v-9" fill="none" stroke="#A8D3E6" stroke-width="2.2"/>
+      <path d="M291 146v-14a17 17 0 0 1 34 0v14Z" fill="#55606B"/>
+      <path d="M296 131q4-6 10-6" fill="none" stroke="#FFFCF6" stroke-width="1.6" opacity=".5"/>
+      <path class="spark" d="M252 92q1.2 5 6 6-4.8 1-6 6-1.2-5-6-6 4.8-1 6-6Z" fill="#A8D3E6" stroke-width="1.8"/>
+      <path class="spark s2" d="M346 82q1 4 5 5-4 1-5 5-1-4-5-5 4-1 5-5Z" fill="#F6D27A" stroke-width="1.8"/>
+      <path class="spark" d="M228 76q1 4 5 5-4 1-5 5-1-4-5-5 4-1 5-5Z" fill="#F2A497" stroke-width="1.8"/>
       <!-- 地面 -->
-      <path d="M12 115.5H352" fill="none"/>
+      <path d="M8 146.5H352" fill="none"/>
+      <!-- 前排：碗和玩具 -->
+      <path d="M28 151q11-7 22 0Z" fill="#E8C27A" stroke-width="2.4"/>
+      <path d="M24 151h30l-3 8a3 3 0 0 1-3 2H30a3 3 0 0 1-3-2Z" fill="#F2A497"/>
+      <path d="M34 156q2.5 2 5 0q2.5 2 5 0" fill="none" stroke="#FFFCF6" stroke-width="1.6"/>
+      <circle cx="74" cy="153" r="8" fill="#F2A497"/>
+      <path d="M68 149.5c3.6 1 8 4.5 10 10M70.6 146.4c3.6 2.6 7 7 8 11.6M66.2 154c2.6 0 5.4 2.6 7 6.2" fill="none" stroke-width="1.3"/>
+      <path d="M82 156c5 1 6 4.5 10 4.5" fill="none" stroke-width="1.5"/>
+      <path d="M100 160c0-5.4 4.5-9 10-9 3.6 0 6.3 2.7 7.2 5.4l2.7.9-2.7 1.8c-.9 1.8-2.7 1.8-5.4 1.8Z" fill="#D9D4CE"/>
+      <circle cx="106.3" cy="151.5" r="3" fill="#F8C4BA" stroke-width="1.8"/>
+      <circle cx="113.5" cy="154.6" r=".9" fill="#3E3A39" stroke="none"/>
+      <path d="M100 158.4c-5.4 0-7.2-4.5-3.6-6.3" fill="none" stroke-width="1.5"/>
+      <path d="M221 151h30l-3 8a3 3 0 0 1-3 2h-18a3 3 0 0 1-3-2Z" fill="#B9DAA5"/>
+      <g stroke-width="1.4"><rect x="228" y="145" width="16" height="4.4" rx="2.2" fill="#FFFCF6" transform="rotate(-12 236 147)"/><circle cx="228.4" cy="146.6" r="2.4" fill="#FFFCF6"/><circle cx="229.3" cy="150.6" r="2.4" fill="#FFFCF6"/><circle cx="243" cy="143.4" r="2.4" fill="#FFFCF6"/><circle cx="243.9" cy="147.4" r="2.4" fill="#FFFCF6"/></g>
+      <path d="M231 156q2.5 2 5 0q2.5 2 5 0" fill="none" stroke="#FFFCF6" stroke-width="1.6"/>
+      <path d="M266 149q4-4 9-1l3-3v8l-3-3q-5 3-9-1Z" fill="#A8D3E6" stroke-width="2"/>
+      <path d="M260 151h30l-3 8a3 3 0 0 1-3 2h-18a3 3 0 0 1-3-2Z" fill="#A8D3E6"/>
+      <path d="M270 156q2.5 2 5 0q2.5 2 5 0" fill="none" stroke="#FFFCF6" stroke-width="1.6"/>
     </g>
-    <!-- 寵物休息中（被藏起來）才出現：貓睡在跳台上、企鵝在冰屋門口打瞌睡 -->
-    <rect x="135" y="137" width="100" height="15" rx="7" fill="#B9DAA5" stroke="#3E3A39" stroke-width="2.5"/>
+    <!-- 寵物休息中（被藏起來）才出現：貓睡在跳台上、薩摩耶趴在狗屋門口、企鵝睡在冰屋門口；點一下叫牠出來 -->
+    <g class="home-cat" role="button" aria-label="叫貓咪出來">
+      <image href="assets/pets/snowball-sleep.svg" x="8" y="18" width="70" height="58.3"/>
+      <text class="zz" x="66" y="40" font-size="11" fill="#3E3A39">z</text>
+      <text class="zz z2" x="72" y="33" font-size="8" fill="#3E3A39">z</text>
+    </g>
     <g class="home-dg" role="button" aria-label="叫薩摩耶出來">
-      <rect x="134" y="104" width="104" height="50" fill="transparent" pointer-events="all"/>
-      <image href="assets/pets/samoyed-sleep.svg" x="134" y="84" width="102" height="70"/>
-      <text class="zz" x="224" y="120" font-size="10" fill="#3E3A39">z</text>
-      <text class="zz z2" x="232" y="111" font-size="8" fill="#3E3A39">z</text>
+      <rect x="140" y="108" width="76" height="44" fill="transparent" pointer-events="all"/>
+      <image href="assets/pets/samoyed-sleep.svg" x="134.4" y="80" width="85" height="70.8"/>
+      <text class="zz" x="206" y="110" font-size="10" fill="#3E3A39">z</text>
+      <text class="zz z2" x="213" y="102" font-size="8" fill="#3E3A39">z</text>
     </g>
-    <g class="home-cat">
-      <image href="assets/pets/snowball-sleep.svg" x="17" y="0" width="59" height="43" preserveAspectRatio="none"/>
-      <text class="zz" x="66" y="16" font-size="11" fill="#3E3A39">z</text>
-      <text class="zz z2" x="72" y="9" font-size="8" fill="#3E3A39">z</text>
-    </g>
-    <g class="home-pg">
-      <image href="assets/pets/dudu-sleep.svg" x="290" y="49" width="64" height="68" preserveAspectRatio="none"/>
-      <text class="zz" x="349" y="92" font-size="10" fill="#3E3A39">z</text>
-      <text class="zz z2" x="354" y="85" font-size="7" fill="#3E3A39">z</text>
+    <g class="home-pg" role="button" aria-label="叫企鵝出來">
+      <image href="assets/pets/dudu-sleep.svg" x="280.4" y="93.5" width="55.4" height="55.4"/>
+      <text class="zz" x="333" y="112" font-size="10" fill="#3E3A39">z</text>
+      <text class="zz z2" x="339" y="104" font-size="7" fill="#3E3A39">z</text>
     </g>
   </svg>
 </div>
@@ -2951,11 +2957,11 @@ function petInit(){
     petQuest('min',1);petSave();
     if(petGift)petGreet();
   },15000);
-  // 點頁尾：右邊（冰屋那邊）開企鵝，其他開貓咪
+  // 點頁尾：左邊貓跳台開貓咪、中間狗屋開薩摩耶、右邊冰屋開企鵝
   document.getElementById('scene').addEventListener('click',function(e){
     var home=e.target.closest('.home-cat,.home-pg,.home-dg');
     if(home){petSetResting(home.classList.contains('home-cat')?pets.cat:home.classList.contains('home-dg')?pets.dg:pets.pg,false);return;}
-    var b=this.getBoundingClientRect();petOpenSheet(e.clientY>b.top+b.height*.76?'dg':e.clientX>b.left+b.width*.68?'pg':'cat');
+    var b=this.getBoundingClientRect(),fx=(e.clientX-b.left)/b.width;petOpenSheet(fx<.36?'cat':fx<.68?'dg':'pg');
   });
   petSynced=!(syncCode&&syncCode!=='LOCAL');
   if(petSynced)petReady();
