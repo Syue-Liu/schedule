@@ -559,6 +559,9 @@ body:has(.chg-bar.show){padding-bottom:calc(124px + env(safe-area-inset-bottom))
 .wd-filters button{min-height:30px;padding:4px 10px;border:1.5px solid var(--ink);border-radius:999px;background:var(--paper);color:var(--t);font-size:12px;cursor:pointer;}
 .wd-filters button.on{background:var(--mizu);}
 .acc-aura .acc-img{transform-box:fill-box;transform-origin:center;}
+.acc-back[data-effect="ribbon"] .acc-img{transform-box:fill-box;transform-origin:48% 16%;animation:wearRibbon 2.8s ease-in-out infinite;}
+@keyframes wearRibbon{0%,100%{transform:rotate(-3deg) skewX(-1deg);}50%{transform:rotate(3deg) skewX(2deg);}}
+@media(prefers-reduced-motion:reduce){.acc-back[data-effect="ribbon"] .acc-img{animation:none;}}
 .acc-aura[data-effect="stars"] .acc-img{animation:wearStars 3.4s ease-in-out infinite;}
 .acc-aura[data-effect="petals"] .acc-img{animation:wearPetals 5.5s ease-in-out infinite;}
 .acc-aura[data-effect="snow"] .acc-img{animation:wearSnow 6s ease-in-out infinite;}
@@ -2189,6 +2192,7 @@ function petBookPlay(p,id,ms){
    - 收藏兩個人共用；轉盤券各自的（各自完成支線拿到的）
    - 戴什麼：兩個人誰最後換的就算數，兩支手機看到的一樣 */
 var ACC_LIST=[
+  {id:'yang-ribbon',name:'洋流飄帶',ar:1.3125,slot:'back',rare:0,free:true,size:1.32,effect:'ribbon'},
   // ar：圖的高÷寬（跟 SVG 的 viewBox 一樣，viewBox 要貼齊圖案）；size：寬度是頭寬（或脖子寬）的幾倍
   // sink：帽子底部往頭裡壓多少（頭寬的幾倍）；dx：往右偏；dy：頸飾往下移；rot：多轉幾度
   {id:'strawhat',name:'草帽',ar:0.481,slot:'head',rare:1,size:1.05,sink:.2},
@@ -2255,7 +2259,7 @@ ACC_LIST.forEach(function(a){
   var im=new Image();im.onload=function(){if(im.naturalWidth){a.ar=im.naturalHeight/im.naturalWidth;accApply();}};im.src=a.img;
 });
 var ACC_BY={};ACC_LIST.forEach(function(a){ACC_BY[a.id]=a;});
-var ACC_RARE={1:{name:'普通',color:'#F5EEE2',star:'★'},2:{name:'稀有',color:'#A8D3E6',star:'★★'},3:{name:'傳說',color:'#F6D27A',star:'★★★'}};
+var ACC_RARE={0:{name:'免費',color:'#FFD6BC',star:'免費・免抽'},1:{name:'普通',color:'#F5EEE2',star:'★'},2:{name:'稀有',color:'#A8D3E6',star:'★★'},3:{name:'傳說',color:'#F6D27A',star:'★★★'}};
 var ACC_SLOT={head:'頭飾',neck:'頸飾',back:'背飾',body:'服裝',feet:'鞋襪',prop:'小物',aura:'特效'};
 var ACC_SLOT_KEYS=Object.keys(ACC_SLOT),accWardrobeFilter='all';
 // 轉盤 8 格：普通 5、稀有 2、傳說 1
@@ -2362,6 +2366,7 @@ function accPoseArt(name,pose,w,h,ox){
 function accOwned(){
   var o={};
   ['syue','ling'].forEach(function(u){var r=petData[u];if(r&&r.acc)Object.keys(r.acc).forEach(function(id){o[id]=(o[id]||0)+r.acc[id];});});
+  ACC_LIST.forEach(function(a){if(a.free)o[a.id]=Math.max(1,o[a.id]||0);});
   return o;
 }
 function accFits(a,k){return !a.pets||a.pets.indexOf(k)>-1;}
@@ -2386,6 +2391,8 @@ function accToggleFitting(){
   accFitting.active=!accFitting.active;accFitting.eq={};accApply();
 }
 function accSetWorn(k,slot,id){
+  var a=ACC_BY[id];
+  if(PET_KEYS.indexOf(k)<0||ACC_SLOT_KEYS.indexOf(slot)<0||id&&(!a||a.slot!==slot||!accFits(a,k)||!accOwned()[id]))return false;
   var me=petWho();if(!me){toast('先在狀態卡選你是誰');return false;}
   var r=petRec(me);r.eq[k+'.'+slot]=[id||'',Date.now()];petSave();accApply(k);return true;
 }
@@ -2437,6 +2444,7 @@ function accOpenWardrobe(k){
   h+='<div class="cs-tabs">'+PET_KEYS.map(function(x){return '<button data-pk="'+x+'"'+(x===k?' class="on"':'')+'>'+PET_DEF[x].ic+' '+safeHtml(petName(x))+'</button>';}).join('')+'</div>';
   h+='<button class="wd-try-toggle" id="wdTry" aria-pressed="'+trial+'">'+(trial?'🪞 結束本機試戴':'🪞 本機試戴全部配件')+'</button>';
   if(trial)h+='<div class="wd-try-note">全部 '+ACC_LIST.length+' 款都能試戴，效果只在這台裝置顯示。結束試戴或重新整理會恢復原本造型。</div>';
+  else h+='<div class="wd-try-note">🎁 洋流飄帶免費開放，三隻都能直接裝備。在「背飾」或下方收藏點選即可。</div>';
   h+='<div class="wd-top"><div class="wd-stage">'+accPreview(k)+'</div><div class="wd-slots">';
   ACC_SLOT_KEYS.forEach(function(slot){
     if(accWardrobeFilter!=='all'&&accWardrobeFilter!==slot)return;
@@ -2454,7 +2462,7 @@ function accOpenWardrobe(k){
     h+='<button class="wd-item'+(ok?'':' lock')+(on?' on':'')+(ok&&!fit?' nofit':'')+'" data-acc="'+a.id+'" style="--rc:'+R.color+'">'+
       (ok?'<img src="'+a.img+'" alt="">':'<span class="wd-q">？</span>')+'<span class="wd-n">'+(ok?safeHtml(a.name):R.name)+'</span><span class="wd-r">'+R.star+'</span></button>';
   });
-  h+='</div><div class="cs-note">'+(trial?'點配件即可試戴，再點一次拿下。收藏配件可透過轉盤取得。':'點收藏裡的配件就會幫 '+safeHtml(petName(k))+' 戴上，再點一次拿下來。完成今日支線可以拿到轉盤券。')+'</div></div></div>';
+  h+='</div><div class="cs-note">'+(trial?'點配件即可試戴，再點一次拿下。洋流飄帶免費開放，其餘收藏配件可透過轉盤取得。':'點收藏裡的配件就會幫 '+safeHtml(petName(k))+' 戴上，再點一次拿下來。洋流飄帶免費，其餘配件可完成今日支線取得轉盤券。')+'</div></div></div>';
   openPopupCard(h);
   var card=document.getElementById('popupCard');
   card.querySelectorAll('[data-slot-filter]').forEach(function(b){b.onclick=function(){accWardrobeFilter=b.getAttribute('data-slot-filter');accOpenWardrobe(k);};});
@@ -2506,7 +2514,7 @@ function accSpin(k){
   if(!r.tix){toast('沒有轉盤券了，完成今日支線就會拿到');return;}
   r.tix--;
   var i=Math.floor(Math.random()*ACC_WHEEL.length),rare=ACC_WHEEL[i],own=accOwned();
-  var pool=ACC_LIST.filter(function(a){return a.rare===rare;}),fresh=pool.filter(function(a){return !own[a.id];});
+  var pool=ACC_LIST.filter(function(a){return !a.free&&a.rare===rare;}),fresh=pool.filter(function(a){return !own[a.id];});
   var a=catPick(fresh.length?fresh:pool),dup=!fresh.length;
   r.acc[a.id]=(r.acc[a.id]||0)+1;
   if(dup){r.can+=1;r.squid+=1;}
@@ -3547,6 +3555,7 @@ function petInit(){
 </script>
 </body>
 </html>
+
 
 
 
