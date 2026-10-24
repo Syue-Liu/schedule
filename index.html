@@ -516,6 +516,41 @@ body:has(.chg-bar.show){padding-bottom:calc(124px + env(safe-area-inset-bottom))
 .cs-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:2px 0 4px;}
 .cs-tabs button{height:40px;min-width:0;border:var(--lw2) solid var(--ink);border-radius:14px;background:var(--paper);font-size:13px;color:var(--t);cursor:pointer;}
 .cs-tabs button.on{background:var(--yellow);}
+/* 衣櫃・配件轉盤 */
+.wd-open{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:42px;margin:6px 0 2px;border:var(--lw2) solid var(--ink);border-radius:14px;background:var(--ling-bg);font-size:15px;color:var(--t);cursor:pointer;}
+.wd-open b,.wd-spin b{font-size:12px;font-weight:400;padding:1px 8px;border-radius:999px;background:var(--paper);border:1.5px solid var(--ink);}
+.wd-top{display:grid;grid-template-columns:136px minmax(0,1fr);gap:12px;align-items:center;padding:10px 2px 4px;}
+.wd-stage{background:var(--paper2);border:var(--lw2) solid var(--ink);border-radius:18px;padding:8px 6px 4px;}
+.wd-pet{display:block;width:100%;height:auto;overflow:visible;}
+.wd-slots{display:flex;flex-direction:column;gap:8px;min-width:0;}
+.wd-slot{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--t);min-height:34px;}
+.wd-slot img{width:30px;height:30px;object-fit:contain;}
+.wd-slot-name{font-size:11px;color:var(--t3);width:28px;flex-shrink:0;}
+.wd-slot button{margin-left:auto;height:28px;padding:0 10px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);font-size:12px;color:var(--t);cursor:pointer;}
+.wd-empty{color:var(--t3);font-size:12px;}
+.wd-spin{display:flex;align-items:center;justify-content:center;gap:6px;height:40px;border:var(--lw2) solid var(--ink);border-radius:14px;background:var(--yellow);font-size:14px;color:var(--t);cursor:pointer;box-shadow:0 2px 0 var(--ink);}
+.wd-spin:active,.wd-open:active{transform:translateY(2px);box-shadow:none;}
+.wd-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.wd-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 2px 6px;border:var(--lw2) solid var(--ink);border-radius:14px;background:var(--paper);font-size:11px;color:var(--t);cursor:pointer;}
+.wd-item img{width:40px;height:30px;object-fit:contain;}
+.wd-item .wd-r{font-size:9px;color:var(--t2);background:var(--rc);border:1px solid var(--bd2);border-radius:999px;padding:0 5px;line-height:1.5;}
+.wd-item.on{background:var(--rc);box-shadow:inset 0 0 0 2px var(--ink);}
+.wd-item.lock{border-style:dashed;background:var(--paper2);color:var(--t3);}
+.wd-item.nofit{opacity:.45;}
+.wd-q{font-size:18px;line-height:30px;height:30px;color:var(--t3);}
+.wheel-wrap{display:flex;justify-content:center;padding:8px 0 4px;}
+.wheel-btn{border:none;background:none;padding:0;cursor:pointer;width:min(240px,68vw);}
+.wheel-svg{display:block;width:100%;height:auto;overflow:visible;}
+.wheel-tix{text-align:center;font-size:14px;color:var(--t);margin-top:4px;}
+.wheel-odds{text-align:center;font-size:11px;color:var(--t3);margin:4px 0 8px;line-height:1.6;}
+.wheel-res{display:flex;align-items:center;gap:12px;margin:6px 4px;padding:10px 12px;border:var(--lw2) solid var(--ink);border-radius:16px;background:var(--rc);animation:popItem .5s var(--pop) both;}
+.wheel-res img{width:64px;height:52px;object-fit:contain;flex-shrink:0;}
+.wr-r{font-size:12px;color:var(--t2);}
+.wr-n{font-size:18px;color:var(--t);}
+.wr-new{margin-left:6px;font-size:11px;padding:1px 6px;border-radius:999px;background:var(--coral);border:1.5px solid var(--ink);vertical-align:middle;}
+.wr-dup{font-size:12px;color:var(--t2);margin-top:2px;}
+.wheel-wear{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:6px 0 4px;}
+.wheel-wear button{height:36px;padding:0 12px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);font-size:13px;color:var(--t);cursor:pointer;}
 /* 精緻繪本寵物：透明姿勢圖，沿用原本的移動、技能與養成狀態。 */
 .cat{width:112px;height:94px;}
 .cat.pg{width:86px;height:86px;}
@@ -2100,12 +2135,216 @@ function petBookPlay(p,id,ms){
     else p.bookTimers.push(setTimeout(function(){p.el.setAttribute('data-book-pose',step[1]);},Math.round(ms*step[0])));
   });
 }
+/* ── 配件：完成今日支線拿轉盤券，轉盤抽配件，幫寵物戴上 ──
+   - 配件圖放在 assets/acc/，一個配件一張（透明背景）
+   - 收藏兩個人共用；轉盤券各自的（各自完成支線拿到的）
+   - 戴什麼：兩個人誰最後換的就算數，兩支手機看到的一樣 */
+var ACC_LIST=[
+  // size：寬度是頭寬（或脖子寬）的幾倍；sink：帽子底部往頭裡壓多少（頭寬的幾倍）；dx：往右偏；rot：多轉幾度
+  {id:'strawhat',name:'草帽',slot:'head',rare:1,size:1.05,sink:.2},
+  {id:'beret',name:'貝雷帽',slot:'head',rare:1,size:.78,sink:.2,dx:-.06,rot:-10},
+  {id:'ribbon',name:'蝴蝶結',slot:'head',rare:1,size:.46,sink:.22,dx:.26,rot:14},
+  {id:'flower',name:'小花',slot:'head',rare:1,size:.36,sink:.24,dx:-.28,rot:-12},
+  {id:'santa',name:'聖誕帽',slot:'head',rare:2,size:.86,sink:.22,rot:-4},
+  {id:'flowercrown',name:'花圈',slot:'head',rare:2,size:1,sink:.24},
+  {id:'crown',name:'小皇冠',slot:'head',rare:3,size:.56,sink:.14},
+  {id:'bell',name:'鈴鐺項圈',slot:'neck',rare:1,size:.8,pets:['cat','dg']},
+  {id:'bowtie',name:'領結',slot:'neck',rare:1,size:.5,pets:['cat','dg']},
+  {id:'bandana',name:'領巾',slot:'neck',rare:2,size:.8,dy:.12,pets:['cat','dg']},
+  {id:'pearl',name:'珍珠項鍊',slot:'neck',rare:3,size:.82,dy:.06,pets:['cat','dg']}
+];
+ACC_LIST.forEach(function(a){a.img=a.img||'assets/acc/'+a.id+'.svg';});
+var ACC_BY={};ACC_LIST.forEach(function(a){ACC_BY[a.id]=a;});
+var ACC_RARE={1:{name:'普通',color:'#F5EEE2',star:'★'},2:{name:'稀有',color:'#A8D3E6',star:'★★'},3:{name:'傳說',color:'#F6D27A',star:'★★★'}};
+var ACC_SLOT={head:'頭飾',neck:'頸飾'};
+// 轉盤 8 格：普通 5、稀有 2、傳說 1
+var ACC_WHEEL=[1,2,1,1,3,1,2,1];
+// 每個動作：H＝頭頂中間（帽子底部放這裡）、N＝下巴下面的脖子（項圈中心）；[x, y, 頭寬, 角度]，單位是那張圖的像素
+// 沒寫到的動作（例如打滾、仰頭嚎叫）配件會先收起來
+var ACC_ANCHORS={
+  snowball:{
+    idle:{H:[272,92,118,0],N:[268,194,100,0]},'walk-a':{H:[272,102,112,0],N:[268,204,96,0]},'walk-b':{H:[274,108,112,0],N:[272,208,96,0]},
+    happy:{H:[218,78,104,-12],N:[238,160,90,-10]},eat:{H:[277,206,100,-6]},sleep:{H:[110,182,104,-15]},
+    'stretch-start':{H:[276,186,95,10],N:[262,266,82,10]},stretch:{H:[247,222,90,-3]},wave:{H:[215,76,100,-8],N:[224,162,86,-8]},
+    pounce:{H:[300,198,95,6]},groom:{H:[222,104,95,-22]}
+  },
+  dudu:{
+    idle:{H:[190,40,170,0]},'walk-a':{H:[196,36,170,2]},'walk-b':{H:[188,38,170,0]},happy:{H:[182,70,172,-4]},
+    eat:{H:[250,112,150,22]},sleep:{H:[300,212,130,25]},'flap-up':{H:[190,70,160,0]},'flap-down':{H:[185,72,165,0]},
+    salute:{H:[182,72,160,0]},slide:{H:[285,200,130,20]},preen:{H:[195,88,160,0]},dance:{H:[178,88,160,-12]}
+  },
+  samoyed:{
+    idle:{H:[266,42,95,-6],N:[260,142,80,-6]},'walk-a':{H:[270,72,92,-8],N:[270,164,80,-8]},'walk-b':{H:[282,70,92,-8],N:[282,164,80,-8]},
+    'walk-c':{H:[282,70,92,-8],N:[282,164,80,-8]},'walk-d':{H:[280,74,92,-8],N:[280,168,80,-8]},happy:{H:[196,72,90,-12],N:[214,168,80,-10]},
+    eat:{H:[290,212,90,4]},sleep:{H:[276,195,90,5]},'bow-start':{H:[278,132,90,8],N:[258,238,80,12]},bow:{H:[243,176,88,0],N:[240,270,80,0]},
+    paw:{H:[206,38,92,-10],N:[216,134,82,-8]},wag:{H:[265,38,92,-8],N:[272,130,80,-8]},'shake-left':{H:[235,88,90,-38],N:[226,170,80,-15]},
+    'shake-right':{H:[218,88,90,-35],N:[210,170,80,-12]},beg:{H:[195,62,88,-12],N:[220,142,80,-8]}
+  }
+};
+// 薩摩耶走路的長條圖：四格依序是 a、c、b、d
+var ACC_DOG_STRIP=['walk-a','walk-c','walk-b','walk-d'];
+// 某個動作上的配件位置（之後換配件時才填圖）
+function accSlots(name,pose,ox){
+  var a=ACC_ANCHORS[name]&&ACC_ANCHORS[name][pose];if(!a)return '';
+  return ['H','N'].map(function(s){
+    var v=a[s];if(!v)return '';
+    return '<g class="acc acc-'+(s==='H'?'head':'neck')+'" data-w="'+v[2]+'" transform="translate('+((ox||0)+v[0])+' '+v[1]+') rotate('+v[3]+')" style="display:none"><image class="acc-img"/></g>';
+  }).join('');
+}
+function accOwned(){
+  var o={};
+  ['syue','ling'].forEach(function(u){var r=petData[u];if(r&&r.acc)Object.keys(r.acc).forEach(function(id){o[id]=(o[id]||0)+r.acc[id];});});
+  return o;
+}
+function accFits(a,k){return !a.pets||a.pets.indexOf(k)>-1;}
+// 這隻寵物這個位置現在戴的（兩個人誰最後換的就算）
+function accWorn(k,slot){
+  var best=['',-1];
+  ['syue','ling'].forEach(function(u){var r=petData[u],e=r&&r.eq&&r.eq[k+'.'+slot];if(e&&e[1]>best[1])best=e;});
+  return ACC_BY[best[0]]?best[0]:'';
+}
+function accSetWorn(k,slot,id){
+  var me=petWho();if(!me){toast('先在狀態卡選你是誰');return false;}
+  var r=petRec(me);r.eq[k+'.'+slot]=[id||'',Date.now()];petSave();accApply(k);return true;
+}
+// 把現在戴的配件畫到寵物身上（每個動作各一份，跟著動作一起換）
+function accPlace(g,a,slot){
+  var img=g.querySelector('image');
+  if(!a){g.style.display='none';return;}
+  var w=+g.getAttribute('data-w'),bw=w*a.size;
+  g.style.display='';
+  img.setAttribute('width',bw);img.setAttribute('height',bw);
+  if(slot==='head'){img.setAttribute('x',-bw/2+(a.dx||0)*w);img.setAttribute('y',-bw+(a.sink||.2)*w);img.setAttribute('preserveAspectRatio','xMidYMax meet');}
+  else{img.setAttribute('x',-bw/2);img.setAttribute('y',-bw/2+(a.dy||0)*w);img.setAttribute('preserveAspectRatio','xMidYMid meet');}
+  if(a.rot)img.setAttribute('transform','rotate('+a.rot+')');else img.removeAttribute('transform');
+  img.setAttribute('href',a.img);
+}
+function accApply(k){
+  var list=k?[pets[k]]:petList();
+  list.forEach(function(p){
+    if(!p)return;
+    ['head','neck'].forEach(function(slot){
+      var a=ACC_BY[accWorn(p.k,slot)];
+      p.el.querySelectorAll('.acc-'+slot).forEach(function(g){accPlace(g,a,slot);});
+    });
+  });
+}
+// 衣櫃裡的預覽：站姿＋現在戴的配件
+function accPreview(k){
+  var name={cat:'snowball',pg:'dudu',dg:'samoyed'}[k],h=k==='pg'?384:320;
+  var s='<svg viewBox="0 0 384 '+h+'" class="wd-pet"><image href="assets/pets/'+name+'-idle.svg" width="384" height="'+h+'"/>'+accSlots(name,'idle')+'</svg>';
+  var d=document.createElement('div');d.innerHTML=s;
+  ['head','neck'].forEach(function(slot){d.querySelectorAll('.acc-'+slot).forEach(function(g){accPlace(g,ACC_BY[accWorn(k,slot)],slot);});});
+  return d.innerHTML;
+}
+
+/* 衣櫃：看收藏、幫寵物換配件、去轉盤 */
+function accOpenWardrobe(k){
+  k=k||'cat';petCloseMenu();
+  var me=petWho(),own=accOwned(),r=me?petDay(me):null,tix=r?r.tix:0;
+  var have=ACC_LIST.filter(function(a){return own[a.id];}).length;
+  var h='<div class="popup-grabber"></div><div class="popup-top"><div class="popup-dot" style="background:var(--coral)"></div><div class="popup-title">🎀 '+safeHtml(petName(k))+' 的衣櫃</div><button class="popup-close" onclick="closePopup()">✕</button></div><div class="popup-body">';
+  h+='<div class="cs-tabs">'+PET_KEYS.map(function(x){return '<button data-pk="'+x+'"'+(x===k?' class="on"':'')+'>'+PET_DEF[x].ic+' '+safeHtml(petName(x))+'</button>';}).join('')+'</div>';
+  h+='<div class="wd-top"><div class="wd-stage">'+accPreview(k)+'</div><div class="wd-slots">';
+  ['head','neck'].forEach(function(slot){
+    var fits=ACC_LIST.some(function(a){return a.slot===slot&&accFits(a,k);});
+    if(!fits)return;
+    var a=ACC_BY[accWorn(k,slot)];
+    h+='<div class="wd-slot"><span class="wd-slot-name">'+ACC_SLOT[slot]+'</span>'+(a?'<img src="'+a.img+'" alt="">'+safeHtml(a.name)+'<button data-off="'+slot+'">卸下</button>':'<span class="wd-empty">還沒戴</span>')+'</div>';
+  });
+  h+='<button class="wd-spin" id="wdSpin">🎡 轉盤抽配件<b>券 ×'+tix+'</b></button></div></div>';
+  h+='<div class="cs-sec"><div class="cs-h"><span>我們的收藏</span><b>'+have+' / '+ACC_LIST.length+'</b></div><div class="wd-grid">';
+  ACC_LIST.forEach(function(a){
+    var ok=!!own[a.id],fit=accFits(a,k),on=accWorn(k,a.slot)===a.id,R=ACC_RARE[a.rare];
+    h+='<button class="wd-item'+(ok?'':' lock')+(on?' on':'')+(ok&&!fit?' nofit':'')+'" data-acc="'+a.id+'" style="--rc:'+R.color+'">'+
+      (ok?'<img src="'+a.img+'" alt="">':'<span class="wd-q">？</span>')+'<span class="wd-n">'+(ok?safeHtml(a.name):R.name)+'</span><span class="wd-r">'+R.star+'</span></button>';
+  });
+  h+='</div><div class="cs-note">點收藏裡的配件就會幫 '+safeHtml(petName(k))+' 戴上，再點一次拿下來。完成今日支線可以拿到轉盤券。</div></div></div>';
+  openPopupCard(h);
+  var card=document.getElementById('popupCard');
+  card.querySelectorAll('[data-pk]').forEach(function(b){b.onclick=function(){accOpenWardrobe(b.getAttribute('data-pk'));};});
+  card.querySelectorAll('[data-off]').forEach(function(b){b.onclick=function(){if(accSetWorn(k,b.getAttribute('data-off'),''))accOpenWardrobe(k);};});
+  card.querySelectorAll('[data-acc]').forEach(function(b){b.onclick=function(){
+    var a=ACC_BY[b.getAttribute('data-acc')];
+    if(!own[a.id]){toast('還沒抽到這個配件，去轉盤試試');return;}
+    if(!accFits(a,k)){toast(petName(k)+' 戴不了'+a.name);return;}
+    var on=accWorn(k,a.slot)===a.id;
+    if(accSetWorn(k,a.slot,on?'':a.id)){
+      if(!on){var p=pets[k];if(p&&!petHidden(p)){petSay(p,catPick(['好看嗎？','新造型！','（轉一圈）']),1800);petHearts(p,2);}}
+      accOpenWardrobe(k);
+    }
+  };});
+  document.getElementById('wdSpin').onclick=function(){accOpenWheel(k);};
+}
+
+/* 轉盤：用一張券轉一次，抽到的配件放進收藏 */
+function accWheelSvg(){
+  var s='<svg viewBox="-110 -110 220 220" class="wheel-svg"><g class="wheel-rot" id="wheelRot">';
+  ACC_WHEEL.forEach(function(r,i){
+    var a0=(i*45-90)*Math.PI/180,a1=((i+1)*45-90)*Math.PI/180,am=((i+.5)*45-90)*Math.PI/180;
+    s+='<path d="M0 0L'+(100*Math.cos(a0)).toFixed(2)+' '+(100*Math.sin(a0)).toFixed(2)+'A100 100 0 0 1 '+(100*Math.cos(a1)).toFixed(2)+' '+(100*Math.sin(a1)).toFixed(2)+'Z" fill="'+ACC_RARE[r].color+'" stroke="#3E3A39" stroke-width="2.5"/>';
+    s+='<g transform="translate('+(66*Math.cos(am)).toFixed(2)+' '+(66*Math.sin(am)).toFixed(2)+') rotate('+((i+.5)*45)+')"><text text-anchor="middle" y="-2" font-size="12" fill="#3E3A39">'+ACC_RARE[r].name+'</text><text text-anchor="middle" y="12" font-size="9" fill="#3E3A39">'+ACC_RARE[r].star+'</text></g>';
+  });
+  s+='</g><circle r="100" fill="none" stroke="#3E3A39" stroke-width="4"/><circle r="22" fill="#FFFCF6" stroke="#3E3A39" stroke-width="3"/><text text-anchor="middle" y="5" font-size="13" fill="#3E3A39">轉！</text>'+
+    '<path d="M-11 -112 11 -112 0 -92Z" fill="#F2A497" stroke="#3E3A39" stroke-width="2.5" stroke-linejoin="round"/></svg>';
+  return s;
+}
+var accSpinning=false,accWheelAngle=0;
+function accOpenWheel(k){
+  var me=petWho();if(!me){toast('先在狀態卡選你是誰');return;}
+  var r=petDay(me);
+  var h='<div class="popup-grabber"></div><div class="popup-top"><div class="popup-dot" style="background:var(--yellow)"></div><div class="popup-title">🎡 配件轉盤</div><button class="popup-close" onclick="closePopup()">✕</button></div><div class="popup-body">';
+  h+='<div class="wheel-wrap"><button class="wheel-btn" id="wheelGo" aria-label="轉轉盤">'+accWheelSvg()+'</button></div>';
+  h+='<div class="wheel-tix" id="wheelTix">'+USERS[me].label+' 的轉盤券 ×'+r.tix+'</div>';
+  h+='<div class="wheel-odds">普通 62.5%・稀有 25%・傳說 12.5%・抽到重複的會換成罐頭和透抽</div><div id="wheelOut"></div>';
+  h+='<div class="popup-actions"><button class="popup-action" id="wheelBack">‹ 回衣櫃</button><button class="popup-action primary" id="wheelGo2">轉一次</button></div></div>';
+  openPopupCard(h);
+  var rot=document.getElementById('wheelRot');rot.style.transform='rotate('+accWheelAngle+'deg)';
+  document.getElementById('wheelGo').onclick=document.getElementById('wheelGo2').onclick=function(){accSpin(k);};
+  document.getElementById('wheelBack').onclick=function(){if(!accSpinning)accOpenWardrobe(k);};
+}
+function accSpin(k){
+  if(accSpinning)return;
+  var me=petWho(),r=petDay(me);
+  if(!r.tix){toast('沒有轉盤券了，完成今日支線就會拿到');return;}
+  r.tix--;
+  var i=Math.floor(Math.random()*ACC_WHEEL.length),rare=ACC_WHEEL[i],own=accOwned();
+  var pool=ACC_LIST.filter(function(a){return a.rare===rare;}),fresh=pool.filter(function(a){return !own[a.id];});
+  var a=catPick(fresh.length?fresh:pool),dup=!fresh.length;
+  r.acc[a.id]=(r.acc[a.id]||0)+1;
+  if(dup){r.can+=1;r.squid+=1;}
+  petSave();
+  accSpinning=true;
+  document.getElementById('wheelTix').textContent=USERS[me].label+' 的轉盤券 ×'+r.tix;
+  document.getElementById('wheelOut').innerHTML='';
+  // 讓第 i 格停在上面的指針下：至少多轉 5 圈
+  var target=360-(i*45+22.5),cur=((accWheelAngle%360)+360)%360,delta=((target-cur)+360)%360;
+  accWheelAngle+=360*5+delta;
+  var rot=document.getElementById('wheelRot');
+  rot.style.transition=catReduce?'none':'transform 3.6s cubic-bezier(.15,.7,.15,1)';
+  rot.style.transform='rotate('+accWheelAngle+'deg)';
+  setTimeout(function(){
+    accSpinning=false;
+    var out=document.getElementById('wheelOut');if(!out)return;
+    var R=ACC_RARE[a.rare],fit=PET_KEYS.filter(function(x){return accFits(a,x);});
+    out.innerHTML='<div class="wheel-res" style="--rc:'+R.color+'"><img src="'+a.img+'" alt=""><div><div class="wr-r">'+R.star+' '+R.name+'</div><div class="wr-n">'+safeHtml(a.name)+(dup?'':'<span class="wr-new">新！</span>')+'</div>'+
+      (dup?'<div class="wr-dup">已經有了，換成 罐頭 ×1、透抽 ×1</div>':'')+'</div></div>'+
+      '<div class="wheel-wear">'+fit.map(function(x){return '<button data-wear="'+x+'">'+PET_DEF[x].ic+' 幫'+safeHtml(petName(x))+'戴上</button>';}).join('')+'</div>';
+    out.querySelectorAll('[data-wear]').forEach(function(b){b.onclick=function(){
+      var x=b.getAttribute('data-wear');
+      if(accSetWorn(x,a.slot,a.id)){toast(petName(x)+' 戴上了'+a.name);var p=pets[x];if(p&&!petHidden(p)){petSay(p,'好看嗎？',1800);petHearts(p,3);}accOpenWardrobe(x);}
+    };});
+    if(a.rare===3)catFx('🎉','',window.innerWidth/2-10,window.innerHeight/2-40,0,-80);
+  },catReduce?300:3700);
+}
+
 // Each pose uses an optimized transparent illustration; state classes keep the existing interactions.
 function petBookArt(name,w,h){
   var poses=['idle','walk-a','walk-b','happy','eat','sleep'].concat(PET_BOOK_EXTRA[name]);
   return '<svg class="book-art" viewBox="0 0 '+w+' '+h+'" aria-hidden="true">'+poses.map(function(p){
-    return '<image class="book-frame book-'+p+'" href="assets/pets/'+name+'-'+p+'.svg" width="'+w+'" height="'+h+'"/>';
-  }).join('')+(name==='samoyed'?'<svg class="dog-walk-window" x="0" y="0" width="384" height="320" viewBox="0 0 384 320"><image class="dog-walk-strip" href="assets/pets/samoyed-walk-strip.svg" width="1536" height="320"/></svg>':'')+'</svg>';
+    return '<g class="book-frame book-'+p+'"><image href="assets/pets/'+name+'-'+p+'.svg" width="'+w+'" height="'+h+'"/>'+accSlots(name,p)+'</g>';
+  }).join('')+(name==='samoyed'?'<svg class="dog-walk-window" x="0" y="0" width="384" height="320" viewBox="0 0 384 320"><g class="dog-walk-strip"><image href="assets/pets/samoyed-walk-strip.svg" width="1536" height="320"/>'+
+    ACC_DOG_STRIP.map(function(p,i){return accSlots(name,p,i*384);}).join('')+'</g></svg>':'')+'</svg>';
 }
 var CAT_ART={
   cat:petBookArt('snowball',384,320),
@@ -2146,7 +2385,7 @@ function catClamp(v,a,b){return Math.max(a,Math.min(b,v));}
 function catHash(s){var h=2166136261;for(var i=0;i<s.length;i++)h=Math.imul(h^s.charCodeAt(i),16777619);return h>>>0;}
 function catToday(){var t=new Date();return evDateStr(t.getFullYear(),t.getMonth()+1,t.getDate());}
 function petNewStat(){return {aff:0,fedAt:0,fedFull:0,name:'',nameAt:0};}
-function petNewRec(){var r=petNewStat();r.nameSchema=2;r.pts=0;r.kib=3;r.can=1;r.fish=2;r.squid=1;r.last='';r.pg=petNewStat();r.dg=petNewStat();r.d=null;return r;}
+function petNewRec(){var r=petNewStat();r.nameSchema=2;r.pts=0;r.kib=3;r.can=1;r.fish=2;r.squid=1;r.tix=1;r.acc={};r.eq={};r.last='';r.pg=petNewStat();r.dg=petNewStat();r.d=null;return r;}
 function petCleanStat(o,t){
   ['aff','fedAt','fedFull','nameAt'].forEach(function(k){var v=+o[k];if(isFinite(v)&&v>=0)t[k]=v;});
   if(typeof o.name==='string')t.name=o.name.slice(0,8);
@@ -2154,8 +2393,10 @@ function petCleanStat(o,t){
 function petClean(o){
   var r=petNewRec();
   if(!o||typeof o!=='object')return r;
-  ['pts','kib','can','fish','squid'].forEach(function(k){var v=+o[k];if(isFinite(v)&&v>=0)r[k]=v;});
+  ['pts','kib','can','fish','squid','tix'].forEach(function(k){var v=+o[k];if(isFinite(v)&&v>=0)r[k]=v;});
   petCleanStat(o,r);
+  if(o.acc&&typeof o.acc==='object')Object.keys(o.acc).forEach(function(id){var v=+o.acc[id];if(/^[a-z0-9-]{1,24}$/.test(id)&&isFinite(v)&&v>0)r.acc[id]=Math.floor(v);});
+  if(o.eq&&typeof o.eq==='object')Object.keys(o.eq).forEach(function(key){var e=o.eq[key];if(/^(cat|pg|dg)\.(head|neck)$/.test(key)&&Array.isArray(e)&&typeof e[0]==='string'&&isFinite(+e[1]))r.eq[key]=[e[0].slice(0,24),+e[1]];});
   if(o.pg&&typeof o.pg==='object')petCleanStat(o.pg,r.pg);
   if(o.dg&&typeof o.dg==='object')petCleanStat(o.dg,r.dg);
   // 修正舊版的物種／預設名字對應；之後自行取的新名字仍保留。
@@ -2177,7 +2418,9 @@ function ps(r,k){return k==='cat'?r:r[k];}
 // 新手機第一次收到雲端資料時：本機先玩到的跟雲端的合在一起，不會蓋掉雲端的點數
 function petMerge(a,b){
   var m=petClean(b);
-  ['pts','kib','can','fish','squid'].forEach(function(k){m[k]=Math.max(a[k],m[k]);});
+  ['pts','kib','can','fish','squid','tix'].forEach(function(k){m[k]=Math.max(a[k],m[k]);});
+  Object.keys(a.acc).forEach(function(id){m.acc[id]=Math.max(a.acc[id],m.acc[id]||0);});
+  Object.keys(a.eq).forEach(function(key){if(!m.eq[key]||a.eq[key][1]>m.eq[key][1])m.eq[key]=a.eq[key];});
   PET_KEYS.forEach(function(k){
     var x=ps(a,k),y=ps(m,k);
     y.aff=Math.max(x.aff,y.aff);
@@ -2265,6 +2508,7 @@ function petFromRemote(raw){
     petData[u]=rr;
   });
   lsSet('catV1',JSON.stringify(petData));
+  accApply();
   if(!petSynced){petSynced=true;petReady();}
   else{petCheckLevel();petUpdMark();}
 }
@@ -2301,10 +2545,11 @@ function petQuest(k,n){
   if(q.p>=def.n){
     q.done=true;q.seen=true;
     Object.keys(def.r).forEach(function(f){r[f]+=def.r[f];});
+    r.tix+=1;
     setTimeout(function(){
       var sp=petShown()[0];
-      if(sp){petSay(sp,'支線完成！',2200);petFloat(sp,'+ '+petRewardTxt(def.r));}
-      toast('🎁 今日支線完成：獲得 '+petRewardTxt(def.r));
+      if(sp){petSay(sp,'支線完成！',2200);petFloat(sp,'+ '+petRewardTxt(def.r)+'、轉盤券');}
+      toast('🎁 今日支線完成：獲得 '+petRewardTxt(def.r)+'、轉盤券 ×1');
     },500);
   }
   petUpdMark();
@@ -2731,7 +2976,7 @@ function petOpenMenu(p,skills){
     var q=r&&r.d.q,def=q&&petQuestDef(q.id);
     h+='<button data-a="pet"><span class="ic">🐾</span>摸摸</button>';
     if(r)p.def.foods.forEach(function(f){h+='<button data-food="'+f+'"'+(r[f]?'':' class="off"')+'><span class="ic">'+CAT_ART[f]+'</span>'+FOODS[f].name+' '+r[f]+'</button>';});
-    h+='<button data-a="sk"><span class="ic">✨</span>技能</button><button data-a="info"><span class="ic">📋</span>狀態</button>';
+    h+='<button data-a="acc"><span class="ic">🎀</span>配件</button><button data-a="sk"><span class="ic">✨</span>技能</button><button data-a="info"><span class="ic">📋</span>狀態</button>';
     h+='<button data-a="combo"><span class="ic">💞</span>找夥伴合體</button>';
     h+='<button data-a="sleep"><span class="ic">💤</span>回去睡覺</button>';
     if(def)h+='<div class="cat-menu-q">'+(q.done?'✓ ':'❗ ')+'今日支線：'+safeHtml(def.t)+'（'+Math.min(q.p,def.n)+'/'+def.n+'）→ '+petRewardTxt(def.r)+'</div>';
@@ -2754,6 +2999,7 @@ function petOpenMenu(p,skills){
     if(a==='pet'){petPetStart(p);setTimeout(function(){petPetEnd(p);},1800);}
     else if(food)petFeed(p,food);
     else if(a==='info')petOpenSheet(p.k);
+    else if(a==='acc')accOpenWardrobe(p.k);
     else if(a==='sleep')petSetResting(p,true);
   };
 }
@@ -2819,6 +3065,7 @@ function petOpenSheet(k){
   var p=pets[k],me=petWho(),pts=petPts(),lv=petLevel(pts),nx=PET_LV[lv],prev=PET_LV[lv-1],fav=petFav(k),full=Math.round(petFull(k)),name=petName(k);
   var h='<div class="popup-grabber"></div><div class="popup-top"><div class="popup-dot" style="background:var(--yellow)"></div><div class="popup-title"><button class="cs-name" id="csName">'+safeHtml(name)+' ✎</button></div><div class="popup-count">Lv'+lv+'</div><button class="popup-close" onclick="closePopup()">✕</button></div><div class="popup-body">';
   h+='<div class="cs-tabs">'+PET_KEYS.map(function(x){return '<button data-pk="'+x+'"'+(x===k?' class="on"':'')+'>'+PET_DEF[x].ic+' '+safeHtml(petName(x))+'</button>';}).join('')+'</div>';
+  h+='<button class="wd-open" id="csAcc">🎀 衣櫃・配件轉盤'+(me&&petData[me]&&petData[me].tix?'<b>券 ×'+petData[me].tix+'</b>':'')+'</button>';
   if(!me){
     h+='<div class="cs-sec"><div class="cs-h"><span>你是誰？</span></div><div class="cs-note" style="margin:0 0 10px">寵物要記得是誰在照顧牠們，點數和糧食會算在你身上。</div><div class="cs-seg"><button data-me="syue">我是 學</button><button data-me="ling">我是 綾</button></div></div>';
   }
@@ -2861,6 +3108,7 @@ function petOpenSheet(k){
   openPopupCard(h);petCdPaint();
   var card=document.getElementById('popupCard');
   card.querySelectorAll('[data-pk]').forEach(function(b){b.onclick=function(){petOpenSheet(b.getAttribute('data-pk'));};});
+  document.getElementById('csAcc').onclick=function(){accOpenWardrobe(k);};
   card.querySelectorAll('[data-me]').forEach(function(b){b.onclick=function(){
     lsSet('catMe',b.getAttribute('data-me'));petDay(petWho());petSave();if(cloudOn())petFlush();petUpdMark();petOpenSheet(k);
   };});
@@ -2963,6 +3211,7 @@ function petSpawn(p,placed){
 function petInit(){
   try{var s=JSON.parse(lsGet('catV1')||'null');if(s){petData.syue=s.syue?petClean(s.syue):null;petData.ling=s.ling?petClean(s.ling):null;}}catch(e){}
   PET_KEYS.forEach(function(k){pets[k]=petMake(k);});
+  accApply();
   var placed=[];petList().forEach(function(p){petSpawn(p,placed);placed.push(p);});
   petUpdHome();
   // 最黏你的那隻：偶爾跑到你點的地方
