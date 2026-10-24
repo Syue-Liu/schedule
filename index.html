@@ -2558,9 +2558,11 @@ var petData={syue:null,ling:null},petSynced=false,petDirty=false,petWT=null,petG
 var pets={};
 var catReduce=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
 var petCombo={active:false,armed:{},members:[],type:'',timers:[],fx:null,waiting:[],invite:null,waitT:null};
-// 冷卻時間：自己按的小技能每個 10 秒；三隻合體 30 秒、兩隻合體每一對各 10 秒
+// 冷卻時間：自己按的小技能每個 10 秒；三隻合體 60 秒、兩隻合體每一對各 30 秒
 // （合體不管是自己碰到還是按的都算，記在這支手機，重新整理也算）
-var PET_SKILL_CD=10000,PET_TRIO_CD=30000,PET_PAIR_CD=10000,petCd={};
+// 走路碰到自己開始的合體，跟上一次合體至少隔 3 分鐘（手機畫面小，很常碰到）；從選單叫的不受這個限制
+var PET_SKILL_CD=10000,PET_TRIO_CD=60000,PET_PAIR_CD=30000,PET_AUTO_GAP=180000,petCd={};
+function petAutoOk(){return !!petCombo.invite||Date.now()-(+lsGet('petComboAt')||0)>=PET_AUTO_GAP;}
 function petCdLeft(key){
   var until=key==='all'?(+lsGet('petTrioAt')||0)+PET_TRIO_CD:key.indexOf('+')>0?(+lsGet('petPairAt.'+key)||0)+PET_PAIR_CD:(petCd[key]||0);
   return Math.max(0,Math.ceil((until-Date.now())/1000));
@@ -2814,18 +2816,45 @@ function petMode(p,m){
   if(m)m.split(' ').forEach(function(c){p.el.classList.add(c);});
 }
 function petStop(p){cancelAnimationFrame(p.raf);p.raf=0;clearTimeout(p.timer);clearTimeout(p.sleepT);if(p.el.classList.contains('walk'))petMode(p,'');}
+// 兩隻重疊多少（看得到的身體部分，圖四周的透明邊不算）
+function petOverlap(p,x,y,q){
+  var ax=p.def.W*.14,ay=p.def.H*.1,bx=q.def.W*.14,by=q.def.H*.1;
+  var w=Math.min(x+p.def.W-ax,q.x+q.def.W-bx)-Math.max(x+ax,q.x+bx),h=Math.min(y+p.def.H-ay,q.y+q.def.H-by)-Math.max(y+ay,q.y+by);
+  return w>0&&h>0?w*h:0;
+}
+// 走到 (x,y) 會壓到哪一隻；被叫來一起合體的夥伴不算，本來就疊著的話只要不是越疊越多就放行
+function petBlocker(p,x,y){
+  var inv=petCombo.invite||[];
+  return petShown().filter(function(q){
+    if(q===p||q.act==='combo'||(inv.indexOf(p.k)>-1&&inv.indexOf(q.k)>-1))return false;
+    var o=petOverlap(p,x,y,q);return o>0&&o>petOverlap(p,p.x,p.y,q);
+  })[0]||null;
+}
 function petWalkTo(p,tx,ty,speed,done){
   petStop(p);
   var b=petBounds(p);tx=catClamp(tx,b.x0,b.x1);ty=catClamp(ty,b.y0,b.y1);
   if(Math.abs(tx-p.x)>2)p.dir=tx<p.x?-1:1;
-  if(catReduce){p.x=tx;p.y=ty;petPlace(p);if(petTryCombo()&&p.act==='combo')return;if(done)done();return;}
+  if(catReduce){if(!petBlocker(p,tx,ty)){p.x=tx;p.y=ty;petPlace(p);}if(petTryCombo()&&p.act==='combo')return;if(done)done();return;}
   petMode(p,speed>70?'walk run':'walk');petPlace(p);
-  var last=performance.now();
+  var last=performance.now(),stuck=0;
+  function stop(){petMode(p,'');p.raf=0;if(petTryCombo()&&p.act==='combo')return;if(done)done();}
   function step(t){
     var dt=Math.min(.05,(t-last)/1000);last=t;
     var dx=tx-p.x,dy=ty-p.y,dist=Math.hypot(dx,dy),mv=speed*dt;
-    if(dist<=mv){p.x=tx;p.y=ty;petPlace(p);petMode(p,'');p.raf=0;if(petTryCombo()&&p.act==='combo')return;if(done)done();return;}
-    p.x+=dx/dist*mv;p.y+=dy/dist*mv;petPlace(p);
+    if(dist<=mv){
+      if(petBlocker(p,tx,ty)){stop();return;}
+      p.x=tx;p.y=ty;petPlace(p);petMode(p,'');p.raf=0;if(petTryCombo()&&p.act==='combo')return;if(done)done();return;
+    }
+    var nx=p.x+dx/dist*mv,ny=p.y+dy/dist*mv,ob=petBlocker(p,nx,ny);
+    if(ob){
+      // 橫著走就往上或往下繞，直著走就往左或往右繞（往離牠遠的那邊）；繞了 2 秒還過不去、或碰到邊界，就停在這裡
+      var m=Math.max(mv,1),ux=p.x+(p.x+p.def.W/2<ob.x+ob.def.W/2?-m:m),uy=p.y+(p.y+p.def.H/2<ob.y+ob.def.H/2?-m:m);
+      var tries=Math.abs(dx)>=Math.abs(dy)?[[p.x,uy],[ux,p.y]]:[[ux,p.y],[p.x,uy]];
+      var ok=++stuck<=120&&tries.filter(function(c){return c[0]>=b.x0&&c[0]<=b.x1&&c[1]>=b.y0&&c[1]<=b.y1&&!petBlocker(p,c[0],c[1]);})[0];
+      if(!ok){stop();return;}
+      nx=ok[0];ny=ok[1];
+    }
+    p.x=nx;p.y=ny;petPlace(p);
     if(petTryCombo()&&p.act==='combo')return;
     p.raf=requestAnimationFrame(step);
   }
@@ -2910,7 +2939,7 @@ function petAdventureMarkup(){
 }
 
 function petStartCombo(list){
-  petReleaseComboWait();
+  petReleaseComboWait();lsSet('petComboAt',Date.now());
   var key=petComboKey(list),def=PET_COMBOS[key],ms=key==='all'?9000:4000;
   petCombo.active=true;petCombo.type=key;petCombo.members=list.slice();petCombo.armed[key]=false;
   petCdStart(key);
@@ -2975,6 +3004,7 @@ function petTryCombo(){
     }
     return false;
   }
+  if(!petAutoOk())return false;
   if(ready.length===3&&petConnected(ready)&&petCombo.armed.all!==false&&!petCdLeft('all'))return petStartCombo(ready);
   // 邀請三隻時先一起集合，避免第一對提早開招而打斷第三隻走過來。
   if(petCombo.invite&&petCombo.invite.length===3)return false;
