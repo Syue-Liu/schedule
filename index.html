@@ -2558,13 +2558,14 @@ var petData={syue:null,ling:null},petSynced=false,petDirty=false,petWT=null,petG
 var pets={};
 var catReduce=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
 var petCombo={active:false,armed:{},members:[],type:'',timers:[],fx:null,waiting:[],invite:null,waitT:null};
-// 冷卻時間：自己按的小技能每個 10 秒；三隻合體 20 秒（不管是自己碰到還是按的，記在這支手機，重新整理也算）
-var PET_SKILL_CD=10000,PET_TRIO_CD=20000,petCd={};
+// 冷卻時間：自己按的小技能每個 10 秒；三隻合體 30 秒、兩隻合體每一對各 10 秒
+// （合體不管是自己碰到還是按的都算，記在這支手機，重新整理也算）
+var PET_SKILL_CD=10000,PET_TRIO_CD=30000,PET_PAIR_CD=10000,petCd={};
 function petCdLeft(key){
-  var until=key==='all'?(+lsGet('petTrioAt')||0)+PET_TRIO_CD:(petCd[key]||0);
+  var until=key==='all'?(+lsGet('petTrioAt')||0)+PET_TRIO_CD:key.indexOf('+')>0?(+lsGet('petPairAt.'+key)||0)+PET_PAIR_CD:(petCd[key]||0);
   return Math.max(0,Math.ceil((until-Date.now())/1000));
 }
-function petCdStart(key){if(key==='all')lsSet('petTrioAt',Date.now());else petCd[key]=Date.now()+PET_SKILL_CD;}
+function petCdStart(key){if(key==='all')lsSet('petTrioAt',Date.now());else if(key.indexOf('+')>0)lsSet('petPairAt.'+key,Date.now());else petCd[key]=Date.now()+PET_SKILL_CD;}
 function petSkillName(k,id){var s=PET_SKILLS[k].filter(function(x){return x.id===id;})[0];return s?s.name:'技能';}
 // 選單、狀態卡上有 data-cd 的按鈕：冷卻中變淡、右上角顯示剩幾秒
 function petCdPaint(){
@@ -2912,7 +2913,7 @@ function petStartCombo(list){
   petReleaseComboWait();
   var key=petComboKey(list),def=PET_COMBOS[key],ms=key==='all'?9000:4000;
   petCombo.active=true;petCombo.type=key;petCombo.members=list.slice();petCombo.armed[key]=false;
-  if(key==='all')petCdStart('all');
+  petCdStart(key);
   list.forEach(function(a,i){list.slice(i+1).forEach(function(b){petCombo.armed[petComboKey([a,b])]=false;});});
   var pair=list.slice().sort(function(a,b){return a.x+a.def.W/2-b.x-b.def.W/2;});
   var mid=list.reduce(function(v,p){return v+p.x+p.def.W/2;},0)/list.length;
@@ -2979,7 +2980,7 @@ function petTryCombo(){
   if(petCombo.invite&&petCombo.invite.length===3)return false;
   for(var i=0;i<ready.length;i++)for(var j=i+1;j<ready.length;j++){
     var pair=[ready[i],ready[j]],key=petComboKey(pair);
-    if(petTouching(pair[0],pair[1])&&petCombo.armed[key]!==false)return petStartCombo(pair);
+    if(petTouching(pair[0],pair[1])&&petCombo.armed[key]!==false&&!petCdLeft(key))return petStartCombo(pair);
   }
   return false;
 }
@@ -2989,6 +2990,7 @@ function petInviteCombo(p,target){
   var others=petShown().filter(function(q){return q!==p;});
   var list=target==='all'?petList():[p,target?pets[target]:others.sort(function(a,b){return Math.hypot(a.x-p.x,a.y-p.y)-Math.hypot(b.x-p.x,b.y-p.y);})[0]];
   if(list.some(function(q){return !q||petHidden(q);})){toast(target==='all'?'先把三隻都叫出來吧':'先叫夥伴出來，才能一起合體');return;}
+  if(list.length===2&&petCdLeft(petComboKey(list))){toast('這一對合體冷卻中，再等 '+petCdLeft(petComboKey(list))+' 秒');return;}
   list.forEach(function(q){if(q.el.classList.contains('sleep'))petWake(q);});
   if(!list.every(petIdle)){toast('等牠們忙完，再一起合體吧');return;}
   petReleaseComboWait();
@@ -3182,7 +3184,7 @@ function petOpenMenu(p,skills){
   function btn(attr,ic,label,badge){items.push([attr,ic,label,badge||'']);}
   if(skills==='combo'){
     info+='<div class="cat-menu-h"><span>💞 找誰一起合體？</span></div>';
-    PET_KEYS.filter(function(k){return k!==p.k;}).forEach(function(k){btn('data-combo="'+k+'"',PET_DEF[k].ic,safeHtml(petName(k)));});
+    PET_KEYS.filter(function(k){return k!==p.k;}).forEach(function(k){btn('data-combo="'+k+'" data-cd="'+petComboKey([p,pets[k]])+'"',PET_DEF[k].ic,safeHtml(petName(k)),'<span class="cd"></span>');});
     btn('data-combo="all" data-cd="all"','🌟','三隻一起','<span class="cd"></span>');
     btn('data-a="back"','‹','返回');
   }else if(skills){
@@ -3229,6 +3231,7 @@ function petOpenMenu(p,skills){
     var b=t.tagName==='BUTTON'?t:m.querySelector('.pw-item[data-i="'+t.getAttribute('data-i')+'"]');
     var a=b.getAttribute('data-a'),sk=b.getAttribute('data-sk'),food=b.getAttribute('data-food'),combo=b.getAttribute('data-combo');
     if(combo==='all'&&petCdLeft('all')){toast('三隻合體冷卻中，再等 '+petCdLeft('all')+' 秒');return;}
+    if(combo&&combo!=='all'&&petCdLeft(b.getAttribute('data-cd'))){toast('這一對合體冷卻中，再等 '+petCdLeft(b.getAttribute('data-cd'))+' 秒');return;}
     if(combo){petCloseMenu();petInviteCombo(p,combo);return;}
     if(a==='combo'){petOpenMenu(p,'combo');return;}
     if(sk&&petCdLeft(p.k+':'+sk)){toast('「'+petSkillName(p.k,sk)+'」冷卻中，再等 '+petCdLeft(p.k+':'+sk)+' 秒');return;}
