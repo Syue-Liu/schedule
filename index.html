@@ -536,13 +536,16 @@ body:has(.chg-bar.show){padding-bottom:calc(124px + env(safe-area-inset-bottom))
 .wd-stage{background:var(--paper2);border:var(--lw2) solid var(--ink);border-radius:18px;padding:8px 6px 4px;}
 .wd-pet{display:block;width:100%;height:auto;overflow:visible;}
 .wd-slots{display:flex;flex-direction:column;gap:8px;min-width:0;}
-.wd-slot{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--t);min-height:34px;}
-.wd-slot img{width:30px;height:30px;object-fit:contain;}
-.wd-slot-name{font-size:11px;color:var(--t3);width:28px;flex-shrink:0;}
-.wd-slot button{margin-left:auto;height:28px;padding:0 10px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);font-size:12px;color:var(--t);cursor:pointer;}
-.wd-empty{color:var(--t3);font-size:12px;}
+.wd-slot{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:2px 4px;font-size:13px;color:var(--t);min-height:34px;}
+.wd-slot-detail{display:flex;align-items:center;gap:4px;min-width:0;}
+.wd-slot-detail img{width:24px;height:24px;object-fit:contain;flex-shrink:0;}
+.wd-slot-detail span{font-size:12px;overflow-wrap:anywhere;}
+.wd-slot-name{grid-column:1/-1;font-size:10px;color:var(--t3);}
+.wd-slot button{height:26px;padding:0 7px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);font-size:11px;color:var(--t);cursor:pointer;white-space:nowrap;}
+.wd-empty{grid-column:1/-1;color:var(--t3);font-size:12px;}
 .wd-spin{display:flex;align-items:center;justify-content:center;gap:6px;height:40px;border:var(--lw2) solid var(--ink);border-radius:14px;background:var(--yellow);font-size:14px;color:var(--t);cursor:pointer;box-shadow:0 2px 0 var(--ink);}
 .wd-spin:active,.wd-open:active{transform:translateY(2px);box-shadow:none;}
+@media(max-width:360px){.wd-top{grid-template-columns:108px minmax(0,1fr);gap:8px;}.wd-spin{font-size:12px;gap:3px;}.wd-spin b{font-size:11px;padding:1px 5px;}}
 .wd-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
 .wd-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 2px 6px;border:var(--lw2) solid var(--ink);border-radius:14px;background:var(--paper);font-size:11px;color:var(--t);cursor:pointer;}
 .wd-item img{width:40px;height:30px;object-fit:contain;}
@@ -2166,20 +2169,22 @@ var ACC_LIST=[
   {id:'bandana',name:'領巾',slot:'neck',rare:2,size:.8,dy:.12,pets:['cat','dg']},
   {id:'pearl',name:'珍珠項鍊',slot:'neck',rare:3,size:.82,dy:.06,pets:['cat','dg']}
 ];
-ACC_LIST.forEach(function(a){a.img=a.img||'assets/acc/'+a.id+'.svg';});
+// Version the artwork so existing wardrobes also pick up the refined drawings.
+ACC_LIST.forEach(function(a){a.img=a.img||'assets/acc/'+a.id+'.svg?v=20261024-detail1';});
 var ACC_BY={};ACC_LIST.forEach(function(a){ACC_BY[a.id]=a;});
 var ACC_RARE={1:{name:'普通',color:'#F5EEE2',star:'★'},2:{name:'稀有',color:'#A8D3E6',star:'★★'},3:{name:'傳說',color:'#F6D27A',star:'★★★'}};
 var ACC_SLOT={head:'頭飾',neck:'頸飾'};
 // 轉盤 8 格：普通 5、稀有 2、傳說 1
 var ACC_WHEEL=[1,2,1,1,3,1,2,1];
 // 每個動作：H＝頭頂中間（帽子底部放這裡）、N＝下巴下面的脖子（項圈中心）；[x, y, 頭寬, 角度]，單位是那張圖的像素
-// 沒寫到的動作（例如打滾、仰頭嚎叫）配件會先收起來
+// 頭飾跟著頭部轉動；低頭進食、蜷睡等遮住脖子的姿勢不畫頸飾。
 var ACC_ANCHORS={
   snowball:{
     idle:{H:[272,92,118,0],N:[268,194,100,0]},'walk-a':{H:[272,102,112,0],N:[268,204,96,0]},'walk-b':{H:[274,108,112,0],N:[272,208,96,0]},
     happy:{H:[218,78,104,-12],N:[238,160,90,-10]},eat:{H:[277,206,100,-6]},sleep:{H:[110,182,104,-15]},
     'stretch-start':{H:[276,186,95,10],N:[262,266,82,10]},stretch:{H:[247,222,90,-3]},wave:{H:[215,76,100,-8],N:[224,162,86,-8]},
-    pounce:{H:[300,198,95,6]},groom:{H:[222,104,95,-22]}
+    pounce:{H:[300,198,95,6]},groom:{H:[222,104,95,-22],N:[224,208,82,-12]},
+    roll:{H:[276,153,95,38],N:[231,211,82,30]}
   },
   dudu:{
     idle:{H:[190,40,170,0]},'walk-a':{H:[196,36,170,2]},'walk-b':{H:[188,38,170,0]},happy:{H:[182,70,172,-4]},
@@ -2191,7 +2196,8 @@ var ACC_ANCHORS={
     'walk-c':{H:[282,70,92,-8],N:[282,164,80,-8]},'walk-d':{H:[280,74,92,-8],N:[280,168,80,-8]},happy:{H:[196,72,90,-12],N:[214,168,80,-10]},
     eat:{H:[290,212,90,4]},sleep:{H:[276,195,90,5]},'bow-start':{H:[278,132,90,8],N:[258,238,80,12]},bow:{H:[243,176,88,0],N:[240,270,80,0]},
     paw:{H:[206,38,92,-10],N:[216,134,82,-8]},wag:{H:[265,38,92,-8],N:[272,130,80,-8]},'shake-left':{H:[235,88,90,-38],N:[226,170,80,-15]},
-    'shake-right':{H:[218,88,90,-35],N:[210,170,80,-12]},beg:{H:[195,62,88,-12],N:[220,142,80,-8]}
+    'shake-right':{H:[218,88,90,-35],N:[210,170,80,-12]},beg:{H:[195,62,88,-12],N:[220,142,80,-8]},
+    howl:{H:[213,72,78,-34],N:[232,155,78,8]},chase:{H:[220,62,80,-12],N:[212,154,74,18]}
   }
 };
 // 薩摩耶走路的長條圖：四格依序是 a、c、b、d
@@ -2237,7 +2243,7 @@ function accApply(k){
   list.forEach(function(p){
     if(!p)return;
     ['head','neck'].forEach(function(slot){
-      var a=ACC_BY[accWorn(p.k,slot)];
+      var a=ACC_BY[accWorn(p.k,slot)];if(a&&!accFits(a,p.k))a=null;
       p.el.querySelectorAll('.acc-'+slot).forEach(function(g){accPlace(g,a,slot);});
     });
   });
@@ -2247,7 +2253,7 @@ function accPreview(k){
   var name={cat:'snowball',pg:'dudu',dg:'samoyed'}[k],h=k==='pg'?384:320;
   var s='<svg viewBox="0 0 384 '+h+'" class="wd-pet"><image href="assets/pets/'+name+'-idle.svg" width="384" height="'+h+'"/>'+accSlots(name,'idle')+'</svg>';
   var d=document.createElement('div');d.innerHTML=s;
-  ['head','neck'].forEach(function(slot){d.querySelectorAll('.acc-'+slot).forEach(function(g){accPlace(g,ACC_BY[accWorn(k,slot)],slot);});});
+  ['head','neck'].forEach(function(slot){var a=ACC_BY[accWorn(k,slot)];d.querySelectorAll('.acc-'+slot).forEach(function(g){accPlace(g,a&&accFits(a,k)?a:null,slot);});});
   return d.innerHTML;
 }
 
@@ -2263,7 +2269,7 @@ function accOpenWardrobe(k){
     var fits=ACC_LIST.some(function(a){return a.slot===slot&&accFits(a,k);});
     if(!fits)return;
     var a=ACC_BY[accWorn(k,slot)];
-    h+='<div class="wd-slot"><span class="wd-slot-name">'+ACC_SLOT[slot]+'</span>'+(a?'<img src="'+a.img+'" alt="">'+safeHtml(a.name)+'<button data-off="'+slot+'">卸下</button>':'<span class="wd-empty">還沒戴</span>')+'</div>';
+    h+='<div class="wd-slot"><span class="wd-slot-name">'+ACC_SLOT[slot]+'</span>'+(a?'<div class="wd-slot-detail"><img src="'+a.img+'" alt=""><span>'+safeHtml(a.name)+'</span></div><button data-off="'+slot+'">卸下</button>':'<span class="wd-empty">還沒戴</span>')+'</div>';
   });
   h+='<button class="wd-spin" id="wdSpin">🎡 轉盤抽配件<b>券 ×'+tix+'</b></button></div></div>';
   h+='<div class="cs-sec"><div class="cs-h"><span>我們的收藏</span><b>'+have+' / '+ACC_LIST.length+'</b></div><div class="wd-grid">';
@@ -3328,4 +3334,5 @@ function petInit(){
 </script>
 </body>
 </html>
+
 

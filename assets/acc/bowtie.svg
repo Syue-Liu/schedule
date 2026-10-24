@@ -1,1 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 74 40"><g stroke="#3E3A39" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M37 20 5 5V35Z" fill="#A8D3E6"/><path d="M37 20 69 5V35Z" fill="#A8D3E6"/><rect x="29" y="12" width="16" height="16" rx="5" fill="#A8D3E6"/><g fill="#FFFCF6" stroke="none"><circle cx="14" cy="14" r="2.4"/><circle cx="18" cy="26" r="2.4"/><circle cx="58" cy="14" r="2.4"/><circle cx="56" cy="26" r="2.4"/></g></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 106 61" width="106" height="61"><defs>
+<linearGradient id="straw" x2=".15" y2="1"><stop stop-color="#fbe8b6"/><stop offset=".5" stop-color="#e9c078"/><stop offset="1" stop-color="#c88f47"/></linearGradient>
+<linearGradient id="rose" x2=".25" y2="1"><stop stop-color="#f4c3ba"/><stop offset=".5" stop-color="#dd918d"/><stop offset="1" stop-color="#b6676d"/></linearGradient>
+<linearGradient id="red" x2=".3" y2="1"><stop stop-color="#edb1a2"/><stop offset=".45" stop-color="#d97571"/><stop offset="1" stop-color="#ae4e54"/></linearGradient>
+<linearGradient id="teal" x2=".25" y2="1"><stop stop-color="#c7e2e0"/><stop offset=".48" stop-color="#8cbebd"/><stop offset="1" stop-color="#507f85"/></linearGradient>
+<linearGradient id="sage" x2=".3" y2="1"><stop stop-color="#c9dcb7"/><stop offset=".45" stop-color="#9eba91"/><stop offset="1" stop-color="#719579"/></linearGradient>
+<linearGradient id="gold" x2=".7" y2="1"><stop stop-color="#fff1bd"/><stop offset=".38" stop-color="#eecf7b"/><stop offset=".7" stop-color="#d5a148"/><stop offset="1" stop-color="#f8dd93"/></linearGradient>
+<radialGradient id="pearl" cx=".3" cy=".25" r=".8"><stop stop-color="#fffef7"/><stop offset=".48" stop-color="#faf0df"/><stop offset="1" stop-color="#c8b7aa"/></radialGradient>
+<linearGradient id="fur" x2=".2" y2="1"><stop stop-color="#fffdf3"/><stop offset=".65" stop-color="#f2e5d3"/><stop offset="1" stop-color="#d9c7b4"/></linearGradient>
+<pattern id="weave" width="7" height="5" patternUnits="userSpaceOnUse"><path d="M0 1.5h7M1 0v1.5M5 1.5V5" fill="none" stroke="#a47743" stroke-opacity=".3" stroke-width=".65"/></pattern>
+<pattern id="linen" width="5" height="5" patternUnits="userSpaceOnUse"><path d="M0 2.5h5M2.5 0v5" stroke="#fff8ed" stroke-opacity=".15" stroke-width=".45"/></pattern>
+</defs><g stroke="#82634f" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round">
+<path d="M5 18Q54 31 101 18L100 26Q52 41 6 26Z" fill="#71969a" stroke-width=".8"/>
+<path d="M52 28C39 17 21 7 9 8 5 19 6 36 10 46 24 48 42 35 52 32Z" fill="url(#teal)"/>
+<path d="M55 28C68 16 86 6 98 8 102 21 101 37 97 46 84 48 65 36 55 32Z" fill="url(#teal)"/>
+<path d="M13 14Q24 15 43 27M14 41Q28 38 44 32M94 14Q79 17 65 27M94 41Q80 38 65 32" fill="none" stroke="#e6f0e4" stroke-width="1.1"/>
+<path d="m17 25 26 5m46-5-25 5" stroke="#639297" stroke-width=".85"/>
+<g fill="#fff5df" stroke="none"><circle cx="23" cy="22" r="1.8"/><circle cx="23" cy="34" r="1.8"/><circle cx="34" cy="28" r="1.5"/><circle cx="82" cy="22" r="1.8"/><circle cx="82" cy="34" r="1.8"/><circle cx="73" cy="28" r="1.5"/></g>
+<path d="M47 21Q53 18 60 21L61 37Q54 42 46 37Z" fill="url(#teal)"/>
+<path d="M50 23v12M57 23v12" stroke="#d9e7dc" stroke-width="1"/></g></svg>
