@@ -378,6 +378,10 @@ body:has(.chg-bar.show){padding-bottom:calc(124px + env(safe-area-inset-bottom))
 .cat.eat .c-head{animation:catEat .45s ease-in-out infinite alternate;}
 @keyframes catEat{from{transform:rotate(18deg);}to{transform:rotate(28deg) translateY(1px);}}
 .cat.pet .cat-bob{animation:catSquish .6s ease-in-out infinite alternate;}
+/* 摸超過 5 秒：舒服到左右扭 */
+.cat.bliss .cat-bob{animation:petBliss .7s ease-in-out infinite alternate;transform-origin:50% 90%;}
+.cat.pg.bliss .cat-bob{animation:petBliss .38s ease-in-out infinite alternate;}
+@keyframes petBliss{from{transform:rotate(-4deg) scale(1.02,.97);}to{transform:rotate(4deg) translateY(-2px);}}
 @keyframes catSquish{from{transform:none;}to{transform:scale(1.05,.93) translateY(2px);}}
 /* 技能 */
 .cat.sk-stretch .cat-sk{animation:skStretch 1.6s ease-in-out;}
@@ -2806,7 +2810,7 @@ function petPlace(p){
 }
 function petMode(p,m){
   petBookReset(p);
-  ['walk','run','sleep','eat','pet','happy'].forEach(function(c){p.el.classList.remove(c);});
+  ['walk','run','sleep','eat','pet','happy','bliss'].forEach(function(c){p.el.classList.remove(c);});
   if(m)m.split(' ').forEach(function(c){p.el.classList.add(c);});
 }
 function petStop(p){cancelAnimationFrame(p.raf);p.raf=0;clearTimeout(p.timer);clearTimeout(p.sleepT);if(p.el.classList.contains('walk'))petMode(p,'');}
@@ -3112,6 +3116,23 @@ function catYarn(p){
   setTimeout(function(){y.style.opacity='0';},2300);
   setTimeout(function(){y.remove();if(p.yarnEl===y)p.yarnEl=null;},2800);
 }
+// 摸摸超過 5 秒：舒服到換動作（貓翻肚、企鵝拍翅膀、狗坐起來討摸），一直摸就一直做
+var PET_BLISS_MS=5000,PET_BLISS={
+  cat:{poses:['roll'],say:['呼嚕呼嚕…','翻肚肚給你摸～','（舒服到瞇起眼睛）']},
+  pg:{poses:['flap-up','happy'],ms:380,say:['嘎嘎！最喜歡被摸了！','（開心到停不下來地拍翅膀）']},
+  dg:{poses:['beg','paw'],ms:700,say:['汪♥ 還要還要～','（伸出手手）再摸一下嘛']}
+};
+function petBliss(p){
+  if(!p.pet)return;
+  var B=PET_BLISS[p.k],i=0;
+  p.el.classList.add('bliss');
+  function step(){
+    if(!p.pet||!p.el.classList.contains('bliss')){clearInterval(p.blissI);return;}
+    p.el.setAttribute('data-book-pose',B.poses[i++%B.poses.length]);
+  }
+  step();if(B.poses.length>1&&!catReduce)p.blissI=setInterval(step,B.ms);
+  petSay(p,catPick(B.say),2600);petHearts(p,5);
+}
 // 摸摸：手指在寵物身上滑、或長按
 function petPetStart(p){
   if(p.pet||p.act)return;
@@ -3122,9 +3143,11 @@ function petPetStart(p){
   if(me&&fav&&fav!=='both'&&fav!==me&&Math.random()<.3)petSay(p,'哼～（我比較黏'+USERS[fav].label+'）',2200);
   else petSay(p,wasSleep?p.def.say.sleepy:catPick(p.def.say.pet),2000);
   petHearts(p,me&&fav===me?3:2);
+  clearTimeout(p.blissT);p.blissT=setTimeout(function(){petBliss(p);},PET_BLISS_MS);
 }
 function petPetEnd(p){
   if(!p.pet)return;
+  clearTimeout(p.blissT);clearInterval(p.blissI);
   p.pet=false;petMode(p,'');
   var me=petWho();
   if(me){var r=petDay(me),key=p.k==='cat'?'pet':p.k==='pg'?'ppet':'dpet';if(r.d[key]<PET_DAY_PET){r.d[key]++;ps(r,p.k).aff+=1;}petQuest('pet',1);petSave();}
