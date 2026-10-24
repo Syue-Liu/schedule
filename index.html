@@ -657,7 +657,7 @@ body:has(.chg-bar.show){padding-bottom:calc(124px + env(safe-area-inset-bottom))
 
 /* 三寵大圖：雪橇在雪夜中滑行。角色合成圖保持不透明，不交叉淡化。 */
 .cat[data-combo-kind="all"]{visibility:hidden;pointer-events:none;}
-.pet-combo-fx.all{z-index:44;width:100%;height:100%;background:#173344;isolation:isolate;}
+.pet-combo-fx.all{z-index:44;width:100%;height:100%;background:#173344;isolation:isolate;pointer-events:auto;}
 .adventure-sky{position:absolute;inset:0;background:radial-gradient(ellipse at 72% 2%,#86B2AA55,transparent 58%),linear-gradient(160deg,#142D44,#345B70 60%,#98B8BF);}
 .adventure-moon{position:absolute;top:15%;right:12%;width:clamp(46px,8vw,100px);aspect-ratio:1;border-radius:50%;background:#FFF4CA;box-shadow:0 0 45px 20px #FFF4CA22,inset -12px -4px 0 #E7DDB655;}
 .adventure-star{position:absolute;width:var(--size);height:var(--size);background:#FFF2C6;border-radius:50%;box-shadow:0 0 8px #FFF2C6AA;animation:adventureTwinkle 2.8s ease-in-out var(--delay) infinite alternate;}
