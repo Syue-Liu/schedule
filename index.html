@@ -451,17 +451,30 @@ body:has(.chg-bar.show){padding-bottom:calc(124px + env(safe-area-inset-bottom))
 @keyframes catFx{0%{opacity:0;transform:translate(0,0) scale(.5);}15%{opacity:1;transform:translate(calc(var(--dx) * .2),-10px) scale(1.1);}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.9);}}
 /* 點貓咪跳出來的選單 */
 .cat-menu-bd{position:fixed;inset:0;z-index:44;}
-.cat-menu{position:fixed;z-index:45;display:flex;flex-wrap:wrap;gap:6px;width:max-content;max-width:min(330px,calc(100vw - 16px));padding:6px;background:var(--paper);border:var(--lw) solid var(--ink);border-radius:18px;box-shadow:0 3px 0 var(--ink);animation:menuIn .3s var(--pop);}
+.cat-menu{position:fixed;z-index:45;display:grid;grid-template-columns:repeat(var(--cols,4),66px);gap:7px;width:max-content;max-width:calc(100vw - 16px);padding:9px;background:var(--paper);border:var(--lw) solid var(--ink);border-radius:18px;box-shadow:0 3px 0 var(--ink);animation:menuIn .3s var(--pop);}
 .cat-menu button,.cs-sk{position:relative;}
 .cd-on{opacity:.5;}
 .cd-on .ic{filter:grayscale(1);}
 .cd{position:absolute;top:2px;right:4px;font-size:10px;line-height:1;color:var(--t2);}
-.cat-menu button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:52px;height:54px;padding:4px 6px;border:var(--lw2) solid var(--ink);border-radius:14px;background:var(--paper);font-size:11px;color:var(--t);cursor:pointer;}
+.cat-menu button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:0;height:58px;padding:4px 3px;border:var(--lw2) solid var(--ink);border-radius:14px;background:var(--paper);font-size:12px;color:var(--t);cursor:pointer;}
 .cat-menu button:active{background:var(--press);}
 .cat-menu button.off{opacity:.45;}
-.cat-menu .ic{font-size:18px;line-height:1;height:22px;display:flex;align-items:center;}
+.cat-menu .ic{font-size:19px;line-height:1;height:22px;display:flex;align-items:center;}
 .cat-menu .ic svg{width:22px;height:22px;}
-.cat-menu-q{width:100%;font-size:11px;color:var(--t2);padding:2px 4px 0;line-height:1.5;}
+.cat-menu .lb{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.2;}
+.cat-menu .n{position:absolute;top:-8px;right:-7px;min-width:21px;height:21px;padding:0 5px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);font-size:11px;line-height:17px;text-align:center;}
+.cat-menu .n.hot{background:var(--yellow);}
+.cat-menu-h{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;color:var(--t);padding:0 2px;white-space:nowrap;}
+.cat-menu-h span{min-width:0;overflow:hidden;text-overflow:ellipsis;}
+.cat-menu .cat-menu-h .back{flex-shrink:0;flex-direction:row;height:28px;padding:0 10px;border-radius:999px;font-size:12px;}
+.cat-menu-tip{grid-column:1/-1;font-size:11px;color:var(--t2);padding:0 2px;line-height:1.5;}
+.cat-menu-q{grid-column:1/-1;display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px 8px;margin-top:2px;padding:7px 10px;border:var(--lw2) solid var(--ink);border-radius:12px;background:var(--ribbon-bg);font-size:12px;line-height:1.4;}
+.cat-menu-q.done{background:var(--syue-bg);}
+.cat-menu-q .qt{min-width:0;}
+.cat-menu-q .qn{font-size:12px;color:var(--t2);}
+.cat-menu-q .qbar{grid-column:1/-1;height:7px;border:1.5px solid var(--ink);border-radius:999px;background:var(--paper);overflow:hidden;}
+.cat-menu-q .qbar i{display:block;height:100%;background:var(--yellow);}
+.cat-menu-q .qr{grid-column:1/-1;font-size:11px;color:var(--t2);}
 /* 地上的貓糧、碗、毛線球 */
 .cat-drop{position:fixed;z-index:26;width:42px;height:42px;padding:0;border:none;background:none;cursor:pointer;animation:dropIn .6s var(--pop),dropBob 1.6s ease-in-out .6s infinite alternate;}
 .cat-drop svg{width:100%;height:100%;}
@@ -2963,25 +2976,36 @@ function petOpenMenu(p,skills){
   p.menu=true;menuPet=p;petStop(p);
   var bd=document.createElement('div');bd.className='cat-menu-bd';bd.onclick=petCloseMenu;
   var m=document.createElement('div');m.className='cat-menu';
-  var h='';
+  var h='',n=0;
+  // 每格一樣大，一排四格；badge 是右上角的數字（糧食剩幾個、轉盤券幾張）
+  function btn(attr,ic,label,badge){n++;return '<button '+attr+'><span class="ic">'+ic+'</span><span class="lb">'+label+'</span>'+(badge||'')+'</button>';}
+  var back='<button data-a="back" class="back">‹ 返回</button>';
   if(skills==='combo'){
-    PET_KEYS.filter(function(k){return k!==p.k;}).forEach(function(k){h+='<button data-combo="'+k+'"><span class="ic">'+PET_DEF[k].ic+'</span>和'+safeHtml(petName(k))+'合體</button>';});
-    h+='<button data-combo="all" data-cd="all"><span class="ic">🌟</span>三隻一起合體<span class="cd"></span></button><button data-a="back"><span class="ic">‹</span>返回</button>';
+    h+='<div class="cat-menu-h"><span>💞 找誰一起合體？</span>'+back+'</div>';
+    PET_KEYS.filter(function(k){return k!==p.k;}).forEach(function(k){h+=btn('data-combo="'+k+'"',PET_DEF[k].ic,safeHtml(petName(k)));});
+    h+=btn('data-combo="all" data-cd="all"','🌟','三隻一起','<span class="cd"></span>');
   }else if(skills){
-    petSkills(p.k).forEach(function(s){h+='<button data-sk="'+s.id+'" data-cd="'+p.k+':'+s.id+'"><span class="ic">'+s.ic+'</span>'+s.name+'<span class="cd"></span></button>';});
+    h+='<div class="cat-menu-h"><span>✨ '+safeHtml(petName(p.k))+' 的技能</span>'+back+'</div>';
+    petSkills(p.k).forEach(function(s){h+=btn('data-sk="'+s.id+'" data-cd="'+p.k+':'+s.id+'"',s.ic,s.name,'<span class="cd"></span>');});
     var nx=PET_SKILLS[p.k].filter(function(s){return s.lv>petLevel(petPts());})[0];
-    h+='<button data-a="back"><span class="ic">‹</span>返回</button>';
-    if(nx)h+='<div class="cat-menu-q">Lv'+nx.lv+' 會學「'+nx.name+'」・維護班表可以升級</div>';
+    if(nx)h+='<div class="cat-menu-tip">Lv'+nx.lv+' 會學「'+nx.name+'」・維護班表可以升級</div>';
   }else{
     var q=r&&r.d.q,def=q&&petQuestDef(q.id);
-    h+='<button data-a="pet"><span class="ic">🐾</span>摸摸</button>';
-    if(r)p.def.foods.forEach(function(f){h+='<button data-food="'+f+'"'+(r[f]?'':' class="off"')+'><span class="ic">'+CAT_ART[f]+'</span>'+FOODS[f].name+' '+r[f]+'</button>';});
-    h+='<button data-a="acc"><span class="ic">🎀</span>配件</button><button data-a="sk"><span class="ic">✨</span>技能</button><button data-a="info"><span class="ic">📋</span>狀態</button>';
-    h+='<button data-a="combo"><span class="ic">💞</span>找夥伴合體</button>';
-    h+='<button data-a="sleep"><span class="ic">💤</span>回去睡覺</button>';
-    if(def)h+='<div class="cat-menu-q">'+(q.done?'✓ ':'❗ ')+'今日支線：'+safeHtml(def.t)+'（'+Math.min(q.p,def.n)+'/'+def.n+'）→ '+petRewardTxt(def.r)+'</div>';
+    // 第一排照顧，第二排玩
+    h+=btn('data-a="pet"','🐾','摸摸');
+    p.def.foods.forEach(function(f){h+=btn('data-food="'+f+'"'+(r&&r[f]?'':' class="off"'),CAT_ART[f],FOODS[f].name,r?'<span class="n">'+r[f]+'</span>':'');});
+    h+=btn('data-a="sleep"','💤','睡覺');
+    h+=btn('data-a="sk"','✨','技能')+btn('data-a="combo"','💞','合體');
+    h+=btn('data-a="acc"','🎀','配件',r&&r.tix?'<span class="n hot">'+r.tix+'</span>':'')+btn('data-a="info"','📋','狀態');
+    if(def){
+      var qn=Math.min(q.p,def.n);
+      h+='<div class="cat-menu-q'+(q.done?' done':'')+'"><span class="qt">'+(q.done?'✓':'❗')+' 今日支線：'+safeHtml(def.t)+'</span><span class="qn">'+(q.done?'完成':qn+'/'+def.n)+'</span>'+
+        (q.done?'':'<span class="qbar"><i style="width:'+Math.round(qn/def.n*100)+'%"></i></span>')+
+        '<span class="qr">'+(q.done?'已領取：':'獎勵：')+petRewardTxt(def.r)+'・轉盤券 ×1</span></div>';
+    }
     if(q&&!q.seen){q.seen=true;petSave();petUpdMark();}
   }
+  m.style.setProperty('--cols',Math.max(3,Math.min(4,n)));
   m.innerHTML=h;
   document.body.appendChild(bd);document.body.appendChild(m);
   petPosMenu(p,m);petCdPaint();
@@ -3090,7 +3114,7 @@ function petOpenSheet(k){
       if(!q.seen){q.seen=true;petSave();petUpdMark();}
       var rk=Object.keys(def.r)[0];
       h+='<div class="cs-sec"><div class="cs-h"><span>今日支線</span><b>'+(q.done?'完成 ✓':Math.min(q.p,def.n)+' / '+def.n)+'</b></div>'+
-        '<div class="cs-quest'+(q.done?' done':'')+'">'+CAT_ART[rk]+'<div class="q-main">'+safeHtml(def.t)+'<div class="q-sub">獎勵：'+petRewardTxt(def.r)+'</div></div></div></div>';
+        '<div class="cs-quest'+(q.done?' done':'')+'">'+CAT_ART[rk]+'<div class="q-main">'+safeHtml(def.t)+'<div class="q-sub">獎勵：'+petRewardTxt(def.r)+'・轉盤券 ×1</div></div></div></div>';
     }
   }
   h+='<div class="cs-sec"><div class="cs-h"><span>'+safeHtml(name)+' 的技能</span><b>點一下讓牠表演</b></div><div class="cs-skills">';
