@@ -600,12 +600,12 @@ body:has(.chg-bar.show){padding-bottom:calc(124px + env(safe-area-inset-bottom))
 /* 薩摩耶：四步連續步態及專屬犬類動作。 */
 .cat.dg{width:126px;height:105px;--walk-cycle:.9s;}
 .cat.dg.run{--walk-cycle:.5s;}
+/* 同一張步態圖帶逐格移動，保持不透明，避免交叉淡化造成亮度閃爍。 */
+.cat .dog-walk-window{display:none;overflow:hidden;}
 .cat.dg.walk .book-frame{display:none;animation:none;opacity:1;}
-.cat.dg.walk .book-walk-a,.cat.dg.walk .book-walk-c,.cat.dg.walk .book-walk-b,.cat.dg.walk .book-walk-d{display:inline;opacity:0;animation:dogStep var(--walk-cycle) linear infinite;}
-.cat.dg.walk .book-walk-c{animation-delay:calc(var(--walk-cycle) * -.75);}
-.cat.dg.walk .book-walk-b{animation-delay:calc(var(--walk-cycle) * -.5);}
-.cat.dg.walk .book-walk-d{animation-delay:calc(var(--walk-cycle) * -.25);}
-@keyframes dogStep{0%,20%{opacity:1;}25%,95%{opacity:0;}100%{opacity:1;}}
+.cat.dg.walk .dog-walk-window{display:inline;}
+.dog-walk-strip{opacity:1;animation:dogWalkFrames var(--walk-cycle) step-end infinite;}
+@keyframes dogWalkFrames{0%{transform:translateX(0);}25%{transform:translateX(-384px);}50%{transform:translateX(-768px);}75%{transform:translateX(-1152px);}100%{transform:translateX(0);}}
 .cat.dg.walk .cat-bob{animation:dogBob calc(var(--walk-cycle) / 2) ease-in-out infinite;}
 @keyframes dogBob{0%,100%{transform:translateY(0);}50%{transform:translateY(-1.5px);}}
 .cat.dg.sk-paw .cat-sk{animation:dogPaw var(--skill-time) ease-in-out;transform-origin:50% 95%;}
@@ -2065,7 +2065,7 @@ function petBookArt(name,w,h){
   var poses=['idle','walk-a','walk-b','happy','eat','sleep'].concat(PET_BOOK_EXTRA[name]);
   return '<svg class="book-art" viewBox="0 0 '+w+' '+h+'" aria-hidden="true">'+poses.map(function(p){
     return '<image class="book-frame book-'+p+'" href="assets/pets/'+name+'-'+p+'.svg" width="'+w+'" height="'+h+'"/>';
-  }).join('')+'</svg>';
+  }).join('')+(name==='samoyed'?'<svg class="dog-walk-window" x="0" y="0" width="384" height="320" viewBox="0 0 384 320"><image class="dog-walk-strip" href="assets/pets/samoyed-walk-strip.svg" width="1536" height="320"/></svg>':'')+'</svg>';
 }
 var CAT_ART={
   cat:petBookArt('snowball',384,320),
