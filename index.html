@@ -13,6 +13,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Huninn&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="assets/pets/starlight-sled.svg">
 <style>
 /* 日系繪本風：和紙白底、墨灰粗線框、大圓角、平塗（不用漸層） */
 :root{
@@ -653,6 +654,41 @@ body:has(.chg-bar.show){padding-bottom:calc(124px + env(safe-area-inset-bottom))
 @keyframes skyRipple{0%{opacity:0;transform:translate(-50%,-50%) scale(.2) rotate(0deg);}30%{opacity:.7;}100%{opacity:0;transform:translate(-50%,-50%) scale(2.8) rotate(80deg);}}
 .combo-finale{position:absolute;left:50%;transform:translateX(-50%);padding:10px 16px;border:2px solid #D9ABAA;border-radius:20px;background:#FFFCF6E6;color:var(--ink);font-size:clamp(13px,3.6vw,21px);font-weight:bold;white-space:nowrap;}
 @media(prefers-reduced-motion:reduce){.combo-aurora{opacity:.2;}.combo-sky-ring{display:none;}}
+
+/* 三寵大圖：雪橇在雪夜中滑行。角色合成圖保持不透明，不交叉淡化。 */
+.cat[data-combo-kind="all"]{visibility:hidden;pointer-events:none;}
+.pet-combo-fx.all{z-index:44;width:100%;height:100%;background:#173344;isolation:isolate;}
+.adventure-sky{position:absolute;inset:0;background:radial-gradient(ellipse at 72% 2%,#86B2AA55,transparent 58%),linear-gradient(160deg,#142D44,#345B70 60%,#98B8BF);}
+.adventure-moon{position:absolute;top:15%;right:12%;width:clamp(46px,8vw,100px);aspect-ratio:1;border-radius:50%;background:#FFF4CA;box-shadow:0 0 45px 20px #FFF4CA22,inset -12px -4px 0 #E7DDB655;}
+.adventure-star{position:absolute;width:var(--size);height:var(--size);background:#FFF2C6;border-radius:50%;box-shadow:0 0 8px #FFF2C6AA;animation:adventureTwinkle 2.8s ease-in-out var(--delay) infinite alternate;}
+@keyframes adventureTwinkle{from{opacity:.35;transform:scale(.75);}to{opacity:1;transform:scale(1.15);}}
+.adventure-landscape{position:absolute;left:-4%;bottom:0;width:108%;height:52%;animation:adventurePan 9s linear both;}
+@keyframes adventurePan{from{transform:translateX(3%);}to{transform:translateX(-3%);}}
+.adventure-heading{position:absolute;top:max(24px,6vh);left:50%;width:90%;transform:translateX(-50%);text-align:center;color:#FFF6DA;text-shadow:0 2px 0 #142D4470;}
+.adventure-heading>span{display:block;font-size:clamp(12px,1.6vw,17px);letter-spacing:.18em;margin-bottom:8px;}
+.adventure-heading>strong{display:block;font-size:clamp(27px,5.5vw,58px);letter-spacing:.12em;line-height:1.25;}
+.adventure-heading>div{font-size:14px;letter-spacing:.45em;color:#F6D27A;margin-top:10px;}
+.adventure-stage{position:absolute;left:50%;top:58%;width:min(90vw,1120px,calc(130vh - 200px));transform:translate(-50%,-50%);}
+.adventure-convoy{position:relative;animation:adventureGlide 9s cubic-bezier(.2,.55,.6,1) both;}
+@keyframes adventureGlide{0%{transform:translateX(-125vw) rotate(-2deg);}18%{transform:translateX(-1vw) rotate(0);}78%{transform:translateX(1vw) rotate(-1deg);}100%{transform:translateX(125vw) rotate(1deg);}}
+.adventure-team{position:relative;z-index:2;animation:adventureBob .7s ease-in-out infinite alternate;transform-origin:50% 80%;}
+@keyframes adventureBob{from{transform:translateY(-3px) rotate(-.5deg);}to{transform:translateY(3px) rotate(.4deg);}}
+.adventure-art{display:block;width:100%;height:auto;opacity:1;filter:drop-shadow(0 8px 8px #17334433);}
+.adventure-dialogues{position:absolute;left:0;right:0;bottom:calc(100% + 12px);height:40px;z-index:3;}
+.sled-speech{position:absolute;padding:7px 11px;border:2px solid #776D66;border-radius:16px;background:#FFFCF6;color:#514B48;font-size:clamp(11px,1.4vw,16px);line-height:1.4;white-space:nowrap;box-shadow:0 3px 0 #172D4430;}
+.sled-speech::after{content:'';position:absolute;left:50%;top:100%;border:6px solid transparent;border-top-color:#776D66;}
+.sled-speech.penguin{left:4%;bottom:0;}
+.sled-speech.pillow{left:34%;bottom:6px;}
+.sled-speech.samoyed{right:4%;bottom:1px;}
+.adventure-powder{position:absolute;z-index:1;left:-12%;bottom:1%;width:70%;height:8%;background:radial-gradient(ellipse at center,#FFFFFFBB,transparent 70%);animation:adventurePowder .7s ease-in-out infinite alternate;}
+@keyframes adventurePowder{from{transform:translateX(-4%) scaleX(.85);opacity:.5;}to{transform:translateX(-14%) scaleX(1.1);opacity:.85;}}
+.adventure-snow{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+.adventure-flake{position:absolute;top:-16px;width:var(--size);height:var(--size);border-radius:50%;background:#FFFFFFC9;animation:adventureSnow var(--fall) linear var(--delay) infinite;}
+@keyframes adventureSnow{from{transform:translate(20px,-20px);}to{transform:translate(-80px,110vh);}}
+.adventure-skip{position:absolute;right:max(16px,env(safe-area-inset-right));bottom:max(20px,env(safe-area-inset-bottom));pointer-events:auto;color:#FFF9E9;background:#173344B8;border:1.5px solid #FFF9E966;border-radius:999px;padding:9px 15px;font:inherit;font-size:13px;cursor:pointer;}
+.adventure-skip:focus-visible{outline:3px solid #F6D27A;outline-offset:3px;}
+@media(max-height:500px){.adventure-heading{top:14px;}.adventure-heading>span,.adventure-heading>div{display:none;}.adventure-heading>strong{font-size:25px;}.adventure-stage{top:59%;}.adventure-moon{top:9%;}.sled-speech{padding:4px 8px;font-size:11px;}}
+@media(prefers-reduced-motion:reduce){.adventure-convoy,.adventure-team,.adventure-landscape{transform:none;}.adventure-snow{display:none;}.adventure-star{opacity:.8;}}
 
 /* 系統開了「減少動態效果」：插圖停住，彈跳、滑動、淡入都關掉，全部直接停在最後的樣子 */
 @media (prefers-reduced-motion:reduce){
@@ -2399,9 +2435,24 @@ function petComboDialogue(list,def){
     b.s.classList.toggle('combo-below',below);b.s.classList.add('on');x+=b.w+gap;
   });
 }
+function petAdventureMarkup(){
+  var stars='',snow='';
+  for(var i=0;i<25;i++){
+    stars+='<i class="adventure-star" style="left:'+((i*37+11)%97)+'%;top:'+((i*19+7)%56)+'%;--delay:-'+(i*.23).toFixed(2)+'s;--size:'+(i%3?3:6)+'px"></i>';
+  }
+  for(var j=0;j<28;j++){
+    snow+='<i class="adventure-flake" style="left:'+((j*29+3)%100)+'%;--delay:-'+(j*.41).toFixed(2)+'s;--fall:'+(4+j%5)+'s;--size:'+(j%4+2)+'px"></i>';
+  }
+  return '<div class="adventure-sky"><div class="adventure-moon"></div>'+stars+'</div>'+
+    '<svg class="adventure-landscape" viewBox="0 0 1440 500" preserveAspectRatio="xMidYMax slice" aria-hidden="true"><defs><g id="adventure-pine"><path d="M0-180-32-116H-17L-48-61H-26L-60 0H60L26-61H48L17-116H32Z" fill="currentColor"/><path d="M0-165-21-123H21ZM-4-98-32-68H25ZM-10-48-43-10H31Z" fill="#EFF6EF" opacity=".64"/></g></defs><path d="M0 125Q220 25 420 130T860 120T1440 110V500H0Z" fill="#789DA8"/><g color="#456C76"><use href="#adventure-pine" transform="translate(70 310) scale(.9)"/><use href="#adventure-pine" transform="translate(198 285) scale(.65)"/><use href="#adventure-pine" transform="translate(320 325) scale(1.05)"/><use href="#adventure-pine" transform="translate(640 295) scale(.72)"/><use href="#adventure-pine" transform="translate(820 320) scale(.94)"/><use href="#adventure-pine" transform="translate(1160 295) scale(.82)"/><use href="#adventure-pine" transform="translate(1320 325) scale(1.2)"/></g><path d="M0 305Q260 220 560 320T1090 300T1440 300V500H0Z" fill="#D5E5E5"/><path d="M0 400Q260 315 550 400T1120 380T1440 400V500H0Z" fill="#F5F5E9"/><path d="M0 432Q300 365 650 443T1440 421" fill="none" stroke="#BED5DB" stroke-width="12" opacity=".6"/></svg>'+
+    '<div class="adventure-heading"><span>一起出發吧！</span><strong>星光大冒險</strong><div>❄　✦　☁　✦　❄</div></div>'+
+    '<div class="adventure-stage"><div class="adventure-convoy"><div class="adventure-dialogues"><div class="sled-speech penguin">出發！嘎～</div><div class="sled-speech pillow">坐穩囉～</div><div class="sled-speech samoyed">汪！衝呀！</div></div><div class="adventure-team"><img class="adventure-art" src="assets/pets/starlight-sled.svg" alt="薩摩耶拉著雪橇，載著企鵝和 Pillow 迎向星光" draggable="false"></div><div class="adventure-powder"></div></div></div>'+
+    '<div class="adventure-snow" aria-hidden="true">'+snow+'</div><button type="button" class="adventure-skip">略過動畫 ✕</button>';
+}
+
 function petStartCombo(list){
   petReleaseComboWait();
-  var key=petComboKey(list),def=PET_COMBOS[key],ms=key==='all'?5200:4000;
+  var key=petComboKey(list),def=PET_COMBOS[key],ms=key==='all'?9000:4000;
   petCombo.active=true;petCombo.type=key;petCombo.members=list.slice();petCombo.armed[key]=false;
   list.forEach(function(a,i){list.slice(i+1).forEach(function(b){petCombo.armed[petComboKey([a,b])]=false;});});
   var pair=list.slice().sort(function(a,b){return a.x+a.def.W/2-b.x-b.def.W/2;});
@@ -2422,9 +2473,9 @@ function petStartCombo(list){
   petComboDialogue(list,def);
   var fx=document.createElement('div');fx.className='pet-combo-fx '+def.kind;fx.setAttribute('aria-hidden','true');
   if(key==='all'){
-    fx.innerHTML='<div class="combo-aurora"></div><div class="combo-sky-ring"></div><div class="combo-sky-ring second"></div><div class="combo-finale">❄ '+def.name+' ☁</div>';
-    fx.querySelector('.combo-finale').style.top=(document.querySelector('.hdr').getBoundingClientRect().bottom+14)+'px';
-    fx.querySelector('.combo-finale').textContent='❄ '+def.name+' ☁';
+    fx.removeAttribute('aria-hidden');fx.setAttribute('role','region');fx.setAttribute('aria-label','三隻合體：星光大冒險');
+    fx.innerHTML=petAdventureMarkup();
+    fx.querySelector('.adventure-skip').onclick=petEndCombo;
   }else{
     fx.style.left=catClamp(start+total/2-90,6,Math.max(6,window.innerWidth-186))+'px';
     fx.style.top=Math.max(document.querySelector('.hdr').getBoundingClientRect().bottom+4,ground-150)+'px';
@@ -2435,7 +2486,21 @@ function petStartCombo(list){
   }
   document.body.appendChild(fx);petCombo.fx=fx;
   if(!catReduce)[650,1700,2900].forEach(function(t){petCombo.timers.push(setTimeout(petComboBurst,t));});
-  petCombo.timers.push(setTimeout(petEndCombo,catReduce?1500:ms));return true;
+  var endDelay=catReduce?(key==='all'?3500:1500):ms;
+  var endTimer=setTimeout(petEndCombo,endDelay);petCombo.timers.push(endTimer);
+  if(key==='all'){
+    var art=fx.querySelector('.adventure-art'),convoy=fx.querySelector('.adventure-convoy');
+    if(!art.complete){
+      convoy.style.animationPlayState='paused';
+      art.onload=function(){
+        if(!petCombo.active||petCombo.fx!==fx)return;
+        convoy.style.animationPlayState='running';clearTimeout(endTimer);
+        petCombo.timers.push(setTimeout(petEndCombo,endDelay));
+      };
+    }
+    art.onerror=function(){if(petCombo.fx===fx){petEndCombo();toast('雪橇大圖尚未載入，請再試一次');}};
+  }
+  return true;
 }
 function petTryCombo(){
   if(document.hidden)return false;
