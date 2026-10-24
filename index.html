@@ -2229,22 +2229,9 @@ var ACC_LIST=[
   {id:'hw-charm',name:'南瓜護符',ar:0.759,slot:'neck',rare:3,size:.86,dy:.12,pets:['cat','dg']},
   {"id":"wear-backpack","name":"迷你背包","slot":"back","rare":1,"size":0.98,"ar":1.18333,"pack":true},
   {"id":"wear-littlewings","name":"小翅膀","slot":"back","rare":1,"size":0.98,"ar":0.46875,"layer":"rear"},
-  {"id":"wear-angel","name":"天使翅膀","slot":"back","rare":2,"size":0.98,"ar":0.625,"layer":"both","frontImg":"assets/acc/wear-angel-near.svg","frontAr":1.1333333333333333,"frontSize":1.7,"frontPets":["snowball","samoyed"],"rearPets":["dudu"]},
   {"id":"wear-butterfly","name":"蝴蝶翅膀","slot":"back","rare":3,"size":0.98,"ar":0.71875,"layer":"rear"},
-  {"id":"wear-fishbag","name":"小魚背包","slot":"back","rare":2,"size":1.16,"ar":0.76,"pets":["cat"]},
-  {"id":"wear-mailbag","name":"郵差包","slot":"back","rare":2,"size":1.1,"ar":0.9726,"pets":["dg"],"dy":0.25},
-  {"id":"wear-vest","name":"小背心","slot":"body","rare":1,"size":0.98,"ar":1.10667,"sideImg":"assets/acc/wear-vest-side.svg","sideAr":0.6444444444444445,"pgImg":"assets/acc/wear-vest-pg.svg","pgAr":0.7733333333333333},
-  {"id":"wear-raincoat","name":"雨衣","slot":"body","rare":1,"size":0.98,"ar":1.10667,"sideImg":"assets/acc/wear-raincoat-side.svg","sideAr":0.6444444444444445,"pgImg":"assets/acc/wear-raincoat-pg.svg","pgAr":0.7733333333333333},
-  {"id":"wear-apron","name":"圍裙","slot":"body","rare":1,"size":0.98,"ar":1.10667,"sideImg":"assets/acc/wear-apron-side.svg","sideAr":0.6444444444444445,"pgImg":"assets/acc/wear-apron-pg.svg","pgAr":0.7733333333333333},
-  {"id":"wear-sweater","name":"毛衣","slot":"body","rare":2,"size":0.98,"ar":1.10667,"sideImg":"assets/acc/wear-sweater-side.svg","sideAr":0.6444444444444445,"pgImg":"assets/acc/wear-sweater-pg.svg","pgAr":0.7733333333333333},
-  {"id":"wear-pumpkinsuit","name":"南瓜裝","slot":"body","rare":2,"size":0.98,"ar":1.10667,"sideImg":"assets/acc/wear-pumpkinsuit-side.svg","sideAr":0.6444444444444445,"pgImg":"assets/acc/wear-pumpkinsuit-pg.svg","pgAr":0.7733333333333333},
-  {"id":"wear-swimring","name":"游泳圈","slot":"body","rare":2,"size":1.16,"ar":0.49444,"pets":["pg"]},
-  {"id":"wear-rainboots","name":"小雨靴","slot":"feet","rare":1,"size":0.98,"ar":1.11429,"pgImg":"assets/acc/wear-rainboots-pg.svg","pgAr":0.6857142857142857},
-  {"id":"wear-socks","name":"毛毛襪","slot":"feet","rare":1,"size":0.94,"ar":1.11429,"pgImg":"assets/acc/wear-socks-pg.svg","pgAr":0.6857142857142857},
-  {"id":"wear-skates","name":"溜冰鞋","slot":"feet","rare":2,"size":0.98,"ar":1.11429,"pgImg":"assets/acc/wear-skates-pg.svg","pgAr":0.6857142857142857},
   {"id":"wear-lantern","name":"小提燈","slot":"prop","rare":1,"size":0.98,"ar":1.49038},
   {"id":"wear-candybucket","name":"糖果桶","slot":"prop","rare":1,"size":0.98,"ar":1.14754},
-  {"id":"wear-wand","name":"魔法杖","slot":"prop","rare":2,"size":0.98,"ar":2.04706},
   {"id":"wear-bouquet","name":"小花束","slot":"prop","rare":1,"size":0.98,"ar":1.208},
   {"id":"wear-starlight","name":"腳邊星光","slot":"aura","rare":2,"size":0.98,"ar":0.27778,"dy":0.36,"effect":"stars"},
   {"id":"wear-petals","name":"飄落花瓣","slot":"aura","rare":2,"size":0.98,"ar":0.81667,"effect":"petals"},
@@ -2260,7 +2247,8 @@ ACC_LIST.forEach(function(a){
 });
 var ACC_BY={};ACC_LIST.forEach(function(a){ACC_BY[a.id]=a;});
 var ACC_RARE={0:{name:'免費',color:'#FFD6BC',star:'免費・免抽'},1:{name:'普通',color:'#F5EEE2',star:'★'},2:{name:'稀有',color:'#A8D3E6',star:'★★'},3:{name:'傳說',color:'#F6D27A',star:'★★★'}};
-var ACC_SLOT={head:'頭飾',neck:'頸飾',back:'背飾',body:'服裝',feet:'鞋襪',prop:'小物',aura:'特效'};
+// 衣服、鞋襪穿起來不合身，先拿掉（ACC_WEAR_POSES 的 body、feet 位置還留著，之後有合身的圖可以再加回來）
+var ACC_SLOT={head:'頭飾',neck:'頸飾',back:'背飾',prop:'小物',aura:'特效'};
 var ACC_SLOT_KEYS=Object.keys(ACC_SLOT),accWardrobeFilter='all';
 // 轉盤 8 格：普通 5、稀有 2、傳說 1
 var ACC_WHEEL=[1,2,1,1,3,1,2,1];
@@ -2356,7 +2344,7 @@ function accSlots(name,pose,ox,layer){
     if(old.N)slots.push(['neck',old.N]);
     slots.push(['prop',wear.prop]);if(old.H)slots.push(['head',old.H]);
   }
-  return slots.map(function(pair){var slot=pair[0],v=pair[1];if(!v)return '';
+  return slots.map(function(pair){var slot=pair[0],v=pair[1];if(!v||!ACC_SLOT[slot])return '';
     return '<g class="acc acc-'+slot+'" data-w="'+v[2]+'" data-layer="'+(pair[2]||'front')+'" data-at="'+(pair[3]||'')+'" data-cut="'+(v[4]||'')+'" data-pet="'+name+'" transform="translate('+((ox||0)+v[0])+' '+v[1]+') rotate('+v[3]+')" style="display:none"><image class="acc-img"/></g>';
   }).join('');
 }
