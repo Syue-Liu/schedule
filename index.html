@@ -542,6 +542,21 @@ body:has(.chg-bar.show){padding-bottom:calc(124px + env(safe-area-inset-bottom))
 .wd-stage{background:var(--paper2);border:var(--lw2) solid var(--ink);border-radius:18px;padding:8px 6px 4px;}
 .wd-pet{display:block;width:100%;height:auto;overflow:visible;}
 .wd-slots{display:flex;flex-direction:column;gap:8px;min-width:0;}
+.wd-slots{max-height:210px;overflow-y:auto;scrollbar-width:thin;padding-right:2px;}
+.wd-slots .wd-spin{flex-shrink:0;}
+.wd-filters{display:flex;flex-wrap:wrap;gap:5px;margin:12px 0 4px;}
+.wd-filters button{min-height:30px;padding:4px 10px;border:1.5px solid var(--ink);border-radius:999px;background:var(--paper);color:var(--t);font-size:12px;cursor:pointer;}
+.wd-filters button.on{background:var(--mizu);}
+.acc-aura .acc-img{transform-box:fill-box;transform-origin:center;}
+.acc-aura[data-effect="stars"] .acc-img{animation:wearStars 3.4s ease-in-out infinite;}
+.acc-aura[data-effect="petals"] .acc-img{animation:wearPetals 5.5s ease-in-out infinite;}
+.acc-aura[data-effect="snow"] .acc-img{animation:wearSnow 6s ease-in-out infinite;}
+.acc-aura[data-effect="fireflies"] .acc-img{animation:wearFireflies 5s ease-in-out infinite;}
+@keyframes wearStars{0%,100%{opacity:.55;transform:scale(.97);}50%{opacity:1;transform:scale(1.025);}}
+@keyframes wearPetals{0%,100%{transform:translate(-4px,-6px) rotate(-3deg);opacity:.7;}50%{transform:translate(5px,9px) rotate(4deg);opacity:1;}}
+@keyframes wearSnow{0%,100%{transform:translate(-3px,-7px);opacity:.65;}50%{transform:translate(4px,8px);opacity:1;}}
+@keyframes wearFireflies{0%,100%{opacity:.45;transform:translate(-5px,4px);}50%{opacity:1;transform:translate(5px,-5px);}}
+@media(prefers-reduced-motion:reduce){.acc-aura .acc-img{animation:none!important;opacity:1;}}
 .wd-slot{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:2px 4px;font-size:13px;color:var(--t);min-height:34px;}
 .wd-slot-detail{display:flex;align-items:center;gap:4px;min-width:0;}
 .wd-slot-detail img{width:24px;height:24px;object-fit:contain;flex-shrink:0;}
@@ -2196,10 +2211,33 @@ var ACC_LIST=[
   {id:'hw-batcrown',name:'月夜蝙蝠冠',ar:0.592,slot:'head',rare:3,size:.96,sink:.20},
   {id:'hw-batbow',name:'蝙蝠領結',ar:0.415,slot:'neck',rare:1,size:.86,pets:['cat','dg']},
   {id:'hw-vampire',name:'吸血鬼披領',ar:0.682,slot:'neck',rare:2,size:0.94,dy:.16,pets:['cat','dg']},
-  {id:'hw-charm',name:'南瓜護符',ar:0.759,slot:'neck',rare:3,size:.86,dy:.12,pets:['cat','dg']}
+  {id:'hw-charm',name:'南瓜護符',ar:0.759,slot:'neck',rare:3,size:.86,dy:.12,pets:['cat','dg']},
+  {"id":"wear-backpack","name":"迷你背包","slot":"back","rare":1,"size":0.98,"ar":1.18333},
+  {"id":"wear-littlewings","name":"小翅膀","slot":"back","rare":1,"size":0.98,"ar":0.46875,"layer":"rear"},
+  {"id":"wear-angel","name":"天使翅膀","slot":"back","rare":2,"size":0.98,"ar":0.625,"layer":"both","frontImg":"assets/acc/wear-angel-near.svg","frontAr":1.1333333333333333,"frontSize":1.7,"frontPets":["snowball","samoyed"],"rearPets":["dudu"]},
+  {"id":"wear-butterfly","name":"蝴蝶翅膀","slot":"back","rare":3,"size":0.98,"ar":0.71875,"layer":"rear"},
+  {"id":"wear-fishbag","name":"小魚背包","slot":"back","rare":2,"size":1.16,"ar":0.76,"pets":["cat"]},
+  {"id":"wear-mailbag","name":"郵差包","slot":"back","rare":2,"size":1.1,"ar":0.9726,"pets":["dg"],"dy":0.25},
+  {"id":"wear-vest","name":"小背心","slot":"body","rare":1,"size":0.98,"ar":1.10667,"sideImg":"assets/acc/wear-vest-side.svg","sideAr":0.6444444444444445,"pgImg":"assets/acc/wear-vest-pg.svg","pgAr":0.7733333333333333},
+  {"id":"wear-raincoat","name":"雨衣","slot":"body","rare":1,"size":0.98,"ar":1.10667,"sideImg":"assets/acc/wear-raincoat-side.svg","sideAr":0.6444444444444445,"pgImg":"assets/acc/wear-raincoat-pg.svg","pgAr":0.7733333333333333},
+  {"id":"wear-apron","name":"圍裙","slot":"body","rare":1,"size":0.98,"ar":1.10667,"sideImg":"assets/acc/wear-apron-side.svg","sideAr":0.6444444444444445,"pgImg":"assets/acc/wear-apron-pg.svg","pgAr":0.7733333333333333},
+  {"id":"wear-sweater","name":"毛衣","slot":"body","rare":2,"size":0.98,"ar":1.10667,"sideImg":"assets/acc/wear-sweater-side.svg","sideAr":0.6444444444444445,"pgImg":"assets/acc/wear-sweater-pg.svg","pgAr":0.7733333333333333},
+  {"id":"wear-pumpkinsuit","name":"南瓜裝","slot":"body","rare":2,"size":0.98,"ar":1.10667,"sideImg":"assets/acc/wear-pumpkinsuit-side.svg","sideAr":0.6444444444444445,"pgImg":"assets/acc/wear-pumpkinsuit-pg.svg","pgAr":0.7733333333333333},
+  {"id":"wear-swimring","name":"游泳圈","slot":"body","rare":2,"size":1.16,"ar":0.49444,"pets":["pg"]},
+  {"id":"wear-rainboots","name":"小雨靴","slot":"feet","rare":1,"size":0.98,"ar":1.11429,"pgImg":"assets/acc/wear-rainboots-pg.svg","pgAr":0.6857142857142857},
+  {"id":"wear-socks","name":"毛毛襪","slot":"feet","rare":1,"size":0.94,"ar":1.11429,"pgImg":"assets/acc/wear-socks-pg.svg","pgAr":0.6857142857142857},
+  {"id":"wear-skates","name":"溜冰鞋","slot":"feet","rare":2,"size":0.98,"ar":1.11429,"pgImg":"assets/acc/wear-skates-pg.svg","pgAr":0.6857142857142857},
+  {"id":"wear-lantern","name":"小提燈","slot":"prop","rare":1,"size":0.98,"ar":1.49038},
+  {"id":"wear-candybucket","name":"糖果桶","slot":"prop","rare":1,"size":0.98,"ar":1.14754},
+  {"id":"wear-wand","name":"魔法杖","slot":"prop","rare":2,"size":0.98,"ar":2.04706},
+  {"id":"wear-bouquet","name":"小花束","slot":"prop","rare":1,"size":0.98,"ar":1.208},
+  {"id":"wear-starlight","name":"腳邊星光","slot":"aura","rare":2,"size":0.98,"ar":0.27778,"dy":0.36,"effect":"stars"},
+  {"id":"wear-petals","name":"飄落花瓣","slot":"aura","rare":2,"size":0.98,"ar":0.81667,"effect":"petals"},
+  {"id":"wear-snow","name":"雪花","slot":"aura","rare":2,"size":0.98,"ar":0.81667,"effect":"snow"},
+  {"id":"wear-fireflies","name":"螢火蟲","slot":"aura","rare":3,"size":0.98,"ar":0.81667,"effect":"fireflies"}
 ];
 // Version the artwork so existing wardrobes also pick up the refined drawings.
-ACC_LIST.forEach(function(a){a.img=a.img||'assets/acc/'+a.id+'.svg?v=20261024-fit';});
+ACC_LIST.forEach(function(a){a.img=a.img||'assets/acc/'+a.id+'.svg?v=20261024-full-wardrobe';});
 // 新配件忘了寫 ar 的話，載入圖之後自己量
 ACC_LIST.forEach(function(a){
   if(a.ar)return;
@@ -2207,7 +2245,8 @@ ACC_LIST.forEach(function(a){
 });
 var ACC_BY={};ACC_LIST.forEach(function(a){ACC_BY[a.id]=a;});
 var ACC_RARE={1:{name:'普通',color:'#F5EEE2',star:'★'},2:{name:'稀有',color:'#A8D3E6',star:'★★'},3:{name:'傳說',color:'#F6D27A',star:'★★★'}};
-var ACC_SLOT={head:'頭飾',neck:'頸飾'};
+var ACC_SLOT={head:'頭飾',neck:'頸飾',back:'背飾',body:'服裝',feet:'鞋襪',prop:'小物',aura:'特效'};
+var ACC_SLOT_KEYS=Object.keys(ACC_SLOT),accWardrobeFilter='all';
 // 轉盤 8 格：普通 5、稀有 2、傳說 1
 var ACC_WHEEL=[1,2,1,1,3,1,2,1];
 // 每個動作：H＝頭頂中間（帽子底部放這裡）、N＝下巴下面的脖子（項圈中心）；[x, y, 頭寬, 角度]，單位是那張圖的像素
@@ -2234,15 +2273,78 @@ var ACC_ANCHORS={
     howl:{H:[213,72,78,-34],N:[232,155,78,8]},chase:{H:[220,62,80,-12],N:[212,154,74,18]}
   }
 };
+// Coordinates are in each illustration's original SVG space, including individual paws.
+var ACC_WEAR_POSES={
+ snowball:{
+  base:{body:[175,214,194,0,'side'],back:[151,172,93,-12],wings:[182,124,350,-4],feet:[[103,297,42,0],[170,291,38,0],[236,303,44,0],[279,298,39,0]],prop:[334,263,62,0],aura:[192,182,340,0]},
+  'walk-a':{body:[169,213,194,0,'side'],back:[149,172,93,-12],feet:[[80,293,39,-7],[172,289,38,0],[246,296,40,0],[291,304,42,-18]]},
+  'walk-b':{body:[168,217,192,0,'side'],feet:[[92,296,40,4],[170,294,38,0],[243,300,42,0],[307,303,42,-12]]},
+  happy:{body:[227,235,143,-9,'front'],back:[157,224,78,-12],wings:[214,177,326,-8],feet:[[173,297,37,0],[231,304,42,0],[302,297,36,0]],prop:[332,176,57,-15]},
+  wave:{body:[217,233,143,-7,'front'],back:[149,220,78,-12],wings:[214,205,310,-8],feet:[[170,300,36,0],[226,303,40,0],[295,300,35,0]],prop:[331,181,57,-15]},
+  groom:{body:[217,238,145,-9,'front'],back:[143,220,76,-10],wings:[210,216,310,-9],feet:[[186,301,38,0],[269,303,39,0]],prop:[313,264,56,4]},
+  eat:{body:[164,210,187,4,'side'],back:[146,165,90,-10],feet:[[102,295,39,0],[169,296,39,0],[235,302,40,0],[297,302,35,0]],prop:[345,267,51,0]},
+  sleep:{body:[243,235,180,-13,'side'],back:[270,201,82,10],wings:[225,226,290,12],feet:[],prop:[340,266,51,12]},
+  roll:{body:[174,225,161,30,'front'],back:[117,220,74,30],wings:[191,219,302,28],feet:[[99,195,36,-22],[179,145,35,24],[207,255,36,23]],prop:[326,262,53,12]},
+  'stretch-start':{body:[164,219,187,14,'side'],back:[145,166,85,14],feet:[[105,296,38,0],[171,299,36,0],[277,304,39,0],[315,304,35,0]]},
+  stretch:{body:[153,220,184,16,'side'],back:[127,174,83,16],feet:[[94,295,37,0],[155,300,35,0],[276,305,38,0],[321,306,35,0]],prop:[348,269,48,8]},
+  pounce:{body:[169,215,184,11,'side'],back:[143,169,85,10],feet:[[91,294,37,0],[150,297,35,0],[269,304,37,0],[319,303,35,0]]}
+ },
+ dudu:{
+  base:{body:[195,285,183,0,'front'],back:[107,257,87,-13],wings:[192,207,370,0],feet:[[139,374,69,0],[250,373,69,0]],prop:[334,287,65,0],aura:[192,218,340,0]},
+  'walk-a':{body:[199,282,181,2,'front'],back:[114,254,84,-11],feet:[[141,373,68,0],[284,347,69,-24]],prop:[336,286,62,-5]},
+  'walk-b':{body:[194,284,181,0,'front'],feet:[[150,374,68,0],[271,352,67,-18]]},
+  happy:{body:[201,294,183,-3,'front'],back:[105,268,85,-13],wings:[191,198,370,-3],feet:[[144,374,69,0],[257,374,67,0]],prop:[338,260,64,-12]},
+  'flap-up':{body:[196,289,181,0,'front'],wings:[191,236,350,0],feet:[[138,374,67,0],[252,374,67,0]],prop:[335,250,62,-12]},
+  'flap-down':{body:[194,289,183,0,'front'],feet:[[138,374,67,0],[252,374,67,0]]},
+  salute:{body:[195,285,180,0,'front'],wings:[189,235,350,0],feet:[[141,374,67,0],[251,374,67,0]],prop:[333,262,62,-12]},
+  dance:{body:[192,287,178,-12,'front'],wings:[186,231,350,-12],feet:[[140,374,66,0],[282,322,66,-27]],prop:[334,262,60,-15]},
+  preen:{body:[196,289,177,0,'front'],feet:[[142,374,66,0],[251,374,66,0]],prop:[336,290,59,5]},
+  eat:{body:[170,286,184,18,'front'],back:[92,252,83,8],wings:[179,245,339,18],feet:[[140,373,66,0],[250,374,63,0]],prop:[345,293,53,10]},
+  sleep:{body:[182,296,173,72,'front'],back:[137,270,78,65],wings:[172,276,319,65],feet:[],prop:[69,321,54,-12]},
+  slide:{body:[173,296,182,66,'front'],back:[113,274,81,50],wings:[172,274,326,50],feet:[],prop:[53,319,53,-15]}
+ },
+ samoyed:{
+  base:{body:[168,194,193,-4,'side'],back:[150,157,91,-12],wings:[180,130,350,-6],feet:[[73,305,34,0],[142,299,34,0],[244,312,37,0],[280,306,34,0]],prop:[334,259,61,0],aura:[192,178,340,0]},
+  'walk-a':{body:[170,207,194,-2,'side'],back:[149,174,89,-10],feet:[[50,311,33,-4],[172,298,34,6],[238,312,35,0],[329,305,37,-22]]},
+  'walk-c':{body:[172,203,194,-3,'side'],back:[152,170,89,-11],feet:[[74,310,33,0],[145,302,34,0],[258,310,36,3],[304,306,34,-4]]},
+  'walk-b':{body:[175,204,194,-3,'side'],back:[154,171,89,-11],feet:[[95,311,34,5],[135,303,34,-7],[259,309,36,-15],[306,309,35,1]]},
+  'walk-d':{body:[171,207,193,-3,'side'],back:[151,174,89,-11],feet:[[79,311,33,0],[147,304,34,0],[249,311,35,0],[296,311,35,0]]},
+  happy:{body:[214,231,130,-5,'front'],back:[144,228,77,-12],wings:[213,176,324,-7],feet:[[171,303,35,0],[259,313,37,0],[287,300,30,0]],prop:[304,221,56,-9]},
+  paw:{body:[214,221,130,-5,'front'],back:[138,212,75,-11],wings:[205,187,301,-8],feet:[[166,303,35,0],[254,312,37,0],[285,302,31,0]],prop:[304,191,55,-13]},
+  beg:{body:[217,213,127,-8,'front'],back:[144,215,74,-13],wings:[207,192,299,-9],feet:[[174,305,34,0],[251,312,36,0],[282,302,30,0]],prop:[302,193,54,-12]},
+  howl:{body:[226,218,117,3,'front'],back:[154,217,72,0],wings:[219,196,289,3],feet:[[177,303,34,0],[246,309,36,0],[278,303,30,0]],prop:[310,253,53,0]},
+  wag:{body:[168,190,192,-5,'side'],back:[147,150,90,-12]},
+  eat:{body:[164,216,189,9,'side'],back:[142,173,86,6],wings:[183,197,328,8],feet:[[92,302,34,0],[148,305,34,0],[255,310,35,0],[291,307,32,0]],prop:[345,268,51,8]},
+  sleep:{body:[204,251,181,-8,'side'],back:[160,221,79,-8],wings:[189,232,294,-8],feet:[],prop:[337,273,50,10]},
+  'bow-start':{body:[160,209,195,13,'side'],back:[136,163,87,13],wings:[178,194,328,13],feet:[[79,301,34,0],[143,306,34,0],[267,311,35,0],[311,311,34,0]],prop:[340,263,51,7]},
+  bow:{body:[151,210,195,18,'side'],back:[126,167,84,17],wings:[176,200,325,17],feet:[[66,300,33,0],[121,306,32,0],[264,311,35,0],[324,312,35,0]],prop:[344,273,50,10]},
+  'shake-left':{body:[172,225,187,-12,'side'],back:[124,184,86,-18],wings:[180,200,327,-14],feet:[[64,305,33,0],[132,304,33,0],[247,311,35,0],[297,306,33,0]],prop:[329,265,56,-8]},
+  'shake-right':{body:[171,225,187,-9,'side'],back:[129,183,86,-15],wings:[180,200,327,-10],feet:[[66,306,33,0],[136,305,33,0],[249,312,35,0],[294,308,33,0]],prop:[329,265,56,-6]},
+  chase:{body:[183,224,180,3,'side'],back:[135,195,82,0],wings:[190,208,317,4],feet:[[64,308,33,0],[134,305,33,0],[257,311,35,0],[301,308,33,0]],prop:[333,267,53,5]}
+ }
+};
+function accWearPose(name,pose){
+ var set=ACC_WEAR_POSES[name];return Object.assign({},set.base,set[pose]||{});
+}
+
 // 薩摩耶走路的長條圖：四格依序是 a、c、b、d
 var ACC_DOG_STRIP=['walk-a','walk-c','walk-b','walk-d'];
 // 某個動作上的配件位置（之後換配件時才填圖）
-function accSlots(name,pose,ox){
-  var a=ACC_ANCHORS[name]&&ACC_ANCHORS[name][pose];if(!a)return '';
-  return ['H','N'].map(function(s){
-    var v=a[s];if(!v)return '';
-    return '<g class="acc acc-'+(s==='H'?'head':'neck')+'" data-w="'+v[2]+'" transform="translate('+((ox||0)+v[0])+' '+v[1]+') rotate('+v[3]+')" style="display:none"><image class="acc-img"/></g>';
+function accSlots(name,pose,ox,layer){
+  var old=ACC_ANCHORS[name]&&ACC_ANCHORS[name][pose]||{},wear=accWearPose(name,pose),rear=layer==='rear',slots=[];
+  if(rear){slots=[['aura',wear.aura],['back',wear.wings,'rear']];}
+  else{
+    slots=[['body',wear.body],['back',wear.back,'front']];
+    (wear.feet||[]).forEach(function(v){slots.push(['feet',v]);});
+    if(old.N)slots.push(['neck',old.N]);
+    slots.push(['prop',wear.prop]);if(old.H)slots.push(['head',old.H]);
+  }
+  return slots.map(function(pair){var slot=pair[0],v=pair[1];if(!v)return '';
+    return '<g class="acc acc-'+slot+'" data-w="'+v[2]+'" data-layer="'+(pair[2]||'front')+'" data-cut="'+(v[4]||'')+'" data-pet="'+name+'" transform="translate('+((ox||0)+v[0])+' '+v[1]+') rotate('+v[3]+')" style="display:none"><image class="acc-img"/></g>';
   }).join('');
+}
+function accPoseArt(name,pose,w,h,ox){
+  return accSlots(name,pose,ox,'rear')+'<image x="'+(ox||0)+'" href="assets/pets/'+name+'-'+pose+'.svg" width="'+w+'" height="'+h+'"/>'+accSlots(name,pose,ox,'front');
 }
 function accOwned(){
   var o={};
@@ -2263,7 +2365,7 @@ function accDisplayed(k,slot){
   return accFitting.active&&Object.prototype.hasOwnProperty.call(accFitting.eq,key)?accFitting.eq[key]:accWorn(k,slot);
 }
 function accTryWear(k,slot,id){
-  if(!accFitting.active||PET_KEYS.indexOf(k)<0||['head','neck'].indexOf(slot)<0)return false;
+  if(!accFitting.active||PET_KEYS.indexOf(k)<0||ACC_SLOT_KEYS.indexOf(slot)<0)return false;
   var a=ACC_BY[id];if(id&&(!a||a.slot!==slot||!accFits(a,k)))return false;
   accFitting.eq[k+'.'+slot]=id||'';accApply(k);return true;
 }
@@ -2279,19 +2381,23 @@ function accPlace(g,a,slot){
   var img=g.querySelector('image');
   if(!a){g.style.display='none';return;}
   // 框的比例跟圖一樣（ar），就不用靠 preserveAspectRatio 對齊：Safari、Chrome 對 SVG 圖的對齊方式不一致
-  var w=+g.getAttribute('data-w'),bw=w*a.size,bh=bw*(a.ar||1);
+  var w=+g.getAttribute('data-w'),near=slot==='back'&&g.getAttribute('data-layer')==='front'&&a.frontImg,bw=w*(near?a.frontSize:a.size),pg=g.getAttribute('data-pet')==='dudu'&&a.pgImg,side=slot==='body'&&g.getAttribute('data-cut')==='side'&&a.sideImg,bh=bw*(near?a.frontAr:pg?a.pgAr:side?a.sideAr:a.ar||1);
+  if(slot==='back'){var allowed=g.getAttribute('data-layer')==='rear'?a.rearPets:a.frontPets;if(allowed&&allowed.indexOf(g.getAttribute('data-pet'))<0){g.style.display='none';return;}}
+  if(slot==='back'&&a.layer!=='both'&&(a.layer||'front')!==g.getAttribute('data-layer')){g.style.display='none';return;}
+  g.setAttribute('data-effect',a.effect||'');
   g.style.display='';
   img.setAttribute('width',bw);img.setAttribute('height',bh);
-  if(slot==='head'){img.setAttribute('x',-bw/2+(a.dx||0)*w);img.setAttribute('y',-bh+(a.sink||.2)*w);}
-  else{img.setAttribute('x',-bw/2+(a.dx||0)*w);img.setAttribute('y',-bh/2+(a.dy||0)*w);}
+  if(near){img.setAttribute('x',-bw*.84);img.setAttribute('y',-bh*.88);}
+  else if(slot==='head'){img.setAttribute('x',-bw/2+(a.dx||0)*w);img.setAttribute('y',-bh+(a.sink||.2)*w);}
+  else{img.setAttribute('x',-bw/2+(a.dx||0)*w);img.setAttribute('y',(slot==='feet'?-bh:-bh/2)+(a.dy||0)*w);}
   if(a.rot)img.setAttribute('transform','rotate('+a.rot+')');else img.removeAttribute('transform');
-  img.setAttribute('href',a.img);
+  img.setAttribute('href',near?a.frontImg:pg?a.pgImg:side?a.sideImg:a.img);
 }
 function accApply(k){
   var list=k?[pets[k]]:petList();
   list.forEach(function(p){
     if(!p)return;
-    ['head','neck'].forEach(function(slot){
+    ACC_SLOT_KEYS.forEach(function(slot){
       var a=ACC_BY[accDisplayed(p.k,slot)];if(a&&!accFits(a,p.k))a=null;
       p.el.querySelectorAll('.acc-'+slot).forEach(function(g){accPlace(g,a,slot);});
     });
@@ -2302,9 +2408,9 @@ function accPreview(k){
   var name={cat:'snowball',pg:'dudu',dg:'samoyed'}[k],h=k==='pg'?384:320;
   var hat=ACC_BY[accDisplayed(k,'head')],anchor=ACC_ANCHORS[name].idle.H,top=0;
   if(hat){var bw=anchor[2]*hat.size,bh=bw*(hat.ar||1),tilt=(anchor[3]+(hat.rot||0))*Math.PI/180;top=Math.min(0,Math.floor(anchor[1]-bh+(hat.sink||.2)*anchor[2]-Math.abs(Math.sin(tilt)*bw/2)-10));}
-  var s='<svg viewBox="0 '+top+' 384 '+(h-top+8)+'" class="wd-pet"><image href="assets/pets/'+name+'-idle.svg" width="384" height="'+h+'"/>'+accSlots(name,'idle')+'</svg>';
+  var s='<svg viewBox="0 '+top+' 384 '+(h-top+(accDisplayed(k,'aura')?40:8))+'" class="wd-pet">'+accPoseArt(name,'idle',384,h)+'</svg>';
   var d=document.createElement('div');d.innerHTML=s;
-  ['head','neck'].forEach(function(slot){var a=ACC_BY[accDisplayed(k,slot)];d.querySelectorAll('.acc-'+slot).forEach(function(g){accPlace(g,a&&accFits(a,k)?a:null,slot);});});
+  ACC_SLOT_KEYS.forEach(function(slot){var a=ACC_BY[accDisplayed(k,slot)];d.querySelectorAll('.acc-'+slot).forEach(function(g){accPlace(g,a&&accFits(a,k)?a:null,slot);});});
   return d.innerHTML;
 }
 
@@ -2312,21 +2418,24 @@ function accPreview(k){
 function accOpenWardrobe(k){
   k=k||'cat';petCloseMenu();
   var me=petWho(),own=accOwned(),r=me?petDay(me):null,tix=r?r.tix:0,trial=accFitting.active;
-  var have=ACC_LIST.filter(function(a){return own[a.id];}).length;
+  var items=ACC_LIST.filter(function(a){return accWardrobeFilter==='all'||a.slot===accWardrobeFilter;}),have=items.filter(function(a){return own[a.id];}).length;
   var h='<div class="popup-grabber"></div><div class="popup-top"><div class="popup-dot" style="background:var(--coral)"></div><div class="popup-title">'+(trial?'🪞 ':'🎀 ')+safeHtml(petName(k))+(trial?' 的試衣間':' 的衣櫃')+'</div><button class="popup-close" onclick="closePopup()">✕</button></div><div class="popup-body">';
   h+='<div class="cs-tabs">'+PET_KEYS.map(function(x){return '<button data-pk="'+x+'"'+(x===k?' class="on"':'')+'>'+PET_DEF[x].ic+' '+safeHtml(petName(x))+'</button>';}).join('')+'</div>';
   h+='<button class="wd-try-toggle" id="wdTry" aria-pressed="'+trial+'">'+(trial?'🪞 結束本機試戴':'🪞 本機試戴全部配件')+'</button>';
   if(trial)h+='<div class="wd-try-note">全部 '+ACC_LIST.length+' 款都能試戴，效果只在這台裝置顯示。結束試戴或重新整理會恢復原本造型。</div>';
   h+='<div class="wd-top"><div class="wd-stage">'+accPreview(k)+'</div><div class="wd-slots">';
-  ['head','neck'].forEach(function(slot){
+  ACC_SLOT_KEYS.forEach(function(slot){
+    if(accWardrobeFilter!=='all'&&accWardrobeFilter!==slot)return;
+    if(accWardrobeFilter==='all'&&!accDisplayed(k,slot))return;
     var fits=ACC_LIST.some(function(a){return a.slot===slot&&accFits(a,k);});
     if(!fits)return;
     var a=ACC_BY[accDisplayed(k,slot)];
     h+='<div class="wd-slot"><span class="wd-slot-name">'+ACC_SLOT[slot]+'</span>'+(a?'<div class="wd-slot-detail"><img src="'+a.img+'" alt=""><span>'+safeHtml(a.name)+'</span></div><button data-off="'+slot+'">卸下</button>':'<span class="wd-empty">還沒戴</span>')+'</div>';
   });
   h+='<button class="wd-spin" id="wdSpin">'+(trial?'‹ 回到我的收藏':'🎡 轉盤抽配件<b>券 ×'+tix+'</b>')+'</button></div></div>';
-  h+='<div class="cs-sec"><div class="cs-h"><span>'+(trial?'所有配件・自由試戴':'我們的收藏')+'</span><b>'+(trial?ACC_LIST.length+' 款':have+' / '+ACC_LIST.length)+'</b></div><div class="wd-grid">';
-  ACC_LIST.forEach(function(a){
+  h+='<div class="wd-filters">'+['all'].concat(ACC_SLOT_KEYS).map(function(slot){return '<button data-slot-filter="'+slot+'" class="'+(accWardrobeFilter===slot?'on':'')+'">'+(slot==='all'?'全部':ACC_SLOT[slot])+'</button>';}).join('')+'</div>';
+  h+='<div class="cs-sec"><div class="cs-h"><span>'+(trial?'所有配件・自由試戴':'我們的收藏')+'</span><b>'+(trial?items.length+' 款':have+' / '+items.length)+'</b></div><div class="wd-grid">';
+  items.forEach(function(a){
     var ok=trial||!!own[a.id],fit=accFits(a,k),on=accDisplayed(k,a.slot)===a.id,R=ACC_RARE[a.rare];
     h+='<button class="wd-item'+(ok?'':' lock')+(on?' on':'')+(ok&&!fit?' nofit':'')+'" data-acc="'+a.id+'" style="--rc:'+R.color+'">'+
       (ok?'<img src="'+a.img+'" alt="">':'<span class="wd-q">？</span>')+'<span class="wd-n">'+(ok?safeHtml(a.name):R.name)+'</span><span class="wd-r">'+R.star+'</span></button>';
@@ -2334,6 +2443,7 @@ function accOpenWardrobe(k){
   h+='</div><div class="cs-note">'+(trial?'點配件即可試戴，再點一次拿下。收藏配件可透過轉盤取得。':'點收藏裡的配件就會幫 '+safeHtml(petName(k))+' 戴上，再點一次拿下來。完成今日支線可以拿到轉盤券。')+'</div></div></div>';
   openPopupCard(h);
   var card=document.getElementById('popupCard');
+  card.querySelectorAll('[data-slot-filter]').forEach(function(b){b.onclick=function(){accWardrobeFilter=b.getAttribute('data-slot-filter');accOpenWardrobe(k);};});
   document.getElementById('wdTry').onclick=function(){accToggleFitting();accOpenWardrobe(k);};
   card.querySelectorAll('[data-pk]').forEach(function(b){b.onclick=function(){accOpenWardrobe(b.getAttribute('data-pk'));};});
   card.querySelectorAll('[data-off]').forEach(function(b){b.onclick=function(){var slot=b.getAttribute('data-off');if(trial?accTryWear(k,slot,''):accSetWorn(k,slot,''))accOpenWardrobe(k);};});
@@ -2415,9 +2525,9 @@ function accSpin(k){
 function petBookArt(name,w,h){
   var poses=['idle','walk-a','walk-b','happy','eat','sleep'].concat(PET_BOOK_EXTRA[name]);
   return '<svg class="book-art" viewBox="0 0 '+w+' '+h+'" aria-hidden="true">'+poses.map(function(p){
-    return '<g class="book-frame book-'+p+'"><image href="assets/pets/'+name+'-'+p+'.svg" width="'+w+'" height="'+h+'"/>'+accSlots(name,p)+'</g>';
-  }).join('')+(name==='samoyed'?'<svg class="dog-walk-window" x="0" y="0" width="384" height="320" viewBox="0 0 384 320"><defs><clipPath id="dog-walk-accessory-clip" clipPathUnits="userSpaceOnUse"><rect x="0" y="-180" width="384" height="680"/></clipPath></defs><g clip-path="url(#dog-walk-accessory-clip)"><g class="dog-walk-strip"><image href="assets/pets/samoyed-walk-strip.svg" width="1536" height="320"/>'+
-    ACC_DOG_STRIP.map(function(p,i){return accSlots(name,p,i*384);}).join('')+'</g></g></svg>':'')+'</svg>';
+    return '<g class="book-frame book-'+p+'">'+accPoseArt(name,p,w,h)+'</g>';
+  }).join('')+(name==='samoyed'?'<svg class="dog-walk-window" x="0" y="0" width="384" height="320" viewBox="0 0 384 320"><defs><clipPath id="dog-walk-accessory-clip" clipPathUnits="userSpaceOnUse"><rect x="0" y="-180" width="384" height="680"/></clipPath></defs><g clip-path="url(#dog-walk-accessory-clip)"><g class="dog-walk-strip">'+ACC_DOG_STRIP.map(function(p,i){return accSlots(name,p,i*384,'rear');}).join('')+'<image href="assets/pets/samoyed-walk-strip.svg" width="1536" height="320"/>'+
+    ACC_DOG_STRIP.map(function(p,i){return accSlots(name,p,i*384,'front');}).join('')+'</g></g></svg>':'')+'</svg>';
 }
 var CAT_ART={
   cat:petBookArt('snowball',384,320),
@@ -2469,7 +2579,7 @@ function petClean(o){
   ['pts','kib','can','fish','squid','tix'].forEach(function(k){var v=+o[k];if(isFinite(v)&&v>=0)r[k]=v;});
   petCleanStat(o,r);
   if(o.acc&&typeof o.acc==='object')Object.keys(o.acc).forEach(function(id){var v=+o.acc[id];if(/^[a-z0-9-]{1,24}$/.test(id)&&isFinite(v)&&v>0)r.acc[id]=Math.floor(v);});
-  if(o.eq&&typeof o.eq==='object')Object.keys(o.eq).forEach(function(key){var e=o.eq[key];if(/^(cat|pg|dg)\.(head|neck)$/.test(key)&&Array.isArray(e)&&typeof e[0]==='string'&&isFinite(+e[1]))r.eq[key]=[e[0].slice(0,24),+e[1]];});
+  if(o.eq&&typeof o.eq==='object')Object.keys(o.eq).forEach(function(key){var e=o.eq[key];if(/^(cat|pg|dg)\.(head|neck|back|body|feet|prop|aura)$/.test(key)&&Array.isArray(e)&&typeof e[0]==='string'&&isFinite(+e[1]))r.eq[key]=[e[0].slice(0,24),+e[1]];});
   if(o.pg&&typeof o.pg==='object')petCleanStat(o.pg,r.pg);
   if(o.dg&&typeof o.dg==='object')petCleanStat(o.dg,r.dg);
   // 修正舊版的物種／預設名字對應；之後自行取的新名字仍保留。
@@ -3388,6 +3498,7 @@ function petInit(){
 </script>
 </body>
 </html>
+
 
 
 

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 89" width="180" height="89"><defs>
+<linearGradient id="straw" x2=".15" y2="1"><stop stop-color="#fbe8b6"/><stop offset=".5" stop-color="#e9c078"/><stop offset="1" stop-color="#c88f47"/></linearGradient>
+<linearGradient id="rose" x2=".25" y2="1"><stop stop-color="#f4c3ba"/><stop offset=".5" stop-color="#dd918d"/><stop offset="1" stop-color="#b6676d"/></linearGradient>
+<linearGradient id="red" x2=".3" y2="1"><stop stop-color="#edb1a2"/><stop offset=".45" stop-color="#d97571"/><stop offset="1" stop-color="#ae4e54"/></linearGradient>
+<linearGradient id="teal" x2=".25" y2="1"><stop stop-color="#c7e2e0"/><stop offset=".48" stop-color="#8cbebd"/><stop offset="1" stop-color="#507f85"/></linearGradient>
+<linearGradient id="sage" x2=".3" y2="1"><stop stop-color="#c9dcb7"/><stop offset=".45" stop-color="#9eba91"/><stop offset="1" stop-color="#719579"/></linearGradient>
+<linearGradient id="gold" x2=".7" y2="1"><stop stop-color="#fff1bd"/><stop offset=".38" stop-color="#eecf7b"/><stop offset=".7" stop-color="#d5a148"/><stop offset="1" stop-color="#f8dd93"/></linearGradient>
+<radialGradient id="pearl" cx=".3" cy=".25" r=".8"><stop stop-color="#fffef7"/><stop offset=".48" stop-color="#faf0df"/><stop offset="1" stop-color="#c8b7aa"/></radialGradient>
+<linearGradient id="fur" x2=".2" y2="1"><stop stop-color="#fffdf3"/><stop offset=".65" stop-color="#f2e5d3"/><stop offset="1" stop-color="#d9c7b4"/></linearGradient>
+<pattern id="weave" width="7" height="5" patternUnits="userSpaceOnUse"><path d="M0 1.5h7M1 0v1.5M5 1.5V5" fill="none" stroke="#a47743" stroke-opacity=".3" stroke-width=".65"/></pattern>
+<pattern id="linen" width="5" height="5" patternUnits="userSpaceOnUse"><path d="M0 2.5h5M2.5 0v5" stroke="#fff8ed" stroke-opacity=".15" stroke-width=".45"/></pattern>
+</defs><g stroke="#82634f" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round">
+<path d="M8 43Q90 79 172 43L166 66C140 95 36 95 13 66Z" fill="url(#rose)"/><defs><clipPath id="ringClip"><path clip-rule="evenodd" d="M172 40a82 28 0 1 0-164 0a82 28 0 1 0 164 0ZM139 34a49 13 0 1 0-98 0a49 13 0 1 0 98 0Z"/></clipPath></defs><path fill-rule="evenodd" d="M172 40a82 28 0 1 0-164 0a82 28 0 1 0 164 0ZM139 34a49 13 0 1 0-98 0a49 13 0 1 0 98 0Z" fill="url(#rose)"/>
+<g clip-path="url(#ringClip)">
+<path d="M15 44 26 25l24 11-8 25ZM78 15h24l5 36H74ZM142 24l22 13-12 25-24-12Z" fill="#fff0d3" stroke="none"/>
+</g><path d="M20 65Q90 91 159 65M18 37q6-9 17-12" fill="none" stroke="#ffe1ce" stroke-width="2"/>
+<circle cx="157" cy="60" r="4" fill="url(#gold)"/></g></svg>
