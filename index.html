@@ -464,14 +464,21 @@ body:has(.chg-bar.show){padding-bottom:calc(124px + env(safe-area-inset-bottom))
 .pw-disc{position:absolute;inset:0;width:100%;height:100%;overflow:visible;filter:drop-shadow(0 3px 0 var(--ink));}
 .pw-seg{fill:var(--paper);stroke:var(--ink);stroke-width:2.5;stroke-linejoin:round;pointer-events:auto;cursor:pointer;transition:fill .12s;}
 .pw-seg.alt{fill:var(--paper2);}
-.pw-seg.hot{fill:var(--yellow);}
 .pw-seg.off{fill:#ECE6DC;}
+/* 指到的那一格：疊一份黃色的放大，圖示也往外推、變大 */
+.pw-pop{display:none;fill:var(--yellow);stroke:var(--ink);stroke-width:2.5;stroke-linejoin:round;pointer-events:none;transform-box:fill-box;transform:scale(1.13);}
+.pw-pop.on{display:inline;animation:pwPop .16s ease-out;}
+.pw-pop.off{fill:#ECE6DC;}
+@keyframes pwPop{from{transform:scale(1);}}
+.cat-menu .pw-seg,.cat-menu .pw-item,.cat-menu .pw-hub{touch-action:none;}
 .cat-menu button,.cs-sk{position:relative;}
 .cd-on{opacity:.5;}
 .cd-on .ic{filter:grayscale(1);}
 .cd{position:absolute;top:2px;right:4px;font-size:10px;line-height:1;color:var(--t2);}
 .cat-menu .pw-item{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;width:60px;height:54px;padding:0;border:0;background:none;font-size:12px;color:var(--t);cursor:pointer;pointer-events:auto;transform:translate(-50%,-50%);}
 .cat-menu .pw-item.off{opacity:.45;}
+.cat-menu .pw-item{transition:transform .16s ease-out;}
+.cat-menu .pw-item.hot{transform:translate(-50%,-50%) translate(var(--ox),var(--oy)) scale(1.22);z-index:1;}
 .cat-menu .pw-hub{position:absolute;left:50%;top:50%;width:110px;height:110px;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:6px 8px 8px;border:0;border-radius:50%;background:var(--ribbon-bg);color:var(--t2);font-size:11px;cursor:pointer;pointer-events:auto;overflow:hidden;}
 .cat-menu .pw-hub .wd-pet{width:84px;max-height:70px;}
 .cat-menu .pw-hub span{max-width:86px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -3199,7 +3206,7 @@ function petCloseMenu(){
   if(menuPet){var p=menuPet;menuPet=null;p.menu=false;petNext(p,2500);}
 }
 // 轉盤選單：選項圍成一圈繞著寵物，中間空出來看得到寵物
-var PW_R1=58,PW_R2=124;
+var PW_R1=58,PW_R2=124,PW_POP=1.13;
 function petWheelSvg(n){
   var step=360/n,h='';
   function pt(r,a){a=a*Math.PI/180;return (r*Math.cos(a)).toFixed(1)+' '+(r*Math.sin(a)).toFixed(1);}
@@ -3208,12 +3215,14 @@ function petWheelSvg(n){
     h+='<path class="pw-seg'+(i%2?' alt':'')+'" data-i="'+i+'" d="M'+pt(PW_R2,a0)+'A'+PW_R2+' '+PW_R2+' 0 '+big+' 1 '+pt(PW_R2,a1)+'L'+pt(PW_R1,a1)+'A'+PW_R1+' '+PW_R1+' 0 '+big+' 0 '+pt(PW_R1,a0)+'Z"/>';
   }
   var d=PW_R2+4;
-  return '<svg class="pw-disc" viewBox="'+(-d)+' '+(-d)+' '+(2*d)+' '+(2*d)+'" aria-hidden="true">'+h+'</svg>';
+  // 最後一層 pw-pop：手指指到的那一格疊一份放大的在最上面
+  return '<svg class="pw-disc" viewBox="'+(-d)+' '+(-d)+' '+(2*d)+' '+(2*d)+'" aria-hidden="true">'+h+'<path class="pw-pop"/></svg>';
 }
 // 轉盤圍著寵物；太靠邊就往裡面挪。說明卡（支線、標題）放在轉盤下面，放不下就放上面
 function petPosMenu(p,m,info){
   var D=m.offsetWidth,vw=window.innerWidth,vh=window.innerHeight;
-  var cx=catClamp(p.x+p.def.W/2,D/2+6,vw-D/2-6),cy=catClamp(p.y+p.def.H/2,D/2+6,Math.max(D/2+6,vh-D/2-6));
+  // 留邊：指到的那一格會放大凸出去，不要被螢幕邊切掉
+  var M=6+(PW_POP-1)*PW_R2,cx=catClamp(p.x+p.def.W/2,D/2+M,vw-D/2-M),cy=catClamp(p.y+p.def.H/2,D/2+M,Math.max(D/2+M,vh-D/2-M));
   m.style.left=(cx-D/2)+'px';m.style.top=(cy-D/2)+'px';
   if(!info)return;
   var w=info.offsetWidth,h=info.offsetHeight,top=cy+PW_R2+10;
@@ -3262,22 +3271,52 @@ function petOpenMenu(p,skills){
   m.style.width=m.style.height=D+'px';
   // 中間放這隻寵物（穿著現在的配件），點一下關掉
   m.innerHTML=petWheelSvg(n)+'<button class="pw-hub" aria-label="關閉選單">'+accPreview(p.k)+'<span>'+safeHtml(petName(p.k))+'</span></button>'+items.map(function(it,i){
-    var a=(-90+i*step)*Math.PI/180;
-    return '<button class="pw-item" data-i="'+i+'" '+it[0]+' style="left:'+(D/2+rm*Math.cos(a)).toFixed(1)+'px;top:'+(D/2+rm*Math.sin(a)).toFixed(1)+'px"><span class="ic">'+it[1]+'</span><span class="lb">'+it[2]+'</span>'+it[3]+'</button>';
+    var a=(-90+i*step)*Math.PI/180,o=(PW_POP-1)*rm;
+    return '<button class="pw-item" data-i="'+i+'" '+it[0]+' style="left:'+(D/2+rm*Math.cos(a)).toFixed(1)+'px;top:'+(D/2+rm*Math.sin(a)).toFixed(1)+'px;--ox:'+(o*Math.cos(a)).toFixed(1)+'px;--oy:'+(o*Math.sin(a)).toFixed(1)+'px"><span class="ic">'+it[1]+'</span><span class="lb">'+it[2]+'</span>'+it[3]+'</button>';
   }).join('');
   items.forEach(function(it,i){if(/class="off"/.test(it[0]))m.querySelector('.pw-seg[data-i="'+i+'"]').classList.add('off');});
   var box=null;
   if(info){box=document.createElement('div');box.className='cat-menu-info';box.innerHTML=info;}
   document.body.appendChild(bd);document.body.appendChild(m);if(box)document.body.appendChild(box);
   petPosMenu(p,m,box);petCdPaint();
-  // 按下去的那一格變色；點扇形任何地方都算點到那個選項
-  function hot(i){m.querySelectorAll('.pw-seg').forEach(function(s){s.classList.toggle('hot',s.getAttribute('data-i')===i);});}
-  m.querySelector('.pw-hub').onclick=petCloseMenu;
-  m.onpointerdown=function(e){var t=e.target.closest('[data-i]');hot(t?t.getAttribute('data-i'):null);};
-  m.onpointerup=m.onpointercancel=m.onpointerleave=function(){hot(null);};
+  // 手指（或滑鼠）指到哪一格，那一格就放大；按著滑過去、在某一格放開也算選它
+  var pop=m.querySelector('.pw-pop'),cur=null,drag=null,skipAt=0;
+  function idxAt(x,y){
+    var r=m.getBoundingClientRect(),dx=x-(r.left+r.width/2),dy=y-(r.top+r.height/2),d=Math.hypot(dx,dy);
+    if(d<PW_R1*.9||d>PW_R2*1.3)return null;
+    return Math.round((((Math.atan2(dy,dx)*180/Math.PI+90)%360)+360)%360/step)%n;
+  }
+  function hot(i){
+    if(i===cur)return;cur=i;
+    m.querySelectorAll('.pw-item').forEach(function(b){b.classList.toggle('hot',b.getAttribute('data-i')===String(i));});
+    pop.classList.remove('on');
+    if(i==null)return;
+    var seg=m.querySelector('.pw-seg[data-i="'+i+'"]'),bb=seg.getBBox();
+    void pop.getBoundingClientRect();
+    pop.setAttribute('d',seg.getAttribute('d'));pop.classList.toggle('off',seg.classList.contains('off'));
+    pop.style.transformOrigin=(-bb.x)+'px '+(-bb.y)+'px';
+    pop.classList.add('on');
+  }
+  function item(i){return m.querySelector('.pw-item[data-i="'+i+'"]');}
+  m.querySelector('.pw-hub').onclick=function(){if(Date.now()-skipAt>500)petCloseMenu();};
+  m.onpointerdown=function(e){drag={x:e.clientX,y:e.clientY,moved:false};hot(idxAt(e.clientX,e.clientY));};
+  m.onpointermove=function(e){
+    if(drag&&Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>8)drag.moved=true;
+    if(drag||e.pointerType==='mouse')hot(idxAt(e.clientX,e.clientY));
+  };
+  // 點一下的話等 click 再做（iPhone 放開後會補一個 click）；滑過去放開的在這裡做
+  m.onpointerup=function(e){
+    var d=drag;drag=null;
+    if(d&&d.moved){skipAt=Date.now();var i=idxAt(e.clientX,e.clientY);hot(null);if(i!=null)act(item(i));return;}
+    if(e.pointerType!=='mouse')setTimeout(function(){if(m.isConnected)hot(null);},180);
+  };
+  m.onpointercancel=function(){drag=null;hot(null);};
+  m.onpointerleave=function(e){if(e.pointerType==='mouse'&&!drag)hot(null);};
   m.onclick=function(e){
-    var t=e.target.closest('[data-i]');if(!t)return;
-    var b=t.tagName==='BUTTON'?t:m.querySelector('.pw-item[data-i="'+t.getAttribute('data-i')+'"]');
+    if(Date.now()-skipAt<500)return;
+    var t=e.target.closest('[data-i]');if(t)act(item(t.getAttribute('data-i')));
+  };
+  function act(b){
     var a=b.getAttribute('data-a'),sk=b.getAttribute('data-sk'),food=b.getAttribute('data-food'),combo=b.getAttribute('data-combo');
     if(combo==='all'&&petCdLeft('all')){toast('三隻合體冷卻中，再等 '+petCdLeft('all')+' 秒');return;}
     if(combo&&combo!=='all'&&petCdLeft(b.getAttribute('data-cd'))){toast('這一對合體冷卻中，再等 '+petCdLeft(b.getAttribute('data-cd'))+' 秒');return;}
