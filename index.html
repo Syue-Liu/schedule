@@ -235,6 +235,7 @@ button.sc{font-family:inherit;color:var(--t);}
 /* 變更通知列 */
 .chg-bar{position:fixed;bottom:0;left:0;right:0;z-index:30;transform:translateY(120%);transition:transform .45s var(--pop);pointer-events:none;}
 .chg-bar.show{transform:translateY(0);pointer-events:auto;}
+body:has(.chg-bar.show){padding-bottom:calc(124px + env(safe-area-inset-bottom));}
 .chg-inner{margin:0 10px 14px;padding:11px 12px 11px 14px;background:var(--paper);border:var(--lw) solid var(--ink);border-radius:20px;display:flex;align-items:center;gap:10px;box-shadow:0 3px 0 var(--ink);}
 .chg-info{flex:1;min-width:0;}
 .chg-title{font-size:14px;color:var(--t);}
@@ -789,7 +790,8 @@ button.sc{font-family:inherit;color:var(--t);}
     </g>
     <!-- 寵物休息中（被藏起來）才出現：貓睡在跳台上、企鵝在冰屋門口打瞌睡 -->
     <rect x="135" y="137" width="100" height="15" rx="7" fill="#B9DAA5" stroke="#3E3A39" stroke-width="2.5"/>
-    <g class="home-dg">
+    <g class="home-dg" role="button" aria-label="叫薩摩耶出來">
+      <rect x="134" y="104" width="104" height="50" fill="transparent" pointer-events="all"/>
       <image href="assets/pets/samoyed-sleep.svg" x="134" y="84" width="102" height="70"/>
       <text class="zz" x="224" y="120" font-size="10" fill="#3E3A39">z</text>
       <text class="zz z2" x="232" y="111" font-size="8" fill="#3E3A39">z</text>
