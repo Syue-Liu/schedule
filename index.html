@@ -67,12 +67,14 @@ b{font-weight:400;color:var(--t);box-shadow:inset 0 -.4em 0 var(--yellow);}
 @keyframes blink{0%,100%{opacity:1;}50%{opacity:.35;}}
 
 /* ── 下次共同休假：貼紙膠帶的拍立得＋坐在卡片上緣的咖啡杯 ── */
-.nxt-card{position:relative;margin:46px 10px 0;padding:14px;background:var(--paper);border:var(--lw) solid var(--ink);border-radius:24px;}
+.nxt-card{position:relative;margin:46px 10px 0;padding:14px;min-height:140px;background:var(--paper);border:var(--lw) solid var(--ink);border-radius:24px;}
 .nxt-cup{position:absolute;right:22px;top:-41px;width:48px;height:40px;pointer-events:none;}
 .steam{animation:steam 2.8s ease-in-out infinite;}
 .steam.s2{animation-delay:-.9s;}.steam.s3{animation-delay:-1.8s;}
 @keyframes steam{0%{opacity:0;transform:translateY(5px);}35%{opacity:1;}100%{opacity:0;transform:translateY(-5px);}}
-.nxt-row{display:flex;align-items:center;gap:14px;}
+.nxt-row{position:relative;z-index:1;display:flex;align-items:center;gap:14px;min-height:104px;}
+.nxt-family{position:absolute;left:56%;bottom:3px;transform:translateX(-50%);width:min(42%,420px);height:128px;object-fit:contain;object-position:center bottom;pointer-events:none;user-select:none;}
+@media(max-width:899px){.nxt-card{padding-bottom:112px;}.nxt-row{min-height:76px;}.nxt-family{left:50%;width:min(80%,320px);height:104px;bottom:4px;}}
 .polaroid{position:relative;flex-shrink:0;width:66px;height:76px;padding:5px 5px 13px;background:var(--paper);border:var(--lw2) solid var(--ink);border-radius:6px;transform:rotate(-4deg);cursor:pointer;z-index:2;}
 .polaroid::before{content:'';position:absolute;left:50%;top:-9px;width:36px;height:13px;margin-left:-18px;background:var(--mizu);transform:rotate(5deg);clip-path:polygon(0 0,100% 0,95% 25%,100% 50%,95% 75%,100% 100%,0 100%,5% 75%,0 50%,5% 25%);z-index:1;}
 .polaroid:active{transform:rotate(-4deg) scale(.95);}
@@ -317,7 +319,7 @@ body:has(.chg-bar.show){padding-bottom:calc(124px + env(safe-area-inset-bottom))
   .ib{width:34px;height:34px;}
   .title-row{min-width:0;}
   .aname{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .nxt-card{margin:44px 8px 0;padding:12px;}
+  .nxt-card{margin:44px 8px 0;padding:12px 12px 112px;}
   .nxt-row{gap:12px;}
   .polaroid{width:62px;height:72px;}
   .nxt-date{font-size:18px;}
@@ -657,7 +659,7 @@ body:has(.chg-bar.show){padding-bottom:calc(124px + env(safe-area-inset-bottom))
 .cat.dg{width:126px;height:105px;--walk-cycle:.9s;}
 .cat.dg.run{--walk-cycle:.5s;}
 /* 同一張步態圖帶逐格移動，保持不透明，避免交叉淡化造成亮度閃爍。 */
-.cat .dog-walk-window{display:none;overflow:hidden;}
+.cat .dog-walk-window{display:none;overflow:visible;}
 .cat.dg.walk .book-frame{display:none;animation:none;opacity:1;}
 .cat.dg.walk .dog-walk-window{display:inline;}
 .dog-walk-strip{opacity:1;animation:dogWalkFrames var(--walk-cycle) step-end infinite;}
@@ -776,6 +778,7 @@ body:has(.chg-bar.show){padding-bottom:calc(124px + env(safe-area-inset-bottom))
 
 <!-- Next common rest day -->
 <div class="nxt-card" id="nxtCard">
+  <img class="nxt-family" src="assets/illustrations/next-day-off-family.svg" width="1200" height="500" alt="" aria-hidden="true" decoding="async" draggable="false">
   <!-- 坐在卡片上緣的咖啡杯，熱氣會慢慢飄 -->
   <svg class="nxt-cup" viewBox="0 0 48 40" aria-hidden="true">
     <g fill="none" stroke="#3E3A39" stroke-width="2.2" stroke-linecap="round">
@@ -2167,10 +2170,22 @@ var ACC_LIST=[
   {id:'bell',name:'鈴鐺項圈',slot:'neck',rare:1,size:.8,pets:['cat','dg']},
   {id:'bowtie',name:'領結',slot:'neck',rare:1,size:.5,pets:['cat','dg']},
   {id:'bandana',name:'領巾',slot:'neck',rare:2,size:.8,dy:.12,pets:['cat','dg']},
-  {id:'pearl',name:'珍珠項鍊',slot:'neck',rare:3,size:.82,dy:.06,pets:['cat','dg']}
+  {id:'pearl',name:'珍珠項鍊',slot:'neck',rare:3,size:.82,dy:.06,pets:['cat','dg']},
+  {id:'sailor',name:'水手帽',slot:'head',rare:1,size:.96,sink:.22},
+  {id:'party',name:'派對帽',slot:'head',rare:1,size:.9,sink:.18,rot:6},
+  {id:'beanie',name:'針織毛帽',slot:'head',rare:1,size:.98,sink:.28},
+  {id:'sunvisor',name:'遮陽帽',slot:'head',rare:1,size:1.08,sink:.24},
+  {id:'frog',name:'青蛙帽',slot:'head',rare:2,size:1.04,sink:.28},
+  {id:'bunny',name:'兔耳帽',slot:'head',rare:2,size:1.32,sink:.28},
+  {id:'witch',name:'星夜巫師帽',slot:'head',rare:2,size:1.14,sink:.22,rot:-4},
+  {id:'moontiara',name:'月光頭冠',slot:'head',rare:3,size:.82,sink:.20},
+  {id:'sailorcollar',name:'水手領',slot:'neck',rare:1,size:.88,dy:.12,pets:['cat','dg']},
+  {id:'scarf',name:'星星圍巾',slot:'neck',rare:2,size:.88,dy:.18,pets:['cat','dg']},
+  {id:'medal',name:'星光獎章',slot:'neck',rare:2,size:.7,dy:.17,pets:['cat','dg']},
+  {id:'locket',name:'愛心吊墜',slot:'neck',rare:3,size:.82,dy:.10,pets:['cat','dg']}
 ];
 // Version the artwork so existing wardrobes also pick up the refined drawings.
-ACC_LIST.forEach(function(a){a.img=a.img||'assets/acc/'+a.id+'.svg?v=20261024-detail1';});
+ACC_LIST.forEach(function(a){a.img=a.img||'assets/acc/'+a.id+'.svg?v=20261024-collection2';});
 var ACC_BY={};ACC_LIST.forEach(function(a){ACC_BY[a.id]=a;});
 var ACC_RARE={1:{name:'普通',color:'#F5EEE2',star:'★'},2:{name:'稀有',color:'#A8D3E6',star:'★★'},3:{name:'傳說',color:'#F6D27A',star:'★★★'}};
 var ACC_SLOT={head:'頭飾',neck:'頸飾'};
@@ -2362,8 +2377,8 @@ function petBookArt(name,w,h){
   var poses=['idle','walk-a','walk-b','happy','eat','sleep'].concat(PET_BOOK_EXTRA[name]);
   return '<svg class="book-art" viewBox="0 0 '+w+' '+h+'" aria-hidden="true">'+poses.map(function(p){
     return '<g class="book-frame book-'+p+'"><image href="assets/pets/'+name+'-'+p+'.svg" width="'+w+'" height="'+h+'"/>'+accSlots(name,p)+'</g>';
-  }).join('')+(name==='samoyed'?'<svg class="dog-walk-window" x="0" y="0" width="384" height="320" viewBox="0 0 384 320"><g class="dog-walk-strip"><image href="assets/pets/samoyed-walk-strip.svg" width="1536" height="320"/>'+
-    ACC_DOG_STRIP.map(function(p,i){return accSlots(name,p,i*384);}).join('')+'</g></svg>':'')+'</svg>';
+  }).join('')+(name==='samoyed'?'<svg class="dog-walk-window" x="0" y="0" width="384" height="320" viewBox="0 0 384 320"><defs><clipPath id="dog-walk-accessory-clip" clipPathUnits="userSpaceOnUse"><rect x="0" y="-180" width="384" height="680"/></clipPath></defs><g clip-path="url(#dog-walk-accessory-clip)"><g class="dog-walk-strip"><image href="assets/pets/samoyed-walk-strip.svg" width="1536" height="320"/>'+
+    ACC_DOG_STRIP.map(function(p,i){return accSlots(name,p,i*384);}).join('')+'</g></g></svg>':'')+'</svg>';
 }
 var CAT_ART={
   cat:petBookArt('snowball',384,320),
@@ -3334,5 +3349,6 @@ function petInit(){
 </script>
 </body>
 </html>
+
 
 

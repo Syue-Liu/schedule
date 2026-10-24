@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 146 89" width="146" height="89"><defs>
+<linearGradient id="straw" x2=".15" y2="1"><stop stop-color="#fbe8b6"/><stop offset=".5" stop-color="#e9c078"/><stop offset="1" stop-color="#c88f47"/></linearGradient>
+<linearGradient id="rose" x2=".25" y2="1"><stop stop-color="#f4c3ba"/><stop offset=".5" stop-color="#dd918d"/><stop offset="1" stop-color="#b6676d"/></linearGradient>
+<linearGradient id="red" x2=".3" y2="1"><stop stop-color="#edb1a2"/><stop offset=".45" stop-color="#d97571"/><stop offset="1" stop-color="#ae4e54"/></linearGradient>
+<linearGradient id="teal" x2=".25" y2="1"><stop stop-color="#c7e2e0"/><stop offset=".48" stop-color="#8cbebd"/><stop offset="1" stop-color="#507f85"/></linearGradient>
+<linearGradient id="sage" x2=".3" y2="1"><stop stop-color="#c9dcb7"/><stop offset=".45" stop-color="#9eba91"/><stop offset="1" stop-color="#719579"/></linearGradient>
+<linearGradient id="gold" x2=".7" y2="1"><stop stop-color="#fff1bd"/><stop offset=".38" stop-color="#eecf7b"/><stop offset=".7" stop-color="#d5a148"/><stop offset="1" stop-color="#f8dd93"/></linearGradient>
+<radialGradient id="pearl" cx=".3" cy=".25" r=".8"><stop stop-color="#fffef7"/><stop offset=".48" stop-color="#faf0df"/><stop offset="1" stop-color="#c8b7aa"/></radialGradient>
+<linearGradient id="fur" x2=".2" y2="1"><stop stop-color="#fffdf3"/><stop offset=".65" stop-color="#f2e5d3"/><stop offset="1" stop-color="#d9c7b4"/></linearGradient>
+<pattern id="weave" width="7" height="5" patternUnits="userSpaceOnUse"><path d="M0 1.5h7M1 0v1.5M5 1.5V5" fill="none" stroke="#a47743" stroke-opacity=".3" stroke-width=".65"/></pattern>
+<pattern id="linen" width="5" height="5" patternUnits="userSpaceOnUse"><path d="M0 2.5h5M2.5 0v5" stroke="#fff8ed" stroke-opacity=".15" stroke-width=".45"/></pattern>
+</defs><g stroke="#82634f" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round">
+<path d="M28 61Q18 35 34 23 73 4 113 24 127 40 118 61Z" fill="url(#fur)"/>
+<path d="M33 30Q48 17 67 19M107 30Q91 17 80 19M73 21V49" fill="none" stroke="#d7c6b2" stroke-width="1"/>
+<path d="M25 53Q73 70 121 53L119 73Q73 88 27 73Z" fill="url(#teal)"/>
+<path d="M30 59Q73 74 116 59M31 69Q73 82 115 69" fill="none" stroke="#ecf0d8" stroke-width="1.2"/>
+<g transform="translate(74 66)" fill="none" stroke="#f8e6b2" stroke-width="2"><circle cy="-7" r="3"/><path d="M0-4V10M-8 0H8M-12 3Q-10 13 0 10 10 13 12 3M-12 3l-2 5M12 3l2 5"/></g></g></svg>
