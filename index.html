@@ -2183,10 +2183,19 @@ var ACC_LIST=[
   {id:'sailorcollar',name:'水手領',slot:'neck',rare:1,size:.88,dy:.12,pets:['cat','dg']},
   {id:'scarf',name:'星星圍巾',slot:'neck',rare:2,size:.88,dy:.18,pets:['cat','dg']},
   {id:'medal',name:'星光獎章',slot:'neck',rare:2,size:.7,dy:.17,pets:['cat','dg']},
-  {id:'locket',name:'愛心吊墜',slot:'neck',rare:3,size:.82,dy:.10,pets:['cat','dg']}
+  {id:'locket',name:'愛心吊墜',slot:'neck',rare:3,size:.82,dy:.10,pets:['cat','dg']},
+  {id:'hw-pumpkin',name:'南瓜帽',slot:'head',rare:1,size:1.04,sink:.25},
+  {id:'hw-ghost',name:'幽靈帽',slot:'head',rare:1,size:1.16,sink:.24},
+  {id:'hw-candybow',name:'糖果蝴蝶結',slot:'head',rare:1,size:.6,sink:.22,dx:.20,rot:10},
+  {id:'hw-devil',name:'小惡魔角',slot:'head',rare:2,size:1.04,sink:.20},
+  {id:'hw-witch',name:'南瓜巫師帽',slot:'head',rare:2,size:1.16,sink:.22,rot:-5},
+  {id:'hw-batcrown',name:'月夜蝙蝠冠',slot:'head',rare:3,size:.96,sink:.20},
+  {id:'hw-batbow',name:'蝙蝠領結',slot:'neck',rare:1,size:.86,pets:['cat','dg']},
+  {id:'hw-vampire',name:'吸血鬼披領',slot:'neck',rare:2,size:1.04,dy:.16,pets:['cat','dg']},
+  {id:'hw-charm',name:'南瓜護符',slot:'neck',rare:3,size:.86,dy:.12,pets:['cat','dg']}
 ];
 // Version the artwork so existing wardrobes also pick up the refined drawings.
-ACC_LIST.forEach(function(a){a.img=a.img||'assets/acc/'+a.id+'.svg?v=20261024-collection2';});
+ACC_LIST.forEach(function(a){a.img=a.img||'assets/acc/'+a.id+'.svg?v=20261024-halloween';});
 var ACC_BY={};ACC_LIST.forEach(function(a){ACC_BY[a.id]=a;});
 var ACC_RARE={1:{name:'普通',color:'#F5EEE2',star:'★'},2:{name:'稀有',color:'#A8D3E6',star:'★★'},3:{name:'傳說',color:'#F6D27A',star:'★★★'}};
 var ACC_SLOT={head:'頭飾',neck:'頸飾'};
@@ -3350,6 +3359,7 @@ function petInit(){
 </script>
 </body>
 </html>
+
 
 
 
