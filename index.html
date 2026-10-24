@@ -2163,42 +2163,48 @@ function petBookPlay(p,id,ms){
    - 收藏兩個人共用；轉盤券各自的（各自完成支線拿到的）
    - 戴什麼：兩個人誰最後換的就算數，兩支手機看到的一樣 */
 var ACC_LIST=[
-  // size：寬度是頭寬（或脖子寬）的幾倍；sink：帽子底部往頭裡壓多少（頭寬的幾倍）；dx：往右偏；rot：多轉幾度
-  {id:'strawhat',name:'草帽',slot:'head',rare:1,size:1.05,sink:.2},
-  {id:'beret',name:'貝雷帽',slot:'head',rare:1,size:.78,sink:.2,dx:-.06,rot:-10},
-  {id:'ribbon',name:'蝴蝶結',slot:'head',rare:1,size:.46,sink:.22,dx:.26,rot:14},
-  {id:'flower',name:'小花',slot:'head',rare:1,size:.36,sink:.24,dx:-.28,rot:-12},
-  {id:'santa',name:'聖誕帽',slot:'head',rare:2,size:.86,sink:.22,rot:-4},
-  {id:'flowercrown',name:'花圈',slot:'head',rare:2,size:1,sink:.24},
-  {id:'crown',name:'小皇冠',slot:'head',rare:3,size:.56,sink:.14},
-  {id:'bell',name:'鈴鐺項圈',slot:'neck',rare:1,size:.8,pets:['cat','dg']},
-  {id:'bowtie',name:'領結',slot:'neck',rare:1,size:.5,pets:['cat','dg']},
-  {id:'bandana',name:'領巾',slot:'neck',rare:2,size:.8,dy:.12,pets:['cat','dg']},
-  {id:'pearl',name:'珍珠項鍊',slot:'neck',rare:3,size:.82,dy:.06,pets:['cat','dg']},
-  {id:'sailor',name:'水手帽',slot:'head',rare:1,size:.96,sink:.22},
-  {id:'party',name:'派對帽',slot:'head',rare:1,size:.9,sink:.18,rot:6},
-  {id:'beanie',name:'針織毛帽',slot:'head',rare:1,size:.98,sink:.28},
-  {id:'sunvisor',name:'遮陽帽',slot:'head',rare:1,size:1.08,sink:.24},
-  {id:'frog',name:'青蛙帽',slot:'head',rare:2,size:1.04,sink:.28},
-  {id:'bunny',name:'兔耳帽',slot:'head',rare:2,size:1.32,sink:.28},
-  {id:'witch',name:'星夜巫師帽',slot:'head',rare:2,size:1.14,sink:.22,rot:-4},
-  {id:'moontiara',name:'月光頭冠',slot:'head',rare:3,size:.82,sink:.20},
-  {id:'sailorcollar',name:'水手領',slot:'neck',rare:1,size:.88,dy:.12,pets:['cat','dg']},
-  {id:'scarf',name:'星星圍巾',slot:'neck',rare:2,size:.88,dy:.18,pets:['cat','dg']},
-  {id:'medal',name:'星光獎章',slot:'neck',rare:2,size:.7,dy:.17,pets:['cat','dg']},
-  {id:'locket',name:'愛心吊墜',slot:'neck',rare:3,size:.82,dy:.10,pets:['cat','dg']},
-  {id:'hw-pumpkin',name:'南瓜帽',slot:'head',rare:1,size:1.04,sink:.25},
-  {id:'hw-ghost',name:'幽靈帽',slot:'head',rare:1,size:1.16,sink:.24},
-  {id:'hw-candybow',name:'糖果蝴蝶結',slot:'head',rare:1,size:.6,sink:.22,dx:.20,rot:10},
-  {id:'hw-devil',name:'小惡魔角',slot:'head',rare:2,size:1.04,sink:.20},
-  {id:'hw-witch',name:'南瓜巫師帽',slot:'head',rare:2,size:1.16,sink:.22,rot:-5},
-  {id:'hw-batcrown',name:'月夜蝙蝠冠',slot:'head',rare:3,size:.96,sink:.20},
-  {id:'hw-batbow',name:'蝙蝠領結',slot:'neck',rare:1,size:.86,pets:['cat','dg']},
-  {id:'hw-vampire',name:'吸血鬼披領',slot:'neck',rare:2,size:1.04,dy:.16,pets:['cat','dg']},
-  {id:'hw-charm',name:'南瓜護符',slot:'neck',rare:3,size:.86,dy:.12,pets:['cat','dg']}
+  // ar：圖的高÷寬（跟 SVG 的 viewBox 一樣，viewBox 要貼齊圖案）；size：寬度是頭寬（或脖子寬）的幾倍
+  // sink：帽子底部往頭裡壓多少（頭寬的幾倍）；dx：往右偏；dy：頸飾往下移；rot：多轉幾度
+  {id:'strawhat',name:'草帽',ar:0.481,slot:'head',rare:1,size:1.05,sink:.2},
+  {id:'beret',name:'貝雷帽',ar:0.635,slot:'head',rare:1,size:.78,sink:.2,dx:-.06,rot:-10},
+  {id:'ribbon',name:'蝴蝶結',ar:0.636,slot:'head',rare:1,size:.46,sink:.22,dx:.26,rot:14},
+  {id:'flower',name:'小花',ar:0.953,slot:'head',rare:1,size:.36,sink:.24,dx:-.28,rot:-12},
+  {id:'santa',name:'聖誕帽',ar:0.786,slot:'head',rare:2,size:.86,sink:.22,rot:-4},
+  {id:'flowercrown',name:'花圈',ar:0.233,slot:'head',rare:2,size:1,sink:.24},
+  {id:'crown',name:'小皇冠',ar:0.723,slot:'head',rare:3,size:.56,sink:.14},
+  {id:'bell',name:'鈴鐺項圈',ar:0.531,slot:'neck',rare:1,size:.8,pets:['cat','dg']},
+  {id:'bowtie',name:'領結',ar:0.424,slot:'neck',rare:1,size:.5,pets:['cat','dg']},
+  {id:'bandana',name:'領巾',ar:0.621,slot:'neck',rare:2,size:.8,dy:.12,pets:['cat','dg']},
+  {id:'pearl',name:'珍珠項鍊',ar:0.57,slot:'neck',rare:3,size:.82,dy:.06,pets:['cat','dg']},
+  {id:'sailor',name:'水手帽',ar:0.696,slot:'head',rare:1,size:0.84,sink:0.18},
+  {id:'party',name:'派對帽',ar:1.46,slot:'head',rare:1,size:0.62,sink:0.14,rot:6},
+  {id:'beanie',name:'針織毛帽',ar:0.933,slot:'head',rare:1,size:.98,sink:.28},
+  {id:'sunvisor',name:'遮陽帽',ar:0.457,slot:'head',rare:1,size:1.08,sink:.24},
+  {id:'frog',name:'青蛙帽',ar:0.8,slot:'head',rare:2,size:0.98,sink:0.24},
+  {id:'bunny',name:'兔耳帽',ar:1.365,slot:'head',rare:2,size:0.98,sink:0.2},
+  {id:'witch',name:'星夜巫師帽',ar:0.978,slot:'head',rare:2,size:1.04,sink:.22,rot:-4},
+  {id:'moontiara',name:'月光頭冠',ar:0.641,slot:'head',rare:3,size:.82,sink:.20},
+  {id:'sailorcollar',name:'水手領',ar:0.614,slot:'neck',rare:1,size:.88,dy:.12,pets:['cat','dg']},
+  {id:'scarf',name:'星星圍巾',ar:0.825,slot:'neck',rare:2,size:.88,dy:.18,pets:['cat','dg']},
+  {id:'medal',name:'星光獎章',ar:0.831,slot:'neck',rare:2,size:.7,dy:.17,pets:['cat','dg']},
+  {id:'locket',name:'愛心吊墜',ar:0.726,slot:'neck',rare:3,size:.82,dy:.10,pets:['cat','dg']},
+  {id:'hw-pumpkin',name:'南瓜帽',ar:0.791,slot:'head',rare:1,size:0.96,sink:0.22},
+  {id:'hw-ghost',name:'幽靈帽',ar:1.108,slot:'head',rare:1,size:0.9,sink:0.22},
+  {id:'hw-candybow',name:'糖果蝴蝶結',ar:0.588,slot:'head',rare:1,size:.6,sink:.22,dx:.20,rot:10},
+  {id:'hw-devil',name:'小惡魔角',ar:0.842,slot:'head',rare:2,size:0.9,sink:.20},
+  {id:'hw-witch',name:'南瓜巫師帽',ar:1.035,slot:'head',rare:2,size:1.02,sink:.22,rot:-5},
+  {id:'hw-batcrown',name:'月夜蝙蝠冠',ar:0.592,slot:'head',rare:3,size:.96,sink:.20},
+  {id:'hw-batbow',name:'蝙蝠領結',ar:0.415,slot:'neck',rare:1,size:.86,pets:['cat','dg']},
+  {id:'hw-vampire',name:'吸血鬼披領',ar:0.682,slot:'neck',rare:2,size:0.94,dy:.16,pets:['cat','dg']},
+  {id:'hw-charm',name:'南瓜護符',ar:0.759,slot:'neck',rare:3,size:.86,dy:.12,pets:['cat','dg']}
 ];
 // Version the artwork so existing wardrobes also pick up the refined drawings.
-ACC_LIST.forEach(function(a){a.img=a.img||'assets/acc/'+a.id+'.svg?v=20261024-halloween';});
+ACC_LIST.forEach(function(a){a.img=a.img||'assets/acc/'+a.id+'.svg?v=20261024-fit';});
+// 新配件忘了寫 ar 的話，載入圖之後自己量
+ACC_LIST.forEach(function(a){
+  if(a.ar)return;
+  var im=new Image();im.onload=function(){if(im.naturalWidth){a.ar=im.naturalHeight/im.naturalWidth;accApply();}};im.src=a.img;
+});
 var ACC_BY={};ACC_LIST.forEach(function(a){ACC_BY[a.id]=a;});
 var ACC_RARE={1:{name:'普通',color:'#F5EEE2',star:'★'},2:{name:'稀有',color:'#A8D3E6',star:'★★'},3:{name:'傳說',color:'#F6D27A',star:'★★★'}};
 var ACC_SLOT={head:'頭飾',neck:'頸飾'};
@@ -2272,11 +2278,12 @@ function accSetWorn(k,slot,id){
 function accPlace(g,a,slot){
   var img=g.querySelector('image');
   if(!a){g.style.display='none';return;}
-  var w=+g.getAttribute('data-w'),bw=w*a.size;
+  // 框的比例跟圖一樣（ar），就不用靠 preserveAspectRatio 對齊：Safari、Chrome 對 SVG 圖的對齊方式不一致
+  var w=+g.getAttribute('data-w'),bw=w*a.size,bh=bw*(a.ar||1);
   g.style.display='';
-  img.setAttribute('width',bw);img.setAttribute('height',bw);
-  if(slot==='head'){img.setAttribute('x',-bw/2+(a.dx||0)*w);img.setAttribute('y',-bw+(a.sink||.2)*w);img.setAttribute('preserveAspectRatio','xMidYMax meet');}
-  else{img.setAttribute('x',-bw/2);img.setAttribute('y',-bw/2+(a.dy||0)*w);img.setAttribute('preserveAspectRatio','xMidYMid meet');}
+  img.setAttribute('width',bw);img.setAttribute('height',bh);
+  if(slot==='head'){img.setAttribute('x',-bw/2+(a.dx||0)*w);img.setAttribute('y',-bh+(a.sink||.2)*w);}
+  else{img.setAttribute('x',-bw/2+(a.dx||0)*w);img.setAttribute('y',-bh/2+(a.dy||0)*w);}
   if(a.rot)img.setAttribute('transform','rotate('+a.rot+')');else img.removeAttribute('transform');
   img.setAttribute('href',a.img);
 }
@@ -2294,7 +2301,7 @@ function accApply(k){
 function accPreview(k){
   var name={cat:'snowball',pg:'dudu',dg:'samoyed'}[k],h=k==='pg'?384:320;
   var hat=ACC_BY[accDisplayed(k,'head')],anchor=ACC_ANCHORS[name].idle.H,top=0;
-  if(hat){var bw=anchor[2]*hat.size,tilt=(anchor[3]+(hat.rot||0))*Math.PI/180;top=Math.min(0,Math.floor(anchor[1]-bw+(hat.sink||.2)*anchor[2]-Math.abs(Math.sin(tilt)*bw/2)-10));}
+  if(hat){var bw=anchor[2]*hat.size,bh=bw*(hat.ar||1),tilt=(anchor[3]+(hat.rot||0))*Math.PI/180;top=Math.min(0,Math.floor(anchor[1]-bh+(hat.sink||.2)*anchor[2]-Math.abs(Math.sin(tilt)*bw/2)-10));}
   var s='<svg viewBox="0 '+top+' 384 '+(h-top+8)+'" class="wd-pet"><image href="assets/pets/'+name+'-idle.svg" width="384" height="'+h+'"/>'+accSlots(name,'idle')+'</svg>';
   var d=document.createElement('div');d.innerHTML=s;
   ['head','neck'].forEach(function(slot){var a=ACC_BY[accDisplayed(k,slot)];d.querySelectorAll('.acc-'+slot).forEach(function(g){accPlace(g,a&&accFits(a,k)?a:null,slot);});});
