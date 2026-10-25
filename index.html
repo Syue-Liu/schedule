@@ -177,6 +177,8 @@ button.sc{font-family:inherit;color:var(--t);}
 .sn{font-size:24px;line-height:1;color:var(--t);}
 .sl2{font-size:11px;color:var(--t2);margin-top:6px;}
 
+/* 有新版本的提示（正在編輯時不自動重新載入，改顯示這顆讓人自己點） */
+.upd-pill{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 10px);transform:translateX(-50%);z-index:90;padding:8px 16px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--yellow);color:var(--t);font-family:inherit;font-size:13px;box-shadow:0 3px 0 var(--ink);cursor:pointer;animation:menuIn .3s var(--pop);}
 /* ── 底部彈出卡片 ── */
 .popup-ov{position:fixed;inset:0;background:rgba(255,252,246,0);z-index:60;display:none;align-items:flex-end;justify-content:center;padding:0 10px 14px;transition:background .28s ease;}
 .popup-ov.on{background:rgba(255,252,246,.8);}
@@ -2500,23 +2502,25 @@ function accOpenWardrobe(k,keep){
   var keepTop=anchor?anchor.getBoundingClientRect().top:null,keepScroll=oldBody?oldBody.scrollTop:0;
   k=k||'cat';petCloseMenu();accWarmSkins();
   var me=petWho(),own=accOwned(),r=me?petDay(me):null,tix=r?r.tix:0,trial=accFitting.active;
-  var items=ACC_LIST.filter(function(a){return accWardrobeFilter==='all'||a.slot===accWardrobeFilter;}),have=items.filter(function(a){return own[a.id];}).length;
+  // 分類：全部、已擁有（抽到的＋免費的）、或某個部位
+  var mine=accWardrobeFilter==='owned',all=accWardrobeFilter==='all'||mine;
+  var items=ACC_LIST.filter(function(a){return mine?!!own[a.id]:all||a.slot===accWardrobeFilter;}),have=items.filter(function(a){return own[a.id];}).length;
   var h='<div class="popup-grabber"></div><div class="popup-top"><div class="popup-dot" style="background:var(--coral)"></div><div class="popup-title">'+(trial?'🪞 ':'🎀 ')+safeHtml(petName(k))+(trial?' 的試衣間':' 的衣櫃')+'</div><button class="popup-close" onclick="closePopup()">✕</button></div><div class="popup-body" data-wardrobe-pet="'+k+'">';
   h+='<div class="cs-tabs">'+PET_KEYS.map(function(x){return '<button data-pk="'+x+'"'+(x===k?' class="on"':'')+'>'+PET_DEF[x].ic+' '+safeHtml(petName(x))+'</button>';}).join('')+'</div>';
   h+='<button class="wd-try-toggle" id="wdTry" aria-pressed="'+trial+'">'+(trial?'🪞 離開試衣間':'🪞 試衣間')+'</button>';
   if(trial)h+='<div class="wd-try-note">全部 '+ACC_LIST.length+' 款都能試戴，效果只在這台裝置顯示。離開試衣間或重新整理會恢復原本造型。</div>';
   h+='<div class="wd-top"><div class="wd-stage">'+accPreview(k)+'</div><div class="wd-slots">';
   ACC_SLOT_KEYS.forEach(function(slot){
-    if(accWardrobeFilter!=='all'&&accWardrobeFilter!==slot)return;
-    if(accWardrobeFilter==='all'&&!accDisplayed(k,slot))return;
+    if(!all&&accWardrobeFilter!==slot)return;
+    if(all&&!accDisplayed(k,slot))return;
     var fits=ACC_LIST.some(function(a){return a.slot===slot&&accFits(a,k);});
     if(!fits)return;
     var a=ACC_BY[accDisplayed(k,slot)];
     h+='<div class="wd-slot"><span class="wd-slot-name">'+ACC_SLOT[slot]+'</span>'+(a?'<div class="wd-slot-detail"><img src="'+a.img+'" alt=""><span>'+safeHtml(a.name)+'</span></div><button data-off="'+slot+'">卸下</button>':'<span class="wd-empty">還沒戴</span>')+'</div>';
   });
   h+='<button class="wd-spin" id="wdSpin">'+(trial?'‹ 回到我的收藏':'🎡 轉盤抽配件<b>券 ×'+tix+'</b>')+'</button></div></div>';
-  h+='<div class="wd-filters">'+['all'].concat(ACC_SLOT_KEYS).map(function(slot){return '<button data-slot-filter="'+slot+'" class="'+(accWardrobeFilter===slot?'on':'')+'">'+(slot==='all'?'全部':ACC_SLOT[slot])+'</button>';}).join('')+'</div>';
-  h+='<div class="cs-sec"><div class="cs-h"><span>'+(trial?'所有配件・自由試戴':'我們的收藏')+'</span><b>'+(trial?items.length+' 款':have+' / '+items.length)+'</b></div><div class="wd-grid">';
+  h+='<div class="wd-filters">'+['all','owned'].concat(ACC_SLOT_KEYS).map(function(slot){return '<button data-slot-filter="'+slot+'" class="'+(accWardrobeFilter===slot?'on':'')+'">'+(slot==='all'?'全部':slot==='owned'?'已擁有':ACC_SLOT[slot])+'</button>';}).join('')+'</div>';
+  h+='<div class="cs-sec"><div class="cs-h"><span>'+(mine?'已擁有的配件':trial?'所有配件・自由試戴':'我們的收藏')+'</span><b>'+(mine?have+' / '+ACC_LIST.length:trial?items.length+' 款':have+' / '+items.length)+'</b></div><div class="wd-grid">';
   items.forEach(function(a){
     var ok=trial||!!own[a.id],fit=accFits(a,k),on=accDisplayed(k,a.slot)===a.id,R=ACC_RARE[accIsFree(a)?0:a.rare],show=ok||a.preview;
     h+='<button class="wd-item'+(ok?'':' lock')+(on?' on':'')+(ok&&!fit?' nofit':'')+'" data-acc="'+a.id+'" style="--rc:'+R.color+'">'+
@@ -3779,6 +3783,50 @@ function petInit(){
     if(!petSynced){petSynced=true;petReady();}
     if(FIREBASE_READY&&lsGet('skipJoin')!=='1')showJoinPrompt();
   });
+})();
+
+/* ── 自動更新：GitHub Pages 會讓手機暫存舊版最多 10 分鐘。
+   打開、切回來的時候去網站拿最新的 index.html，程式或樣式跟現在跑的不一樣就重新載入。
+   正在編輯（有彈出卡片、選單、打字中、還沒通知的修改）就不打斷，改在上面顯示一顆「有新版本」讓人自己點。 ── */
+(function(){
+  function sig(doc){
+    var sc=doc.querySelector('script[type="module"]'),st=doc.querySelector('style'),t=(sc?sc.textContent:'')+'\n'+(st?st.textContent:''),h=0;
+    for(var i=0;i<t.length;i++)h=(h*31+t.charCodeAt(i))|0;
+    return String(h);
+  }
+  var mine=sig(document),busy=false,last=0;
+  function pageUrl(){return location.href.split('#')[0];}
+  function freshUrl(){var u=new URL(pageUrl());u.searchParams.set('v',Date.now());return u.toString()+location.hash;}
+  function canReload(){
+    return !document.getElementById('popupOv').classList.contains('on')&&!document.querySelector('.cat-menu')&&
+      !(document.activeElement&&/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName))&&!pendingChanges.length&&!accSpinning&&!petCombo.active;
+  }
+  function reload(remote){
+    // 上一次已經為這個版本重新載入過、結果還是舊的：換一個網址，保證拿到新的
+    var tried=null;try{tried=sessionStorage.getItem('updTried');}catch(e){}
+    try{sessionStorage.setItem('updTried',remote);}catch(e){}
+    if(tried===remote)location.replace(freshUrl());else location.reload();
+  }
+  function offer(remote){
+    if(document.getElementById('updPill'))return;
+    var b=document.createElement('button');b.id='updPill';b.className='upd-pill';b.type='button';b.textContent='✨ 有新版本・點一下更新';
+    b.onclick=function(){reload(remote);};document.body.appendChild(b);
+  }
+  function check(){
+    if(busy||document.hidden||Date.now()-last<60000)return;
+    busy=true;last=Date.now();
+    // cache:'reload'：不看手機暫存，直接跟網站拿，順便把暫存換成新的
+    fetch(pageUrl(),{cache:'reload'}).then(function(r){return r.ok?r.text():null;}).then(function(html){
+      busy=false;if(!html)return;
+      var remote=sig(new DOMParser().parseFromString(html,'text/html'));
+      if(remote===mine){try{sessionStorage.removeItem('updTried');}catch(e){}return;}
+      if(canReload())reload(remote);else offer(remote);
+    }).catch(function(){busy=false;});
+  }
+  setTimeout(check,2500);
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)check();});
+  window.addEventListener('pageshow',function(e){if(e.persisted)check();});
+  setInterval(check,15*60000);
 })();
 </script>
 </body>
