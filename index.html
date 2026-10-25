@@ -573,7 +573,6 @@ body:has(.chg-bar.show){padding-bottom:calc(124px + env(safe-area-inset-bottom))
 .wd-open b,.wd-spin b{font-size:12px;font-weight:400;padding:1px 8px;border-radius:999px;background:var(--paper);border:1.5px solid var(--ink);}
 .wd-try-toggle{display:block;width:100%;min-height:38px;margin:8px 0;padding:7px 10px;border:var(--lw2) solid var(--ink);border-radius:12px;background:var(--ev-bg);font-size:13px;color:var(--t);cursor:pointer;}
 .wd-try-toggle[aria-pressed="true"]{background:var(--ribbon-bg);}
-.wd-event{margin:7px 0 12px;padding:10px 12px;border:1.5px solid #D3A47A;border-radius:12px;background:#FFF0D9;color:#7B472B;font-size:12px;line-height:1.65;}
 .wd-try-note{font-size:12px;line-height:1.6;color:var(--t2);padding:2px 4px 4px;}
 .wd-top{display:grid;grid-template-columns:136px minmax(0,1fr);gap:12px;align-items:center;padding:10px 2px 4px;}
 .wd-stage{background:var(--paper2);border:var(--lw2) solid var(--ink);border-radius:18px;padding:8px 6px 4px;}
@@ -1323,7 +1322,7 @@ window.showPopup = function(key){
 var popT;
 function openPopupCard(html){
   clearTimeout(popT); // 剛關掉又馬上打開時，別讓關閉動畫把新的卡片藏起來
-  document.getElementById('popupCard').innerHTML=html;
+  var card=document.getElementById('popupCard');card.style.height='';card.innerHTML=html;
   var ov=document.getElementById('popupOv');
   ov.style.display='flex';
   requestAnimationFrame(function(){requestAnimationFrame(function(){ov.classList.add('on');});});
@@ -2495,16 +2494,18 @@ function accPreview(k){
 }
 
 /* 衣櫃：看收藏、幫寵物換配件、去轉盤 */
-function accOpenWardrobe(k){
+// keep：重畫前被點的那個東西（selector），重畫後把它捲回原本在畫面上的高度，不要跳回最上面
+function accOpenWardrobe(k,keep){
+  var oldBody=document.querySelector('#popupCard .popup-body[data-wardrobe-pet]'),anchor=keep&&oldBody&&document.querySelector('#popupCard '+keep);
+  var keepTop=anchor?anchor.getBoundingClientRect().top:null,keepScroll=oldBody?oldBody.scrollTop:0;
   k=k||'cat';petCloseMenu();accWarmSkins();
   var me=petWho(),own=accOwned(),r=me?petDay(me):null,tix=r?r.tix:0,trial=accFitting.active;
   var items=ACC_LIST.filter(function(a){return accWardrobeFilter==='all'||a.slot===accWardrobeFilter;}),have=items.filter(function(a){return own[a.id];}).length;
   var h='<div class="popup-grabber"></div><div class="popup-top"><div class="popup-dot" style="background:var(--coral)"></div><div class="popup-title">'+(trial?'🪞 ':'🎀 ')+safeHtml(petName(k))+(trial?' 的試衣間':' 的衣櫃')+'</div><button class="popup-close" onclick="closePopup()">✕</button></div><div class="popup-body" data-wardrobe-pet="'+k+'">';
   h+='<div class="cs-tabs">'+PET_KEYS.map(function(x){return '<button data-pk="'+x+'"'+(x===k?' class="on"':'')+'>'+PET_DEF[x].ic+' '+safeHtml(petName(x))+'</button>';}).join('')+'</div>';
-  h+='<button class="wd-try-toggle" id="wdTry" aria-pressed="'+trial+'">'+(trial?'🪞 結束本機試戴':'🪞 本機試戴全部配件')+'</button>';
-  if(trial)h+='<div class="wd-try-note">全部 '+ACC_LIST.length+' 款都能試戴，效果只在這台裝置顯示。結束試戴或重新整理會恢復原本造型。</div>';
+  h+='<button class="wd-try-toggle" id="wdTry" aria-pressed="'+trial+'">'+(trial?'🪞 離開試衣間':'🪞 試衣間')+'</button>';
+  if(trial)h+='<div class="wd-try-note">全部 '+ACC_LIST.length+' 款都能試戴，效果只在這台裝置顯示。離開試衣間或重新整理會恢復原本造型。</div>';
   else h+='<div class="wd-try-note">🎁 洋流飄帶免費開放，三隻都能直接裝備。在「背飾」或下方收藏點選即可。</div>';
-  h+='<div class="wd-event">🎃 南瓜蝙蝠套裝・'+(accIsFree(ACC_BY['hw-pumpkin-cape'])?'已免費開放，三隻都能直接裝備！':'目前可從轉盤抽得；台灣時間 10/31 起，三隻都能免費裝備。')+'</div>';
   h+='<div class="wd-top"><div class="wd-stage">'+accPreview(k)+'</div><div class="wd-slots">';
   ACC_SLOT_KEYS.forEach(function(slot){
     if(accWardrobeFilter!=='all'&&accWardrobeFilter!==slot)return;
@@ -2525,21 +2526,30 @@ function accOpenWardrobe(k){
   h+='</div><div class="cs-note">'+(trial?'點配件即可試戴，再點一次拿下。標示「免費」的配件可直接裝備，其餘收藏配件可透過轉盤取得。':'點收藏裡的配件就會幫 '+safeHtml(petName(k))+' 戴上，再點一次拿下來。標示「免費」的配件可直接裝備，其餘配件可完成今日支線取得轉盤券。')+'</div></div></div>';
   openPopupCard(h);
   var card=document.getElementById('popupCard');
-  card.querySelectorAll('[data-slot-filter]').forEach(function(b){b.onclick=function(){accWardrobeFilter=b.getAttribute('data-slot-filter');accOpenWardrobe(k);};});
-  document.getElementById('wdTry').onclick=function(){accToggleFitting();accOpenWardrobe(k);};
-  card.querySelectorAll('[data-pk]').forEach(function(b){b.onclick=function(){accOpenWardrobe(b.getAttribute('data-pk'));};});
-  card.querySelectorAll('[data-off]').forEach(function(b){b.onclick=function(){var slot=b.getAttribute('data-off');if(trial?accTryWear(k,slot,''):accSetWorn(k,slot,''))accOpenWardrobe(k);};});
+  // 衣櫃固定高度，收藏下面也留夠空間：換分類時內容變少，卡片不會縮短往下掉，分類按鈕可以停在原本的位置
+  var body=card.querySelector('.popup-body');
+  card.style.height='82vh';
+  card.querySelector('.wd-filters').nextElementSibling.style.minHeight=body.clientHeight+'px';
+  if(oldBody){
+    var now=keep&&card.querySelector(keep);
+    body.scrollTop=keepScroll;
+    if(now&&keepTop!=null)body.scrollTop+=now.getBoundingClientRect().top-keepTop;
+  }
+  card.querySelectorAll('[data-slot-filter]').forEach(function(b){b.onclick=function(){accWardrobeFilter=b.getAttribute('data-slot-filter');accOpenWardrobe(k,'.wd-filters');};});
+  document.getElementById('wdTry').onclick=function(){accToggleFitting();accOpenWardrobe(k,'#wdTry');};
+  card.querySelectorAll('[data-pk]').forEach(function(b){b.onclick=function(){accOpenWardrobe(b.getAttribute('data-pk'),'.cs-tabs');};});
+  card.querySelectorAll('[data-off]').forEach(function(b){b.onclick=function(){var slot=b.getAttribute('data-off');if(trial?accTryWear(k,slot,''):accSetWorn(k,slot,''))accOpenWardrobe(k,'.wd-filters');};});
   card.querySelectorAll('[data-acc]').forEach(function(b){b.onclick=function(){
     var a=ACC_BY[b.getAttribute('data-acc')];
-    if(!trial&&!own[a.id]){toast(a.skin?'目前需抽到才能裝備；10/31 起免費，也可以先用本機試戴':'還沒抽到這個配件，可以先用本機試戴看看');return;}
+    if(!trial&&!own[a.id]){toast(a.skin?'目前需抽到才能裝備；10/31 起免費，也可以先到試衣間試穿':'還沒抽到這個配件，可以先到試衣間試穿看看');return;}
     if(!accFits(a,k)){toast(petName(k)+' 戴不了'+a.name);return;}
     var on=accDisplayed(k,a.slot)===a.id;
     if(trial?accTryWear(k,a.slot,on?'':a.id):accSetWorn(k,a.slot,on?'':a.id)){
       if(!on){var p=pets[k];if(p&&!petHidden(p)){petSay(p,catPick(['好看嗎？','新造型！','（轉一圈）']),1800);petHearts(p,2);}}
-      accOpenWardrobe(k);
+      accOpenWardrobe(k,'[data-acc="'+a.id+'"]');
     }
   };});
-  document.getElementById('wdSpin').onclick=function(){if(trial){accToggleFitting();accOpenWardrobe(k);}else accOpenWheel(k);};
+  document.getElementById('wdSpin').onclick=function(){if(trial){accToggleFitting();accOpenWardrobe(k,'#wdTry');}else accOpenWheel(k);};
 }
 
 /* 轉盤：用一張券轉一次，抽到的配件放進收藏 */
