@@ -13,7 +13,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Huninn&display=swap" rel="stylesheet">
-<link rel="preload" as="image" href="assets/pets/starlight-sled.svg">
 <style>
 /* 日系繪本風：和紙白底、墨灰粗線框、大圓角，休假卡片用柔和粉彩。 */
 :root{
@@ -757,7 +756,7 @@ body:has(.chg-bar.show){padding-bottom:calc(124px + env(safe-area-inset-bottom))
 .combo-finale{position:absolute;left:50%;transform:translateX(-50%);padding:10px 16px;border:2px solid #D9ABAA;border-radius:20px;background:#FFFCF6E6;color:var(--ink);font-size:clamp(13px,3.6vw,21px);font-weight:bold;white-space:nowrap;}
 @media(prefers-reduced-motion:reduce){.combo-aurora{opacity:.2;}.combo-sky-ring{display:none;}}
 
-/* 三寵大圖：雪橇在雪夜中滑行。角色合成圖保持不透明，不交叉淡化。 */
+/* 三寵旅行大圖：每次只載入抽中的一張，班表仍是背景。 */
 .cat[data-combo-kind="all"]{visibility:hidden;pointer-events:none;}
 .cat[data-combo-kind="all"] .book-frame{visibility:hidden;}
 .pet-combo-fx.all{z-index:44;width:100%;height:100%;background:transparent;isolation:isolate;pointer-events:auto;}
@@ -772,8 +771,14 @@ body:has(.chg-bar.show){padding-bottom:calc(124px + env(safe-area-inset-bottom))
 @keyframes adventureGlide{0%{transform:translateX(-125vw) rotate(-2deg);}18%{transform:translateX(-1vw) rotate(0);}78%{transform:translateX(1vw) rotate(-1deg);}100%{transform:translateX(125vw) rotate(1deg);}}
 .adventure-team{position:relative;z-index:2;animation:adventureBob .7s ease-in-out infinite alternate;transform-origin:50% 80%;}
 @keyframes adventureBob{from{transform:translateY(-3px) rotate(-.5deg);}to{transform:translateY(3px) rotate(.4deg);}}
+.pet-combo-fx[data-adventure="chiang-mai"] .adventure-team,.pet-combo-fx[data-adventure="tokyo"] .adventure-team{animation:travelRumble .6s ease-in-out infinite alternate;}
+.pet-combo-fx[data-adventure="jeju"] .adventure-team,.pet-combo-fx[data-adventure="fukuoka"] .adventure-team{animation:travelFloat 2.6s ease-in-out infinite alternate;}
+.pet-combo-fx[data-adventure="penghu"] .adventure-team{animation:travelSail 2s ease-in-out infinite alternate;}
+@keyframes travelRumble{from{transform:translateY(-1px) rotate(-.15deg);}to{transform:translateY(1px) rotate(.15deg);}}
+@keyframes travelFloat{from{transform:translateY(-2px);}to{transform:translateY(2px);}}
+@keyframes travelSail{from{transform:translateY(-4px) rotate(-.8deg);}to{transform:translateY(4px) rotate(.8deg);}}
 .adventure-art{display:block;width:100%;height:auto;opacity:1;filter:drop-shadow(0 8px 8px #17334433);}
-.adventure-dialogues{position:absolute;left:0;right:0;bottom:calc(100% + 12px);height:40px;z-index:3;}
+.adventure-dialogues{position:absolute;left:50%;width:max(100%,min(300px,90vw));transform:translateX(-50%);bottom:calc(100% + 12px);height:40px;z-index:3;}
 .sled-speech{position:absolute;padding:7px 11px;border:2px solid #776D66;border-radius:16px;background:#FFFCF6;color:#514B48;font-size:clamp(11px,1.4vw,16px);line-height:1.4;white-space:nowrap;box-shadow:0 3px 0 #172D4430;}
 .sled-speech::after{content:'';position:absolute;left:50%;top:100%;border:6px solid transparent;border-top-color:#776D66;}
 .sled-speech.penguin{left:4%;bottom:0;}
@@ -2975,14 +2980,40 @@ function petComboDialogue(list,def){
     b.s.classList.toggle('combo-below',below);b.s.classList.add('on');x+=b.w+gap;
   });
 }
-function petAdventureMarkup(){
+var PET_ADVENTURES=[
+  {id:'sled',title:'星光大冒險',src:'assets/pets/starlight-sled.svg',aspect:2,alt:'薩摩耶拉著雪橇，載著企鵝和 Pillow 迎向星光',say:{pg:'出發！嘎～',cat:'坐穩囉～',dg:'汪！衝呀！'}},
+  {id:'chiang-mai',title:'清邁・雙條車出發',src:'assets/pets/trio-chiang-mai.svg',aspect:1.5,alt:'雪球、Pillow 和薩摩耶搭著紅色雙條車遊清邁，身旁有紙傘和金色寺廟',say:{pg:'嘎！出發～',cat:'慢慢逛吧～',dg:'汪！去玩～'}},
+  {id:'jeju',title:'濟州島・橘子大冒險',src:'assets/pets/trio-jeju.svg',aspect:1.5,alt:'三隻寵物在濟州島的火山岩海岸採橘子，身旁是石頭爺爺',say:{pg:'橘子！嘎～',cat:'分我一顆～',dg:'汪！好香～'}},
+  {id:'fukuoka',title:'福岡・屋台暖心夜',src:'assets/pets/trio-fukuoka.svg',aspect:1.5,alt:'雪球、Pillow 和薩摩耶一起坐在福岡博多屋台吃熱騰騰的拉麵',say:{pg:'嘎！拉麵！',cat:'先吹涼喔～',dg:'汪！好吃～'}},
+  {id:'tokyo',title:'東京・電車散步',src:'assets/pets/trio-tokyo.svg',aspect:1.5,alt:'三隻寵物搭乘復古綠色電車遊東京，旁邊是東京鐵塔與櫻花',say:{pg:'嘎！東京！',cat:'拍張照吧～',dg:'汪！到了～'}},
+  {id:'penghu',title:'澎湖・海上追風',src:'assets/pets/trio-penghu.svg',aspect:1.5,alt:'三隻寵物乘著帆船遊澎湖，旁邊有雙心石滬、玄武岩和碧綠海浪',say:{pg:'嘎！看海～',cat:'風好舒服～',dg:'汪！開船～'}}
+];
+var petAdventureLast='';
+function petPickAdventure(){
+  var pool=PET_ADVENTURES.filter(function(s){return s.id!==petAdventureLast;});
+  var scene=catPick(pool.length?pool:PET_ADVENTURES);petAdventureLast=scene.id;return scene;
+}
+function petAdventureLayout(w,h,header,title,bubbles,aspect){
+  var top=header+12+title+18+bubbles+12,bottom=h-80;
+  var room=Math.max(40,bottom-top),width=Math.max(1,Math.min(w*.9,1120,room*aspect));
+  return {width:width,top:top+Math.max(0,bottom-top)/2};
+}
+function petAdventureFit(fx,scene){
+  var heading=fx.querySelector('.adventure-heading'),stage=fx.querySelector('.adventure-stage'),dialogues=fx.querySelector('.adventure-dialogues');
+  var header=document.querySelector('.hdr').getBoundingClientRect().bottom;
+  heading.style.top=(header+12)+'px';
+  var layout=petAdventureLayout(window.innerWidth,window.innerHeight,header,heading.getBoundingClientRect().height,dialogues.getBoundingClientRect().height,scene.aspect);
+  stage.style.width=layout.width+'px';stage.style.top=layout.top+'px';
+}
+function petAdventureMarkup(scene){
+  scene=scene||PET_ADVENTURES[0];
   var stars='';
   for(var i=0;i<12;i++){
     stars+='<i class="adventure-star" style="left:'+((i*37+11)%97)+'%;top:'+((i*19+7)%56)+'%;--delay:-'+(i*.23).toFixed(2)+'s;--size:'+(i%3?3:6)+'px"></i>';
   }
   return '<div class="adventure-sparkles" aria-hidden="true">'+stars+'</div>'+
-    '<div class="adventure-heading"><span>一起出發吧！</span><strong>星光大冒險</strong><div>❄　✦　☁　✦　❄</div></div>'+
-    '<div class="adventure-stage"><div class="adventure-convoy"><div class="adventure-dialogues"><div class="sled-speech penguin">出發！嘎～</div><div class="sled-speech pillow">坐穩囉～</div><div class="sled-speech samoyed">汪！衝呀！</div></div><div class="adventure-team"><img class="adventure-art" src="assets/pets/starlight-sled.svg" alt="薩摩耶拉著雪橇，載著企鵝和 Pillow 迎向星光" draggable="false"></div><div class="adventure-powder"></div></div></div>'+
+    '<div class="adventure-heading"><span>一起出發吧！</span><strong>'+safeHtml(scene.title)+'</strong><div>❄　✦　☁　✦　❄</div></div>'+
+    '<div class="adventure-stage"><div class="adventure-convoy"><div class="adventure-dialogues"><div class="sled-speech penguin">'+safeHtml(scene.say.pg)+'</div><div class="sled-speech pillow">'+safeHtml(scene.say.cat)+'</div><div class="sled-speech samoyed">'+safeHtml(scene.say.dg)+'</div></div><div class="adventure-team"><img class="adventure-art" src="'+scene.src+'" alt="'+safeHtml(scene.alt)+'" draggable="false" decoding="async"></div><div class="adventure-powder"></div></div></div>'+
     '<button type="button" class="adventure-skip">略過動畫 ✕</button>';
 }
 
@@ -3010,9 +3041,9 @@ function petStartCombo(list){
   petComboDialogue(list,def);
   var fx=document.createElement('div');fx.className='pet-combo-fx '+def.kind;fx.setAttribute('aria-hidden','true');
   if(key==='all'){
-    fx.removeAttribute('aria-hidden');fx.setAttribute('role','region');fx.setAttribute('aria-label','三隻合體：星光大冒險');
-    fx.innerHTML=petAdventureMarkup();
-    fx.querySelector('.adventure-heading').style.top=(document.querySelector('.hdr').getBoundingClientRect().bottom+12)+'px';
+    var scene=petPickAdventure();
+    fx.removeAttribute('aria-hidden');fx.setAttribute('role','region');fx.setAttribute('aria-label','三隻合體：'+scene.title);fx.setAttribute('data-adventure',scene.id);
+    fx.innerHTML=petAdventureMarkup(scene);
     fx.querySelector('.adventure-skip').onclick=petEndCombo;
   }else{
     fx.style.left=catClamp(start+total/2-90,6,Math.max(6,window.innerWidth-186))+'px';
@@ -3023,6 +3054,7 @@ function petStartCombo(list){
     fx.innerHTML='<svg class="combo-ring" viewBox="0 0 120 120">'+inner+'</svg>';
   }
   document.body.appendChild(fx);petCombo.fx=fx;
+  if(key==='all')petAdventureFit(fx,scene);
   if(!catReduce)[650,1700,2900].forEach(function(t){petCombo.timers.push(setTimeout(petComboBurst,t));});
   var endDelay=catReduce?(key==='all'?3500:1500):ms;
   var endTimer=setTimeout(petEndCombo,endDelay);petCombo.timers.push(endTimer);
@@ -3032,11 +3064,12 @@ function petStartCombo(list){
       convoy.style.animationPlayState='paused';
       art.onload=function(){
         if(!petCombo.active||petCombo.fx!==fx)return;
+        petAdventureFit(fx,scene);
         convoy.style.animationPlayState='running';clearTimeout(endTimer);
         petCombo.timers.push(setTimeout(petEndCombo,endDelay));
       };
     }
-    art.onerror=function(){if(petCombo.fx===fx){petEndCombo();toast('雪橇大圖尚未載入，請再試一次');}};
+    art.onerror=function(){if(petCombo.fx===fx){petEndCombo();toast('合體大圖尚未載入，請再試一次');}};
   }
   return true;
 }
@@ -3676,6 +3709,7 @@ function petInit(){
 </script>
 </body>
 </html>
+
 
 
 
