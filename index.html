@@ -402,7 +402,7 @@ body:has(.chg-bar.show){padding-bottom:calc(124px + env(safe-area-inset-bottom))
 .cat.sk-spin .cat-sk{animation:skSpin 1.4s ease-in-out;}
 @keyframes skSpin{0%{transform:none;}50%{transform:translateY(-16px) rotateY(360deg);}100%{transform:rotateY(720deg);}}
 .cat.sk-yarn .cat-sk{animation:skYarn 1.5s ease-in-out .5s forwards;}
-@keyframes skYarn{0%{transform:none;}30%{transform:translateY(3px) scale(1.06,.88);}60%{transform:translate(46px,-34px) rotate(-10deg);}85%,100%{transform:translate(90px,0);}}
+@keyframes skYarn{0%{transform:none;}30%{transform:translateY(3px) scale(1.06,.88);}60%{transform:translate(calc(var(--go,90px)*.5),-34px) rotate(-10deg);}85%,100%{transform:translate(var(--go,90px),0);}}
 .cat.sk-love .cat-sk{animation:skLove 1.6s ease-in-out;}
 @keyframes skLove{0%,100%{transform:none;}25%,75%{transform:scale(1.1);}50%{transform:scale(1.18) translateY(-6px);}}
 /* 企鵝：走路左右搖擺、兩腳輪流抬；睡覺和滑行換成趴著的那張 */
@@ -439,7 +439,7 @@ body:has(.chg-bar.show){padding-bottom:calc(124px + env(safe-area-inset-bottom))
 .cat.pg.sk-dance .cat-sk{animation:pgDance 1.8s ease-in-out;transform-origin:50% 95%;}
 @keyframes pgDance{0%,100%{transform:none;}12%,37%,62%{transform:rotate(-14deg);}25%,50%,75%{transform:rotate(14deg) translateY(-4px);}87%{transform:rotate(-6deg);}}
 .cat.pg.sk-slide .cat-sk{animation:pgSlide 1.6s cubic-bezier(.3,.6,.4,1) forwards;}
-@keyframes pgSlide{from{transform:none;}to{transform:translateX(110px);}}
+@keyframes pgSlide{from{transform:none;}to{transform:translateX(var(--go,110px));}}
 .cat.pg.sk-salute .p-fr{animation:pgHello 1.9s ease-in-out;}
 @keyframes pgHello{0%,100%{transform:none;}20%,50%,82%{transform:rotate(-140deg);}35%,65%{transform:rotate(-115deg);}}
 .cat.pg.sk-preen .p-head{transform:rotate(16deg);}
@@ -684,8 +684,8 @@ body:has(.chg-bar.show){padding-bottom:calc(124px + env(safe-area-inset-bottom))
 @keyframes bookRoll{0%,100%{transform:none;}18%{transform:rotate(-12deg);}34%{transform:rotate(-30deg) translateY(-3px);}52%{transform:rotate(25deg) translateY(-2px);}70%{transform:rotate(-20deg);}86%{transform:rotate(8deg);}}
 @keyframes bookWave{0%,100%{transform:none;}20%,48%,76%{transform:rotate(-3deg);}34%,62%{transform:rotate(3deg) translateY(-2px);}}
 @keyframes bookFlap{0%,100%{transform:none;}14%,42%,70%{transform:translateY(-6px) scale(.98,1.025);}28%,56%,84%{transform:translateY(1px) scale(1.02,.98);}}
-@keyframes bookPounce{0%,20%{transform:none;}34%{transform:translateY(3px) scale(1.03,.96);}52%{transform:translate(45px,-28px) rotate(-5deg);}70%,100%{transform:translate(90px,0);}}
-@keyframes bookSlide{0%,10%{transform:none;}20%{transform:translateX(5px);}90%,100%{transform:translateX(110px);}}
+@keyframes bookPounce{0%,20%{transform:none;}34%{transform:translateY(3px) scale(1.03,.96);}52%{transform:translate(calc(var(--go,90px)*.5),-28px) rotate(-5deg);}70%,100%{transform:translate(var(--go,90px),0);}}
+@keyframes bookSlide{0%,10%{transform:none;}20%{transform:translateX(5px);}90%,100%{transform:translateX(var(--go,110px));}}
 /* 雙寵碰面合體：短暫合作表演，效果不攔截班表操作。 */
 .cat.sk-combo{transition:transform .24s ease-out;}
 .cat.sk-combo .cat-mark{visibility:hidden;}
@@ -2883,31 +2883,73 @@ function petBlocker(p,x,y){
     var o=petOverlap(p,x,y,q);return o>0&&o>petOverlap(p,p.x,p.y,q);
   })[0]||null;
 }
+// 繞過 ob 的路線：橫著走就從牠上面或下面過（先到靠近這邊的角、再到另一邊的角），直著走就從左邊或右邊過
+// 挑不出界、不會壓到別隻、總路程最短的；每一段都不會碰到牠，所以走起來是一道順順的弧
+function petDetour(p,ob,tx,ty,b){
+  var M=10,L=ob.x+ob.def.W*.14-p.def.W*.86-M,R=ob.x+ob.def.W*.86-p.def.W*.14+M,T=ob.y+ob.def.H*.1-p.def.H*.9-M,B=ob.y+ob.def.H*.9-p.def.H*.1+M;
+  var horiz=Math.abs(tx-p.x)>=Math.abs(ty-p.y),fw=horiz?(tx>p.x?1:-1):(ty>p.y?1:-1);
+  var tie=Math.abs(p.y+p.def.H/2-ob.y-ob.def.H/2)<10&&horiz,first=p.k<ob.k;
+  var routes=horiz?[[T,'up'],[B,'down']].map(function(r){var a=fw>0?L:R,z=fw>0?R:L;return {pts:[[a,r[0]],[z,r[0]]],side:r[1]};})
+                  :[[L,'left'],[R,'right']].map(function(r){var a=fw>0?T:B,z=fw>0?B:T;return {pts:[[r[0],a],[r[0],z]],side:r[1]};});
+  var best=null;
+  routes.forEach(function(r){
+    // 已經走過靠近這邊的角就不用再回頭；目的地在另一邊的角之前，就不用走到那個角；超出畫面的拉回來
+    var pts=r.pts.filter(function(q,i){var d=horiz?(q[0]-p.x)*fw:(q[1]-p.y)*fw,e=horiz?(tx-q[0])*fw:(ty-q[1])*fw;return i?e>0:d>2;})
+      .map(function(q){return [catClamp(q[0],b.x0,b.x1),catClamp(q[1],b.y0,b.y1)];});
+    if(!pts.length||pts.some(function(q){return petBlocker(p,q[0],q[1]);}))return;
+    var cost=0,x=p.x,y=p.y;pts.concat([[tx,ty]]).forEach(function(q){cost+=Math.hypot(q[0]-x,q[1]-y);x=q[0];y=q[1];});
+    // 兩隻正面對走時，一隻往上一隻往下，才不會一起擠到同一邊
+    if(tie&&(r.side==='up')!==first)cost+=40;
+    if(!best||cost<best.cost)best={pts:pts,ob:ob,ox:ob.x,oy:ob.y,cost:cost};
+  });
+  return best;
+}
+// 要不要重新找路：還沒有繞路、擋路的換了一隻、或擋路的那隻已經走開一段了
+function petReplan(way,ob){return !way||way.ob!==ob||Math.hypot(ob.x-way.ox,ob.y-way.oy)>12;}
+// 走路：先看前面一小段，快碰到就提早繞；方向慢慢轉，不會一格一格抖；真的被擋住就站著等牠走開
 function petWalkTo(p,tx,ty,speed,done){
   petStop(p);
   var b=petBounds(p);tx=catClamp(tx,b.x0,b.x1);ty=catClamp(ty,b.y0,b.y1);
   if(Math.abs(tx-p.x)>2)p.dir=tx<p.x?-1:1;
   if(catReduce){if(!petBlocker(p,tx,ty)){p.x=tx;p.y=ty;petPlace(p);}if(petTryCombo()&&p.act==='combo')return;if(done)done();return;}
-  petMode(p,speed>70?'walk run':'walk');petPlace(p);
-  var last=performance.now(),stuck=0;
+  var mode=speed>70?'walk run':'walk';
+  petMode(p,mode);petPlace(p);
+  var last=performance.now(),vx=0,vy=0,way=null,wait=0,walking=true,plans=0;
   function stop(){petMode(p,'');p.raf=0;if(petTryCombo()&&p.act==='combo')return;if(done)done();}
   function step(t){
     var dt=Math.min(.05,(t-last)/1000);last=t;
-    var dx=tx-p.x,dy=ty-p.y,dist=Math.hypot(dx,dy),mv=speed*dt;
-    if(dist<=mv){
+    var gx=way?way.pts[0][0]:tx,gy=way?way.pts[0][1]:ty,dx=gx-p.x,dy=gy-p.y,dist=Math.hypot(dx,dy);
+    if(way&&dist<6){way.pts.shift();if(!way.pts.length)way=null;p.raf=requestAnimationFrame(step);return;}
+    if(!way&&dist<=Math.max(speed*dt,2.5)){
       if(petBlocker(p,tx,ty)){stop();return;}
       p.x=tx;p.y=ty;petPlace(p);petMode(p,'');p.raf=0;if(petTryCombo()&&p.act==='combo')return;if(done)done();return;
     }
-    var nx=p.x+dx/dist*mv,ny=p.y+dy/dist*mv,ob=petBlocker(p,nx,ny);
-    if(ob){
-      // 橫著走就往上或往下繞，直著走就往左或往右繞（往離牠遠的那邊）；繞了 2 秒還過不去、或碰到邊界，就停在這裡
-      var m=Math.max(mv,1),ux=p.x+(p.x+p.def.W/2<ob.x+ob.def.W/2?-m:m),uy=p.y+(p.y+p.def.H/2<ob.y+ob.def.H/2?-m:m);
-      var tries=Math.abs(dx)>=Math.abs(dy)?[[p.x,uy],[ux,p.y]]:[[ux,p.y],[p.x,uy]];
-      var ok=++stuck<=120&&tries.filter(function(c){return c[0]>=b.x0&&c[0]<=b.x1&&c[1]>=b.y0&&c[1]<=b.y1&&!petBlocker(p,c[0],c[1]);})[0];
-      if(!ok){stop();return;}
-      nx=ok[0];ny=ok[1];
+    var ux=dx/dist,uy=dy/dist,la=Math.min(dist,64),ob=petBlocker(p,p.x+ux*la,p.y+uy*la);
+    if(ob&&petReplan(way,ob)){
+      // 目的地就在牠旁邊：走到這裡就好，不用繞
+      if(!way&&Math.hypot(tx-p.x,ty-p.y)<70&&petBlocker(p,tx,ty)){stop();return;}
+      if(plans<8){plans++;way=petDetour(p,ob,tx,ty,b)||way;}
     }
-    p.x=nx;p.y=ny;petPlace(p);
+    var k=Math.min(1,dt*7);vx+=(ux*speed-vx)*k;vy+=(uy*speed-vy)*k;
+    var nx=p.x+vx*dt,ny=p.y+vy*dt,hit=petBlocker(p,nx,ny);
+    // 擦到邊：只走不會更靠近牠的那個方向（沿著牠的邊滑過去）
+    if(hit){
+      if(Math.abs(vy*dt)>.05&&!petBlocker(p,p.x,ny)){nx=p.x;hit=null;}
+      else if(Math.abs(vx*dt)>.05&&!petBlocker(p,nx,p.y)){ny=p.y;hit=null;}
+    }
+    if(hit){
+      vx=vy=0;wait+=dt;
+      if(walking){walking=false;petMode(p,'');}
+      // 兩隻都在走、互相擋住：排後面的那隻站著讓路，排前面的繞過去
+      var yieldTo=hit.raf&&p.k>hit.k;
+      if(!yieldTo&&wait>.5&&plans<8&&petReplan(way,hit)){plans++;way=petDetour(p,hit,tx,ty,b)||way;}
+      if(wait>(yieldTo?3.5:2.5)){stop();return;}
+    }else{
+      if(!walking){walking=true;petMode(p,mode);}
+      wait=0;p.x=nx;p.y=ny;
+      if(Math.abs(vx)>speed*.35)p.dir=vx<0?-1:1;
+      petPlace(p);
+    }
     if(petTryCombo()&&p.act==='combo')return;
     p.raf=requestAnimationFrame(step);
   }
@@ -3199,6 +3241,13 @@ function petDo(p,id,fromUser,force){
   if(fromUser&&id!==p.def.idle)petCdStart(cdKey);
   var ms=PET_SK_MS[p.k][id]||1500;
   p.el.style.setProperty('--skill-time',ms+'ms');
+  // 毛線球、滑行會整隻衝出去：先看前面有多少空間（不出界、不撞到別隻），衝到那裡為止
+  var go=0;
+  if((id==='yarn'||id==='slide')&&!catReduce){
+    var full=id==='yarn'?90:110,b=petBounds(p);
+    for(var g=6;g<=full;g+=6){var gx=p.x+p.dir*g;if(gx<b.x0||gx>b.x1||petBlocker(p,gx,p.y))break;go=g;}
+  }
+  p.el.style.setProperty('--go',go+'px');
   p.act=id;p.el.classList.add('sk-'+id);petBookPlay(p,id,ms);
   if(PET_SK_SAY[id])petSay(p,PET_SK_SAY[id],2000);
   if(id==='love')p.bookTimers.push(setTimeout(function(){petBurst(p,ART.heart,10);},500));
@@ -3211,8 +3260,7 @@ function petDo(p,id,fromUser,force){
   p.skillT=setTimeout(function(){
     petBookReset(p);p.skillT=0;p.el.classList.remove('sk-'+id);p.act='';
     // 毛線球、滑行：整隻衝出去了，把位置留在停下來的地方
-    var go=id==='yarn'?90:id==='slide'?110:0;
-    if(go&&!catReduce){var b=petBounds(p);p.x=catClamp(p.x+p.dir*go,b.x0,b.x1);petPlace(p);}
+    if(go){var b=petBounds(p);p.x=catClamp(p.x+p.dir*go,b.x0,b.x1);petPlace(p);}
     petNext(p);
   },catReduce?700:ms);
   if(fromUser&&id!==p.def.idle){petQuest('skill',1);petSave();}
@@ -3551,7 +3599,9 @@ function petSetResting(p,hide){
   lsSet(p.def.hide,hide?'1':'');
   p.el.classList.toggle('hide',hide);petMode(p,'');petUpdHome();
   if(!hide){
-    var b=petBounds(p);p.x=catClamp(p.x,b.x0,b.x1);p.y=b.y1;
+    var b=petBounds(p),x0=catClamp(p.x,b.x0,b.x1);p.y=b.y1;p.x=x0;
+    // 回來的時候找一個沒有別隻站著的位置
+    for(var d=0;d<=b.x1-b.x0;d+=12){var c=[x0+d,x0-d].filter(function(x){return x>=b.x0&&x<=b.x1&&!petBlocker(p,x,p.y);})[0];if(c!=null){p.x=c;break;}}
     petPlace(p);petNext(p,800);petSay(p,p.def.say.back);
   }else toast(petName(p.k)+'回去睡覺了，點頁尾的牠就能叫醒');
 }
