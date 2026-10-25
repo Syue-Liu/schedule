@@ -1387,6 +1387,23 @@ window.showPopup = function(key){
   openPopupCard(h);
 };
 var popT;
+// 重畫同一張卡片（換分頁、換寵物）時不要跳回最上面：
+// popupSnap 記下現在捲到哪、被點的那個東西（keep）在畫面上的高度；popupKeep 重畫後把它捲回原處。
+// 卡片固定高度、內容下面留夠空間（room 那一塊至少跟可捲動區一樣高），內容變少時卡片才不會縮短往下掉。
+function popupSnap(mark,keep){
+  var body=document.querySelector('#popupCard .popup-body['+mark+']');if(!body)return null;
+  var a=keep&&document.querySelector('#popupCard '+keep);
+  return {scroll:body.scrollTop,keep:keep,top:a?a.getBoundingClientRect().top:null};
+}
+function popupKeep(snap,room){
+  var card=document.getElementById('popupCard'),body=card.querySelector('.popup-body');
+  card.style.height='82vh';
+  if(room)room.style.minHeight=body.clientHeight+'px';
+  if(!snap)return;
+  var now=snap.keep&&card.querySelector(snap.keep);
+  body.scrollTop=snap.scroll;
+  if(now&&snap.top!=null)body.scrollTop+=now.getBoundingClientRect().top-snap.top;
+}
 function openPopupCard(html){
   clearTimeout(popT); // 剛關掉又馬上打開時，別讓關閉動畫把新的卡片藏起來
   var card=document.getElementById('popupCard');card.style.height='';card.innerHTML=html;
@@ -2572,10 +2589,9 @@ function accPreview(k){
 }
 
 /* 衣櫃：看收藏、幫寵物換配件、去轉盤 */
-// keep：重畫前被點的那個東西（selector），重畫後把它捲回原本在畫面上的高度，不要跳回最上面
+// keep：被點的那個東西（selector），重畫後留在畫面上原本的位置
 function accOpenWardrobe(k,keep){
-  var oldBody=document.querySelector('#popupCard .popup-body[data-wardrobe-pet]'),anchor=keep&&oldBody&&document.querySelector('#popupCard '+keep);
-  var keepTop=anchor?anchor.getBoundingClientRect().top:null,keepScroll=oldBody?oldBody.scrollTop:0;
+  var snap=popupSnap('data-wardrobe-pet',keep);
   k=k||'cat';petCloseMenu();accWarmSkins();
   var me=petWho(),own=accOwned(),r=me?petDay(me):null,tix=r?r.tix:0,trial=accFitting.active;
   // 分類：全部、已擁有（抽到的＋免費的）、或某個部位
@@ -2605,15 +2621,7 @@ function accOpenWardrobe(k,keep){
   h+='</div><div class="cs-note">'+(trial?'點配件即可試戴，再點一次拿下。標示「免費」的配件可直接裝備，其餘收藏配件可透過轉盤取得。':'點收藏裡的配件就會幫 '+safeHtml(petName(k))+' 戴上，再點一次拿下來。標示「免費」的配件可直接裝備，其餘配件可完成今日支線取得轉盤券。')+'</div></div></div>';
   openPopupCard(h);
   var card=document.getElementById('popupCard');
-  // 衣櫃固定高度，收藏下面也留夠空間：換分類時內容變少，卡片不會縮短往下掉，分類按鈕可以停在原本的位置
-  var body=card.querySelector('.popup-body');
-  card.style.height='82vh';
-  card.querySelector('.wd-filters').nextElementSibling.style.minHeight=body.clientHeight+'px';
-  if(oldBody){
-    var now=keep&&card.querySelector(keep);
-    body.scrollTop=keepScroll;
-    if(now&&keepTop!=null)body.scrollTop+=now.getBoundingClientRect().top-keepTop;
-  }
+  popupKeep(snap,card.querySelector('.wd-filters').nextElementSibling);
   card.querySelectorAll('[data-slot-filter]').forEach(function(b){b.onclick=function(){accWardrobeFilter=b.getAttribute('data-slot-filter');accOpenWardrobe(k,'.wd-filters');};});
   document.getElementById('wdTry').onclick=function(){accToggleFitting();accOpenWardrobe(k,'#wdTry');};
   card.querySelectorAll('[data-pk]').forEach(function(b){b.onclick=function(){accOpenWardrobe(b.getAttribute('data-pk'),'.cs-tabs');};});
@@ -3645,14 +3653,15 @@ function petTryDrop(){
 /* 寵物狀態卡：上面切換貓咪／企鵝 */
 // 狀態卡：像遊戲的角色畫面——上面角色卡（立繪、名字、等級、經驗值、飽足、親密），下面分頁（照顧、技能、支線、設定）
 var petSheetTab='care';
-function petOpenSheet(k){
+function petOpenSheet(k,keep){
+  var snap=popupSnap('data-sheet-pet',keep);
   k=k||'cat';
   petCloseMenu();
   var p=pets[k],me=petWho(),pts=petPts(),lv=petLevel(pts),nx=PET_LV[lv],prev=PET_LV[lv-1],fav=petFav(k),full=Math.round(petFull(k)),name=petName(k);
   var aff={syue:Math.round(petEffAff(petData.syue,k)),ling:Math.round(petEffAff(petData.ling,k))},mx=Math.max(aff.syue,aff.ling,1);
   var nsk=PET_SKILLS[k].filter(function(s){return s.lv===lv+1;})[0],r=me?petDay(me):null,q=r&&r.d.q,def=q&&petQuestDef(q.id);
   var fullTxt=full>=80?'飽飽的':full>=40?'還好':full>=15?'有點餓':'好餓…';
-  var h='<div class="popup-grabber"></div><div class="popup-top"><div class="popup-dot" style="background:var(--yellow)"></div><div class="popup-title">寵物狀態</div><button class="popup-close" onclick="closePopup()">✕</button></div><div class="popup-body">';
+  var h='<div class="popup-grabber"></div><div class="popup-top"><div class="popup-dot" style="background:var(--yellow)"></div><div class="popup-title">寵物狀態</div><button class="popup-close" onclick="closePopup()">✕</button></div><div class="popup-body" data-sheet-pet="'+k+'">';
   h+='<div class="cs-tabs">'+PET_KEYS.map(function(x){return '<button data-pk="'+x+'"'+(x===k?' class="on"':'')+'>'+PET_DEF[x].ic+' '+safeHtml(petName(x))+'</button>';}).join('')+'</div>';
   // 角色卡
   h+='<div class="cs-hero"><div class="cs-portrait">'+accPreview(k)+'</div><div class="cs-info">'+
@@ -3685,7 +3694,7 @@ function petOpenSheet(k){
     care+='<div class="cs-aff"><span class="cs-who" style="background:var(--'+u+')">'+USERS[u].label+'</span><div class="cs-bar"><i style="width:'+Math.round(aff[u]/mx*100)+'%;background:var(--'+u+')"></i></div><span class="cs-num">'+aff[u]+' ♥'+(fav===u?' 👑':'')+'</span></div>';
   });
   care+='<div class="cs-note">常來看牠、常維護班表、摸摸和餵食，牠就會比較黏你。</div></div>';
-  h+=panel('care',care);
+  h+='<div class="cs-panels">'+panel('care',care);
   // 技能
   var sk='<div class="cs-sec"><div class="cs-h"><span>'+safeHtml(name)+' 的技能</span><b>點一下讓牠表演</b></div><div class="cs-skills">';
   PET_SKILLS[k].forEach(function(s){
@@ -3709,11 +3718,13 @@ function petOpenSheet(k){
   // 設定
   var st='<div class="cs-sec"><div class="cs-h"><span>這支手機是誰的</span></div><div class="cs-seg"><button data-me="syue"'+(me==='syue'?' class="on"':'')+'>學</button><button data-me="ling"'+(me==='ling'?' class="on"':'')+'>綾</button></div></div>';
   st+='<div class="cs-sec"><div class="cs-h"><span>'+safeHtml(name)+' 在畫面上</span></div><div class="cs-seg"><button id="csHide">'+(petHidden(p)?'叫'+safeHtml(name)+'出來':'讓'+safeHtml(name)+'去休息（隱藏）')+'</button></div></div>';
-  h+=panel('set',st);
+  h+=panel('set',st)+'</div>';
   h+='</div>';
   openPopupCard(h);petCdPaint();
   var card=document.getElementById('popupCard');
-  card.querySelectorAll('[data-pk]').forEach(function(b){b.onclick=function(){petOpenSheet(b.getAttribute('data-pk'));};});
+  // 分頁內容下面留夠空間：換到內容少的分頁，卡片不會縮短、分頁列停在原處
+  popupKeep(snap,card.querySelector('.cs-panels'));
+  card.querySelectorAll('[data-pk]').forEach(function(b){b.onclick=function(){petOpenSheet(b.getAttribute('data-pk'),'.cs-tabs');};});
   card.querySelectorAll('[data-cst]').forEach(function(b){b.onclick=function(){
     petSheetTab=b.getAttribute('data-cst');
     card.querySelectorAll('[data-cst]').forEach(function(x){var on=x===b;x.classList.toggle('on',on);x.setAttribute('aria-selected',on);});
@@ -3721,7 +3732,7 @@ function petOpenSheet(k){
   };});
   document.getElementById('csAcc').onclick=function(){accOpenWardrobe(k);};
   card.querySelectorAll('[data-me]').forEach(function(b){b.onclick=function(){
-    lsSet('catMe',b.getAttribute('data-me'));petDay(petWho());petSave();if(cloudOn())petFlush();petUpdMark();petOpenSheet(k);
+    lsSet('catMe',b.getAttribute('data-me'));petDay(petWho());petSave();if(cloudOn())petFlush();petUpdMark();petOpenSheet(k,'.cs-pages');
   };});
   card.querySelectorAll('[data-feed]').forEach(function(b){b.onclick=function(){
     if(petHidden(p)){toast('先叫'+name+'出來才能餵喔');return;}
@@ -3743,7 +3754,7 @@ function petOpenSheet(k){
     if(!petWho()){toast('先選你是誰');return;}
     var v=prompt('幫'+PET_DEF[k].species+'取名字（8 個字以內）',name);
     if(v==null)return;v=v.trim().slice(0,8);if(!v)return;
-    var st=ps(petRec(petWho()),k);st.name=v;st.nameAt=Date.now();petSave();petOpenSheet(k);
+    var st=ps(petRec(petWho()),k);st.name=v;st.nameAt=Date.now();petSave();petOpenSheet(k,'.cs-hero');
   };
 }
 // 點寵物選單或狀態卡都使用同一個休息開關，重新整理後也保留。
