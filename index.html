@@ -2505,7 +2505,6 @@ function accOpenWardrobe(k,keep){
   h+='<div class="cs-tabs">'+PET_KEYS.map(function(x){return '<button data-pk="'+x+'"'+(x===k?' class="on"':'')+'>'+PET_DEF[x].ic+' '+safeHtml(petName(x))+'</button>';}).join('')+'</div>';
   h+='<button class="wd-try-toggle" id="wdTry" aria-pressed="'+trial+'">'+(trial?'🪞 離開試衣間':'🪞 試衣間')+'</button>';
   if(trial)h+='<div class="wd-try-note">全部 '+ACC_LIST.length+' 款都能試戴，效果只在這台裝置顯示。離開試衣間或重新整理會恢復原本造型。</div>';
-  else h+='<div class="wd-try-note">🎁 洋流飄帶免費開放，三隻都能直接裝備。在「背飾」或下方收藏點選即可。</div>';
   h+='<div class="wd-top"><div class="wd-stage">'+accPreview(k)+'</div><div class="wd-slots">';
   ACC_SLOT_KEYS.forEach(function(slot){
     if(accWardrobeFilter!=='all'&&accWardrobeFilter!==slot)return;
