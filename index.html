@@ -545,11 +545,6 @@ body:has(.chg-bar.show){padding-bottom:calc(124px + env(safe-area-inset-bottom))
 .cs-aff{display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:12px;color:var(--t2);}
 .cs-who{width:26px;height:26px;border-radius:50%;border:var(--lw2) solid var(--ink);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--t);flex-shrink:0;}
 .cs-num{min-width:58px;text-align:right;white-space:nowrap;}
-.cs-food{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.cs-btn{display:flex;align-items:center;justify-content:center;gap:6px;height:46px;border:var(--lw2) solid var(--ink);border-radius:14px;background:var(--paper);font-size:14px;color:var(--t);cursor:pointer;box-shadow:0 2px 0 var(--ink);}
-.cs-btn svg{width:24px;height:24px;flex-shrink:0;}
-.cs-btn:active{transform:translateY(2px);box-shadow:none;}
-.cs-btn.off{opacity:.45;}
 .cs-quest{display:flex;align-items:center;gap:10px;padding:10px 12px;border:var(--lw2) solid var(--ink);border-radius:14px;background:var(--ribbon-bg);font-size:14px;color:var(--t);line-height:1.5;}
 .cs-quest.done{background:var(--syue-bg);}
 .cs-quest .q-main{flex:1;min-width:0;}
@@ -567,6 +562,42 @@ body:has(.chg-bar.show){padding-bottom:calc(124px + env(safe-area-inset-bottom))
 .cs-seg button.on{background:var(--yellow);}
 .scene{cursor:pointer;}
 /* 寵物狀態卡上面切換貓咪／企鵝 */
+/* 狀態卡的角色卡：左邊立繪、右邊名字等級和三條數值 */
+.cs-hero{display:grid;grid-template-columns:118px minmax(0,1fr);gap:12px;align-items:center;margin:10px 0 6px;padding:10px;border:var(--lw2) solid var(--ink);border-radius:18px;background:linear-gradient(180deg,var(--paper),var(--paper2));box-shadow:0 3px 0 var(--ink);}
+.cs-portrait{position:relative;aspect-ratio:1;display:flex;align-items:flex-end;justify-content:center;padding:6px 4px 4px;border:var(--lw2) solid var(--ink);border-radius:14px;background:radial-gradient(circle at 50% 70%,var(--ribbon-bg),var(--paper2) 72%);overflow:hidden;}
+.cs-portrait .wd-pet{width:100%;max-height:100%;}
+.cs-info{min-width:0;display:flex;flex-direction:column;gap:6px;}
+.cs-nameline{display:flex;align-items:center;justify-content:space-between;gap:6px;}
+.cs-info .cs-name{font-size:19px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;}
+.cs-info .cs-name span{font-size:13px;color:var(--t3);}
+.cs-lv{flex-shrink:0;padding:2px 10px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--yellow);font-size:14px;color:var(--t);box-shadow:0 2px 0 var(--ink);}
+.cs-species{font-size:11px;color:var(--t3);margin-top:-3px;}
+.cs-stat{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--t2);}
+.cs-stat .cs-bar{height:11px;}
+.cs-ic{width:18px;text-align:center;flex-shrink:0;font-size:13px;}
+.cs-val{min-width:44px;text-align:right;white-space:nowrap;}
+.cs-affs{display:flex;gap:10px;}
+.cs-next{font-size:12px;color:var(--t2);padding:2px 4px 4px;}
+.cs-next b{font-weight:400;}
+/* 分頁：照顧、技能、支線、設定 */
+.cs-pages{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:12px 0 0;padding:4px;border:var(--lw2) solid var(--ink);border-radius:16px;background:var(--paper2);}
+.cs-pages button{position:relative;display:flex;align-items:center;justify-content:center;gap:4px;height:36px;border:0;border-radius:12px;background:none;font-size:13px;color:var(--t2);cursor:pointer;}
+.cs-pages button.on{background:var(--paper);color:var(--t);box-shadow:inset 0 0 0 var(--lw2) var(--ink),0 2px 0 var(--ink);}
+.cs-dot{position:absolute;top:5px;right:8px;width:7px;height:7px;border-radius:50%;background:var(--coral);border:1.5px solid var(--ink);}
+.cs-panel{display:none;}
+.cs-panel.on{display:block;animation:menuIn .25s ease-out;}
+/* 背包：四格糧食，這隻吃的可以點來餵 */
+.cs-bag{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;}
+.cs-slot{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 2px 6px;border:var(--lw2) solid var(--ink);border-radius:14px;background:var(--paper);font-size:11px;color:var(--t);cursor:pointer;box-shadow:0 2px 0 var(--ink);}
+.cs-slot svg{width:30px;height:30px;}
+.cs-slot b{font-weight:400;font-size:13px;}
+.cs-slot:active{transform:translateY(2px);box-shadow:none;}
+.cs-slot.off{opacity:.5;}
+.cs-slot.other{border-style:dashed;background:var(--paper2);box-shadow:none;cursor:default;}
+.cs-slot.other svg{filter:grayscale(.6);opacity:.6;}
+.cs-slot-go{margin-top:2px;padding:0 9px;border-radius:999px;background:var(--wakatake);border:1.5px solid var(--ink);font-size:11px;}
+.cs-slot-for{margin-top:2px;font-size:10px;color:var(--t3);}
+.cs-quest .q-bar{height:9px;margin:5px 0 3px;}
 .cs-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:2px 0 4px;}
 .cs-tabs button{height:40px;min-width:0;border:var(--lw2) solid var(--ink);border-radius:14px;background:var(--paper);font-size:13px;color:var(--t);cursor:pointer;}
 .cs-tabs button.on{background:var(--yellow);}
@@ -3612,55 +3643,82 @@ function petTryDrop(){
 }
 
 /* 寵物狀態卡：上面切換貓咪／企鵝 */
+// 狀態卡：像遊戲的角色畫面——上面角色卡（立繪、名字、等級、經驗值、飽足、親密），下面分頁（照顧、技能、支線、設定）
+var petSheetTab='care';
 function petOpenSheet(k){
   k=k||'cat';
   petCloseMenu();
   var p=pets[k],me=petWho(),pts=petPts(),lv=petLevel(pts),nx=PET_LV[lv],prev=PET_LV[lv-1],fav=petFav(k),full=Math.round(petFull(k)),name=petName(k);
-  var h='<div class="popup-grabber"></div><div class="popup-top"><div class="popup-dot" style="background:var(--yellow)"></div><div class="popup-title"><button class="cs-name" id="csName">'+safeHtml(name)+' ✎</button></div><div class="popup-count">Lv'+lv+'</div><button class="popup-close" onclick="closePopup()">✕</button></div><div class="popup-body">';
+  var aff={syue:Math.round(petEffAff(petData.syue,k)),ling:Math.round(petEffAff(petData.ling,k))},mx=Math.max(aff.syue,aff.ling,1);
+  var nsk=PET_SKILLS[k].filter(function(s){return s.lv===lv+1;})[0],r=me?petDay(me):null,q=r&&r.d.q,def=q&&petQuestDef(q.id);
+  var fullTxt=full>=80?'飽飽的':full>=40?'還好':full>=15?'有點餓':'好餓…';
+  var h='<div class="popup-grabber"></div><div class="popup-top"><div class="popup-dot" style="background:var(--yellow)"></div><div class="popup-title">寵物狀態</div><button class="popup-close" onclick="closePopup()">✕</button></div><div class="popup-body">';
   h+='<div class="cs-tabs">'+PET_KEYS.map(function(x){return '<button data-pk="'+x+'"'+(x===k?' class="on"':'')+'>'+PET_DEF[x].ic+' '+safeHtml(petName(x))+'</button>';}).join('')+'</div>';
+  // 角色卡
+  h+='<div class="cs-hero"><div class="cs-portrait">'+accPreview(k)+'</div><div class="cs-info">'+
+    '<div class="cs-nameline"><button class="cs-name" id="csName">'+safeHtml(name)+' <span>✎</span></button><span class="cs-lv">Lv '+lv+'</span></div>'+
+    '<div class="cs-species">'+PET_DEF[k].species+'・'+(fav==='syue'||fav==='ling'?'最黏 '+USERS[fav].label:fav==='both'?'兩個人一樣喜歡':'還在認識你們')+'</div>'+
+    '<div class="cs-stat" title="升級點數（兩人一起）"><span class="cs-ic">⭐</span><div class="cs-bar"><i style="width:'+(nx?Math.round((pts-prev)/(nx-prev)*100):100)+'%;background:var(--yellow)"></i></div><span class="cs-val">'+pts+(nx?'/'+nx:'')+'</span></div>'+
+    '<div class="cs-stat" title="肚子"><span class="cs-ic">🍖</span><div class="cs-bar"><i style="width:'+full+'%;background:'+(full<30?'var(--coral)':'var(--wakatake)')+'"></i></div><span class="cs-val">'+fullTxt+'</span></div>'+
+    '<div class="cs-stat" title="親密度"><span class="cs-ic">💗</span><span class="cs-affs"><span>學 '+aff.syue+(fav==='syue'?' 👑':'')+'</span><span>綾 '+aff.ling+(fav==='ling'?' 👑':'')+'</span></span></div>'+
+    '</div></div>';
+  h+='<div class="cs-next">'+(nx?'再 <b>'+(nx-pts)+'</b> 點升到 Lv'+(lv+1)+(nsk?'，會學「'+nsk.name+'」':''):'已經是最高等級，所有技能都學會了！')+'</div>';
   h+='<button class="wd-open" id="csAcc">🎀 衣櫃・配件轉盤'+(me&&petData[me]&&petData[me].tix?'<b>券 ×'+petData[me].tix+'</b>':'')+'</button>';
   if(!me){
     h+='<div class="cs-sec"><div class="cs-h"><span>你是誰？</span></div><div class="cs-note" style="margin:0 0 10px">寵物要記得是誰在照顧牠們，點數和糧食會算在你身上。</div><div class="cs-seg"><button data-me="syue">我是 學</button><button data-me="ling">我是 綾</button></div></div>';
   }
-  var nsk=PET_SKILLS[k].filter(function(s){return s.lv===lv+1;})[0];
-  h+='<div class="cs-sec"><div class="cs-h"><span>升級點數（兩人一起）</span><b>⭐ '+pts+(nx?' / '+nx:'')+'</b></div>'+
-    '<div class="cs-bar"><i style="width:'+(nx?Math.round((pts-prev)/(nx-prev)*100):100)+'%;background:var(--yellow)"></i></div>'+
-    '<div class="cs-note">'+(nx?'再 '+(nx-pts)+' 點升到 Lv'+(lv+1)+(nsk?'，'+safeHtml(name)+'會學「'+nsk.name+'」':''):'已經是最高等級，所有技能都學會了！')+'</div></div>';
-  var aff={syue:Math.round(petEffAff(petData.syue,k)),ling:Math.round(petEffAff(petData.ling,k))},mx=Math.max(aff.syue,aff.ling,1);
-  h+='<div class="cs-sec"><div class="cs-h"><span>親密度</span></div>';
-  ['syue','ling'].forEach(function(u){
-    h+='<div class="cs-aff"><span class="cs-who" style="background:var(--'+u+')">'+USERS[u].label+'</span><div class="cs-bar"><i style="width:'+Math.round(aff[u]/mx*100)+'%;background:var(--'+u+')"></i></div><span class="cs-num">'+aff[u]+' ♥'+(fav===u?' 👑':'')+'</span></div>';
-  });
-  h+='<div class="cs-note">'+(fav==='syue'||fav==='ling'?safeHtml(name)+' 最近最黏 <b>'+USERS[fav].label+'</b>':fav==='both'?safeHtml(name)+' 兩個人都一樣喜歡':safeHtml(name)+' 還在認識你們')+
-    '<br>常來看牠、常維護班表、摸摸和餵食，牠就會比較黏你。</div></div>';
-  h+='<div class="cs-sec"><div class="cs-h"><span>肚子</span><b>'+(full>=80?'飽飽的':full>=40?'還好':full>=15?'有點餓':'好餓…')+'</b></div>'+
-    '<div class="cs-bar"><i style="width:'+full+'%;background:'+(full<30?'var(--coral)':'var(--wakatake)')+'"></i></div></div>';
+  // 分頁
+  var tabs=[['care','🍖','照顧'],['skill','✨','技能'],['quest','📜','支線'],['set','⚙️','設定']];
+  h+='<div class="cs-pages" role="tablist">'+tabs.map(function(t){return '<button role="tab" data-cst="'+t[0]+'"'+(t[0]===petSheetTab?' class="on" aria-selected="true"':' aria-selected="false"')+'><span>'+t[1]+'</span>'+t[2]+(t[0]==='quest'&&q&&!q.done?'<i class="cs-dot"></i>':'')+'</button>';}).join('')+'</div>';
+  function panel(id,html){return '<div class="cs-panel'+(id===petSheetTab?' on':'')+'" data-csp="'+id+'">'+html+'</div>';}
+  // 照顧：背包（糧食）、親密度
+  var care='';
   if(me){
-    var r=petDay(me),q=r.d.q,def=q&&petQuestDef(q.id);
-    h+='<div class="cs-sec"><div class="cs-h"><span>'+USERS[me].label+' 的糧食</span><b>'+['kib','can','fish','squid'].map(function(f){return FOODS[f].name+' '+r[f];}).join('・')+'</b></div><div class="cs-food">'+
-      p.def.foods.map(function(f){return '<button class="cs-btn'+(r[f]?'':' off')+'" data-feed="'+f+'">'+CAT_ART[f]+'餵'+FOODS[f].name+' ×'+r[f]+'</button>';}).join('')+'</div></div>';
-    if(def){
-      if(!q.seen){q.seen=true;petSave();petUpdMark();}
-      var rk=Object.keys(def.r)[0];
-      h+='<div class="cs-sec"><div class="cs-h"><span>今日支線</span><b>'+(q.done?'完成 ✓':Math.min(q.p,def.n)+' / '+def.n)+'</b></div>'+
-        '<div class="cs-quest'+(q.done?' done':'')+'">'+CAT_ART[rk]+'<div class="q-main">'+safeHtml(def.t)+'<div class="q-sub">獎勵：'+petRewardTxt(def.r)+'・轉盤券 ×1</div></div></div></div>';
-    }
-  }
-  h+='<div class="cs-sec"><div class="cs-h"><span>'+safeHtml(name)+' 的技能</span><b>點一下讓牠表演</b></div><div class="cs-skills">';
+    care+='<div class="cs-sec"><div class="cs-h"><span>'+USERS[me].label+' 的背包</span><b>點牠吃的就能餵</b></div><div class="cs-bag">'+
+      ['kib','can','fish','squid'].map(function(f){
+        var eats=p.def.foods.indexOf(f)>-1,n=r[f];
+        return '<button class="cs-slot'+(eats?'':' other')+(eats&&!n?' off':'')+'"'+(eats?' data-feed="'+f+'"':' disabled')+'>'+CAT_ART[f]+'<span class="cs-slot-n">'+FOODS[f].name+'</span><b>×'+n+'</b>'+(eats?'<span class="cs-slot-go">餵</span>':'<span class="cs-slot-for">'+(FOODS[f].pet==='pg'?'給企鵝':'給貓狗')+'</span>')+'</button>';
+      }).join('')+'</div></div>';
+  }else care+='<div class="cs-sec"><div class="cs-note" style="margin:0">先在上面選你是誰，才看得到你的糧食。</div></div>';
+  care+='<div class="cs-sec"><div class="cs-h"><span>親密度</span></div>';
+  ['syue','ling'].forEach(function(u){
+    care+='<div class="cs-aff"><span class="cs-who" style="background:var(--'+u+')">'+USERS[u].label+'</span><div class="cs-bar"><i style="width:'+Math.round(aff[u]/mx*100)+'%;background:var(--'+u+')"></i></div><span class="cs-num">'+aff[u]+' ♥'+(fav===u?' 👑':'')+'</span></div>';
+  });
+  care+='<div class="cs-note">常來看牠、常維護班表、摸摸和餵食，牠就會比較黏你。</div></div>';
+  h+=panel('care',care);
+  // 技能
+  var sk='<div class="cs-sec"><div class="cs-h"><span>'+safeHtml(name)+' 的技能</span><b>點一下讓牠表演</b></div><div class="cs-skills">';
   PET_SKILLS[k].forEach(function(s){
     var ok=s.lv<=lv;
-    h+='<button class="cs-sk'+(ok?'':' lock')+'"'+(ok?' data-sk="'+s.id+'" data-cd="'+k+':'+s.id+'"':'')+'><span class="ic">'+(ok?s.ic:'🔒')+'</span>'+(ok?s.name:'Lv'+s.lv)+'<span class="cd"></span></button>';
+    sk+='<button class="cs-sk'+(ok?'':' lock')+'"'+(ok?' data-sk="'+s.id+'" data-cd="'+k+':'+s.id+'"':'')+'><span class="ic">'+(ok?s.ic:'🔒')+'</span>'+(ok?s.name:'Lv'+s.lv)+'<span class="cd"></span></button>';
   });
-  h+='</div></div>';
-  h+='<div class="cs-sec"><div class="cs-h"><span>怎麼讓寵物升級</span></div><div class="cs-rules">'+
+  sk+='</div><div class="cs-note">技能用過要等 10 秒冷卻；升級會學到新技能。</div></div>';
+  h+=panel('skill',sk);
+  // 支線
+  var qu='';
+  if(def){
+    if(!q.seen){q.seen=true;petSave();petUpdMark();}
+    var rk=Object.keys(def.r)[0],qn=Math.min(q.p,def.n);
+    qu+='<div class="cs-sec"><div class="cs-h"><span>今日支線</span><b>'+(q.done?'完成 ✓':qn+' / '+def.n)+'</b></div>'+
+      '<div class="cs-quest'+(q.done?' done':'')+'">'+CAT_ART[rk]+'<div class="q-main">'+safeHtml(def.t)+(q.done?'':'<div class="cs-bar q-bar"><i style="width:'+Math.round(qn/def.n*100)+'%;background:var(--yellow)"></i></div>')+'<div class="q-sub">獎勵：'+petRewardTxt(def.r)+'・轉盤券 ×1</div></div></div></div>';
+  }else qu+='<div class="cs-sec"><div class="cs-note" style="margin:0">'+(me?'今天的支線還沒出現，晚點再來看看。':'先在上面選你是誰，才看得到今天的支線。')+'</div></div>';
+  qu+='<div class="cs-sec"><div class="cs-h"><span>怎麼讓寵物升級</span></div><div class="cs-rules">'+
     '改一天班表 +1⭐・新增／修改行程 +3⭐・傳變更通知 +2⭐<br>（每人每天最多 '+PET_DAY_PTS+'⭐，同一天改來改去只算一次）<br>'+
     '每天第一次來送飼料和小魚・完成今日支線拿糧食<br>飼料、罐頭給貓咪和薩摩耶，小魚、透抽給企鵝<br>畫面上偶爾會冒出糧食，看到記得點一下撿起來</div></div>';
-  h+='<div class="cs-sec"><div class="cs-seg">'+(me?'這支手機是 <button data-me="syue"'+(me==='syue'?' class="on"':'')+'>學</button><button data-me="ling"'+(me==='ling'?' class="on"':'')+'>綾</button>':'')+
-    '<button id="csHide">'+(petHidden(p)?'叫'+safeHtml(name)+'出來':'讓'+safeHtml(name)+'去休息（隱藏）')+'</button></div></div>';
+  h+=panel('quest',qu);
+  // 設定
+  var st='<div class="cs-sec"><div class="cs-h"><span>這支手機是誰的</span></div><div class="cs-seg"><button data-me="syue"'+(me==='syue'?' class="on"':'')+'>學</button><button data-me="ling"'+(me==='ling'?' class="on"':'')+'>綾</button></div></div>';
+  st+='<div class="cs-sec"><div class="cs-h"><span>'+safeHtml(name)+' 在畫面上</span></div><div class="cs-seg"><button id="csHide">'+(petHidden(p)?'叫'+safeHtml(name)+'出來':'讓'+safeHtml(name)+'去休息（隱藏）')+'</button></div></div>';
+  h+=panel('set',st);
   h+='</div>';
   openPopupCard(h);petCdPaint();
   var card=document.getElementById('popupCard');
   card.querySelectorAll('[data-pk]').forEach(function(b){b.onclick=function(){petOpenSheet(b.getAttribute('data-pk'));};});
+  card.querySelectorAll('[data-cst]').forEach(function(b){b.onclick=function(){
+    petSheetTab=b.getAttribute('data-cst');
+    card.querySelectorAll('[data-cst]').forEach(function(x){var on=x===b;x.classList.toggle('on',on);x.setAttribute('aria-selected',on);});
+    card.querySelectorAll('[data-csp]').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-csp')===petSheetTab);});
+  };});
   document.getElementById('csAcc').onclick=function(){accOpenWardrobe(k);};
   card.querySelectorAll('[data-me]').forEach(function(b){b.onclick=function(){
     lsSet('catMe',b.getAttribute('data-me'));petDay(petWho());petSave();if(cloudOn())petFlush();petUpdMark();petOpenSheet(k);
