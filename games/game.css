@@ -12,8 +12,8 @@ body{background:var(--paper);font-family:'Huninn',-apple-system,'PingFang TC',sa
 button{font-family:inherit;font-weight:400;color:inherit;cursor:pointer;}
 img{-webkit-user-drag:none;user-select:none;}
 
-/* 上方工具列：返回、標題、分數或時間 */
-.g-bar{position:fixed;left:0;right:0;top:0;z-index:20;display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top) + 10px) 12px 10px;}
+/* 上方工具列：返回、標題、分數或時間。實心底＋下框線（跟班表標題列一樣），iOS 狀態列下面才不會變霧霧的 */
+.g-bar{position:fixed;left:0;right:0;top:0;z-index:20;display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top) + 10px) 12px 10px;background:var(--paper);border-bottom:var(--lw) solid var(--ink);}
 .g-back{flex-shrink:0;height:38px;padding:0 14px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);font-size:14px;box-shadow:0 3px 0 var(--ink);}
 .g-back:active{transform:translateY(3px);box-shadow:none;}
 .g-title{flex:1;min-width:0;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}

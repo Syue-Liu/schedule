@@ -15,7 +15,7 @@ html,body{overflow:hidden;}
 body{background:#BFD9A6;touch-action:none;}
 .stage{position:fixed;inset:0;background:url(../assets/games/whack/bg.svg) center bottom/cover no-repeat;}
 /* 三隻在籬笆前面加油 */
-.fans{position:absolute;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top) + 64px);display:flex;align-items:flex-end;gap:4px;width:min(92vw,440px);justify-content:center;}
+.fans{position:absolute;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top) + 114px);display:flex;align-items:flex-end;gap:4px;width:min(92vw,440px);justify-content:center;}
 .fan{position:relative;height:clamp(64px,12vh,96px);}
 .fan img{height:100%;width:auto;display:block;transition:transform .2s var(--pop);}
 .fan.pg{height:clamp(58px,10.8vh,86px);}
@@ -34,7 +34,7 @@ body{background:#BFD9A6;touch-action:none;}
 @keyframes holeShake{25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
 .hammer{position:fixed;z-index:30;width:90px;height:90px;pointer-events:none;transform:translate(-30%,-75%) rotate(30deg);transform-origin:70% 80%;animation:hammerHit .22s ease-out forwards;}
 @keyframes hammerHit{0%{transform:translate(-30%,-75%) rotate(35deg);}50%{transform:translate(-30%,-75%) rotate(-25deg);}100%{transform:translate(-30%,-75%) rotate(-15deg);opacity:0;}}
-.timebar{position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top) + 58px);height:10px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);overflow:hidden;z-index:21;}
+.timebar{position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top) + 70px);height:10px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);overflow:hidden;z-index:21;}
 .timebar i{display:block;height:100%;width:100%;background:var(--wakatake);transform-origin:left;}
 .timebar.low i{background:var(--coral);}
 </style>
