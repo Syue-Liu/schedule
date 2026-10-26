@@ -76,7 +76,7 @@ var GAMES=[
   {id:'fish',name:'湖邊釣魚',s:'釣魚',desc:'跟雪球一起在碼頭釣魚，看準時機拉竿',ic:'🎣',c:'#E4F2F8',href:'fish.html'},
   {id:'camp',name:'露營生火',s:'生火',desc:'控制柴火，幫三隻烤棉花糖',ic:'🔥',c:'#FCE6E1',href:'camp.html'},
   {id:'spring',name:'雪山挖溫泉',s:'溫泉',desc:'看溫度推理，用 12 把鏟子挖出 3 個溫泉',ic:'♨️',c:'#E4F2F8',href:'spring.html'},
-  {id:'moto',name:'摩托車冒險',desc:'三隻擠一台車，閃過路上的障礙',ic:'🛵',c:'#FDF2D2'}
+  {id:'moto',name:'摩托車冒險',s:'摩托車',desc:'三隻擠一台車，跳過路上的障礙',ic:'🛵',c:'#FDF2D2',href:'moto.html'}
 ];
 function draw(){
   document.getElementById('lbPets').innerHTML=['cat','pg','dg'].map(function(k){return '<img'+(k==='pg'?' class="pg"':'')+' src="'+G.petImg(k,'happy')+'" alt="'+G.petName(k)+'">';}).join('');
