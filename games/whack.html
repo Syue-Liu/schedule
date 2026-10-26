@@ -37,30 +37,35 @@ body{background:#BFD9A6;touch-action:none;}
 .timebar{position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top) + 70px);height:10px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);overflow:hidden;z-index:21;}
 .timebar i{display:block;height:100%;width:100%;background:var(--wakatake);transform-origin:left;}
 .timebar.low i{background:var(--coral);}
+/* 連擊：田鼠連續敲中會累積，每 5 下多 2 分 */
+.combo{position:absolute;left:50%;bottom:calc(100% + 6px);transform:translateX(-50%);padding:3px 12px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--yellow);font-size:15px;white-space:nowrap;opacity:0;transition:opacity .2s;pointer-events:none;}
+.combo.on{opacity:1;}
+.combo.bump{animation:comboBump .35s var(--pop);}
+@keyframes comboBump{40%{transform:translateX(-50%) scale(1.25);}}
 </style>
 <link rel="stylesheet" href="polish.css?v=storybook-20261026">
 </head>
 <body data-game="whack">
 <div class="stage">
   <div class="fans" id="fans"></div>
-  <div class="field" id="field"></div>
+  <div class="field" id="field"><div class="combo" id="combo"></div></div>
 </div>
 <div class="g-bar"><button class="g-back" onclick="location.href='./'">‹ 大廳</button><div class="g-title">菜園打地鼠</div><div class="g-pill" id="time">⏱ 30</div><div class="g-pill hot" id="score">0 分</div></div>
 <div class="timebar" id="tbar"><i id="tfill"></i></div>
 <script src="sound.js?v=sound-20261026"></script>
-<script src="game.js?v=sound-20261026"></script>
+<script src="game.js?v=hard-20261026"></script>
 <script>
 // 美術：之後換成畫好的圖，只要改這裡的檔名
 var A='../assets/games/whack/',ART={hb:A+'hole-back.svg',hf:A+'hole-front.svg',mole:A+'mole.svg',hit:A+'mole-hit.svg',gold:A+'mole-gold.svg',hog:A+'hedgehog.svg',hammer:A+'hammer.svg'};
 var TIME=30,KINDS={mole:{pts:1,img:ART.mole},gold:{pts:3,img:ART.gold},hog:{pts:-2,img:ART.hog}};
-var holes=[],score=0,left=TIME,running=false,next=0,raf=0,last=0;
+var holes=[],score=0,left=TIME,running=false,next=0,raf=0,last=0,combo=0;
 var CHEER=['好棒！','再一隻！','敲得好！','加油～'],OUCH=['小心刺蝟！','好痛！','那是刺蝟啦'];
-// 星星：25 分三顆、15 分兩顆，玩完至少一顆
-function stars(s){return s>=25?3:s>=15?2:1;}
+// 星星：50 分三顆、30 分兩顆，玩完至少一顆
+function stars(s){return s>=50?3:s>=30?2:1;}
 
 function build(){
   document.getElementById('fans').innerHTML=['cat','pg','dg'].map(function(k){return '<div class="fan '+k+'" data-k="'+k+'"><img src="'+G.petImg(k,'idle')+'" alt="'+G.petName(k)+'"><div class="g-say"></div></div>';}).join('');
-  var f=document.getElementById('field');f.innerHTML='';holes=[];
+  var f=document.getElementById('field');f.querySelectorAll('.hole').forEach(function(h){h.remove();});holes=[];
   for(var i=0;i<9;i++){
     var h=G.el('<button type="button" class="hole" aria-label="等待田鼠出現"><img class="back" src="'+ART.hb+'" alt=""><div class="clip"><img class="who" src="'+ART.mole+'" alt=""></div><img class="front" src="'+ART.hf+'" alt=""></button>');
     f.appendChild(h);
@@ -82,34 +87,44 @@ function whack(o,e){
   if(!running)return;
   if(!e.clientX&&!e.clientY){var box=o.el.getBoundingClientRect();e={clientX:box.left+box.width/2,clientY:box.top+box.height/2};}
   var hm=G.el('<img class="hammer" src="'+ART.hammer+'" alt="">');hm.style.left=e.clientX+'px';hm.style.top=e.clientY+'px';document.body.appendChild(hm);setTimeout(function(){hm.remove();},240);
-  if(!o.kind||o.hit){SND.sfx('swish');return;}
+  if(!o.kind||o.hit){SND.sfx('swish');if(!o.kind)setCombo(0);return;}
   var k=KINDS[o.kind];o.hit=true;o.el.setAttribute('aria-label','已敲中');score=Math.max(0,score+k.pts);
   var r=o.el.getBoundingClientRect();
   if(o.kind==='hog'){
-    SND.sfx('ouch');o.el.classList.add('shake');setTimeout(function(){o.el.classList.remove('shake');},300);
+    SND.sfx('ouch');setCombo(0);o.el.classList.add('shake');setTimeout(function(){o.el.classList.remove('shake');},300);
     G.float(r.left+r.width/2,r.top+r.height*.3,k.pts+'','bad');cheer(['cat','pg','dg'][Math.floor(Math.random()*3)],OUCH[Math.floor(Math.random()*OUCH.length)]);
     if(navigator.vibrate)navigator.vibrate(60);
   }else{
     SND.sfx(o.kind==='gold'?'gold':'bonk');o.img.src=ART.hit;if(o.kind==='gold')o.img.style.filter='sepia(1) saturate(3) hue-rotate(5deg)';
     G.float(r.left+r.width/2,r.top+r.height*.3,'+'+k.pts,o.kind==='gold'?'gold':'');
+    setCombo(combo+1);
+    if(combo%5===0){score+=2;SND.sfx('treasure');setTimeout(function(){G.float(r.left+r.width/2,r.top-10,combo+' 連擊 +2','gold');},180);}
     if(o.kind==='gold'||Math.random()<.35)cheer(['cat','pg','dg'][Math.floor(Math.random()*3)],o.kind==='gold'?'金色的！':CHEER[Math.floor(Math.random()*CHEER.length)]);
   }
   o.el.classList.add('hit');o.until=performance.now()+260;
   document.getElementById('score').textContent=score+' 分';
 }
-// 越後面冒得越快、待得越短；最後 5 秒每秒嗶一聲
+// 連擊：敲到刺蝟、敲空、讓田鼠溜走都會斷
+function setCombo(n){
+  var c=document.getElementById('combo'),was=combo;combo=n;
+  c.textContent=n+' 連擊';c.classList.toggle('on',n>=2);
+  if(n>was&&n>=2){c.classList.remove('bump');void c.offsetWidth;c.classList.add('bump');}
+}
+// 越後面冒得越快、待得越短，刺蝟越多，後半段會兩隻一起冒；最後 5 秒每秒嗶一聲
 var lastSec=0;
 function tick(t){
   var dt=Math.min(.1,(t-last)/1000);last=t;
   if(running){
     left-=dt;
-    var p=1-left/TIME,gap=900-430*p,stay=1150-450*p;
+    var p=1-left/TIME,gap=820-440*p,stay=1000-450*p,hogP=.18+.14*p;
     if(t>=next){
-      var free=holes.filter(function(o){return !o.kind;});
-      if(free.length){var o=free[Math.floor(Math.random()*free.length)],r=Math.random();pop(o,r<.08?'gold':r<.25?'hog':'mole',stay*(r<.08?.75:1));}
+      for(var n=p>.45&&Math.random()<.35?2:1;n>0;n--){
+        var free=holes.filter(function(o){return !o.kind;});
+        if(free.length){var o=free[Math.floor(Math.random()*free.length)],r=Math.random();pop(o,r<.07?'gold':r<.07+hogP?'hog':'mole',stay*(r<.07?.72:1));}
+      }
       next=t+gap*(.7+Math.random()*.6);
     }
-    holes.forEach(function(o){if(o.kind&&t>=o.until){o.img.style.filter='';down(o);}});
+    holes.forEach(function(o){if(o.kind&&t>=o.until){if(!o.hit&&o.kind!=='hog')setCombo(0);o.img.style.filter='';down(o);}});
     var s=Math.max(0,Math.ceil(left));document.getElementById('time').textContent='⏱ '+s;
     if(s!==lastSec){lastSec=s;if(s>0&&s<=5)SND.sfx('tick');}
     document.getElementById('tfill').style.transform='scaleX('+Math.max(0,left/TIME)+')';
@@ -119,17 +134,17 @@ function tick(t){
   raf=requestAnimationFrame(tick);
 }
 function start(){
-  score=0;left=TIME;running=true;document.getElementById('score').textContent='0 分';
+  score=0;left=TIME;running=true;setCombo(0);document.getElementById('score').textContent='0 分';
   holes.forEach(down);last=performance.now();next=last+400;cancelAnimationFrame(raf);raf=requestAnimationFrame(tick);
 }
 function end(){
   running=false;holes.forEach(down);
   var st=stars(score);['cat','pg','dg'].forEach(function(k){cheer(k,st>=3?'太強了！':'辛苦了～',1600);});
-  setTimeout(function(){G.finish({game:'whack',score:score,unit:'分',stars:st,note:'25 分三顆星、15 分兩顆星',again:function(){G.countdown(start);}});},700);
+  setTimeout(function(){G.finish({game:'whack',score:score,unit:'分',stars:st,note:'每 5 連擊多 2 分；50 分三顆星、30 分兩顆星',again:function(){G.countdown(start);}});},700);
 }
 build();
 G.preload(Object.keys(ART).map(function(k){return ART[k];}),function(){
-  G.intro({game:'whack',title:'菜園打地鼠',desc:'小田鼠偷抱飼料冒出來了！<br>敲田鼠 +1、金色田鼠 +3<br>刺蝟會刺人，敲到 −2',start:start});
+  G.intro({game:'whack',title:'菜園打地鼠',desc:'小田鼠偷抱飼料冒出來了！<br>敲田鼠 +1、金色田鼠 +3，連續敲中 5 隻再 +2<br>刺蝟會刺人，敲到 −2；敲空或讓田鼠溜走，連擊就斷了',start:start});
 });
 // 切到背景就暫停（requestAnimationFrame 停下來，時間不會一直少）
 document.addEventListener('visibilitychange',function(){last=performance.now();});

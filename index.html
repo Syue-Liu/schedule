@@ -2920,15 +2920,19 @@ function petFromRemote(raw){
 }
 // 資料準備好了（本機模式一開始；雲端模式收到第一筆）
 // 小遊戲玩完先把獎勵排在這支手機（gameRewards），回到班表時收進寵物紀錄：飼料加進背包、分數放進排行榜，再照平常同步
+var GAME_KIB=3; // 小遊戲每天合計最多給幾包飼料
 function petApplyGames(){
   var me=petWho();if(!me)return;
   var q;try{q=JSON.parse(lsGet('gameRewards')||'[]');}catch(e){q=[];}
   if(!Array.isArray(q)||!q.length)return;
-  var r=petDay(me),kib=0,keep=[];
+  var r=petDay(me),kib=0,keep=[],used=0;
+  Object.keys(r.d.gm).forEach(function(g){used+=r.d.gm[g];});
   q.forEach(function(it){
     if(!it||it.who!==me||!/^[a-z]{1,12}$/.test(it.game||'')){if(it&&it.who&&it.who!==me)keep.push(it);return;}
     var k=Math.max(0,Math.min(3,Math.floor(+it.kib||0)));
-    if(k){r.kib+=k;kib+=k;if(it.day===r.d.day)r.d.gm[it.game]=(r.d.gm[it.game]||0)+1;}
+    // 今天的：所有遊戲合計最多 GAME_KIB 包（遊戲那邊算過了，這裡再擋一次）；d.gm 記每款拿了幾包
+    if(k&&it.day===r.d.day){k=Math.min(k,Math.max(0,GAME_KIB-used));used+=k;if(k)r.d.gm[it.game]=(r.d.gm[it.game]||0)+k;}
+    if(k){r.kib+=k;kib+=k;}
     if(isFinite(+it.score)&&/^\d{4}-\d{2}-\d{2}$/.test(it.day||''))r.gs[it.game]=petTop5((r.gs[it.game]||[]).concat([{s:+it.score,d:it.day}]));
   });
   lsSet('gameRewards',JSON.stringify(keep));petSave();

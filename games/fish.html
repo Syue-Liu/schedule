@@ -73,23 +73,26 @@ body{background:#DAE7EF;touch-action:none;}
   <button class="g-btn act" id="act">🎣 拋竿</button>
 </div>
 <script src="sound.js?v=sound-20261026"></script>
-<script src="game.js?v=sound-20261026"></script>
+<script src="game.js?v=hard-20261026"></script>
 <script>
 var A='../assets/games/fish/',ART={bobber:A+'bobber.svg',splash:A+'splash.svg',fish:A+'catch-fish.svg',squid:A+'catch-squid.svg',big:A+'catch-big.svg',boot:A+'catch-boot.svg',chest:A+'catch-chest.svg'};
+// 黃金鮭魚先借大魚的圖染成金色，之後有畫好的圖再換
+ART.king=ART.big;var GOLD='sepia(1) saturate(4) hue-rotate(-12deg) brightness(1.08)';
 // 釣得到的東西：機率、分數、難度（魚跑多快、綠框多寬）
 var CATCH=[
-  {id:'fish',name:'小魚',w:48,pts:1,speed:.35,zone:.34},
-  {id:'squid',name:'透抽',w:20,pts:2,speed:.5,zone:.3},
-  {id:'big',name:'大魚',w:12,pts:3,speed:.75,zone:.26},
-  {id:'boot',name:'舊靴子',w:14,pts:0,speed:.2,zone:.4},
-  {id:'chest',name:'寶箱',w:6,pts:5,speed:.6,zone:.28}
+  {id:'fish',name:'小魚',w:48,pts:1,speed:.39,zone:.32},
+  {id:'squid',name:'透抽',w:20,pts:2,speed:.56,zone:.28},
+  {id:'big',name:'大魚',w:12,pts:3,speed:.84,zone:.24},
+  {id:'boot',name:'舊靴子',w:14,pts:0,speed:.22,zone:.38},
+  {id:'chest',name:'寶箱',w:6,pts:5,speed:.67,zone:.26},
+  {id:'king',name:'黃金鮭魚',w:4,pts:8,speed:1,zone:.2,gold:true}
 ];
 var CASTS=5,ROD_TIP={x:700,y:745};
 var $=function(id){return document.getElementById(id);};
 var state='idle',casts=CASTS,score=0,cur=null,bob={x:0,y:0},timer=0,nibT=[],raf=0,last=0,holding=false;
 var zone={x:.35,v:0},fishP=.5,fishT=.5,fishNext=0,prog=.3;
-// 星星：10 分三顆、6 分兩顆
-function stars(s){return s>=10?3:s>=6?2:1;}
+// 星星：11 分三顆、6 分兩顆
+function stars(s){return s>=11?3:s>=6?2:1;}
 
 function fit(){var s=Math.max(Math.min(innerWidth,600)/1080,innerHeight/1920);$('world').style.transform='translateX(-50%) scale('+s+')';}
 fit();addEventListener('resize',fit);
@@ -113,7 +116,7 @@ function cast(){
 // 等魚：先輕輕動幾下（假的，先別拉），真的咬下去才拉
 function wait(){
   state='wait';btn('等一下…','wait');tip('浮標沉下去再拉！');cur=pick();
-  var nib=Math.floor(Math.random()*3),t=600;nibT.forEach(clearTimeout);nibT=[];
+  var nib=Math.floor(Math.random()*4),t=600;nibT.forEach(clearTimeout);nibT=[];
   for(var i=0;i<nib;i++){t+=500+Math.random()*700;nibT.push(setTimeout(function(){if(state!=='wait')return;var b=$('bobber');b.classList.remove('nibble');void b.offsetWidth;b.classList.add('nibble');SND.sfx('nibble');},t));}
   clearTimeout(timer);timer=setTimeout(bite,t+900+Math.random()*1800);
 }
@@ -121,14 +124,15 @@ function bite(){
   if(state!=='wait')return;
   state='bite';$('bobber').classList.add('bite');splash();SND.sfx('bite');var g=$('bang');g.style.left=bob.x+'px';g.style.top=bob.y+'px';g.classList.add('on');
   btn('拉！','pull');tip('咬到了！快拉！');if(navigator.vibrate)navigator.vibrate(80);
-  timer=setTimeout(function(){if(state==='bite')miss('太慢了，魚跑掉了…');},900);
+  // 咬住的時間很短，大魚更短
+  timer=setTimeout(function(){if(state==='bite')miss('太慢了，魚跑掉了…');},cur.pts>=3?600:720);
 }
 function miss(t){SND.sfx('escape');state='after';clearTimeout(timer);nibT.forEach(clearTimeout);$('bang').classList.remove('on');$('bobber').style.display='none';line();tip(t);say('pPg','下次一定！');btn('…','wait');setTimeout(next,1400);}
 // 收線：按住讓綠框往右、放開往左，魚在綠框裡進度會漲
 function reel(){
   state='reel';clearTimeout(timer);$('bang').classList.remove('on');
   zone.x=.5-cur.zone/2;zone.v=0;fishP=.5;fishT=Math.random();fishNext=0;prog=.3;
-  $('zone').style.width=cur.zone*100+'%';$('fishmk').src=ART[cur.id];$('reel').classList.add('on');
+  $('zone').style.width=cur.zone*100+'%';$('fishmk').src=ART[cur.id];$('fishmk').style.filter=cur.gold?GOLD:'';$('reel').classList.add('on');
   btn('按住收線','hold');tip('魚在框框裡進度會漲，按住框框往右、放開往左');
   last=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(loop);
 }
@@ -141,7 +145,7 @@ function loop(t){
   if(t>fishNext){fishT=Math.random();fishNext=t+(400+Math.random()*900)/(.6+cur.speed);}
   fishP+=(fishT-fishP)*Math.min(1,dt*cur.speed*4);
   var inZ=fishP>=zone.x&&fishP<=zone.x+cur.zone;
-  prog+=(inZ?.3:-.2)*dt*(cur.id==='boot'?1.6:1);
+  prog+=(inZ?.3:-.24)*dt*(cur.id==='boot'?1.6:1);
   $('zone').style.left=zone.x*100+'%';$('zone').classList.toggle('in',inZ);
   $('fishmk').style.left=fishP*100+'%';$('prog').style.width=Math.max(0,Math.min(1,prog))*100+'%';
   // 收線的喀喀聲：按住比較快
@@ -153,14 +157,14 @@ function loop(t){
 function endReel(){$('reel').classList.remove('on');$('bobber').style.display='none';holding=false;}
 function got(){
   SND.sfx(cur.id==='boot'?'boot':'catch');state='after';endReel();score+=cur.pts;$('score').textContent=score+' 分';line();
-  var c=G.el('<div class="catch"><img src="'+ART[cur.id]+'" alt=""><div>釣到'+cur.name+(cur.pts?' +'+cur.pts:'')+'</div></div>');document.body.appendChild(c);setTimeout(function(){c.remove();},1500);
+  var c=G.el('<div class="catch"><img src="'+ART[cur.id]+'" alt=""'+(cur.gold?' style="filter:'+GOLD+'"':'')+'><div>釣到'+cur.name+(cur.pts?' +'+cur.pts:'')+'</div></div>');document.body.appendChild(c);setTimeout(function(){c.remove();},1500);
   if(cur.id==='boot'){say('pCat','這是什麼啦');tip('……是舊靴子');}
-  else{say('pPg',cur.id==='chest'?'寶箱！嘎！！':'嘎！釣到了！');setTimeout(function(){say(Math.random()<.5?'pCat':'pDg',cur.id==='big'?'好大一隻！':'好厲害！');},400);tip('釣到'+cur.name+'！');}
+  else{say('pPg',cur.id==='king'?'黃金鮭魚！！':cur.id==='chest'?'寶箱！嘎！！':'嘎！釣到了！');setTimeout(function(){say(Math.random()<.5?'pCat':'pDg',cur.id==='big'?'好大一隻！':'好厲害！');},400);tip('釣到'+cur.name+'！');}
   btn('…','wait');setTimeout(next,1600);
 }
 function escape(){SND.sfx('escape');state='after';endReel();line();tip('線鬆掉了，'+cur.name+'跑走了…');say('pDg','差一點點！');btn('…','wait');setTimeout(next,1400);}
 function next(){
-  if(casts<=0){state='done';btn('結算中…','wait');setTimeout(function(){G.finish({game:'fish',score:score,unit:'分',stars:stars(score),note:'5 竿合計，10 分三顆星、6 分兩顆星',again:function(){reset();}});},500);return;}
+  if(casts<=0){state='done';btn('結算中…','wait');setTimeout(function(){G.finish({game:'fish',score:score,unit:'分',stars:stars(score),note:'5 竿合計，11 分三顆星、6 分兩顆星',again:function(){reset();}});},500);return;}
   state='idle';btn('🎣 拋竿');tip('再拋一竿（還有 '+casts+' 次）');
 }
 function reset(){casts=CASTS;score=0;$('casts').textContent='🎣 '+casts;$('score').textContent='0 分';state='idle';btn('🎣 拋竿');tip('按「拋竿」開始');}
@@ -177,7 +181,7 @@ act.addEventListener('keydown',function(e){if(e.repeat||!['Space','Enter'].inclu
 act.addEventListener('keyup',function(e){if(['Space','Enter'].includes(e.code)){e.preventDefault();holding=false;}});
 ['pointerup','pointercancel','pointerleave'].forEach(function(ev){act.addEventListener(ev,function(){holding=false;});});
 G.preload([ART.bobber,ART.splash,ART.fish,ART.squid,ART.big,ART.boot,ART.chest,'../assets/games/fish/bg-winter.svg'],function(){
-  G.intro({game:'fish',title:'湖邊釣魚',desc:'跟雪球一起釣 5 竿！<br>浮標沉下去時馬上按「拉」<br>收線時按住讓框框追著魚跑',start:function(){reset();tip('按「拋竿」開始');}});
+  G.intro({game:'fish',title:'湖邊釣魚',desc:'跟雪球一起釣 5 竿！<br>浮標會先假動作，真的沉下去才馬上按「拉」<br>收線時按住讓框框追著魚跑<br>運氣好會遇到 8 分的黃金鮭魚',start:function(){reset();tip('按「拋竿」開始');}});
 });
 document.addEventListener('visibilitychange',function(){last=performance.now();});
 </script>

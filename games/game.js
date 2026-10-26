@@ -1,18 +1,18 @@
-/* 小遊戲共用：這支手機是誰、每天的獎勵次數、把獎勵和分數交給班表、排行榜、開始卡片、倒數、結算畫面。
+/* 小遊戲共用：這支手機是誰、每天的飼料上限（所有遊戲合計 3 包）、把獎勵和分數交給班表、排行榜、開始卡片、倒數、結算畫面。
    不直接寫雲端：先排進這支手機的 gameRewards，回到班表時由班表加進寵物紀錄（飼料、每人每款前 5 高分），
    再照平常一樣同步，兩支手機的排行榜就會一樣。 */
 // sound.js 沒載到也不會壞：換成什麼都不做的版本
 var SND=window.SND||{music:function(){},stop:function(){},sfx:function(){},tempo:function(){},level:function(){}};
 var G=(function(){
   var SCENES={
-    whack:{label:'菜園小幫手',kind:'反應挑戰',time:'30 秒',goal:'25 分獲得三星',color:'#E8EED7'},
-    fish:{label:'雪湖慢時光',kind:'時機與手感',time:'5 次拋竿',goal:'10 分獲得三星',color:'#E2EAF4',cover:'cover-winter.svg'},
-    camp:{label:'星空營火夜',kind:'火候控制',time:'40 秒',goal:'14 分獲得三星',color:'#F4DFCC'},
-    spring:{label:'雪國探險家',kind:'溫度推理',time:'12 把鏟子',goal:'13 分獲得三星',color:'#E2EAF4'},
-    moto:{label:'三寵兜風日',kind:'跳躍冒險',time:'40 秒',goal:'70 分獲得三星',color:'#F5E9C9'}
+    whack:{label:'菜園小幫手',kind:'反應挑戰',time:'30 秒',goal:'50 分獲得三星',color:'#E8EED7'},
+    fish:{label:'雪湖慢時光',kind:'時機與手感',time:'5 次拋竿',goal:'11 分獲得三星',color:'#E2EAF4',cover:'cover-winter.svg'},
+    camp:{label:'星空營火夜',kind:'火候控制',time:'40 秒',goal:'16 分獲得三星',color:'#F4DFCC'},
+    spring:{label:'雪國探險家',kind:'溫度推理',time:'11 把鏟子',goal:'13 分獲得三星',color:'#E2EAF4'},
+    moto:{label:'三寵兜風日',kind:'跳躍冒險',time:'40 秒',goal:'90 分獲得三星',color:'#F5E9C9'}
   };
   function escapeHtml(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
-  var CAP=3,NAMES={syue:'學',ling:'綾'};
+  var CAP=3,NAMES={syue:'學',ling:'綾'}; // CAP：所有遊戲合計，每天最多拿幾包飼料
   var PET={cat:{name:'Pillow',art:'snowball'},pg:{name:'雪球',art:'dudu'},dg:{name:'薩摩耶',art:'samoyed'}};
   function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v);}catch(e){return null;}}
   function json(k,d){try{var v=JSON.parse(ls(k)||'null');return v==null?d:v;}catch(e){return d;}}
@@ -20,18 +20,18 @@ var G=(function(){
   function today(){var t=new Date();return t.getFullYear()+'-'+pad(t.getMonth()+1)+'-'+pad(t.getDate());}
   function who(){var m=ls('catMe');return m==='syue'||m==='ling'?m:'';}
   function queue(){var q=json('gameRewards',[]);return Array.isArray(q)?q:[];}
-  // 今天這款拿過幾次飼料：班表已經收下的（寵物紀錄裡的 d.gm）＋還在排隊的
-  function played(game){
+  // 今天從小遊戲拿了幾包飼料（所有遊戲合計）：班表已經收下的（寵物紀錄 d.gm＝每款拿了幾包）＋還在排隊的
+  function earned(){
     var me=who(),day=today(),n=0,r=(json('catV1',{})||{})[me];
-    if(r&&r.d&&r.d.day===day&&r.d.gm)n+=+r.d.gm[game]||0;
-    queue().forEach(function(q){if(q.who===me&&q.game===game&&q.day===day&&q.kib>0)n++;});
+    if(r&&r.d&&r.d.day===day&&r.d.gm)Object.keys(r.d.gm).forEach(function(g){n+=+r.d.gm[g]||0;});
+    queue().forEach(function(q){if(q.who===me&&q.day===day)n+=+q.kib||0;});
     return n;
   }
-  function left(game){return who()?Math.max(0,CAP-played(game)):0;}
-  // 玩完一局：有得分就記（排行榜用），飼料看今天還有沒有次數；回傳拿到幾包。0 分不記也不給飼料
+  function left(){return who()?Math.max(0,CAP-earned()):0;}
+  // 玩完一局：有得分就記（排行榜用），飼料照星星給、但不超過今天剩下的；回傳拿到幾包。0 分不記也不給飼料
   function record(game,score,kib){
     if(!who()||!(score>0))return 0;
-    var got=kib>0&&left(game)?kib:0,q=queue();
+    var got=Math.max(0,Math.min(kib,left())),q=queue();
     q.push({who:who(),game:game,day:today(),kib:got,score:score,at:Date.now()});ls('gameRewards',JSON.stringify(q));
     return got;
   }
@@ -55,7 +55,7 @@ var G=(function(){
   function pets(){return '<div class="g-pets"><img src="'+petImg('cat','happy')+'" alt=""><img class="pg" src="'+petImg('pg','happy')+'" alt=""><img src="'+petImg('dg','happy')+'" alt=""></div>';}
   function leftTxt(game){
     if(!who())return '在班表選好你是誰，才能領飼料獎勵';
-    var n=left(game);return n?'今天還有 '+n+' 次飼料獎勵（每天 '+CAP+' 次）':'今天這款的飼料獎勵領完了，還是可以玩';
+    var n=left();return n?'今天還可以拿 '+n+' 包飼料（所有遊戲合計每天 '+CAP+' 包）':'今天的 '+CAP+' 包飼料拿完了，還是可以玩、衝排行榜';
   }
   function intro(o){
     var meta=SCENES[o.game],rules=o.desc.split(/<br\s*\/?\s*>/i);
@@ -68,15 +68,15 @@ var G=(function(){
     var c=el('<div class="g-count" aria-live="assertive"></div>'),seq=['3','2','1','開始！'],i=0;document.body.appendChild(c);
     (function tick(){if(i>=seq.length){c.remove();cb();return;}c.innerHTML='<span>'+seq[i]+'</span>';SND.sfx(i===seq.length-1?'go':'tick');i++;setTimeout(tick,i===seq.length?600:750);})();
   }
-  // 結算：分數→星星→飼料（1～3 包），每天每款前 3 次有獎勵
+  // 結算：分數→星星→飼料（1～3 包），所有遊戲合計每天最多 3 包
   function finish(o){
     var stars=o.score>0?o.stars:0,me=who(),prev=me?best(o.game,me):null,got=record(o.game,o.score,stars);
     var brd=board(o.game),rank=-1;
     for(var i=0;i<brd.length;i++)if(brd[i].mine&&brd[i].s===o.score&&brd[i].who===me){rank=i+1;break;}
     var rec=me&&o.score>0&&(prev==null||o.score>prev);
     var head=stars>=3?'太厲害了！':stars===2?'好棒！':'完成了！';
-    var rw=got?'<div class="g-reward"><img src="../assets/games/ui/kib.svg" alt="">獲得飼料 ×'+got+'<span class="g-small" style="margin:0 0 0 4px">回班表就會收到</span></div>'
-      :'<div class="g-reward none">'+(!who()?'在班表選好你是誰，才能領飼料':o.score>0?'今天這款的飼料獎勵領完了':'這局沒有得分，沒有飼料')+'</div>';
+    var rw=got?'<div class="g-reward"><img src="../assets/games/ui/kib.svg" alt="">獲得飼料 ×'+got+'<span class="g-small" style="margin:0 0 0 4px">'+(got<stars?'今天的上限到了':'回班表就會收到')+'</span></div>'
+      :'<div class="g-reward none">'+(!who()?'在班表選好你是誰，才能領飼料':o.score>0?'今天的 '+CAP+' 包飼料已經拿完了':'這局沒有得分，沒有飼料')+'</div>';
     var st='';for(var i=0;i<3;i++)st+='<img class="g-star'+(i<stars?' on':'')+'" src="../assets/games/ui/star.svg" alt="">';
     var rk=me&&o.score>0?'<div class="g-rank">'+(rec?'<b>🏆 '+NAMES[me]+'的新紀錄！</b>':'')+(rank>0?'<span>排行榜第 '+rank+' 名</span>':'<span>這局沒進前 10 名</span>')+'</div>':'';
     var ov=el('<div class="g-ov"><section class="g-card g-result" role="dialog" aria-modal="true" aria-label="遊戲結算"><div class="g-result-ribbon">'+SCENES[o.game].label+' · 冒險完成</div>'+pets()+'<h2>'+head+'</h2><div class="g-stars">'+st+'</div><div class="g-score">'+o.score+'<span style="font-size:16px"> '+o.unit+'</span></div>'+rk+(o.note?'<p>'+o.note+'</p>':'')+rw+

@@ -37,6 +37,7 @@ body{background:#E4EEF4;touch-action:none;}
 @keyframes tileDrop{from{transform:translateY(-30px) scale(.6);opacity:0;}}
 .tile.dug img.bg{animation:dig .25s ease-out;}
 @keyframes dig{from{transform:scale(.8);}}
+.tile .cost{position:absolute;right:-2px;top:-4px;padding:0 5px;border:1.5px solid var(--ink);border-radius:999px;background:#E4F2F8;font-size:11px;line-height:16px;}
 .tile .t{position:absolute;left:50%;bottom:-2px;transform:translateX(-50%);padding:0 6px;border:1.5px solid var(--ink);border-radius:999px;font-size:12px;line-height:18px;white-space:nowrap;background:var(--c,#fff);}
 .tile .it{position:absolute;right:-2px;top:-4px;width:46%;height:46%;animation:gPop .4s var(--pop);}
 .tile.here{animation:here .6s ease-in-out 3 alternate;}
@@ -71,14 +72,15 @@ body{background:#E4EEF4;touch-action:none;}
 </div>
 <div class="g-bar"><button class="g-back" onclick="location.href='./'">‹ 大廳</button><div class="g-title">雪山挖溫泉</div><div class="g-pill hot" id="score">0 分</div></div>
 <script src="sound.js?v=sound-20261026"></script>
-<script src="game.js?v=sound-20261026"></script>
+<script src="game.js?v=hard-20261026"></script>
 <script>
 // 美術：之後換成畫好的圖，只要改這裡的檔名
-var A='../assets/games/spring/',ART={bg:A+'bg-painted.svg',snow:A+'tile-snow.svg',dug:A+'tile-dug.svg',spring:A+'spring.svg',back:A+'pool-back.svg',front:A+'pool-front.svg',shovel:A+'shovel.svg',fish:'../assets/games/ui/fish.svg',kib:'../assets/games/ui/kib.svg'};
+var A='../assets/games/spring/',ART={bg:A+'bg-painted.svg',snow:A+'tile-snow.svg',ice:A+'tile-ice.svg',dug:A+'tile-dug.svg',spring:A+'spring.svg',back:A+'pool-back.svg',front:A+'pool-front.svg',shovel:A+'shovel.svg',fish:'../assets/games/ui/fish.svg',kib:'../assets/games/ui/kib.svg'};
 // 6×7 的雪地、12 把鏟子、找 3 個溫泉；溫泉 40 度，每遠一步（上下左右）冷 6 度
-var W=6,H=7,SHOVELS=12,SPRINGS=3,HOTT=40,STEP=6;
+// 每一輪有 5 塊冰：挖冰要 2 把鏟子（溫泉也可能藏在冰下面）
+var W=6,H=7,SHOVELS=11,SPRINGS=3,HOTT=40,STEP=6,ICE=5;
 var $=function(id){return document.getElementById(id);};
-var tiles=[],spring=-1,treasure={},left=SHOVELS,found=0,score=0,busy=false,state='idle';
+var tiles=[],spring=-1,treasure={},ice={},left=SHOVELS,found=0,score=0,busy=false,state='idle';
 // 星星：13 分三顆、9 分兩顆
 function stars(s){return s>=13?3:s>=9?2:1;}
 function dist(a,b){return Math.abs(a%W-b%W)+Math.abs(Math.floor(a/W)-Math.floor(b/W));}
@@ -107,22 +109,25 @@ function drawHud(){
   $('shovels').innerHTML=Array.apply(null,Array(SHOVELS)).map(function(_,i){return '<img src="'+ART.shovel+'" alt=""'+(i>=left?' class="used"':'')+'>';}).join('');
   $('found').textContent='♨️ '+found+'/'+SPRINGS;$('score').textContent=score+' 分';
 }
-// 新的一輪：雪重新蓋好，藏一個溫泉和兩個寶物
+// 新的一輪：雪重新蓋好，藏一個溫泉和兩個寶物，再放幾塊冰
 function newRound(){
-  spring=Math.floor(Math.random()*W*H);treasure={};
-  while(Object.keys(treasure).length<2){var t=Math.floor(Math.random()*W*H);if(t!==spring)treasure[t]=Math.random()<.5?'fish':'kib';}
-  tiles.forEach(function(b,i){b.className='tile';b.setAttribute('aria-label','雪地第'+(i+1)+'格');b.innerHTML='<img class="bg" src="'+ART.snow+'" alt="">';b.style.animationDelay=(i%W*25+Math.floor(i/W)*35)+'ms';void b.offsetWidth;b.classList.add('drop');});
+  spring=Math.floor(Math.random()*W*H);treasure={};ice={};
+  while(Object.keys(ice).length<ICE)ice[Math.floor(Math.random()*W*H)]=1;
+  while(Object.keys(treasure).length<2){var t=Math.floor(Math.random()*W*H);if(t!==spring&&!ice[t])treasure[t]=Math.random()<.5?'fish':'kib';}
+  tiles.forEach(function(b,i){b.className='tile';b.setAttribute('aria-label','雪地第'+(i+1)+'格');b.innerHTML=ice[i]?'<img class="bg" src="'+ART.ice+'" alt=""><span class="cost">×2</span>':'<img class="bg" src="'+ART.snow+'" alt="">';if(ice[i]){b.classList.add('ice');b.setAttribute('aria-label','冰塊第'+(i+1)+'格，要兩把鏟子');}b.style.animationDelay=(i%W*25+Math.floor(i/W)*35)+'ms';void b.offsetWidth;b.classList.add('drop');});
   busy=false;
 }
 function dig(i){
   var b=tiles[i];
   if(state!=='play'||busy||b.classList.contains('dug')||left<=0)return;
-  busy=true;left--;drawHud();SND.sfx('dig');
+  var cost=ice[i]?2:1;
+  if(left<cost){tip('冰塊要 2 把鏟子，剩下的不夠了');cheer(anyPet(),'挖不動…',900);return;}
+  busy=true;left-=cost;drawHud();SND.sfx('dig');if(cost>1)setTimeout(function(){SND.sfx('dig');},140);
   var r=b.getBoundingClientRect(),d=G.el('<img class="digger" src="'+ART.shovel+'" alt="">');d.style.left=(r.left+r.width/2)+'px';d.style.top=(r.top+r.height/2)+'px';document.body.appendChild(d);
   setTimeout(function(){d.remove();reveal(i);},280);
 }
 function reveal(i){
-  var b=tiles[i];b.classList.remove('drop');b.style.animationDelay='';b.classList.add('dug');
+  var b=tiles[i];b.classList.remove('drop','ice');b.style.animationDelay='';b.classList.add('dug');var ic=b.querySelector('.cost');if(ic)ic.remove();
   var r=b.getBoundingClientRect(),x=r.left+r.width/2,y=r.top;
   if(i===spring){
     b.classList.add('spring');b.setAttribute('aria-label','找到溫泉');b.querySelector('img').src=ART.spring;found++;score+=3;drawHud();G.float(x,y,'+3','gold');SND.sfx('spring');
@@ -164,7 +169,7 @@ function start(){
 }
 build();drawHud();
 G.preload(Object.keys(ART).map(function(k){return ART[k];}),function(){
-  G.intro({game:'spring',title:'雪山挖溫泉',desc:'雪地下面藏著 3 個溫泉！<br>挖開會看到溫度：溫泉 40°，每遠一步冷 6°<br>12 把鏟子用完前全部找到',start:start});
+  G.intro({game:'spring',title:'雪山挖溫泉',desc:'雪地下面藏著 3 個溫泉！<br>挖開會看到溫度：溫泉 40°，每遠一步冷 6°<br>冰塊要用 2 把鏟子才挖得開，溫泉也可能藏在冰下<br>11 把鏟子用完前全部找到',start:start});
 });
 </script>
 </body>

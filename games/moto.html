@@ -22,6 +22,9 @@ body{background:#A9C98F;touch-action:none;}
 .obj{position:absolute;left:0;top:0;will-change:transform;}
 .obj.knock{transition:transform .6s ease-out,opacity .6s;opacity:0;}
 .obj.got{transition:transform .35s ease-out,opacity .35s;opacity:0;}
+/* 小鳥：翅膀一上一下（用 scale，位置還是用 transform 移） */
+.obj.bird{animation:flap .28s ease-in-out infinite alternate;}
+@keyframes flap{to{scale:1 .82;}}
 /* 三隻擠一台車 */
 .rider{position:absolute;left:0;top:0;width:420px;height:380px;will-change:transform;}
 .rider .sc{position:absolute;left:0;top:140px;width:420px;height:240px;}
@@ -70,18 +73,19 @@ body{background:#A9C98F;touch-action:none;}
 <div class="route"><i id="rFill"></i><b id="rBike">🛵</b><u>🏁</u></div>
 <div class="tip" id="tip">點一下畫面就會跳</div>
 <script src="sound.js?v=sound-20261026"></script>
-<script src="game.js?v=sound-20261026"></script>
+<script src="game.js?v=hard-20261026"></script>
 <script>
 // 美術：之後換成畫好的圖，只要改這裡的檔名
-var A='../assets/games/moto/',ART={sky:A+'bg-painted.svg',hills:A+'hills.svg',trees:A+'trees.svg',road:A+'road.svg',scooter:A+'scooter.svg',wheel:A+'wheel.svg',basket:A+'basket.svg',cone:A+'cone.svg',rock:A+'rock.svg',barrier:A+'barrier.svg',kib:'../assets/games/ui/kib.svg',fish:'../assets/games/ui/fish.svg'};
-// 跑 40 秒到終點；速度從 600 慢慢加到 900；跳起來最高大約 340
+var A='../assets/games/moto/',ART={sky:A+'bg-painted.svg',hills:A+'hills.svg',trees:A+'trees.svg',road:A+'road.svg',scooter:A+'scooter.svg',wheel:A+'wheel.svg',basket:A+'basket.svg',cone:A+'cone.svg',bird:A+'bird.svg',rock:A+'rock.svg',barrier:A+'barrier.svg',kib:'../assets/games/ui/kib.svg',fish:'../assets/games/ui/fish.svg'};
+// 跑 40 秒到終點；速度從 650 慢慢加到 1000；跳起來最高大約 340
 var TIME=40,GROUND=1470,RX=150,JUMP=1600,GRAV=3800,HEARTS=3;
 // 障礙物大小（寬、高）；道具：飼料 +1、魚 +3
-var OBS={cone:{w:90,h:105},rock:{w:130,h:92},barrier:{w:104,h:142}},ITEM={kib:{pts:1,s:84},fish:{pts:3,s:96}};
+// 小鳥飛在頭上 430 的高度、往這邊飛：待在地上就不會撞到，跳起來會撞
+var OBS={cone:{w:90,h:105},rock:{w:130,h:92},barrier:{w:104,h:142},bird:{w:130,h:92,fly:430,vx:220}},ITEM={kib:{pts:1,s:84},fish:{pts:3,s:96}};
 var $=function(id){return document.getElementById(id);};
 var state='idle',t0=0,left=TIME,off=0,speed=600,jy=0,vy=0,buf=0,hearts=HEARTS,inv=0,score=0,objs=[],nextAt=0,raf=0,last=0,talk=0,combo=0;
-// 星星：70 分三顆、40 分兩顆
-function stars(s){return s>=70?3:s>=40?2:1;}
+// 星星：90 分三顆、55 分兩顆
+function stars(s){return s>=90?3:s>=55?2:1;}
 
 function fit(){var s=Math.min(Math.max(Math.min(innerWidth,600)/1080,innerHeight/1920),innerHeight/1300);$('world').style.transform='translateX(-50%) scale('+s+')';}
 fit();addEventListener('resize',fit);
@@ -95,7 +99,7 @@ function drawHearts(){var h='';for(var i=0;i<HEARTS;i++)h+=i<hearts?'❤️':'�
 // 放東西：wx 是路上的絕對位置，畫的時候減掉已經跑的距離
 function add(kind,wx,hy){
   var o={kind:kind,wx:wx},im=document.createElement('img');im.className='obj';
-  if(OBS[kind]){o.w=OBS[kind].w;o.h=OBS[kind].h;o.y=GROUND-o.h;im.src=ART[kind];im.style.width=o.w+'px';im.style.height=o.h+'px';}
+  if(OBS[kind]){o.w=OBS[kind].w;o.h=OBS[kind].h;o.y=GROUND-o.h-(OBS[kind].fly||0);o.vx=OBS[kind].vx||0;if(o.vx)im.classList.add('bird');im.src=ART[kind];im.style.width=o.w+'px';im.style.height=o.h+'px';}
   else{o.item=1;o.w=ITEM[kind].s;o.h=o.w;o.y=GROUND-hy-o.h/2;im.src=ART[kind];im.style.width=o.w+'px';im.style.height=o.h+'px';}
   o.el=im;$('objs').appendChild(im);objs.push(o);return o;
 }
@@ -104,12 +108,16 @@ function arc(cx){add('kib',cx-170-42,370);add('kib',cx-42,430);add('kib',cx+170-
 function segment(wx,el){
   var pool=['cone','cone','rock','rock','line','line','line','high'];
   if(el>8)pool.push('barrier','barrier');
-  if(el>14)pool.push('double','double','barrier');
+  if(el>12)pool.push('double','double','barrier');
+  if(el>7)pool.push('bird','bird','conebird');
   var p=pool[Math.floor(Math.random()*pool.length)],len=0;
   if(p==='cone'||p==='rock'){var o=add(p,wx,0);arc(wx+o.w/2);len=o.w+200;}
   else if(p==='barrier'){add('barrier',wx,0);add('fish',wx+52-48,450);len=304;}
   else if(p==='line'){for(var i=0;i<4;i++)add('kib',wx+i*130,110);len=520;}
   else if(p==='high'){add('fish',wx,520);len=200;}
+  // 小鳥：下面排一排飼料，待在地上就吃得到；三角錐後面接一隻鳥，跳完要忍住別再跳
+  else if(p==='bird'){add('bird',wx+300,0);for(var j=0;j<3;j++)add('kib',wx+j*130,110);len=520;}
+  else if(p==='conebird'){add('cone',wx,0);add('kib',wx+3,430);add('bird',wx+1100,0);len=700;}
   else if(p==='double'){add('cone',wx,0);add('kib',wx+3,430);add('rock',wx+780,0);add('kib',wx+780+23,430);len=920;}
   return len;
 }
@@ -138,23 +146,26 @@ function tick(t){
   if(state==='play'||state==='crash'){
     var el=TIME-left;
     // 車子越快，配樂也跟著快一點
-    if(state==='play'){left-=dt;speed=600+300*Math.min(1,el/TIME);SND.tempo(speed/600);}
+    if(state==='play'){left-=dt;speed=650+350*Math.min(1,el/TIME);SND.tempo(speed/650);}
     else speed=Math.max(0,speed-900*dt);
     off+=speed*dt;
     // 跳：重力往下拉，落地時有按過就再跳
     if(jy>0){vy-=GRAV*dt;jy+=vy*dt;if(jy<=0){jy=0;vy=0;$('rider').classList.remove('air');dust();SND.sfx('land');if(buf>0&&state==='play'){buf=0;jump();}}}
     if(buf>0)buf-=dt;if(inv>0)inv-=dt;
     // 前面快沒路了就再鋪一段
-    while(state==='play'&&nextAt<off+1500&&left>1.2){nextAt+=segment(nextAt,el)+520+Math.random()*420;}
+    while(state==='play'&&nextAt<off+1500&&left>1.2){nextAt+=segment(nextAt,el)+440+Math.random()*380;}
     var by=GROUND-jy;
     objs.forEach(function(o){
       if(o.dead)return;
+      if(o.vx&&state==='play')o.wx-=o.vx*dt;
       var x=o.wx-off;o.el.style.transform='translate('+x+'px,'+o.y+'px)';
+      if(o.vx&&!o.warned&&x<1080){o.warned=1;tip('小鳥飛過來了，先不要跳！');say(anyPet(),'低頭！',800);}
       if(state!=='play')return;
       if(o.item){
         // 吃道具：整台車連三隻的範圍
         if(x<RX+400&&x+o.w>RX+40&&o.y+o.h>by-340&&o.y<by)collect(o);
-      }else if(inv<=0&&x<RX+320&&x+o.w>RX+110&&by>o.y+10)hurt(o);
+      }else if(o.vx){if(inv<=0&&x<RX+380&&x+o.w>RX+60&&by-340<o.y+o.h-10)hurt(o);}
+      else if(inv<=0&&x<RX+320&&x+o.w>RX+110&&by>o.y+10)hurt(o);
     });
     objs=objs.filter(function(o){if(o.wx-off<-300){o.el.remove();return false;}if(o.dead&&!o.el.isConnected)return false;return true;});
     $('rider').style.transform='translate('+RX+'px,'+(by-380)+'px)';
@@ -170,11 +181,11 @@ function crash(){state='crash';$('rider').classList.add('crash');setTimeout(func
 function finish(ok){
   var bonus=ok?hearts*2:0;state='done';score+=bonus;$('score').textContent=score+' 分';
   if(ok){$('rider').classList.remove('air');tip('抵達終點！'+(bonus?'剩下的愛心 +'+bonus:''));say('pDg','到了！',1500);say('pPg','好好玩！',1500);}
-  setTimeout(function(){G.finish({game:'moto',score:score,unit:'分',stars:stars(score),note:'飼料 +1、魚 +3、到終點時每顆愛心 +2<br>70 分三顆星、40 分兩顆星',again:function(){G.countdown(start);}});},ok?1200:300);
+  setTimeout(function(){G.finish({game:'moto',score:score,unit:'分',stars:stars(score),note:'飼料 +1、魚 +3、到終點時每顆愛心 +2<br>90 分三顆星、55 分兩顆星',again:function(){G.countdown(start);}});},ok?1200:300);
 }
 function start(){
   objs.forEach(function(o){o.el.remove();});objs=[];
-  SND.tempo(1);state='play';left=TIME;off=0;speed=600;jy=0;vy=0;buf=0;hearts=HEARTS;inv=0;score=0;combo=0;nextAt=1300;
+  SND.tempo(1);state='play';left=TIME;off=0;speed=650;jy=0;vy=0;buf=0;hearts=HEARTS;inv=0;score=0;combo=0;nextAt=1300;
   var r=$('rider');r.classList.remove('crash','hurt','air');
   drawHearts();$('score').textContent='0 分';tip('點一下畫面就會跳');
   last=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(tick);
@@ -183,7 +194,7 @@ $('tap').addEventListener('pointerdown',function(e){e.preventDefault();jump();})
 addEventListener('keydown',function(e){if(e.code==='Space'||e.code==='ArrowUp'){e.preventDefault();jump();}});
 $('rider').style.transform='translate('+RX+'px,'+(GROUND-380)+'px)';drawHearts();
 G.preload(Object.keys(ART).map(function(k){return ART[k];}),function(){
-  G.intro({game:'moto',title:'摩托車冒險',desc:'三隻擠一台車去兜風！<br>點畫面跳過三角錐、石頭和柵欄<br>撞到會少一顆愛心，沿路吃飼料和魚',start:start});
+  G.intro({game:'moto',title:'摩托車冒險',desc:'三隻擠一台車去兜風！<br>點畫面跳過三角錐、石頭和柵欄<br>小鳥飛過來時不要跳，待在地上讓牠飛過去<br>撞到會少一顆愛心，沿路吃飼料和魚',start:start});
 });
 document.addEventListener('visibilitychange',function(){last=performance.now();});
 </script>

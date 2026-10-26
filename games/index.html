@@ -66,10 +66,10 @@ body{min-height:100%;background:var(--paper);}
   </div>
   <div class="lb-h"><span>冒險地點 <small id="lbCap" style="font-size:12px;color:var(--t3)"></small></span><button class="lb-rankbtn" id="lbRank">🏆 排行榜</button></div>
   <div class="lb-list" id="lbList"></div>
-  <div class="lb-note">每款遊戲每天前 3 次可以拿飼料（1～3 包，看星星）<br>拿到的飼料回到班表就會放進你的背包</div>
+  <div class="lb-note">所有遊戲合計，每天最多拿 3 包飼料（每局看星星給 1～3 包）<br>拿到的飼料回到班表就會放進你的背包</div>
 </div>
 <script src="sound.js?v=sound-20261026"></script>
-<script src="game.js?v=sound-20261026"></script>
+<script src="game.js?v=hard-20261026"></script>
 <script>
 // 五個地點：有 href 的就是可以玩的
 var GAMES=[
@@ -85,14 +85,15 @@ function draw(){
   // 已經選過就只顯示；要換人到班表的寵物狀態頁改（這支手機存的是誰的紀錄）
   document.getElementById('lbWho').innerHTML=me?'玩的人是 <b>'+G.NAMES[me]+'</b>':'你是誰？ <button data-u="syue">學</button><button data-u="ling">綾</button>';
   document.querySelectorAll('#lbWho [data-u]').forEach(function(b){b.onclick=function(){G.setWho(b.getAttribute('data-u'));draw();};});
-  document.getElementById('lbCap').textContent=me?'':'先選你是誰才能領飼料';
+  // 飼料是所有遊戲一起算：大廳上面顯示今天還能拿幾包
+  document.getElementById('lbCap').textContent=!me?'先選你是誰才能領飼料':G.left()?'今天還能拿 '+G.left()+' 包飼料':'今天的飼料拿完了，還是可以衝排行榜';
   document.getElementById('lbList').innerHTML=GAMES.map(function(g,i){
-    var tag=!g.href?'即將推出':!me?'可以玩':G.left(g.id)?'今天還有 '+G.left(g.id)+' 次獎勵':'今天獎勵領完了';
+    var tag=!g.href?'即將推出':G.SCENES[g.id].goal;
     // 兩個人各自最高分，高的那個塗黃色
     var bs=g.href?['syue','ling'].map(function(u){return {u:u,s:G.best(g.id,u)};}):[],top=Math.max.apply(null,bs.map(function(x){return x.s==null?-1:x.s;}));
     var best=g.href?'<div class="lb-best">'+bs.map(function(x){return '<span class="'+x.u+(x.s!=null&&x.s===top?' top':'')+'">'+(x.s!=null&&x.s===top?'🏆 ':'')+G.NAMES[x.u]+' '+(x.s==null?'—':x.s)+'</span>';}).join('')+'</div>':'';
     var meta=G.SCENES[g.id];
-    return '<button class="lb-game" data-g="'+g.id+'" aria-label="遊玩'+g.name+'" style="--scene:'+meta.color+'"><span class="lb-cover"><img src="../assets/games/'+g.id+'/'+(meta.cover||'cover.svg')+'" alt="" loading="lazy"><span class="lb-number">0'+(i+1)+'</span><span class="lb-cover-label">'+meta.label+'</span></span><span class="lb-copy"><span class="lb-game-meta">'+meta.kind+' · '+meta.time+'</span><span class="lb-name">'+g.name+'</span><span class="lb-desc">'+g.desc+'</span>'+best+'<span class="lb-card-footer"><span class="lb-tag'+(g.href&&me&&!G.left(g.id)?' done':'')+'">'+tag+'</span><span class="lb-go">出發 <span aria-hidden="true">↗</span></span></span></span></button>';
+    return '<button class="lb-game" data-g="'+g.id+'" aria-label="遊玩'+g.name+'" style="--scene:'+meta.color+'"><span class="lb-cover"><img src="../assets/games/'+g.id+'/'+(meta.cover||'cover.svg')+'" alt="" loading="lazy"><span class="lb-number">0'+(i+1)+'</span><span class="lb-cover-label">'+meta.label+'</span></span><span class="lb-copy"><span class="lb-game-meta">'+meta.kind+' · '+meta.time+'</span><span class="lb-name">'+g.name+'</span><span class="lb-desc">'+g.desc+'</span>'+best+'<span class="lb-card-footer"><span class="lb-tag">'+tag+'</span><span class="lb-go">出發 <span aria-hidden="true">↗</span></span></span></span></button>';
   }).join('');
   document.querySelectorAll('[data-g]').forEach(function(b){b.onclick=function(){var g=GAMES.filter(function(x){return x.id===b.getAttribute('data-g');})[0];if(g.href)location.href=g.href;};});
 }
