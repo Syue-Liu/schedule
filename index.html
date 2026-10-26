@@ -496,7 +496,14 @@ body:has(.chg-bar.show){padding-bottom:calc(124px + env(safe-area-inset-bottom))
 .cat-menu .pw-item{transition:transform .16s ease-out;}
 .cat-menu .pw-item.hot{transform:translate(-50%,-50%) translate(var(--ox),var(--oy)) scale(1.22);z-index:1;}
 .cat-menu .pw-hub{position:absolute;left:50%;top:50%;width:110px;height:110px;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:6px 8px 8px;border:0;border-radius:50%;background:var(--ribbon-bg);color:var(--t2);font-size:11px;cursor:pointer;pointer-events:auto;overflow:hidden;}
-.cat-menu .pw-hub .wd-pet{width:84px;max-height:70px;}
+.cat-menu .pw-hub .wd-pet{width:76px;max-height:56px;}
+/* 轉盤中間的肚子：餓了就變紅、字會跳 */
+.cat-menu .pw-hub .pw-full{display:flex;flex-direction:column;align-items:center;gap:2px;margin-top:1px;overflow:visible;}
+.cat-menu .pw-hub .pw-full b{font-weight:400;font-size:10px;color:var(--t2);line-height:1;}
+.cat-menu .pw-hub .pw-full i{display:block;width:62px;height:7px;border:1.5px solid var(--ink);border-radius:999px;background:var(--paper);overflow:hidden;}
+.cat-menu .pw-hub .pw-full em{display:block;height:100%;}
+.cat-menu .pw-hub .pw-full.hungry b{color:var(--ling-t,#B04E3C);animation:pwHungry .7s ease-in-out infinite alternate;}
+@keyframes pwHungry{to{transform:scale(1.12);}}
 .cat-menu .pw-hub span{max-width:86px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .cat-menu .pw-item .cd{top:-2px;right:2px;}
 .cat-menu .ic{font-size:20px;line-height:1;height:22px;display:flex;align-items:center;}
@@ -563,6 +570,9 @@ body:has(.chg-bar.show){padding-bottom:calc(124px + env(safe-area-inset-bottom))
 .scene{cursor:pointer;}
 /* 寵物狀態卡上面切換貓咪／企鵝 */
 /* 狀態卡的角色卡：左邊立繪、右邊名字等級和三條數值 */
+.cs-acts{display:grid;grid-template-columns:1.35fr 1fr;gap:8px;}
+.cs-acts .wd-open{margin:6px 0 2px;font-size:14px;padding:0 6px;}
+.cs-acts .cs-adv{background:#E4F2F8;}
 .cs-hero{display:grid;grid-template-columns:118px minmax(0,1fr);gap:12px;align-items:center;margin:10px 0 6px;padding:10px;border:var(--lw2) solid var(--ink);border-radius:18px;background:linear-gradient(180deg,var(--paper),var(--paper2));box-shadow:0 3px 0 var(--ink);}
 .cs-portrait{position:relative;aspect-ratio:1;display:flex;align-items:flex-end;justify-content:center;padding:6px 4px 4px;border:var(--lw2) solid var(--ink);border-radius:14px;background:radial-gradient(circle at 50% 70%,var(--ribbon-bg),var(--paper2) 72%);overflow:hidden;}
 .cs-portrait .wd-pet{width:100%;max-height:100%;}
@@ -2773,7 +2783,12 @@ function catClamp(v,a,b){return Math.max(a,Math.min(b,v));}
 function catHash(s){var h=2166136261;for(var i=0;i<s.length;i++)h=Math.imul(h^s.charCodeAt(i),16777619);return h>>>0;}
 function catToday(){var t=new Date();return evDateStr(t.getFullYear(),t.getMonth()+1,t.getDate());}
 function petNewStat(){return {aff:0,fedAt:0,fedFull:0,name:'',nameAt:0};}
-function petNewRec(){var r=petNewStat();r.nameSchema=2;r.pts=0;r.kib=3;r.can=1;r.fish=2;r.squid=1;r.tix=1;r.acc={};r.eq={};r.last='';r.pg=petNewStat();r.dg=petNewStat();r.d=null;return r;}
+function petNewRec(){var r=petNewStat();r.nameSchema=2;r.pts=0;r.kib=3;r.can=1;r.fish=2;r.squid=1;r.tix=1;r.acc={};r.eq={};r.gs={};r.last='';r.pg=petNewStat();r.dg=petNewStat();r.d=null;return r;}
+// 小遊戲：每款只留前 5 高分 [{s:分數,d:日期}]，分數一樣的話早的排前面
+function petTop5(list){
+  return list.filter(function(x){return x&&isFinite(+x.s)&&/^\d{4}-\d{2}-\d{2}$/.test(x.d||'');}).map(function(x){return {s:Math.max(0,Math.min(9999,Math.round(+x.s))),d:x.d};})
+    .sort(function(a,b){return b.s-a.s||(a.d<b.d?-1:a.d>b.d?1:0);}).slice(0,5);
+}
 function petCleanStat(o,t){
   ['aff','fedAt','fedFull','nameAt'].forEach(function(k){var v=+o[k];if(isFinite(v)&&v>=0)t[k]=v;});
   if(typeof o.name==='string')t.name=o.name.slice(0,8);
@@ -2787,6 +2802,7 @@ function petClean(o){
   if(o.eq&&typeof o.eq==='object')Object.keys(o.eq).forEach(function(key){var e=o.eq[key];if(/^(cat|pg|dg)\.(head|neck|back|body|feet|prop|aura|skin)$/.test(key)&&Array.isArray(e)&&typeof e[0]==='string'&&isFinite(+e[1]))r.eq[key]=[e[0].slice(0,24),+e[1]];});
   if(o.pg&&typeof o.pg==='object')petCleanStat(o.pg,r.pg);
   if(o.dg&&typeof o.dg==='object')petCleanStat(o.dg,r.dg);
+  if(o.gs&&typeof o.gs==='object')Object.keys(o.gs).forEach(function(g){if(/^[a-z]{1,12}$/.test(g)&&Array.isArray(o.gs[g]))r.gs[g]=petTop5(o.gs[g]);});
   // 修正舊版的物種／預設名字對應；之後自行取的新名字仍保留。
   if((+o.nameSchema||0)<2){
     if(r.name==='雪球'||r.name==='嘟嘟')r.name='Pillow';
@@ -2797,7 +2813,8 @@ function petClean(o){
   if(d&&typeof d==='object'&&/^\d{4}-\d{2}-\d{2}$/.test(d.day||'')){
     r.d={day:d.day,pts:+d.pts||0,min:+d.min||0,pet:+d.pet||0,ppet:+d.ppet||0,dpet:+d.dpet||0,ev:+d.ev||0,ntf:+d.ntf||0,drop:+d.drop||0,
       chg:Array.isArray(d.chg)?d.chg.filter(function(x){return typeof x==='string';}).slice(-60):[],
-      q:d.q&&typeof d.q==='object'?{id:String(d.q.id||''),p:+d.q.p||0,done:!!d.q.done,seen:!!d.q.seen}:null};
+      q:d.q&&typeof d.q==='object'?{id:String(d.q.id||''),p:+d.q.p||0,done:!!d.q.done,seen:!!d.q.seen}:null,gm:{}};
+    if(d.gm&&typeof d.gm==='object')Object.keys(d.gm).forEach(function(g){var v=+d.gm[g];if(/^[a-z]{1,12}$/.test(g)&&isFinite(v)&&v>0)r.d.gm[g]=Math.min(9,Math.floor(v));});
   }
   return r;
 }
@@ -2817,6 +2834,7 @@ function petMerge(a,b){
   });
   if(a.last>m.last)m.last=a.last;
   if(a.d&&(!m.d||a.d.day>m.d.day))m.d=a.d;
+  Object.keys(a.gs).forEach(function(g){m.gs[g]=petTop5((m.gs[g]||[]).concat(a.gs[g]).filter(function(x,i,arr){return arr.findIndex(function(y){return y.s===x.s&&y.d===x.d;})===i;}));});
   return m;
 }
 function petRec(uid){if(!petData[uid])petData[uid]=petNewRec();return petData[uid];}
@@ -2839,7 +2857,7 @@ function petDay(uid){
   if(r.d&&r.d.day===today)return r;
   PET_KEYS.forEach(function(k){ps(r,k).aff=Math.round(petEffAff(r,k));});
   var rnd=seeded(catHash(today+uid)),q=PET_QUESTS[Math.floor(rnd()*PET_QUESTS.length)];
-  r.d={day:today,pts:0,min:0,pet:0,ppet:0,dpet:0,ev:0,ntf:0,drop:0,chg:[],q:{id:q.id,p:0,done:false,seen:false}};
+  r.d={day:today,pts:0,min:0,pet:0,ppet:0,dpet:0,ev:0,ntf:0,drop:0,chg:[],q:{id:q.id,p:0,done:false,seen:false},gm:{}};
   r.last=today;r.kib+=1;r.fish+=1;PET_KEYS.forEach(function(k){ps(r,k).aff+=2;});petGift=true;
   return r;
 }
@@ -2901,9 +2919,24 @@ function petFromRemote(raw){
   else{petCheckLevel();petUpdMark();}
 }
 // 資料準備好了（本機模式一開始；雲端模式收到第一筆）
+// 小遊戲玩完先把獎勵排在這支手機（gameRewards），回到班表時收進寵物紀錄：飼料加進背包、分數放進排行榜，再照平常同步
+function petApplyGames(){
+  var me=petWho();if(!me)return;
+  var q;try{q=JSON.parse(lsGet('gameRewards')||'[]');}catch(e){q=[];}
+  if(!Array.isArray(q)||!q.length)return;
+  var r=petDay(me),kib=0,keep=[];
+  q.forEach(function(it){
+    if(!it||it.who!==me||!/^[a-z]{1,12}$/.test(it.game||'')){if(it&&it.who&&it.who!==me)keep.push(it);return;}
+    var k=Math.max(0,Math.min(3,Math.floor(+it.kib||0)));
+    if(k){r.kib+=k;kib+=k;if(it.day===r.d.day)r.d.gm[it.game]=(r.d.gm[it.game]||0)+1;}
+    if(isFinite(+it.score)&&/^\d{4}-\d{2}-\d{2}$/.test(it.day||''))r.gs[it.game]=petTop5((r.gs[it.game]||[]).concat([{s:+it.score,d:it.day}]));
+  });
+  lsSet('gameRewards',JSON.stringify(keep));petSave();
+  if(kib)toast('🎮 冒險帶回飼料 ×'+kib+'，放進背包了');
+}
 function petReady(){
   var me=petWho();
-  if(me){petDay(me);petSave();if(cloudOn())petFlush();}
+  if(me){petDay(me);petApplyGames();petSave();if(cloudOn())petFlush();}
   petCheckLevel();petUpdMark();
   setTimeout(petGreet,900);
 }
@@ -3543,7 +3576,7 @@ function petOpenMenu(p,skills){
     // 從最上面順時針：摸摸、糧食、技能、合體、配件、狀態、睡覺
     btn('data-a="pet"','🐾','摸摸');
     p.def.foods.forEach(function(f){btn('data-food="'+f+'"'+(r&&r[f]?'':' class="off"'),CAT_ART[f],FOODS[f].name,r?'<span class="n">'+r[f]+'</span>':'');});
-    btn('data-a="sk"','✨','技能');btn('data-a="combo"','💞','合體');
+    btn('data-a="sk"','✨','技能');btn('data-a="combo"','💞','合體');btn('data-a="game"','🎮','冒險');
     btn('data-a="acc"','🎀','配件',r&&r.tix?'<span class="n hot">'+r.tix+'</span>':'');btn('data-a="info"','📋','狀態');
     btn('data-a="sleep"','💤','睡覺');
     if(def){
@@ -3557,7 +3590,9 @@ function petOpenMenu(p,skills){
   var n=items.length,step=360/n,rm=(PW_R1+PW_R2)/2,D=2*(PW_R2+4);
   m.style.width=m.style.height=D+'px';
   // 中間放這隻寵物（穿著現在的配件），點一下關掉
-  m.innerHTML=petWheelSvg(n)+'<button class="pw-hub" aria-label="關閉選單">'+accPreview(p.k)+'<span>'+safeHtml(petName(p.k))+'</span></button>'+items.map(function(it,i){
+  var full=Math.round(petFull(p.k)),hungry=full<40,fullTxt=full>=80?'飽飽的':full>=40?'還好':full>=15?'有點餓':'好餓…';
+  m.innerHTML=petWheelSvg(n)+'<button class="pw-hub" aria-label="關閉選單">'+accPreview(p.k)+'<span>'+safeHtml(petName(p.k))+'</span>'+
+    '<span class="pw-full'+(hungry?' hungry':'')+'" title="肚子 '+full+'%"><b>🍖 '+fullTxt+'</b><i><em style="width:'+full+'%;background:'+(full<30?'var(--coral)':full<60?'var(--yellow)':'var(--wakatake)')+'"></em></i></span></button>'+items.map(function(it,i){
     var a=(-90+i*step)*Math.PI/180,o=(PW_POP-1)*rm;
     return '<button class="pw-item" data-i="'+i+'" '+it[0]+' style="left:'+(D/2+rm*Math.cos(a)).toFixed(1)+'px;top:'+(D/2+rm*Math.sin(a)).toFixed(1)+'px;--ox:'+(o*Math.cos(a)).toFixed(1)+'px;--oy:'+(o*Math.sin(a)).toFixed(1)+'px"><span class="ic">'+it[1]+'</span><span class="lb">'+it[2]+'</span>'+it[3]+'</button>';
   }).join('');
@@ -3618,6 +3653,7 @@ function petOpenMenu(p,skills){
     else if(food)petFeed(p,food);
     else if(a==='info')petOpenSheet(p.k);
     else if(a==='acc')accOpenWardrobe(p.k);
+    else if(a==='game'){petFlush();location.href='games/';}
     else if(a==='sleep')petSetResting(p,true);
   };
 }
@@ -3698,7 +3734,7 @@ function petOpenSheet(k,keep){
     '<div class="cs-stat" title="親密度"><span class="cs-ic">💗</span><span class="cs-affs"><span>學 '+aff.syue+(fav==='syue'?' 👑':'')+'</span><span>綾 '+aff.ling+(fav==='ling'?' 👑':'')+'</span></span></div>'+
     '</div></div>';
   h+='<div class="cs-next">'+(nx?'再 <b>'+(nx-pts)+'</b> 點升到 Lv'+(lv+1)+(nsk?'，會學「'+nsk.name+'」':''):'已經是最高等級，所有技能都學會了！')+'</div>';
-  h+='<button class="wd-open" id="csAcc">🎀 衣櫃・配件轉盤'+(me&&petData[me]&&petData[me].tix?'<b>券 ×'+petData[me].tix+'</b>':'')+'</button>';
+  h+='<div class="cs-acts"><button class="wd-open" id="csAcc">🎀 衣櫃・轉盤'+(me&&petData[me]&&petData[me].tix?'<b>券 ×'+petData[me].tix+'</b>':'')+'</button><button class="wd-open cs-adv" id="csAdv">🎮 一起冒險</button></div>';
   if(!me){
     h+='<div class="cs-sec"><div class="cs-h"><span>你是誰？</span></div><div class="cs-note" style="margin:0 0 10px">寵物要記得是誰在照顧牠們，點數和糧食會算在你身上。</div><div class="cs-seg"><button data-me="syue">我是 學</button><button data-me="ling">我是 綾</button></div></div>';
   }
@@ -3757,6 +3793,7 @@ function petOpenSheet(k,keep){
     card.querySelectorAll('[data-csp]').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-csp')===petSheetTab);});
   };});
   document.getElementById('csAcc').onclick=function(){accOpenWardrobe(k);};
+  document.getElementById('csAdv').onclick=function(){petFlush();location.href='games/';};
   card.querySelectorAll('[data-me]').forEach(function(b){b.onclick=function(){
     lsSet('catMe',b.getAttribute('data-me'));petDay(petWho());petSave();if(cloudOn())petFlush();petUpdMark();petOpenSheet(k,'.cs-pages');
   };});
@@ -3875,7 +3912,9 @@ function petInit(){
     setTimeout(function(){if(petIdle(p))petWalkTo(p,x-p.def.W/2+(x>p.x?-30:30),y-p.def.H+10,95,function(){petSay(p,'♥');petNext(p);});},250);
   },{passive:true});
   window.addEventListener('resize',function(){petEndCombo();petList().forEach(function(p){var b=petBounds(p);p.x=catClamp(p.x,b.x0,b.x1);p.y=catClamp(p.y,b.y0,b.y1);petPlace(p);});});
-  document.addEventListener('visibilitychange',function(){if(document.hidden){petEndCombo();petFlush();}});
+  document.addEventListener('visibilitychange',function(){if(document.hidden){petEndCombo();petFlush();}else if(petSynced)petApplyGames();});
+  // 從小遊戲按「回班表」或上一頁回來
+  window.addEventListener('pageshow',function(e){if(e.persisted&&petSynced)petApplyGames();});
   window.addEventListener('pagehide',petFlush);
   // 停留時間：畫面開著每滿一分鐘，兩隻的親密度各 +1
   setInterval(function(){

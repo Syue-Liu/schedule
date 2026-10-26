@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#CFE6F2">
+<title>湖邊釣魚</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Huninn&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="game.css">
+<style>
+html,body{overflow:hidden;}
+body{background:#7FB8D2;touch-action:none;}
+/* 整個場景用背景圖的座標（1080×1920）擺東西，再依螢幕縮放，碼頭和寵物永遠對得上 */
+.world{position:fixed;left:50%;bottom:0;width:1080px;height:1920px;transform-origin:50% 100%;background:url(../assets/games/fish/bg.svg) 0 0/100% 100% no-repeat;}
+.pet{position:absolute;}
+.pet img{width:100%;display:block;}
+.pet .g-say{font-size:30px;padding:6px 16px;border-width:4px;border-radius:24px;}
+.pet.cheer img{animation:petHop .5s var(--pop);}
+@keyframes petHop{40%{transform:translateY(-26px);}}
+.rod{position:absolute;left:0;top:0;width:1080px;height:1920px;pointer-events:none;overflow:visible;}
+.bobber{position:absolute;width:76px;height:76px;margin:-60px 0 0 -38px;transition:transform .25s;}
+.bobber.nibble{animation:nibble .35s ease-in-out 2;}
+@keyframes nibble{50%{transform:translateY(10px);}}
+.bobber.bite{transform:translateY(34px) scale(.92);}
+.bobber.fly{transition:left .7s cubic-bezier(.2,.7,.3,1),top .7s cubic-bezier(.5,-.6,.6,1);}
+.splash{position:absolute;width:220px;margin:-80px 0 0 -110px;opacity:0;pointer-events:none;}
+.splash.on{animation:splash .6s ease-out;}
+@keyframes splash{0%{opacity:0;transform:scale(.4);}30%{opacity:1;}100%{opacity:0;transform:scale(1.2) translateY(-20px);}}
+.bang{position:absolute;margin:-190px 0 0 -30px;font-size:96px;color:var(--coral);-webkit-text-stroke:5px var(--ink);opacity:0;}
+.bang.on{opacity:1;animation:bang .4s var(--pop);}
+@keyframes bang{from{transform:scale(.3);}}
+/* 釣到的東西：從水裡跳到畫面中間 */
+.catch{position:fixed;left:50%;top:42%;z-index:35;width:min(56vw,240px);transform:translate(-50%,-50%);text-align:center;pointer-events:none;animation:catchUp .7s var(--pop);}
+.catch img{width:100%;}
+.catch div{display:inline-block;margin-top:-8px;padding:6px 16px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);font-size:17px;box-shadow:0 3px 0 var(--ink);}
+@keyframes catchUp{from{transform:translate(-50%,40%) scale(.3) rotate(-30deg);opacity:0;}}
+/* 下面：主要按鈕和收線的拉扯條 */
+.ctrl{position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 18px);z-index:20;display:flex;flex-direction:column;align-items:center;gap:14px;padding:0 16px;}
+.tip{padding:6px 14px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);font-size:14px;min-height:34px;}
+.act{width:min(70vw,260px);height:66px;font-size:22px;}
+.act.pull{background:var(--coral);animation:pulse .5s ease-in-out infinite alternate;}
+@keyframes pulse{to{transform:scale(1.06);}}
+.act.hold{background:var(--mizu);}
+.act.wait{background:var(--paper2);color:var(--t3);}
+.reel{display:none;width:min(88vw,360px);}
+.reel.on{display:block;}
+.track{position:relative;height:48px;border:var(--lw) solid var(--ink);border-radius:16px;background:linear-gradient(180deg,#B9DDEC,#8FC3DA);overflow:hidden;}
+.zone{position:absolute;top:0;bottom:0;border-left:var(--lw2) solid var(--ink);border-right:var(--lw2) solid var(--ink);background:rgba(185,218,165,.85);}
+.zone.in{background:rgba(246,210,122,.9);}
+.fishmk{position:absolute;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;}
+.prog{margin-top:8px;height:14px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);overflow:hidden;}
+.prog i{display:block;height:100%;width:30%;background:var(--wakatake);}
+</style>
+</head>
+<body>
+<div class="world" id="world">
+  <svg class="rod" viewBox="0 0 1080 1920"><path id="rodPole" d="M500 1180L700 950" stroke="#8C6A55" stroke-width="12" stroke-linecap="round"/><path id="line" d="" fill="none" stroke="#3E3A39" stroke-width="3"/></svg>
+  <div class="pet" id="pDg" style="left:10px;top:1100px;width:240px"><img alt=""><div class="g-say"></div></div>
+  <div class="pet" id="pCat" style="left:190px;top:1140px;width:200px"><img alt=""><div class="g-say"></div></div>
+  <div class="pet" id="pPg" style="left:380px;top:1110px;width:190px"><img alt=""><div class="g-say"></div></div>
+  <img class="splash" id="splash" alt="">
+  <img class="bobber" id="bobber" alt="" style="display:none">
+  <div class="bang" id="bang">!</div>
+</div>
+<div class="g-bar"><button class="g-back" onclick="location.href='./'">‹ 大廳</button><div class="g-title">湖邊釣魚</div><div class="g-pill" id="casts">🎣 5</div><div class="g-pill hot" id="score">0 分</div></div>
+<div class="ctrl">
+  <div class="tip" id="tip">按「拋竿」開始</div>
+  <div class="reel" id="reel"><div class="track" id="track"><div class="zone" id="zone"></div><img class="fishmk" id="fishmk" alt=""></div><div class="prog"><i id="prog"></i></div></div>
+  <button class="g-btn act" id="act">🎣 拋竿</button>
+</div>
+<script src="game.js"></script>
+<script>
+var A='../assets/games/fish/',ART={bobber:A+'bobber.svg',splash:A+'splash.svg',fish:A+'catch-fish.svg',squid:A+'catch-squid.svg',big:A+'catch-big.svg',boot:A+'catch-boot.svg',chest:A+'catch-chest.svg'};
+// 釣得到的東西：機率、分數、難度（魚跑多快、綠框多寬）
+var CATCH=[
+  {id:'fish',name:'小魚',w:48,pts:1,speed:.35,zone:.34},
+  {id:'squid',name:'透抽',w:20,pts:2,speed:.5,zone:.3},
+  {id:'big',name:'大魚',w:12,pts:3,speed:.75,zone:.26},
+  {id:'boot',name:'舊靴子',w:14,pts:0,speed:.2,zone:.4},
+  {id:'chest',name:'寶箱',w:6,pts:5,speed:.6,zone:.28}
+];
+var CASTS=5,ROD_TIP={x:700,y:950};
+var $=function(id){return document.getElementById(id);};
+var state='idle',casts=CASTS,score=0,cur=null,bob={x:0,y:0},timer=0,nibT=[],raf=0,last=0,holding=false;
+var zone={x:.35,v:0},fishP=.5,fishT=.5,fishNext=0,prog=.3;
+// 星星：10 分三顆、6 分兩顆
+function stars(s){return s>=10?3:s>=6?2:1;}
+
+function fit(){var s=Math.max(innerWidth/1080,innerHeight/1920);$('world').style.transform='translateX(-50%) scale('+s+')';}
+fit();addEventListener('resize',fit);
+$('pDg').querySelector('img').src=G.petImg('dg','idle');$('pCat').querySelector('img').src=G.petImg('cat','idle');$('pPg').querySelector('img').src=G.petImg('pg','idle');
+$('bobber').src=ART.bobber;$('splash').src=ART.splash;
+function say(id,text,ms){var p=$(id),s=p.querySelector('.g-say');s.textContent=text;s.classList.add('on');p.classList.remove('cheer');void p.offsetWidth;p.classList.add('cheer');clearTimeout(p._t);p._t=setTimeout(function(){s.classList.remove('on');},ms||1300);}
+function line(){$('line').setAttribute('d',state==='idle'||state==='done'?'':'M'+ROD_TIP.x+' '+ROD_TIP.y+'Q'+(ROD_TIP.x+bob.x)/2+' '+(Math.max(ROD_TIP.y,bob.y)+60)+' '+bob.x+' '+(bob.y-56));}
+function tip(t){$('tip').textContent=t;}
+function btn(text,cls){var b=$('act');b.textContent=text;b.className='g-btn act '+(cls||'');}
+function pick(){var t=Math.random()*CATCH.reduce(function(a,c){return a+c.w;},0);for(var i=0;i<CATCH.length;i++){t-=CATCH[i].w;if(t<=0)return CATCH[i];}return CATCH[0];}
+function splash(){var s=$('splash');s.style.left=bob.x+'px';s.style.top=bob.y+'px';s.classList.remove('on');void s.offsetWidth;s.classList.add('on');}
+
+function cast(){
+  state='cast';casts--;$('casts').textContent='🎣 '+casts;btn('…','wait');tip('拋出去囉～');
+  bob.x=640+Math.random()*320;bob.y=1440+Math.random()*260;
+  var b=$('bobber');b.className='bobber';b.style.display='block';b.style.left=ROD_TIP.x+'px';b.style.top=ROD_TIP.y+'px';
+  requestAnimationFrame(function(){b.classList.add('fly');b.style.left=bob.x+'px';b.style.top=bob.y+'px';});
+  var t0=performance.now();(function f(){line();if(performance.now()-t0<720)requestAnimationFrame(f);})();
+  setTimeout(function(){b.classList.remove('fly');splash();wait();},720);
+}
+// 等魚：先輕輕動幾下（假的，先別拉），真的咬下去才拉
+function wait(){
+  state='wait';btn('等一下…','wait');tip('浮標沉下去再拉！');cur=pick();
+  var nib=Math.floor(Math.random()*3),t=600;nibT.forEach(clearTimeout);nibT=[];
+  for(var i=0;i<nib;i++){t+=500+Math.random()*700;nibT.push(setTimeout(function(){if(state!=='wait')return;var b=$('bobber');b.classList.remove('nibble');void b.offsetWidth;b.classList.add('nibble');},t));}
+  clearTimeout(timer);timer=setTimeout(bite,t+900+Math.random()*1800);
+}
+function bite(){
+  if(state!=='wait')return;
+  state='bite';$('bobber').classList.add('bite');splash();var g=$('bang');g.style.left=bob.x+'px';g.style.top=bob.y+'px';g.classList.add('on');
+  btn('拉！','pull');tip('咬到了！快拉！');if(navigator.vibrate)navigator.vibrate(80);
+  timer=setTimeout(function(){if(state==='bite')miss('太慢了，魚跑掉了…');},900);
+}
+function miss(t){state='after';clearTimeout(timer);nibT.forEach(clearTimeout);$('bang').classList.remove('on');$('bobber').style.display='none';line();tip(t);say('pPg','下次一定！');btn('…','wait');setTimeout(next,1400);}
+// 收線：按住讓綠框往右、放開往左，魚在綠框裡進度會漲
+function reel(){
+  state='reel';clearTimeout(timer);$('bang').classList.remove('on');
+  zone.x=.5-cur.zone/2;zone.v=0;fishP=.5;fishT=Math.random();fishNext=0;prog=.3;
+  $('zone').style.width=cur.zone*100+'%';$('fishmk').src=ART[cur.id];$('reel').classList.add('on');
+  btn('按住收線','hold');tip('魚在框框裡進度會漲，按住框框往右、放開往左');
+  last=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(loop);
+}
+function loop(t){
+  if(state!=='reel')return;
+  var dt=Math.min(.05,(t-last)/1000);last=t;
+  zone.v+=(holding?2.4:-2.4)*dt;zone.v*=.97;zone.x+=zone.v*dt;
+  if(zone.x<0){zone.x=0;zone.v=Math.max(0,-zone.v*.3);}if(zone.x>1-cur.zone){zone.x=1-cur.zone;zone.v=Math.min(0,-zone.v*.3);}
+  if(t>fishNext){fishT=Math.random();fishNext=t+(400+Math.random()*900)/(.6+cur.speed);}
+  fishP+=(fishT-fishP)*Math.min(1,dt*cur.speed*4);
+  var inZ=fishP>=zone.x&&fishP<=zone.x+cur.zone;
+  prog+=(inZ?.3:-.2)*dt*(cur.id==='boot'?1.6:1);
+  $('zone').style.left=zone.x*100+'%';$('zone').classList.toggle('in',inZ);
+  $('fishmk').style.left=fishP*100+'%';$('prog').style.width=Math.max(0,Math.min(1,prog))*100+'%';
+  if(prog>=1)return got();
+  if(prog<=0)return escape();
+  raf=requestAnimationFrame(loop);
+}
+function endReel(){$('reel').classList.remove('on');$('bobber').style.display='none';holding=false;}
+function got(){
+  state='after';endReel();score+=cur.pts;$('score').textContent=score+' 分';line();
+  var c=G.el('<div class="catch"><img src="'+ART[cur.id]+'" alt=""><div>釣到'+cur.name+(cur.pts?' +'+cur.pts:'')+'</div></div>');document.body.appendChild(c);setTimeout(function(){c.remove();},1500);
+  if(cur.id==='boot'){say('pCat','這是什麼啦');tip('……是舊靴子');}
+  else{say('pPg',cur.id==='chest'?'寶箱！嘎！！':'嘎！釣到了！');setTimeout(function(){say(Math.random()<.5?'pCat':'pDg',cur.id==='big'?'好大一隻！':'好厲害！');},400);tip('釣到'+cur.name+'！');}
+  btn('…','wait');setTimeout(next,1600);
+}
+function escape(){state='after';endReel();line();tip('線鬆掉了，'+cur.name+'跑走了…');say('pDg','差一點點！');btn('…','wait');setTimeout(next,1400);}
+function next(){
+  if(casts<=0){state='done';btn('結算中…','wait');setTimeout(function(){G.finish({game:'fish',score:score,unit:'分',stars:stars(score),note:'5 竿合計，10 分三顆星、6 分兩顆星',again:function(){reset();}});},500);return;}
+  state='idle';btn('🎣 拋竿');tip('再拋一竿（還有 '+casts+' 次）');
+}
+function reset(){casts=CASTS;score=0;$('casts').textContent='🎣 '+casts;$('score').textContent='0 分';state='idle';btn('🎣 拋竿');tip('按「拋竿」開始');}
+// 按鈕：拋竿、拉、按住收線
+var act=$('act');
+act.addEventListener('pointerdown',function(e){
+  e.preventDefault();
+  if(state==='idle')cast();
+  else if(state==='wait'){clearTimeout(timer);miss('太早拉了，魚被嚇跑了…');}
+  else if(state==='bite')reel();
+  if(state==='reel'){holding=true;try{act.setPointerCapture(e.pointerId);}catch(_){}}
+});
+['pointerup','pointercancel','pointerleave'].forEach(function(ev){act.addEventListener(ev,function(){holding=false;});});
+G.preload([ART.bobber,ART.splash,ART.fish,ART.squid,ART.big,ART.boot,ART.chest,'../assets/games/fish/bg.svg'],function(){
+  G.intro({game:'fish',title:'湖邊釣魚',desc:'跟雪球一起釣 5 竿！<br>浮標沉下去時馬上按「拉」<br>收線時按住讓框框追著魚跑',start:function(){reset();tip('按「拋竿」開始');}});
+});
+document.addEventListener('visibilitychange',function(){last=performance.now();});
+</script>
+</body>
+</html>

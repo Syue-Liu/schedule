@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#D8ECF4">
+<title>菜園打地鼠</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Huninn&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="game.css">
+<style>
+html,body{overflow:hidden;}
+body{background:#BFD9A6;touch-action:none;}
+.stage{position:fixed;inset:0;background:url(../assets/games/whack/bg.svg) center bottom/cover no-repeat;}
+/* 三隻在籬笆前面加油 */
+.fans{position:absolute;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top) + 64px);display:flex;align-items:flex-end;gap:4px;width:min(92vw,440px);justify-content:center;}
+.fan{position:relative;height:clamp(64px,12vh,96px);}
+.fan img{height:100%;width:auto;display:block;transition:transform .2s var(--pop);}
+.fan.pg{height:clamp(58px,10.8vh,86px);}
+.fan.cheer img{animation:fanHop .5s var(--pop);}
+@keyframes fanHop{40%{transform:translateY(-14px) rotate(-4deg);}}
+/* 3×3 個洞 */
+.field{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 3vh);width:min(94vw,460px,56vh);display:grid;grid-template-columns:repeat(3,1fr);gap:0 4%;}
+.hole{position:relative;aspect-ratio:1/1.05;}
+.hole .back,.hole .front{position:absolute;left:0;width:100%;bottom:6%;pointer-events:none;}
+.hole .front{z-index:2;}
+.hole .clip{position:absolute;left:6%;width:88%;bottom:31%;height:120%;overflow:hidden;pointer-events:none;}
+.hole .who{position:absolute;left:0;bottom:0;width:100%;transform:translateY(105%);transition:transform .16s ease-out;}
+.hole.up .who{transform:translateY(12%);}
+.hole.hit .who{transition:transform .2s ease-in .18s;}
+.hole.shake{animation:holeShake .3s;}
+@keyframes holeShake{25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+.hammer{position:fixed;z-index:30;width:90px;height:90px;pointer-events:none;transform:translate(-30%,-75%) rotate(30deg);transform-origin:70% 80%;animation:hammerHit .22s ease-out forwards;}
+@keyframes hammerHit{0%{transform:translate(-30%,-75%) rotate(35deg);}50%{transform:translate(-30%,-75%) rotate(-25deg);}100%{transform:translate(-30%,-75%) rotate(-15deg);opacity:0;}}
+.timebar{position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top) + 58px);height:10px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);overflow:hidden;z-index:21;}
+.timebar i{display:block;height:100%;width:100%;background:var(--wakatake);transform-origin:left;}
+.timebar.low i{background:var(--coral);}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="fans" id="fans"></div>
+  <div class="field" id="field"></div>
+</div>
+<div class="g-bar"><button class="g-back" onclick="location.href='./'">‹ 大廳</button><div class="g-title">菜園打地鼠</div><div class="g-pill" id="time">⏱ 30</div><div class="g-pill hot" id="score">0 分</div></div>
+<div class="timebar" id="tbar"><i id="tfill"></i></div>
+<script src="game.js"></script>
+<script>
+// 美術：之後換成畫好的圖，只要改這裡的檔名
+var A='../assets/games/whack/',ART={hb:A+'hole-back.svg',hf:A+'hole-front.svg',mole:A+'mole.svg',hit:A+'mole-hit.svg',gold:A+'mole-gold.svg',hog:A+'hedgehog.svg',hammer:A+'hammer.svg'};
+var TIME=30,KINDS={mole:{pts:1,img:ART.mole},gold:{pts:3,img:ART.gold},hog:{pts:-2,img:ART.hog}};
+var holes=[],score=0,left=TIME,running=false,next=0,raf=0,last=0;
+var CHEER=['好棒！','再一隻！','敲得好！','加油～'],OUCH=['小心刺蝟！','好痛！','那是刺蝟啦'];
+// 星星：25 分三顆、15 分兩顆，玩完至少一顆
+function stars(s){return s>=25?3:s>=15?2:1;}
+
+function build(){
+  document.getElementById('fans').innerHTML=['cat','pg','dg'].map(function(k){return '<div class="fan '+k+'" data-k="'+k+'"><img src="'+G.petImg(k,'idle')+'" alt="'+G.petName(k)+'"><div class="g-say"></div></div>';}).join('');
+  var f=document.getElementById('field');f.innerHTML='';holes=[];
+  for(var i=0;i<9;i++){
+    var h=G.el('<div class="hole"><img class="back" src="'+ART.hb+'" alt=""><div class="clip"><img class="who" src="'+ART.mole+'" alt=""></div><img class="front" src="'+ART.hf+'" alt=""></div>');
+    f.appendChild(h);
+    var o={el:h,img:h.querySelector('.who'),kind:'',until:0,hit:false};holes.push(o);
+    h.addEventListener('pointerdown',(function(o){return function(e){whack(o,e);};})(o));
+  }
+}
+function cheer(k,text,ms){
+  var fan=document.querySelector('.fan[data-k="'+k+'"]');if(!fan)return;
+  fan.classList.remove('cheer');void fan.offsetWidth;fan.classList.add('cheer');
+  fan.querySelector('img').src=G.petImg(k,'happy');
+  var s=fan.querySelector('.g-say');s.textContent=text;s.classList.add('on');
+  clearTimeout(fan._t);fan._t=setTimeout(function(){s.classList.remove('on');fan.querySelector('img').src=G.petImg(k,'idle');},ms||900);
+}
+function pop(o,kind,ms){o.kind=kind;o.hit=false;o.img.src=KINDS[kind].img;o.until=performance.now()+ms;o.el.classList.remove('hit');o.el.classList.add('up');}
+function down(o){o.el.classList.remove('up');o.kind='';}
+function whack(o,e){
+  if(!running)return;
+  var hm=G.el('<img class="hammer" src="'+ART.hammer+'" alt="">');hm.style.left=e.clientX+'px';hm.style.top=e.clientY+'px';document.body.appendChild(hm);setTimeout(function(){hm.remove();},240);
+  if(!o.kind||o.hit)return;
+  var k=KINDS[o.kind];o.hit=true;score=Math.max(0,score+k.pts);
+  var r=o.el.getBoundingClientRect();
+  if(o.kind==='hog'){
+    o.el.classList.add('shake');setTimeout(function(){o.el.classList.remove('shake');},300);
+    G.float(r.left+r.width/2,r.top+r.height*.3,k.pts+'','bad');cheer(['cat','pg','dg'][Math.floor(Math.random()*3)],OUCH[Math.floor(Math.random()*OUCH.length)]);
+    if(navigator.vibrate)navigator.vibrate(60);
+  }else{
+    o.img.src=ART.hit;if(o.kind==='gold')o.img.style.filter='sepia(1) saturate(3) hue-rotate(5deg)';
+    G.float(r.left+r.width/2,r.top+r.height*.3,'+'+k.pts,o.kind==='gold'?'gold':'');
+    if(o.kind==='gold'||Math.random()<.35)cheer(['cat','pg','dg'][Math.floor(Math.random()*3)],o.kind==='gold'?'金色的！':CHEER[Math.floor(Math.random()*CHEER.length)]);
+  }
+  o.el.classList.add('hit');o.until=performance.now()+260;
+  document.getElementById('score').textContent=score+' 分';
+}
+// 越後面冒得越快、待得越短
+function tick(t){
+  var dt=Math.min(.1,(t-last)/1000);last=t;
+  if(running){
+    left-=dt;
+    var p=1-left/TIME,gap=900-430*p,stay=1150-450*p;
+    if(t>=next){
+      var free=holes.filter(function(o){return !o.kind;});
+      if(free.length){var o=free[Math.floor(Math.random()*free.length)],r=Math.random();pop(o,r<.08?'gold':r<.25?'hog':'mole',stay*(r<.08?.75:1));}
+      next=t+gap*(.7+Math.random()*.6);
+    }
+    holes.forEach(function(o){if(o.kind&&t>=o.until){o.img.style.filter='';down(o);}});
+    var s=Math.max(0,Math.ceil(left));document.getElementById('time').textContent='⏱ '+s;
+    document.getElementById('tfill').style.transform='scaleX('+Math.max(0,left/TIME)+')';
+    document.getElementById('tbar').classList.toggle('low',left<8);
+    if(left<=0){end();return;}
+  }
+  raf=requestAnimationFrame(tick);
+}
+function start(){
+  score=0;left=TIME;running=true;document.getElementById('score').textContent='0 分';
+  holes.forEach(down);last=performance.now();next=last+400;cancelAnimationFrame(raf);raf=requestAnimationFrame(tick);
+}
+function end(){
+  running=false;holes.forEach(down);
+  var st=stars(score);['cat','pg','dg'].forEach(function(k){cheer(k,st>=3?'太強了！':'辛苦了～',1600);});
+  setTimeout(function(){G.finish({game:'whack',score:score,unit:'分',stars:st,note:'25 分三顆星、15 分兩顆星',again:function(){G.countdown(start);}});},700);
+}
+build();
+G.preload(Object.keys(ART).map(function(k){return ART[k];}),function(){
+  G.intro({game:'whack',title:'菜園打地鼠',desc:'小田鼠偷抱飼料冒出來了！<br>敲田鼠 +1、金色田鼠 +3<br>刺蝟會刺人，敲到 −2',start:start});
+});
+// 切到背景就暫停（requestAnimationFrame 停下來，時間不會一直少）
+document.addEventListener('visibilitychange',function(){last=performance.now();});
+</script>
+</body>
+</html>

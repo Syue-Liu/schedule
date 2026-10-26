@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1920" width="1080" height="1920">
+<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#CFE6F2"/><stop offset="1" stop-color="#FFF4E4"/></linearGradient>
+<linearGradient id="lake" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#B9DDEC"/><stop offset="1" stop-color="#7FB8D2"/></linearGradient></defs>
+<rect width="1080" height="1920" fill="url(#sky)"/>
+<g fill="#FFFCF6" stroke="#3E3A39" stroke-width="5" stroke-linejoin="round"><path d="M120 300c0-34 30-56 62-50 12-34 64-42 86-12 30-10 60 12 58 42 30 6 34 50 0 54H140c-24 0-34-20-20-34Z"/><path d="M720 220c0-30 26-48 54-44 12-30 56-36 76-10 26-8 52 10 50 36 26 6 30 44 0 48H738c-20 0-30-18-18-30Z"/></g>
+<path d="M0 760L170 560 300 680 470 470 660 690 820 580 1080 760Z" fill="#C9D9E6" stroke="#3E3A39" stroke-width="5" stroke-linejoin="round"/>
+<path d="M430 520l40-50 40 52-20-6-20 14-20-12Z" fill="#FFFCF6" stroke="#3E3A39" stroke-width="4" stroke-linejoin="round"/>
+<path d="M0 790c120-60 260-40 380-70s240 20 380-10 230 10 320 30V860H0Z" fill="#B9DAA5" stroke="#3E3A39" stroke-width="5" stroke-linejoin="round"/>
+<rect x="0" y="840" width="1080" height="1080" fill="url(#lake)"/>
+<path d="M0 840h1080" stroke="#3E3A39" stroke-width="5"/>
+<g stroke="#FFFCF6" stroke-width="7" stroke-linecap="round" fill="none" opacity=".75">
+<path d="M640 980h70M800 1060h90M600 1160h60M860 1240h80M680 1340h100M820 1480h70M620 1600h90M880 1700h80M700 1820h60"/></g>
+<!-- 木碼頭：左下，寵物坐在 y=1300 的檯面上 -->
+<g stroke="#3E3A39" stroke-width="6" stroke-linejoin="round">
+<rect x="60" y="1300" width="34" height="320" fill="#A37A5C"/><rect x="300" y="1300" width="34" height="320" fill="#A37A5C"/><rect x="520" y="1300" width="34" height="300" fill="#A37A5C"/>
+<path d="M-10 1282h600l-14 56H-10Z" fill="#D9B48F"/>
+<path d="M120 1282v56M250 1282v56M380 1282v56M500 1282v56" fill="none"/>
+</g>
+<g fill="none" stroke="#FFFCF6" stroke-width="6" stroke-linecap="round" opacity=".7"><path d="M40 1640c30 10 60 10 90 0M280 1640c30 10 60 10 90 0M500 1620c30 10 60 10 90 0"/></g>
+</svg>

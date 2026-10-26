@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#FFFCF6">
+<title>一起冒險</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Huninn&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="game.css">
+<style>
+body{min-height:100%;background:var(--paper);}
+.lb{max-width:520px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 64px) 14px calc(env(safe-area-inset-bottom) + 28px);}
+/* 上面的歡迎卡：三隻一起出發 */
+.lb-hero{position:relative;padding:16px 14px 12px;border:var(--lw) solid var(--ink);border-radius:24px;background:linear-gradient(180deg,#E4F2F8,#FDF2D2);box-shadow:0 4px 0 var(--ink);text-align:center;overflow:hidden;}
+.lb-hero h1{font-size:22px;font-weight:400;}
+.lb-hero p{font-size:13px;color:var(--t2);margin-top:4px;line-height:1.6;}
+.lb-hero .g-pets{height:96px;margin-top:8px;}
+.lb-hero .g-pets img{animation:lbHop 1.6s ease-in-out infinite;}
+.lb-hero .g-pets img:nth-child(2){animation-delay:.25s;}.lb-hero .g-pets img:nth-child(3){animation-delay:.5s;}
+@keyframes lbHop{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
+.lb-who{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px;font-size:13px;color:var(--t2);}
+.lb-who button{height:32px;padding:0 14px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);font-size:13px;}
+.lb-who button.on{background:var(--yellow);}
+.lb-who b{font-weight:400;padding:4px 14px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--yellow);color:var(--t);}
+/* 地圖上的五個地點 */
+.lb-h{display:flex;align-items:baseline;justify-content:space-between;margin:20px 4px 8px;font-size:14px;color:var(--t2);}
+.lb-list{display:flex;flex-direction:column;gap:12px;}
+.lb-game{display:grid;grid-template-columns:64px minmax(0,1fr) auto;align-items:center;gap:12px;width:100%;padding:12px;border:var(--lw2) solid var(--ink);border-radius:20px;background:var(--paper);box-shadow:0 3px 0 var(--ink);text-align:left;}
+.lb-game:active{transform:translateY(3px);box-shadow:none;}
+.lb-game.soon{background:var(--paper2);border-style:dashed;box-shadow:none;cursor:default;}
+.lb-game.soon:active{transform:none;}
+.lb-ic{width:64px;height:64px;border:var(--lw2) solid var(--ink);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px;background:var(--c,#FDF2D2);}
+.lb-ic img{width:100%;height:100%;object-fit:contain;border-radius:50%;}
+.lb-game.soon .lb-ic{filter:grayscale(.7);opacity:.6;}
+.lb-name{font-size:17px;}
+.lb-desc{font-size:12px;color:var(--t2);margin-top:2px;line-height:1.5;}
+.lb-tag{font-size:12px;padding:4px 10px;border:1.5px solid var(--ink);border-radius:999px;background:var(--ribbon-bg);white-space:nowrap;}
+.lb-tag.done{background:var(--paper2);color:var(--t3);}
+.lb-game.soon .lb-tag{background:none;border-style:dashed;color:var(--t3);}
+.lb-note{font-size:12px;color:var(--t3);text-align:center;margin-top:18px;line-height:1.7;}
+.lb-best{display:flex;gap:6px;margin-top:5px;font-size:12px;}
+.lb-best span{padding:1px 8px;border:1.5px solid var(--ink);border-radius:999px;background:var(--paper);}
+.lb-best span.syue{background:#EEF6E8;}.lb-best span.ling{background:#FDEEEA;}
+.lb-best span.top{background:var(--yellow);}
+.lb-rankbtn{height:32px;padding:0 12px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--yellow);font-size:13px;box-shadow:0 2px 0 var(--ink);}
+.rk-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:4px 0 12px;}
+.rk-tabs button{height:38px;border:var(--lw2) solid var(--ink);border-radius:14px;background:var(--paper);font-size:14px;}
+.rk-tabs button.on{background:var(--yellow);}
+.rk-vs{display:flex;justify-content:center;gap:10px;margin-bottom:12px;font-size:14px;}
+.rk-vs span{padding:4px 12px;border:var(--lw2) solid var(--ink);border-radius:999px;}
+.rk-vs .syue{background:#EEF6E8;}.rk-vs .ling{background:#FDEEEA;}
+</style>
+</head>
+<body>
+<div class="g-bar"><button class="g-back" onclick="location.href='../'">‹ 班表</button><div class="g-title">一起冒險</div></div>
+<div class="lb">
+  <div class="lb-hero">
+    <h1>今天要去哪裡玩？</h1>
+    <p>跟三隻一起出發，完成遊戲可以拿飼料回去餵牠們</p>
+    <div class="g-pets" id="lbPets"></div>
+    <div class="lb-who" id="lbWho"></div>
+  </div>
+  <div class="lb-h"><span>冒險地點 <small id="lbCap" style="font-size:12px;color:var(--t3)"></small></span><button class="lb-rankbtn" id="lbRank">🏆 排行榜</button></div>
+  <div class="lb-list" id="lbList"></div>
+  <div class="lb-note">每款遊戲每天前 3 次可以拿飼料（1～3 包，看星星）<br>拿到的飼料回到班表就會放進你的背包</div>
+</div>
+<script src="game.js"></script>
+<script>
+// 五個地點：先開放打地鼠、釣魚，其他的之後做
+var GAMES=[
+  {id:'whack',name:'菜園打地鼠',s:'打地鼠',desc:'偷吃飼料的小田鼠冒出來了，快敲牠！',ic:'🔨',c:'#E7F2DF',href:'whack.html'},
+  {id:'fish',name:'湖邊釣魚',s:'釣魚',desc:'跟雪球一起在碼頭釣魚，看準時機拉竿',ic:'🎣',c:'#E4F2F8',href:'fish.html'},
+  {id:'camp',name:'露營生火',desc:'控制柴火，讓營火剛剛好',ic:'🔥',c:'#FCE6E1'},
+  {id:'spring',name:'雪山挖溫泉',desc:'用有限的鏟子找到溫泉',ic:'♨️',c:'#F5EEE2'},
+  {id:'moto',name:'摩托車冒險',desc:'三隻擠一台車，閃過路上的障礙',ic:'🛵',c:'#FDF2D2'}
+];
+function draw(){
+  document.getElementById('lbPets').innerHTML=['cat','pg','dg'].map(function(k){return '<img'+(k==='pg'?' class="pg"':'')+' src="'+G.petImg(k,'happy')+'" alt="'+G.petName(k)+'">';}).join('');
+  var me=G.who();
+  // 已經選過就只顯示；要換人到班表的寵物狀態頁改（這支手機存的是誰的紀錄）
+  document.getElementById('lbWho').innerHTML=me?'玩的人是 <b>'+G.NAMES[me]+'</b>':'你是誰？ <button data-u="syue">學</button><button data-u="ling">綾</button>';
+  document.querySelectorAll('#lbWho [data-u]').forEach(function(b){b.onclick=function(){G.setWho(b.getAttribute('data-u'));draw();};});
+  document.getElementById('lbCap').textContent=me?'':'先選你是誰才能領飼料';
+  document.getElementById('lbList').innerHTML=GAMES.map(function(g){
+    var tag=!g.href?'即將推出':!me?'可以玩':G.left(g.id)?'今天還有 '+G.left(g.id)+' 次獎勵':'今天獎勵領完了';
+    // 兩個人各自最高分，高的那個塗黃色
+    var bs=g.href?['syue','ling'].map(function(u){return {u:u,s:G.best(g.id,u)};}):[],top=Math.max.apply(null,bs.map(function(x){return x.s==null?-1:x.s;}));
+    var best=g.href?'<div class="lb-best">'+bs.map(function(x){return '<span class="'+x.u+(x.s!=null&&x.s===top?' top':'')+'">'+(x.s!=null&&x.s===top?'🏆 ':'')+G.NAMES[x.u]+' '+(x.s==null?'—':x.s)+'</span>';}).join('')+'</div>':'';
+    return '<button class="lb-game'+(g.href?'':' soon')+'" data-g="'+g.id+'"><span class="lb-ic" style="--c:'+g.c+'">'+g.ic+'</span><span><span class="lb-name">'+g.name+'</span><div class="lb-desc">'+g.desc+'</div>'+best+'</span><span class="lb-tag'+(g.href&&me&&!G.left(g.id)?' done':'')+'">'+tag+'</span></button>';
+  }).join('');
+  document.querySelectorAll('[data-g]').forEach(function(b){b.onclick=function(){var g=GAMES.filter(function(x){return x.id===b.getAttribute('data-g');})[0];if(g.href)location.href=g.href;};});
+}
+// 排行榜：每款前 10 名（兩個人一起排），上面是各自的最高分
+var rankGame='whack';
+function openRank(){
+  var playable=GAMES.filter(function(g){return g.href;});
+  var g=playable.filter(function(x){return x.id===rankGame;})[0]||playable[0];
+  var vs=['syue','ling'].map(function(u){var b=G.best(g.id,u);return '<span class="'+u+'">'+G.NAMES[u]+' 最高 '+(b==null?'—':b+' 分')+'</span>';}).join('');
+  var old=document.querySelector('.g-ov');if(old)old.remove();
+  var ov=G.el('<div class="g-ov"><div class="g-card" style="text-align:left"><h2 style="text-align:center">🏆 排行榜</h2><div class="rk-tabs">'+playable.map(function(x){return '<button data-rk="'+x.id+'"'+(x.id===g.id?' class="on"':'')+'>'+x.ic+' '+x.s+'</button>';}).join('')+'</div><div class="rk-vs">'+vs+'</div>'+G.boardHtml(g.id,'分')+
+    '<p class="g-small" style="text-align:center">另一半的分數回到班表、同步後就會出現在這裡</p><div class="g-btns"><button class="g-btn ghost" data-close>關閉</button></div></div></div>');
+  document.body.appendChild(ov);
+  ov.querySelectorAll('[data-rk]').forEach(function(b){b.onclick=function(){rankGame=b.getAttribute('data-rk');openRank();};});
+  ov.querySelector('[data-close]').onclick=function(){ov.remove();};
+  ov.onclick=function(e){if(e.target===ov)ov.remove();};
+}
+document.getElementById('lbRank').onclick=openRank;
+draw();
+// 從遊戲按上一頁回來時重新算剩幾次
+window.addEventListener('pageshow',function(e){if(e.persisted)draw();});
+</script>
+</body>
+</html>
