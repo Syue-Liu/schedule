@@ -18,9 +18,9 @@ var G=(function(){
     return n;
   }
   function left(game){return who()?Math.max(0,CAP-played(game)):0;}
-  // 玩完一局：分數一定記（排行榜用），飼料看今天還有沒有次數；回傳拿到幾包
+  // 玩完一局：有得分就記（排行榜用），飼料看今天還有沒有次數；回傳拿到幾包。0 分不記也不給飼料
   function record(game,score,kib){
-    if(!who())return 0;
+    if(!who()||!(score>0))return 0;
     var got=kib>0&&left(game)?kib:0,q=queue();
     q.push({who:who(),game:game,day:today(),kib:got,score:score,at:Date.now()});ls('gameRewards',JSON.stringify(q));
     return got;
@@ -58,15 +58,15 @@ var G=(function(){
   }
   // 結算：分數→星星→飼料（1～3 包），每天每款前 3 次有獎勵
   function finish(o){
-    var stars=o.stars,me=who(),prev=me?best(o.game,me):null,got=record(o.game,o.score,stars);
+    var stars=o.score>0?o.stars:0,me=who(),prev=me?best(o.game,me):null,got=record(o.game,o.score,stars);
     var brd=board(o.game),rank=-1;
     for(var i=0;i<brd.length;i++)if(brd[i].mine&&brd[i].s===o.score&&brd[i].who===me){rank=i+1;break;}
     var rec=me&&o.score>0&&(prev==null||o.score>prev);
     var head=stars>=3?'太厲害了！':stars===2?'好棒！':'完成了！';
     var rw=got?'<div class="g-reward"><img src="../assets/games/ui/kib.svg" alt="">獲得飼料 ×'+got+'<span class="g-small" style="margin:0 0 0 4px">回班表就會收到</span></div>'
-      :'<div class="g-reward none">'+(who()?'今天這款的飼料獎勵領完了':'在班表選好你是誰，才能領飼料')+'</div>';
+      :'<div class="g-reward none">'+(!who()?'在班表選好你是誰，才能領飼料':o.score>0?'今天這款的飼料獎勵領完了':'這局沒有得分，沒有飼料')+'</div>';
     var st='';for(var i=0;i<3;i++)st+='<img class="g-star'+(i<stars?' on':'')+'" src="../assets/games/ui/star.svg" alt="">';
-    var rk=me?'<div class="g-rank">'+(rec?'<b>🏆 '+NAMES[me]+'的新紀錄！</b>':'')+(rank>0?'<span>排行榜第 '+rank+' 名</span>':'<span>這局沒進前 10 名</span>')+'</div>':'';
+    var rk=me&&o.score>0?'<div class="g-rank">'+(rec?'<b>🏆 '+NAMES[me]+'的新紀錄！</b>':'')+(rank>0?'<span>排行榜第 '+rank+' 名</span>':'<span>這局沒進前 10 名</span>')+'</div>':'';
     var ov=el('<div class="g-ov"><div class="g-card">'+pets()+'<h2>'+head+'</h2><div class="g-stars">'+st+'</div><div class="g-score">'+o.score+'<span style="font-size:16px"> '+o.unit+'</span></div>'+rk+(o.note?'<p>'+o.note+'</p>':'')+rw+
       '<p class="g-small">'+leftTxt(o.game)+'</p><div class="g-btns"><button class="g-btn" data-again>再玩一次</button><button class="g-btn ghost" data-lobby>回冒險大廳</button><button class="g-btn ghost" data-home>回班表</button></div></div></div>');
     document.body.appendChild(ov);

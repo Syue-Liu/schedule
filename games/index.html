@@ -12,6 +12,7 @@
 <link rel="stylesheet" href="game.css">
 <style>
 body{min-height:100%;background:var(--paper);}
+.g-bar{background:var(--paper);box-shadow:0 6px 10px -8px rgba(62,58,57,.35);}
 .lb{max-width:520px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 64px) 14px calc(env(safe-area-inset-bottom) + 28px);}
 /* 上面的歡迎卡：三隻一起出發 */
 .lb-hero{position:relative;padding:16px 14px 12px;border:var(--lw) solid var(--ink);border-radius:24px;background:linear-gradient(180deg,#E4F2F8,#FDF2D2);box-shadow:0 4px 0 var(--ink);text-align:center;overflow:hidden;}
@@ -46,7 +47,7 @@ body{min-height:100%;background:var(--paper);}
 .lb-best span.syue{background:#EEF6E8;}.lb-best span.ling{background:#FDEEEA;}
 .lb-best span.top{background:var(--yellow);}
 .lb-rankbtn{height:32px;padding:0 12px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--yellow);font-size:13px;box-shadow:0 2px 0 var(--ink);}
-.rk-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:4px 0 12px;}
+.rk-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:4px 0 12px;}
 .rk-tabs button{height:38px;border:var(--lw2) solid var(--ink);border-radius:14px;background:var(--paper);font-size:14px;}
 .rk-tabs button.on{background:var(--yellow);}
 .rk-vs{display:flex;justify-content:center;gap:10px;margin-bottom:12px;font-size:14px;}
@@ -69,11 +70,11 @@ body{min-height:100%;background:var(--paper);}
 </div>
 <script src="game.js"></script>
 <script>
-// 五個地點：先開放打地鼠、釣魚，其他的之後做
+// 五個地點：有 href 的就是可以玩的
 var GAMES=[
   {id:'whack',name:'菜園打地鼠',s:'打地鼠',desc:'偷吃飼料的小田鼠冒出來了，快敲牠！',ic:'🔨',c:'#E7F2DF',href:'whack.html'},
   {id:'fish',name:'湖邊釣魚',s:'釣魚',desc:'跟雪球一起在碼頭釣魚，看準時機拉竿',ic:'🎣',c:'#E4F2F8',href:'fish.html'},
-  {id:'camp',name:'露營生火',desc:'控制柴火，讓營火剛剛好',ic:'🔥',c:'#FCE6E1'},
+  {id:'camp',name:'露營生火',s:'生火',desc:'控制柴火，幫三隻烤棉花糖',ic:'🔥',c:'#FCE6E1',href:'camp.html'},
   {id:'spring',name:'雪山挖溫泉',desc:'用有限的鏟子找到溫泉',ic:'♨️',c:'#F5EEE2'},
   {id:'moto',name:'摩托車冒險',desc:'三隻擠一台車，閃過路上的障礙',ic:'🛵',c:'#FDF2D2'}
 ];

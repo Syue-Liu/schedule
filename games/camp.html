@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#232B4A">
+<title>露營生火</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Huninn&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="game.css">
+<style>
+html,body{overflow:hidden;}
+body{background:#36402F;touch-action:none;}
+/* 場景用背景圖的座標（1080×1920）擺，再依螢幕縮放 */
+.world{position:fixed;left:50%;bottom:0;width:1080px;height:1920px;transform-origin:50% 100%;background:url(../assets/games/camp/bg.svg) 0 0/100% 100% no-repeat;}
+.glow{position:absolute;left:540px;top:980px;width:1200px;height:1000px;margin:-500px 0 0 -600px;border-radius:50%;background:radial-gradient(closest-side,rgba(255,196,110,.7),rgba(255,160,90,.22) 55%,rgba(255,160,90,0));pointer-events:none;}
+.g-title{color:var(--paper);text-shadow:0 2px 0 var(--ink);}
+.pet{position:absolute;}
+.pet img{width:100%;display:block;}
+.pet.flip img{transform:scaleX(-1);}
+.pet .g-say{font-size:30px;padding:6px 16px;border-width:4px;border-radius:24px;}
+.pet.cheer{animation:petHop .5s var(--pop);}
+@keyframes petHop{40%{transform:translateY(-26px);}}
+.pet.shiver img{animation:shiver .12s linear infinite alternate;}
+@keyframes shiver{to{translate:4px 0;}}
+.fire{position:absolute;left:540px;top:720px;width:300px;height:400px;margin-left:-150px;transform-origin:50% 100%;}
+.fire img{width:100%;height:100%;display:block;transform-origin:50% 100%;animation:flick .35s ease-in-out infinite alternate;}
+@keyframes flick{from{transform:scale(1,1) skewX(-2deg);}to{transform:scale(.96,1.05) skewX(2deg);}}
+.fire.windy img{animation:flickW .3s ease-in-out infinite alternate;}
+@keyframes flickW{from{transform:skewX(-16deg) scale(1,.94);}to{transform:skewX(-24deg) scale(.97,1);}}
+.fire.puff img{animation:puff .3s ease-out;}
+@keyframes puff{50%{transform:scale(1.12,1.16);}}
+.pit{position:absolute;left:330px;top:1066px;width:420px;}
+.smoke{position:absolute;width:150px;margin:-75px 0 0 -75px;opacity:0;pointer-events:none;animation:smoke 2.2s ease-out forwards;}
+@keyframes smoke{0%{opacity:0;transform:scale(.5);}20%{opacity:.85;}100%{opacity:0;transform:translate(var(--dx),-380px) scale(1.6);}}
+.spark{position:absolute;width:16px;height:16px;margin:-8px;border-radius:50%;background:#FFE08A;box-shadow:0 0 14px #FFB050;pointer-events:none;animation:spark 1s ease-out forwards;}
+@keyframes spark{to{transform:translate(var(--dx),-320px) scale(.4);opacity:0;}}
+.stick{position:absolute;left:0;top:0;width:1080px;height:1920px;pointer-events:none;overflow:visible;}
+.marsh{position:absolute;width:120px;height:120px;margin:-60px 0 0 -60px;transition:left .35s,top .35s,opacity .3s;}
+.marsh img{position:absolute;inset:0;width:100%;height:100%;}
+.marsh.eaten{opacity:0;}
+/* 起風：畫面飄過幾條風 */
+.wind{position:fixed;inset:0;z-index:5;pointer-events:none;opacity:0;transition:opacity .4s;overflow:hidden;}
+.wind.on{opacity:1;}
+.wind i{position:absolute;right:0;height:5px;border-radius:5px;background:rgba(255,252,246,.6);animation:windLine 1.1s linear infinite;}
+@keyframes windLine{from{transform:translateX(100%);}to{transform:translateX(-110vw);}}
+/* 下面：火力條、烤熟度、加柴按鈕 */
+.ctrl{position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 18px);z-index:20;display:flex;flex-direction:column;align-items:center;gap:12px;padding:0 16px;}
+.tip{padding:6px 14px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);font-size:14px;min-height:34px;}
+.panel{width:min(90vw,360px);padding:12px 14px 10px;border:var(--lw2) solid var(--ink);border-radius:18px;background:var(--paper);box-shadow:0 3px 0 var(--ink);}
+.heat{position:relative;height:20px;border:var(--lw2) solid var(--ink);border-radius:999px;background:linear-gradient(90deg,#CFE6F2 0 48%,#B9DAA5 48% 72%,#F6D27A 72% 80%,#F2A497 80%);}
+.heat b{position:absolute;left:60%;top:50%;transform:translate(-50%,-52%);font-size:14px;font-weight:400;color:var(--ribbon-t);}
+.needle{position:absolute;top:-9px;bottom:-9px;left:50%;width:8px;margin-left:-4px;border:var(--lw2) solid var(--ink);border-radius:4px;background:var(--paper);}
+.hlab{position:relative;height:18px;margin-top:5px;font-size:12px;color:var(--t2);}
+.hlab span{position:absolute;transform:translateX(-50%);white-space:nowrap;}
+.roast{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:13px;color:var(--t2);}
+.roast img{width:26px;height:26px;}
+.roast .bar{flex:1;height:12px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper2);overflow:hidden;}
+.roast .bar i{display:block;height:100%;width:0;background:#E9B25A;}
+.act{width:min(70vw,260px);height:66px;font-size:22px;}
+.act img{width:40px;height:20px;}
+.flylog{position:fixed;z-index:25;width:70px;margin:-18px 0 0 -35px;pointer-events:none;transition:left .42s cubic-bezier(.3,.6,.4,1),top .42s cubic-bezier(.5,-.6,.7,1),transform .42s;}
+</style>
+</head>
+<body>
+<div class="world" id="world">
+  <div class="glow" id="glow"></div>
+  <div class="pet flip" id="pDg" style="left:770px;top:838px;width:270px"><img alt=""><div class="g-say"></div></div>
+  <div class="pet" id="pCat" style="left:80px;top:940px;width:260px"><img alt=""><div class="g-say"></div></div>
+  <div class="fire" id="fire"><img alt=""></div>
+  <img class="pit" id="pit" alt="">
+  <div class="pet" id="pPg" style="left:700px;top:960px;width:190px"><img alt=""><div class="g-say"></div></div>
+  <svg class="stick" viewBox="0 0 1080 1920"><path id="stickO" d="" stroke="#3E3A39" stroke-width="18" stroke-linecap="round" fill="none"/><path id="stick" d="" stroke="#C99A6E" stroke-width="9" stroke-linecap="round" fill="none"/></svg>
+  <div class="marsh" id="marsh"><img id="mRaw" alt=""><img id="mGold" alt="" style="opacity:0"><img id="mBurnt" alt="" style="opacity:0"></div>
+</div>
+<div class="wind" id="wind"></div>
+<div class="g-bar"><button class="g-back" onclick="location.href='./'">‹ 大廳</button><div class="g-title">露營生火</div><div class="g-pill" id="time">⏱ 40</div><div class="g-pill hot" id="score">0 分</div></div>
+<div class="ctrl">
+  <div class="tip" id="tip">讓火保持在綠色的「剛剛好」</div>
+  <div class="panel">
+    <div class="heat"><b>★</b><div class="needle" id="needle"></div></div>
+    <div class="hlab"><span style="left:24%">太小會熄</span><span style="left:60%">剛剛好</span><span style="left:90%">太旺</span></div>
+    <div class="roast"><img id="rIc" alt=""><span>烤熟度</span><div class="bar"><i id="rBar"></i></div></div>
+  </div>
+  <button class="g-btn act" id="act">🪵 加柴</button>
+</div>
+<script src="game.js"></script>
+<script>
+// 美術：之後換成畫好的圖，只要改這裡的檔名
+var A='../assets/games/camp/',ART={bg:A+'bg.svg',fire:A+'fire.svg',pit:A+'pit.svg',log:A+'log.svg',raw:A+'marsh-raw.svg',gold:A+'marsh-gold.svg',burnt:A+'marsh-burnt.svg',smoke:A+'smoke.svg'};
+// 火力 0～100：48～72 剛剛好（越接近 60 烤越快），80 以上太旺會烤焦，30 以下幾乎不會熟
+var TIME=40,LOW=48,HIGH=72,MID=60,HOT=80,LOG=15;
+// 三隻輪流烤：誰拿竹籤、竹籤從哪裡伸出來
+var COOK=[{k:'cat',id:'pCat',from:[330,1010]},{k:'pg',id:'pPg',from:[730,1040]},{k:'dg',id:'pDg',from:[800,935]}],TIP=[540,815];
+var $=function(id){return document.getElementById(id);};
+var state='idle',decay=7,decayNext=0,left=TIME,score=0,fuel=50,fire=40,roast=0,burn=0,turn=0,pause=0,wind=0,windNext=0,raf=0,last=0,fx=0,talk=0,made=0;
+// 星星：14 分三顆、8 分兩顆
+function stars(s){return s>=14?3:s>=8?2:1;}
+
+function fit(){var s=Math.min(Math.max(innerWidth/1080,innerHeight/1920),innerHeight/1300);$('world').style.transform='translateX(-50%) scale('+s+')';}
+fit();addEventListener('resize',fit);
+['pCat','pPg','pDg'].forEach(function(id,i){$(id).querySelector('img').src=G.petImg(['cat','pg','dg'][i],'idle');});
+$('fire').querySelector('img').src=ART.fire;$('pit').src=ART.pit;$('mRaw').src=ART.raw;$('mGold').src=ART.gold;$('mBurnt').src=ART.burnt;$('rIc').src=ART.raw;
+$('wind').innerHTML=[18,34,52,66,80].map(function(y,i){return '<i style="top:'+y+'%;width:'+(30+i*7%20)+'vw;animation-delay:'+(i*.23)+'s"></i>';}).join('');
+
+function say(id,text,ms){var p=$(id),s=p.querySelector('.g-say');s.textContent=text;s.classList.add('on');p.classList.remove('cheer');void p.offsetWidth;p.classList.add('cheer');clearTimeout(p._t);p._t=setTimeout(function(){s.classList.remove('on');},ms||1300);}
+function pose(i,p){$(COOK[i].id).querySelector('img').src=G.petImg(COOK[i].k,p);}
+function tip(t){$('tip').textContent=t;}
+function cook(){return COOK[turn%3];}
+// 竹籤從這次輪到的寵物伸到火上
+function stickTo(){
+  var c=cook(),d='M'+c.from[0]+' '+c.from[1]+'L'+TIP[0]+' '+(TIP[1]+40);$('stick').setAttribute('d',d);$('stickO').setAttribute('d',d);
+  var m=$('marsh');m.style.left=TIP[0]+'px';m.style.top=TIP[1]+'px';
+}
+function newMarsh(){roast=0;burn=0;$('marsh').classList.remove('eaten');stickTo();}
+function addLog(){
+  if(state!=='play')return;
+  fuel=Math.min(130,fuel+LOG);
+  var b=$('act').getBoundingClientRect(),f=$('fire').getBoundingClientRect();
+  var lg=G.el('<img class="flylog" src="'+ART.log+'" alt="">');lg.style.left=(b.left+b.width/2)+'px';lg.style.top=b.top+'px';document.body.appendChild(lg);
+  requestAnimationFrame(function(){requestAnimationFrame(function(){lg.style.left=(f.left+f.width/2)+'px';lg.style.top=(f.bottom-12)+'px';lg.style.transform='rotate(200deg) scale(.7)';});});
+  setTimeout(function(){lg.remove();var fe=$('fire');fe.classList.remove('puff');void fe.offsetWidth;fe.classList.add('puff');setTimeout(function(){fe.classList.remove('puff');},300);},420);
+}
+function fxAt(cls,x,y,dx){var e=document.createElement(cls==='smoke'?'img':'div');e.className=cls;if(cls==='smoke')e.src=ART.smoke;e.style.left=x+'px';e.style.top=y+'px';e.style.setProperty('--dx',dx+'px');$('world').appendChild(e);setTimeout(function(){e.remove();},2300);}
+// 烤好：金黃 +2、有點焦 +1；焦掉 0 分
+function done(){
+  var gold=burn<.25,pts=gold?2:1,c=cook(),i=turn%3;score+=pts;made++;$('score').textContent=score+' 分';
+  var r=$('marsh').getBoundingClientRect();G.float(r.left+r.width/2,r.top,gold?'完美金黃 +2':'有點焦 +1',gold?'gold':'');
+  pose(i,'eat');say(c.id,gold?'好好吃！':'焦焦的也好吃',1100);$('marsh').classList.add('eaten');
+  tip(gold?'烤得剛剛好！':'有一點焦，火小一點會更好');
+  setTimeout(function(){pose(i,'idle');},1000);next();
+}
+function burnt(){
+  var c=cook();fxAt('smoke',TIP[0],TIP[1]-30,20);say(c.id,'焦掉了…',1200);tip('火太旺，棉花糖燒焦了');
+  $('marsh').classList.add('eaten');next();
+}
+function next(){pause=1;turn++;setTimeout(function(){if(state==='play')newMarsh();},800);}
+function wobble(t){
+  // 太燙往後退、太冷發抖
+  ['pCat','pPg','pDg'].forEach(function(id){$(id).classList.toggle('shiver',fire<25);});
+  if(t<talk)return;
+  if(fire>=HOT){say(['pCat','pPg','pDg'][Math.floor(Math.random()*3)],'好燙！',1100);talk=t+2600;}
+  else if(fire<25){say(['pCat','pPg','pDg'][Math.floor(Math.random()*3)],'好冷喔…',1100);talk=t+3000;}
+}
+function draw(){
+  var s=.3+fire/100*.9;$('fire').style.transform='scale('+(.7+fire/100*.45)+','+s+')';
+  $('glow').style.opacity=(.15+fire/100*.85).toFixed(2);
+  $('needle').style.left=Math.max(2,Math.min(98,fire))+'%';
+  $('mGold').style.opacity=Math.min(1,roast*1.15).toFixed(2);$('mBurnt').style.opacity=Math.min(1,burn).toFixed(2);
+  var bar=$('rBar');bar.style.width=Math.min(100,roast*100)+'%';bar.style.background=burn>.25?'#8C5E45':'#E9B25A';
+  var tl=Math.max(0,Math.ceil(left));$('time').textContent='⏱ '+tl;$('time').classList.toggle('hot',left<8);
+}
+function tick(t){
+  var dt=Math.min(.1,(t-last)/1000);last=t;
+  if(state==='play'){
+    left-=dt;
+    // 起風：火掉得比較快，大概每 6～11 秒一次
+    if(!wind&&t>windNext){wind=t+2800;$('wind').classList.add('on');$('fire').classList.add('windy');tip('起風了！火會小得比較快');say('pPg','起風了！',1000);}
+    if(wind&&t>wind){wind=0;windNext=t+5000+Math.random()*5000;$('wind').classList.remove('on');$('fire').classList.remove('windy');}
+    // 柴燒的速度每 2～4 秒變一下，不能只靠固定節奏
+    if(t>decayNext){decay=5.5+Math.random()*4;decayNext=t+2000+Math.random()*2000;}
+    fuel=Math.max(0,fuel-(wind?decay*2.4:decay)*dt);
+    fire+=(fuel-fire)*Math.min(1,dt*1.8);
+    if(pause>0)pause-=dt;
+    else{
+      var r=0,b=0;
+      if(fire>=HOT){r=.3;b=1.1;}else if(fire>HIGH){r=.3;b=.35;}else if(fire>=LOW){r=.14+.2*Math.max(0,1-Math.abs(fire-MID)/12);}else if(fire>=30){r=.07;}
+      roast+=r*dt;burn+=b*dt;
+      if(burn>=1)burnt();else if(roast>=1)done();
+    }
+    if(t>fx){fx=t+(fire<30?500:fire>=HOT?120:400);if(fire<30)fxAt('smoke',540+Math.random()*60-30,1000,Math.random()*80-20);else if(fire>=HOT)fxAt('spark',540+Math.random()*160-80,1000-fire*2,Math.random()*160-80);}
+    wobble(t);draw();
+    if(left<=0){end();return;}
+  }
+  raf=requestAnimationFrame(tick);
+}
+function start(){
+  state='play';left=TIME;score=0;fuel=52;fire=36;turn=0;pause=0;made=0;wind=0;windNext=performance.now()+6000+Math.random()*3000;decayNext=0;talk=0;
+  $('score').textContent='0 分';tip('火在綠色會烤熟，越接近 ★ 烤越快');newMarsh();
+  last=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(tick);
+}
+function end(){
+  state='done';$('wind').classList.remove('on');$('fire').classList.remove('windy');
+  ['pCat','pPg','pDg'].forEach(function(id,i){$(id).classList.remove('shiver');$(id).querySelector('img').src=G.petImg(['cat','pg','dg'][i],'happy');});
+  say('pDg',score>=14?'吃得好飽！':'謝謝你生火～',1600);tip('營火晚會結束囉');
+  setTimeout(function(){G.finish({game:'camp',score:score,unit:'分',stars:stars(score),note:'金黃 +2、有點焦 +1；14 分三顆星、8 分兩顆星',again:function(){['pCat','pPg','pDg'].forEach(function(id,i){$(id).querySelector('img').src=G.petImg(['cat','pg','dg'][i],'idle');});G.countdown(start);}});},900);
+}
+$('act').addEventListener('pointerdown',function(e){e.preventDefault();addLog();});
+draw();stickTo();
+G.preload(Object.keys(ART).map(function(k){return ART[k];}),function(){
+  G.intro({game:'camp',title:'露營生火',desc:'幫三隻烤棉花糖！<br>按「加柴」讓火保持在綠色的剛剛好<br>越接近中間的 ★ 烤越快<br>火太旺會烤焦，起風時火會掉得比較快',start:start});
+});
+document.addEventListener('visibilitychange',function(){last=performance.now();});
+</script>
+</body>
+</html>
