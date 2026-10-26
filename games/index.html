@@ -53,7 +53,7 @@ body{min-height:100%;background:var(--paper);}
 .rk-vs span{padding:4px 12px;border:var(--lw2) solid var(--ink);border-radius:999px;}
 .rk-vs .syue{background:#EEF6E8;}.rk-vs .ling{background:#FDEEEA;}
 </style>
-<link rel="stylesheet" href="polish.css?v=storybook-20261026">
+<link rel="stylesheet" href="polish.css?v=snowlake-20261026">
 </head>
 <body data-game="lobby">
 <div class="g-bar"><button class="g-back" onclick="location.href='../'">‹ 班表</button><div class="g-title">一起冒險</div></div>
@@ -68,12 +68,12 @@ body{min-height:100%;background:var(--paper);}
   <div class="lb-list" id="lbList"></div>
   <div class="lb-note">每款遊戲每天前 3 次可以拿飼料（1～3 包，看星星）<br>拿到的飼料回到班表就會放進你的背包</div>
 </div>
-<script src="game.js?v=storybook-20261026"></script>
+<script src="game.js?v=snowlake-20261026"></script>
 <script>
 // 五個地點：有 href 的就是可以玩的
 var GAMES=[
   {id:'whack',name:'菜園打地鼠',s:'打地鼠',desc:'偷吃飼料的小田鼠冒出來了，快敲牠！',ic:'🔨',c:'#E7F2DF',href:'whack.html'},
-  {id:'fish',name:'湖邊釣魚',s:'釣魚',desc:'跟雪球一起在碼頭釣魚，看準時機拉竿',ic:'🎣',c:'#E4F2F8',href:'fish.html'},
+  {id:'fish',name:'湖邊釣魚',s:'釣魚',desc:'陪雪球在雪地湖畔釣魚，看準時機拉竿',ic:'🎣',c:'#E4F2F8',href:'fish.html'},
   {id:'camp',name:'露營生火',s:'生火',desc:'控制柴火，幫三隻烤棉花糖',ic:'🔥',c:'#FCE6E1',href:'camp.html'},
   {id:'spring',name:'雪山挖溫泉',s:'溫泉',desc:'看溫度推理，用 12 把鏟子挖出 3 個溫泉',ic:'♨️',c:'#E4F2F8',href:'spring.html'},
   {id:'moto',name:'摩托車冒險',s:'摩托車',desc:'三隻擠一台車，跳過路上的障礙',ic:'🛵',c:'#FDF2D2',href:'moto.html'}
@@ -91,7 +91,7 @@ function draw(){
     var bs=g.href?['syue','ling'].map(function(u){return {u:u,s:G.best(g.id,u)};}):[],top=Math.max.apply(null,bs.map(function(x){return x.s==null?-1:x.s;}));
     var best=g.href?'<div class="lb-best">'+bs.map(function(x){return '<span class="'+x.u+(x.s!=null&&x.s===top?' top':'')+'">'+(x.s!=null&&x.s===top?'🏆 ':'')+G.NAMES[x.u]+' '+(x.s==null?'—':x.s)+'</span>';}).join('')+'</div>':'';
     var meta=G.SCENES[g.id];
-    return '<button class="lb-game" data-g="'+g.id+'" aria-label="遊玩'+g.name+'" style="--scene:'+meta.color+'"><span class="lb-cover"><img src="../assets/games/'+g.id+'/cover.svg" alt="" loading="lazy"><span class="lb-number">0'+(i+1)+'</span><span class="lb-cover-label">'+meta.label+'</span></span><span class="lb-copy"><span class="lb-game-meta">'+meta.kind+' · '+meta.time+'</span><span class="lb-name">'+g.name+'</span><span class="lb-desc">'+g.desc+'</span>'+best+'<span class="lb-card-footer"><span class="lb-tag'+(g.href&&me&&!G.left(g.id)?' done':'')+'">'+tag+'</span><span class="lb-go">出發 <span aria-hidden="true">↗</span></span></span></span></button>';
+    return '<button class="lb-game" data-g="'+g.id+'" aria-label="遊玩'+g.name+'" style="--scene:'+meta.color+'"><span class="lb-cover"><img src="../assets/games/'+g.id+'/'+(meta.cover||'cover.svg')+'" alt="" loading="lazy"><span class="lb-number">0'+(i+1)+'</span><span class="lb-cover-label">'+meta.label+'</span></span><span class="lb-copy"><span class="lb-game-meta">'+meta.kind+' · '+meta.time+'</span><span class="lb-name">'+g.name+'</span><span class="lb-desc">'+g.desc+'</span>'+best+'<span class="lb-card-footer"><span class="lb-tag'+(g.href&&me&&!G.left(g.id)?' done':'')+'">'+tag+'</span><span class="lb-go">出發 <span aria-hidden="true">↗</span></span></span></span></button>';
   }).join('');
   document.querySelectorAll('[data-g]').forEach(function(b){b.onclick=function(){var g=GAMES.filter(function(x){return x.id===b.getAttribute('data-g');})[0];if(g.href)location.href=g.href;};});
 }

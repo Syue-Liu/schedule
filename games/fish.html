@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#CFE6F2">
+<meta name="theme-color" content="#E3EAF3">
 <title>湖邊釣魚</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,9 +12,9 @@
 <link rel="stylesheet" href="game.css">
 <style>
 html,body{overflow:hidden;}
-body{background:#7FB8D2;touch-action:none;}
+body{background:#DAE7EF;touch-action:none;}
 /* 整個場景用背景圖的座標（1080×1920）擺東西，再依螢幕縮放，碼頭和寵物永遠對得上 */
-.world{position:fixed;left:50%;bottom:0;width:1080px;height:1920px;transform-origin:50% 100%;background:url(../assets/games/fish/bg-painted.svg) 0 0/100% 100% no-repeat;}
+.world{position:fixed;left:50%;bottom:0;width:1080px;height:1920px;transform-origin:50% 100%;background:url(../assets/games/fish/bg-winter.svg) 0 0/100% 100% no-repeat;}
 .pet{position:absolute;}
 .pet img{width:100%;display:block;}
 .pet .g-say{font-size:30px;padding:6px 16px;border-width:4px;border-radius:24px;}
@@ -54,7 +54,7 @@ body{background:#7FB8D2;touch-action:none;}
 .prog{margin-top:8px;height:14px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);overflow:hidden;}
 .prog i{display:block;height:100%;width:30%;background:var(--wakatake);}
 </style>
-<link rel="stylesheet" href="polish.css?v=storybook-20261026">
+<link rel="stylesheet" href="polish.css?v=snowlake-20261026">
 </head>
 <body data-game="fish">
 <div class="world" id="world">
@@ -72,7 +72,7 @@ body{background:#7FB8D2;touch-action:none;}
   <div class="reel" id="reel"><div class="track" id="track"><div class="zone" id="zone"></div><img class="fishmk" id="fishmk" alt=""></div><div class="prog"><i id="prog"></i></div></div>
   <button class="g-btn act" id="act">🎣 拋竿</button>
 </div>
-<script src="game.js?v=storybook-20261026"></script>
+<script src="game.js?v=snowlake-20261026"></script>
 <script>
 var A='../assets/games/fish/',ART={bobber:A+'bobber.svg',splash:A+'splash.svg',fish:A+'catch-fish.svg',squid:A+'catch-squid.svg',big:A+'catch-big.svg',boot:A+'catch-boot.svg',chest:A+'catch-chest.svg'};
 // 釣得到的東西：機率、分數、難度（魚跑多快、綠框多寬）
@@ -172,7 +172,7 @@ act.addEventListener('pointerdown',function(e){
 act.addEventListener('keydown',function(e){if(e.repeat||!['Space','Enter'].includes(e.code))return;e.preventDefault();if(state==='idle')cast();else if(state==='wait')miss('太早拉了，魚被嚇跑了…');else if(state==='bite')reel();if(state==='reel')holding=true;});
 act.addEventListener('keyup',function(e){if(['Space','Enter'].includes(e.code)){e.preventDefault();holding=false;}});
 ['pointerup','pointercancel','pointerleave'].forEach(function(ev){act.addEventListener(ev,function(){holding=false;});});
-G.preload([ART.bobber,ART.splash,ART.fish,ART.squid,ART.big,ART.boot,ART.chest,'../assets/games/fish/bg-painted.svg'],function(){
+G.preload([ART.bobber,ART.splash,ART.fish,ART.squid,ART.big,ART.boot,ART.chest,'../assets/games/fish/bg-winter.svg'],function(){
   G.intro({game:'fish',title:'湖邊釣魚',desc:'跟雪球一起釣 5 竿！<br>浮標沉下去時馬上按「拉」<br>收線時按住讓框框追著魚跑',start:function(){reset();tip('按「拋竿」開始');}});
 });
 document.addEventListener('visibilitychange',function(){last=performance.now();});

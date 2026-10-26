@@ -4,7 +4,7 @@
 var G=(function(){
   var SCENES={
     whack:{label:'菜園小幫手',kind:'反應挑戰',time:'30 秒',goal:'25 分獲得三星',color:'#E8EED7'},
-    fish:{label:'湖畔慢時光',kind:'時機與手感',time:'5 次拋竿',goal:'10 分獲得三星',color:'#DBEDF0'},
+    fish:{label:'雪湖慢時光',kind:'時機與手感',time:'5 次拋竿',goal:'10 分獲得三星',color:'#E2EAF4',cover:'cover-winter.svg'},
     camp:{label:'星空營火夜',kind:'火候控制',time:'40 秒',goal:'14 分獲得三星',color:'#F4DFCC'},
     spring:{label:'雪國探險家',kind:'溫度推理',time:'12 把鏟子',goal:'13 分獲得三星',color:'#E2EAF4'},
     moto:{label:'三寵兜風日',kind:'跳躍冒險',time:'40 秒',goal:'70 分獲得三星',color:'#F5E9C9'}
@@ -57,7 +57,7 @@ var G=(function(){
   }
   function intro(o){
     var meta=SCENES[o.game],rules=o.desc.split(/<br\s*\/?\s*>/i);
-    var ov=el('<div class="g-ov"><section class="g-card g-intro" role="dialog" aria-modal="true" aria-labelledby="introTitle" style="--scene:'+meta.color+'"><div class="g-cover"><img src="../assets/games/'+o.game+'/cover.svg" alt=""><button class="g-cover-back" data-lobby>‹ 大廳</button><span class="g-cover-stamp">'+meta.label+'</span></div><div class="g-card-body"><div class="g-eyebrow">'+meta.kind+' · '+meta.time+'</div><h2 id="introTitle">'+o.title+'</h2><ol class="g-rules">'+rules.map(function(t){return '<li>'+t+'</li>';}).join('')+'</ol><div class="g-goal"><img src="../assets/games/ui/star.svg" alt="">'+meta.goal+'</div><p class="g-small">'+leftTxt(o.game)+'</p><div class="g-btns"><button class="g-btn" data-go>一起出發 <span aria-hidden="true">→</span></button></div></div></section></div>');
+    var ov=el('<div class="g-ov"><section class="g-card g-intro" role="dialog" aria-modal="true" aria-labelledby="introTitle" style="--scene:'+meta.color+'"><div class="g-cover"><img src="../assets/games/'+o.game+'/'+(meta.cover||'cover.svg')+'" alt=""><button class="g-cover-back" data-lobby>‹ 大廳</button><span class="g-cover-stamp">'+meta.label+'</span></div><div class="g-card-body"><div class="g-eyebrow">'+meta.kind+' · '+meta.time+'</div><h2 id="introTitle">'+o.title+'</h2><ol class="g-rules">'+rules.map(function(t){return '<li>'+t+'</li>';}).join('')+'</ol><div class="g-goal"><img src="../assets/games/ui/star.svg" alt="">'+meta.goal+'</div><p class="g-small">'+leftTxt(o.game)+'</p><div class="g-btns"><button class="g-btn" data-go>一起出發 <span aria-hidden="true">→</span></button></div></div></section></div>');
     document.body.appendChild(ov);
     ov.querySelector('[data-lobby]').onclick=function(){location.href='./';};
     ov.querySelector('[data-go]').onclick=function(){ov.remove();countdown(o.start);};
