@@ -2,6 +2,14 @@
    不直接寫雲端：先排進這支手機的 gameRewards，回到班表時由班表加進寵物紀錄（飼料、每人每款前 5 高分），
    再照平常一樣同步，兩支手機的排行榜就會一樣。 */
 var G=(function(){
+  var SCENES={
+    whack:{label:'菜園小幫手',kind:'反應挑戰',time:'30 秒',goal:'25 分獲得三星',color:'#E8EED7'},
+    fish:{label:'湖畔慢時光',kind:'時機與手感',time:'5 次拋竿',goal:'10 分獲得三星',color:'#DBEDF0'},
+    camp:{label:'星空營火夜',kind:'火候控制',time:'40 秒',goal:'14 分獲得三星',color:'#F4DFCC'},
+    spring:{label:'雪國探險家',kind:'溫度推理',time:'12 把鏟子',goal:'13 分獲得三星',color:'#E2EAF4'},
+    moto:{label:'三寵兜風日',kind:'跳躍冒險',time:'40 秒',goal:'70 分獲得三星',color:'#F5E9C9'}
+  };
+  function escapeHtml(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
   var CAP=3,NAMES={syue:'學',ling:'綾'};
   var PET={cat:{name:'Pillow',art:'snowball'},pg:{name:'雪球',art:'dudu'},dg:{name:'薩摩耶',art:'samoyed'}};
   function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v);}catch(e){return null;}}
@@ -41,19 +49,21 @@ var G=(function(){
   }
   function petImg(k,pose){return '../assets/pets/'+PET[k].art+'-'+pose+'.svg';}
   function el(html){var d=document.createElement('div');d.innerHTML=html.trim();return d.firstChild;}
-  function float(x,y,text,cls){var f=el('<div class="g-float '+(cls||'')+'"></div>');f.textContent=text;f.style.left=x+'px';f.style.top=y+'px';document.body.appendChild(f);setTimeout(function(){f.remove();},950);}
+  function float(x,y,text,cls){var f=el('<div class="g-float '+(cls||'')+'"></div>');f.textContent=text;f.style.left=x+'px';f.style.top=y+'px';document.body.appendChild(f);if(cls!=='bad'&&document.querySelectorAll('.g-hit-spark').length<4){var sp=el('<div class="g-hit-spark" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>');sp.style.left=x+'px';sp.style.top=y+'px';document.body.appendChild(sp);setTimeout(function(){sp.remove();},650);}setTimeout(function(){f.remove();},950);}
   function pets(){return '<div class="g-pets"><img src="'+petImg('cat','happy')+'" alt=""><img class="pg" src="'+petImg('pg','happy')+'" alt=""><img src="'+petImg('dg','happy')+'" alt=""></div>';}
   function leftTxt(game){
     if(!who())return '在班表選好你是誰，才能領飼料獎勵';
     var n=left(game);return n?'今天還有 '+n+' 次飼料獎勵（每天 '+CAP+' 次）':'今天這款的飼料獎勵領完了，還是可以玩';
   }
   function intro(o){
-    var ov=el('<div class="g-ov"><div class="g-card">'+pets()+'<h2>'+o.title+'</h2><p>'+o.desc+'</p><p class="g-small">'+leftTxt(o.game)+'</p><div class="g-btns"><button class="g-btn" data-go>開始！</button></div></div></div>');
+    var meta=SCENES[o.game],rules=o.desc.split(/<br\s*\/?\s*>/i);
+    var ov=el('<div class="g-ov"><section class="g-card g-intro" role="dialog" aria-modal="true" aria-labelledby="introTitle" style="--scene:'+meta.color+'"><div class="g-cover"><img src="../assets/games/'+o.game+'/cover.svg" alt=""><button class="g-cover-back" data-lobby>‹ 大廳</button><span class="g-cover-stamp">'+meta.label+'</span></div><div class="g-card-body"><div class="g-eyebrow">'+meta.kind+' · '+meta.time+'</div><h2 id="introTitle">'+o.title+'</h2><ol class="g-rules">'+rules.map(function(t){return '<li>'+t+'</li>';}).join('')+'</ol><div class="g-goal"><img src="../assets/games/ui/star.svg" alt="">'+meta.goal+'</div><p class="g-small">'+leftTxt(o.game)+'</p><div class="g-btns"><button class="g-btn" data-go>一起出發 <span aria-hidden="true">→</span></button></div></div></section></div>');
     document.body.appendChild(ov);
+    ov.querySelector('[data-lobby]').onclick=function(){location.href='./';};
     ov.querySelector('[data-go]').onclick=function(){ov.remove();countdown(o.start);};
   }
   function countdown(cb){
-    var c=el('<div class="g-count"></div>'),seq=['3','2','1','開始！'],i=0;document.body.appendChild(c);
+    var c=el('<div class="g-count" aria-live="assertive"></div>'),seq=['3','2','1','開始！'],i=0;document.body.appendChild(c);
     (function tick(){if(i>=seq.length){c.remove();cb();return;}c.innerHTML='<span>'+seq[i]+'</span>';i++;setTimeout(tick,i===seq.length?600:750);})();
   }
   // 結算：分數→星星→飼料（1～3 包），每天每款前 3 次有獎勵
@@ -67,8 +77,8 @@ var G=(function(){
       :'<div class="g-reward none">'+(!who()?'在班表選好你是誰，才能領飼料':o.score>0?'今天這款的飼料獎勵領完了':'這局沒有得分，沒有飼料')+'</div>';
     var st='';for(var i=0;i<3;i++)st+='<img class="g-star'+(i<stars?' on':'')+'" src="../assets/games/ui/star.svg" alt="">';
     var rk=me&&o.score>0?'<div class="g-rank">'+(rec?'<b>🏆 '+NAMES[me]+'的新紀錄！</b>':'')+(rank>0?'<span>排行榜第 '+rank+' 名</span>':'<span>這局沒進前 10 名</span>')+'</div>':'';
-    var ov=el('<div class="g-ov"><div class="g-card">'+pets()+'<h2>'+head+'</h2><div class="g-stars">'+st+'</div><div class="g-score">'+o.score+'<span style="font-size:16px"> '+o.unit+'</span></div>'+rk+(o.note?'<p>'+o.note+'</p>':'')+rw+
-      '<p class="g-small">'+leftTxt(o.game)+'</p><div class="g-btns"><button class="g-btn" data-again>再玩一次</button><button class="g-btn ghost" data-lobby>回冒險大廳</button><button class="g-btn ghost" data-home>回班表</button></div></div></div>');
+    var ov=el('<div class="g-ov"><section class="g-card g-result" role="dialog" aria-modal="true" aria-label="遊戲結算"><div class="g-result-ribbon">'+SCENES[o.game].label+' · 冒險完成</div>'+pets()+'<h2>'+head+'</h2><div class="g-stars">'+st+'</div><div class="g-score">'+o.score+'<span style="font-size:16px"> '+o.unit+'</span></div>'+rk+(o.note?'<p>'+o.note+'</p>':'')+rw+
+      '<p class="g-small">'+leftTxt(o.game)+'</p><div class="g-btns g-result-actions"><button class="g-btn" data-again>再玩一次 ↻</button><button class="g-btn ghost" data-lobby>冒險大廳</button><button class="g-btn ghost" data-home>回班表</button></div></section></div>');
     document.body.appendChild(ov);
     ov.querySelector('[data-again]').onclick=function(){ov.remove();o.again();};
     ov.querySelector('[data-lobby]').onclick=function(){location.href='./';};
@@ -82,5 +92,6 @@ var G=(function(){
     if(!b.length)return '<div class="g-empty">還沒有人玩過，搶下第一名吧！</div>';
     return '<ol class="g-board">'+b.map(function(x,i){return '<li class="'+x.who+'"><span class="g-rk">'+(i<3?['🥇','🥈','🥉'][i]:i+1)+'</span><span class="g-who">'+NAMES[x.who]+'</span><span class="g-d">'+(x.d||'').slice(5).replace('-','/')+'</span><b>'+x.s+' '+unit+'</b></li>';}).join('')+'</ol>';
   }
-  return {CAP:CAP,NAMES:NAMES,today:today,who:who,left:left,record:record,board:board,best:best,boardHtml:boardHtml,petName:petName,petImg:petImg,el:el,float:float,intro:intro,countdown:countdown,finish:finish,preload:preload,leftTxt:leftTxt,setWho:function(u){ls('catMe',u);}};
+  return {SCENES:SCENES,escapeHtml:escapeHtml,CAP:CAP,NAMES:NAMES,today:today,who:who,left:left,record:record,board:board,best:best,boardHtml:boardHtml,petName:petName,petImg:petImg,el:el,float:float,intro:intro,countdown:countdown,finish:finish,preload:preload,leftTxt:leftTxt,setWho:function(u){ls('catMe',u);}};
 })();
+

@@ -14,7 +14,7 @@
 html,body{overflow:hidden;}
 body{background:#A9C98F;touch-action:none;}
 /* 場景用 1080×1920 的座標擺，再依螢幕縮放；遠山、樹、路面各自用不同速度往左捲 */
-.world{position:fixed;left:50%;bottom:0;width:1080px;height:1920px;transform-origin:50% 100%;background:url(../assets/games/moto/sky.svg) 0 0/100% 100% no-repeat;overflow:hidden;}
+.world{position:fixed;left:50%;bottom:0;width:1080px;height:1920px;transform-origin:50% 100%;background:url(../assets/games/moto/bg-painted.svg) 0 0/100% 100% no-repeat;overflow:hidden;}
 .layer{position:absolute;left:0;width:1080px;background-repeat:repeat-x;}
 .hills{top:880px;height:500px;background-image:url(../assets/games/moto/hills.svg);background-size:1080px 500px;}
 .trees{top:1000px;height:360px;background-image:url(../assets/games/moto/trees.svg);background-size:1080px 360px;}
@@ -48,8 +48,9 @@ body{background:#A9C98F;touch-action:none;}
 .tip{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 22px);z-index:21;padding:6px 14px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);font-size:15px;white-space:nowrap;pointer-events:none;}
 #hearts{letter-spacing:-2px;}
 </style>
+<link rel="stylesheet" href="polish.css?v=storybook-20261026">
 </head>
-<body>
+<body data-game="moto">
 <div class="world" id="world">
   <div class="layer hills" id="hills"></div>
   <div class="layer trees" id="trees"></div>
@@ -68,10 +69,10 @@ body{background:#A9C98F;touch-action:none;}
 <div class="g-bar"><button class="g-back" onclick="location.href='./'">‹ 大廳</button><div class="g-title">摩托車冒險</div><div class="g-pill" id="hearts">❤️❤️❤️</div><div class="g-pill hot" id="score">0 分</div></div>
 <div class="route"><i id="rFill"></i><b id="rBike">🛵</b><u>🏁</u></div>
 <div class="tip" id="tip">點一下畫面就會跳</div>
-<script src="game.js"></script>
+<script src="game.js?v=storybook-20261026"></script>
 <script>
 // 美術：之後換成畫好的圖，只要改這裡的檔名
-var A='../assets/games/moto/',ART={sky:A+'sky.svg',hills:A+'hills.svg',trees:A+'trees.svg',road:A+'road.svg',scooter:A+'scooter.svg',wheel:A+'wheel.svg',basket:A+'basket.svg',cone:A+'cone.svg',rock:A+'rock.svg',barrier:A+'barrier.svg',kib:'../assets/games/ui/kib.svg',fish:'../assets/games/ui/fish.svg'};
+var A='../assets/games/moto/',ART={sky:A+'bg-painted.svg',hills:A+'hills.svg',trees:A+'trees.svg',road:A+'road.svg',scooter:A+'scooter.svg',wheel:A+'wheel.svg',basket:A+'basket.svg',cone:A+'cone.svg',rock:A+'rock.svg',barrier:A+'barrier.svg',kib:'../assets/games/ui/kib.svg',fish:'../assets/games/ui/fish.svg'};
 // 跑 40 秒到終點；速度從 600 慢慢加到 900；跳起來最高大約 340
 var TIME=40,GROUND=1470,RX=150,JUMP=1600,GRAV=3800,HEARTS=3;
 // 障礙物大小（寬、高）；道具：飼料 +1、魚 +3
@@ -81,7 +82,7 @@ var state='idle',t0=0,left=TIME,off=0,speed=600,jy=0,vy=0,buf=0,hearts=HEARTS,in
 // 星星：70 分三顆、40 分兩顆
 function stars(s){return s>=70?3:s>=40?2:1;}
 
-function fit(){var s=Math.min(Math.max(innerWidth/1080,innerHeight/1920),innerHeight/1300);$('world').style.transform='translateX(-50%) scale('+s+')';}
+function fit(){var s=Math.min(Math.max(Math.min(innerWidth,600)/1080,innerHeight/1920),innerHeight/1300);$('world').style.transform='translateX(-50%) scale('+s+')';}
 fit();addEventListener('resize',fit);
 $('sc').src=ART.scooter;$('bk').src=ART.basket;$('wh1').src=ART.wheel;$('wh2').src=ART.wheel;
 $('pDg').querySelector('img').src=G.petImg('dg','happy');$('pCat').querySelector('img').src=G.petImg('cat','happy');$('pPg').querySelector('img').src=G.petImg('pg','idle');
@@ -186,3 +187,4 @@ document.addEventListener('visibilitychange',function(){last=performance.now();}
 </script>
 </body>
 </html>
+

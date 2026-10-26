@@ -13,7 +13,7 @@
 <style>
 html,body{overflow:hidden;}
 body{background:#BFD9A6;touch-action:none;}
-.stage{position:fixed;inset:0;background:url(../assets/games/whack/bg.svg) center bottom/cover no-repeat;}
+.stage{position:fixed;inset:0;background:url(../assets/games/whack/bg-painted.svg) center bottom/cover no-repeat;}
 /* 三隻在籬笆前面加油 */
 .fans{position:absolute;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top) + 114px);display:flex;align-items:flex-end;gap:4px;width:min(92vw,440px);justify-content:center;}
 .fan{position:relative;height:clamp(64px,12vh,96px);}
@@ -38,15 +38,16 @@ body{background:#BFD9A6;touch-action:none;}
 .timebar i{display:block;height:100%;width:100%;background:var(--wakatake);transform-origin:left;}
 .timebar.low i{background:var(--coral);}
 </style>
+<link rel="stylesheet" href="polish.css?v=storybook-20261026">
 </head>
-<body>
+<body data-game="whack">
 <div class="stage">
   <div class="fans" id="fans"></div>
   <div class="field" id="field"></div>
 </div>
 <div class="g-bar"><button class="g-back" onclick="location.href='./'">‹ 大廳</button><div class="g-title">菜園打地鼠</div><div class="g-pill" id="time">⏱ 30</div><div class="g-pill hot" id="score">0 分</div></div>
 <div class="timebar" id="tbar"><i id="tfill"></i></div>
-<script src="game.js"></script>
+<script src="game.js?v=storybook-20261026"></script>
 <script>
 // 美術：之後換成畫好的圖，只要改這裡的檔名
 var A='../assets/games/whack/',ART={hb:A+'hole-back.svg',hf:A+'hole-front.svg',mole:A+'mole.svg',hit:A+'mole-hit.svg',gold:A+'mole-gold.svg',hog:A+'hedgehog.svg',hammer:A+'hammer.svg'};
@@ -60,10 +61,11 @@ function build(){
   document.getElementById('fans').innerHTML=['cat','pg','dg'].map(function(k){return '<div class="fan '+k+'" data-k="'+k+'"><img src="'+G.petImg(k,'idle')+'" alt="'+G.petName(k)+'"><div class="g-say"></div></div>';}).join('');
   var f=document.getElementById('field');f.innerHTML='';holes=[];
   for(var i=0;i<9;i++){
-    var h=G.el('<div class="hole"><img class="back" src="'+ART.hb+'" alt=""><div class="clip"><img class="who" src="'+ART.mole+'" alt=""></div><img class="front" src="'+ART.hf+'" alt=""></div>');
+    var h=G.el('<button type="button" class="hole" aria-label="等待田鼠出現"><img class="back" src="'+ART.hb+'" alt=""><div class="clip"><img class="who" src="'+ART.mole+'" alt=""></div><img class="front" src="'+ART.hf+'" alt=""></button>');
     f.appendChild(h);
     var o={el:h,img:h.querySelector('.who'),kind:'',until:0,hit:false};holes.push(o);
-    h.addEventListener('pointerdown',(function(o){return function(e){whack(o,e);};})(o));
+    h.addEventListener('pointerdown',(function(o){return function(e){e.preventDefault();whack(o,e);};})(o));
+    h.addEventListener('click',(function(o){return function(e){if(e.detail===0)whack(o,e);};})(o));
   }
 }
 function cheer(k,text,ms){
@@ -73,13 +75,14 @@ function cheer(k,text,ms){
   var s=fan.querySelector('.g-say');s.textContent=text;s.classList.add('on');
   clearTimeout(fan._t);fan._t=setTimeout(function(){s.classList.remove('on');fan.querySelector('img').src=G.petImg(k,'idle');},ms||900);
 }
-function pop(o,kind,ms){o.kind=kind;o.hit=false;o.img.src=KINDS[kind].img;o.until=performance.now()+ms;o.el.classList.remove('hit');o.el.classList.add('up');}
-function down(o){o.el.classList.remove('up');o.kind='';}
+function pop(o,kind,ms){o.el.setAttribute('aria-label',kind==='hog'?'刺蝟，請避開':kind==='gold'?'金色田鼠，加三分':'田鼠，加一分');o.kind=kind;o.hit=false;o.img.src=KINDS[kind].img;o.until=performance.now()+ms;o.el.classList.remove('hit');o.el.classList.add('up');}
+function down(o){o.el.classList.remove('up');o.el.setAttribute('aria-label','等待田鼠出現');o.kind='';}
 function whack(o,e){
   if(!running)return;
+  if(!e.clientX&&!e.clientY){var box=o.el.getBoundingClientRect();e={clientX:box.left+box.width/2,clientY:box.top+box.height/2};}
   var hm=G.el('<img class="hammer" src="'+ART.hammer+'" alt="">');hm.style.left=e.clientX+'px';hm.style.top=e.clientY+'px';document.body.appendChild(hm);setTimeout(function(){hm.remove();},240);
   if(!o.kind||o.hit)return;
-  var k=KINDS[o.kind];o.hit=true;score=Math.max(0,score+k.pts);
+  var k=KINDS[o.kind];o.hit=true;o.el.setAttribute('aria-label','已敲中');score=Math.max(0,score+k.pts);
   var r=o.el.getBoundingClientRect();
   if(o.kind==='hog'){
     o.el.classList.add('shake');setTimeout(function(){o.el.classList.remove('shake');},300);
@@ -130,3 +133,4 @@ document.addEventListener('visibilitychange',function(){last=performance.now();}
 </script>
 </body>
 </html>
+

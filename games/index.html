@@ -53,13 +53,14 @@ body{min-height:100%;background:var(--paper);}
 .rk-vs span{padding:4px 12px;border:var(--lw2) solid var(--ink);border-radius:999px;}
 .rk-vs .syue{background:#EEF6E8;}.rk-vs .ling{background:#FDEEEA;}
 </style>
+<link rel="stylesheet" href="polish.css?v=storybook-20261026">
 </head>
-<body>
+<body data-game="lobby">
 <div class="g-bar"><button class="g-back" onclick="location.href='../'">‹ 班表</button><div class="g-title">一起冒險</div></div>
 <div class="lb">
   <div class="lb-hero">
-    <h1>今天要去哪裡玩？</h1>
-    <p>跟三隻一起出發，完成遊戲可以拿飼料回去餵牠們</p>
+    <div class="lb-eyebrow">三隻寵物・五個小世界</div><h1>今天要去哪裡玩？</h1>
+    <p>一起釣魚、烤棉花糖，收集今天的小快樂。</p>
     <div class="g-pets" id="lbPets"></div>
     <div class="lb-who" id="lbWho"></div>
   </div>
@@ -67,7 +68,7 @@ body{min-height:100%;background:var(--paper);}
   <div class="lb-list" id="lbList"></div>
   <div class="lb-note">每款遊戲每天前 3 次可以拿飼料（1～3 包，看星星）<br>拿到的飼料回到班表就會放進你的背包</div>
 </div>
-<script src="game.js"></script>
+<script src="game.js?v=storybook-20261026"></script>
 <script>
 // 五個地點：有 href 的就是可以玩的
 var GAMES=[
@@ -84,12 +85,13 @@ function draw(){
   document.getElementById('lbWho').innerHTML=me?'玩的人是 <b>'+G.NAMES[me]+'</b>':'你是誰？ <button data-u="syue">學</button><button data-u="ling">綾</button>';
   document.querySelectorAll('#lbWho [data-u]').forEach(function(b){b.onclick=function(){G.setWho(b.getAttribute('data-u'));draw();};});
   document.getElementById('lbCap').textContent=me?'':'先選你是誰才能領飼料';
-  document.getElementById('lbList').innerHTML=GAMES.map(function(g){
+  document.getElementById('lbList').innerHTML=GAMES.map(function(g,i){
     var tag=!g.href?'即將推出':!me?'可以玩':G.left(g.id)?'今天還有 '+G.left(g.id)+' 次獎勵':'今天獎勵領完了';
     // 兩個人各自最高分，高的那個塗黃色
     var bs=g.href?['syue','ling'].map(function(u){return {u:u,s:G.best(g.id,u)};}):[],top=Math.max.apply(null,bs.map(function(x){return x.s==null?-1:x.s;}));
     var best=g.href?'<div class="lb-best">'+bs.map(function(x){return '<span class="'+x.u+(x.s!=null&&x.s===top?' top':'')+'">'+(x.s!=null&&x.s===top?'🏆 ':'')+G.NAMES[x.u]+' '+(x.s==null?'—':x.s)+'</span>';}).join('')+'</div>':'';
-    return '<button class="lb-game'+(g.href?'':' soon')+'" data-g="'+g.id+'"><span class="lb-ic" style="--c:'+g.c+'">'+g.ic+'</span><span><span class="lb-name">'+g.name+'</span><div class="lb-desc">'+g.desc+'</div>'+best+'</span><span class="lb-tag'+(g.href&&me&&!G.left(g.id)?' done':'')+'">'+tag+'</span></button>';
+    var meta=G.SCENES[g.id];
+    return '<button class="lb-game" data-g="'+g.id+'" aria-label="遊玩'+g.name+'" style="--scene:'+meta.color+'"><span class="lb-cover"><img src="../assets/games/'+g.id+'/cover.svg" alt="" loading="lazy"><span class="lb-number">0'+(i+1)+'</span><span class="lb-cover-label">'+meta.label+'</span></span><span class="lb-copy"><span class="lb-game-meta">'+meta.kind+' · '+meta.time+'</span><span class="lb-name">'+g.name+'</span><span class="lb-desc">'+g.desc+'</span>'+best+'<span class="lb-card-footer"><span class="lb-tag'+(g.href&&me&&!G.left(g.id)?' done':'')+'">'+tag+'</span><span class="lb-go">出發 <span aria-hidden="true">↗</span></span></span></span></button>';
   }).join('');
   document.querySelectorAll('[data-g]').forEach(function(b){b.onclick=function(){var g=GAMES.filter(function(x){return x.id===b.getAttribute('data-g');})[0];if(g.href)location.href=g.href;};});
 }
@@ -100,7 +102,7 @@ function openRank(){
   var g=playable.filter(function(x){return x.id===rankGame;})[0]||playable[0];
   var vs=['syue','ling'].map(function(u){var b=G.best(g.id,u);return '<span class="'+u+'">'+G.NAMES[u]+' 最高 '+(b==null?'—':b+' 分')+'</span>';}).join('');
   var old=document.querySelector('.g-ov');if(old)old.remove();
-  var ov=G.el('<div class="g-ov"><div class="g-card" style="text-align:left"><h2 style="text-align:center">🏆 排行榜</h2><div class="rk-tabs">'+playable.map(function(x){return '<button data-rk="'+x.id+'"'+(x.id===g.id?' class="on"':'')+'>'+x.ic+' '+x.s+'</button>';}).join('')+'</div><div class="rk-vs">'+vs+'</div>'+G.boardHtml(g.id,'分')+
+  var ov=G.el('<div class="g-ov"><div class="g-card g-leaderboard" role="dialog" aria-modal="true" aria-label="排行榜" style="text-align:left"><h2 style="text-align:center">🏆 排行榜</h2><div class="rk-tabs">'+playable.map(function(x){return '<button data-rk="'+x.id+'"'+(x.id===g.id?' class="on"':'')+'>'+x.ic+' '+x.s+'</button>';}).join('')+'</div><div class="rk-vs">'+vs+'</div>'+G.boardHtml(g.id,'分')+
     '<p class="g-small" style="text-align:center">另一半的分數回到班表、同步後就會出現在這裡</p><div class="g-btns"><button class="g-btn ghost" data-close>關閉</button></div></div></div>');
   document.body.appendChild(ov);
   ov.querySelectorAll('[data-rk]').forEach(function(b){b.onclick=function(){rankGame=b.getAttribute('data-rk');openRank();};});
@@ -114,3 +116,4 @@ window.addEventListener('pageshow',function(e){if(e.persisted)draw();});
 </script>
 </body>
 </html>
+

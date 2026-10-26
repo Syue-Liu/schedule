@@ -14,7 +14,7 @@
 html,body{overflow:hidden;}
 body{background:#36402F;touch-action:none;}
 /* 場景用背景圖的座標（1080×1920）擺，再依螢幕縮放 */
-.world{position:fixed;left:50%;bottom:0;width:1080px;height:1920px;transform-origin:50% 100%;background:url(../assets/games/camp/bg.svg) 0 0/100% 100% no-repeat;}
+.world{position:fixed;left:50%;bottom:0;width:1080px;height:1920px;transform-origin:50% 100%;background:url(../assets/games/camp/bg-painted.svg) 0 0/100% 100% no-repeat;}
 .glow{position:absolute;left:540px;top:980px;width:1200px;height:1000px;margin:-500px 0 0 -600px;border-radius:50%;background:radial-gradient(closest-side,rgba(255,196,110,.7),rgba(255,160,90,.22) 55%,rgba(255,160,90,0));pointer-events:none;}
 .pet{position:absolute;}
 .pet img{width:100%;display:block;}
@@ -62,8 +62,9 @@ body{background:#36402F;touch-action:none;}
 .act img{width:40px;height:20px;}
 .flylog{position:fixed;z-index:25;width:70px;margin:-18px 0 0 -35px;pointer-events:none;transition:left .42s cubic-bezier(.3,.6,.4,1),top .42s cubic-bezier(.5,-.6,.7,1),transform .42s;}
 </style>
+<link rel="stylesheet" href="polish.css?v=storybook-20261026">
 </head>
-<body>
+<body data-game="camp">
 <div class="world" id="world">
   <div class="glow" id="glow"></div>
   <div class="pet flip" id="pDg" style="left:770px;top:838px;width:270px"><img alt=""><div class="g-say"></div></div>
@@ -85,10 +86,10 @@ body{background:#36402F;touch-action:none;}
   </div>
   <button class="g-btn act" id="act">🪵 加柴</button>
 </div>
-<script src="game.js"></script>
+<script src="game.js?v=storybook-20261026"></script>
 <script>
 // 美術：之後換成畫好的圖，只要改這裡的檔名
-var A='../assets/games/camp/',ART={bg:A+'bg.svg',fire:A+'fire.svg',pit:A+'pit.svg',log:A+'log.svg',raw:A+'marsh-raw.svg',gold:A+'marsh-gold.svg',burnt:A+'marsh-burnt.svg',smoke:A+'smoke.svg'};
+var A='../assets/games/camp/',ART={bg:A+'bg-painted.svg',fire:A+'fire.svg',pit:A+'pit.svg',log:A+'log.svg',raw:A+'marsh-raw.svg',gold:A+'marsh-gold.svg',burnt:A+'marsh-burnt.svg',smoke:A+'smoke.svg'};
 // 火力 0～100：48～72 剛剛好（越接近 60 烤越快），80 以上太旺會烤焦，30 以下幾乎不會熟
 var TIME=40,LOW=48,HIGH=72,MID=60,HOT=80,LOG=15;
 // 三隻輪流烤：誰拿竹籤、竹籤從哪裡伸出來
@@ -98,7 +99,7 @@ var state='idle',decay=7,decayNext=0,left=TIME,score=0,fuel=50,fire=40,roast=0,b
 // 星星：14 分三顆、8 分兩顆
 function stars(s){return s>=14?3:s>=8?2:1;}
 
-function fit(){var s=Math.min(Math.max(innerWidth/1080,innerHeight/1920),innerHeight/1300);$('world').style.transform='translateX(-50%) scale('+s+')';}
+function fit(){var s=Math.min(Math.max(Math.min(innerWidth,600)/1080,innerHeight/1920),innerHeight/1300);$('world').style.transform='translateX(-50%) scale('+s+')';}
 fit();addEventListener('resize',fit);
 ['pCat','pPg','pDg'].forEach(function(id,i){$(id).querySelector('img').src=G.petImg(['cat','pg','dg'][i],'idle');});
 $('fire').querySelector('img').src=ART.fire;$('pit').src=ART.pit;$('mRaw').src=ART.raw;$('mGold').src=ART.gold;$('mBurnt').src=ART.burnt;$('rIc').src=ART.raw;
@@ -187,6 +188,7 @@ function end(){
   setTimeout(function(){G.finish({game:'camp',score:score,unit:'分',stars:stars(score),note:'金黃 +2、有點焦 +1；14 分三顆星、8 分兩顆星',again:function(){['pCat','pPg','pDg'].forEach(function(id,i){$(id).querySelector('img').src=G.petImg(['cat','pg','dg'][i],'idle');});G.countdown(start);}});},900);
 }
 $('act').addEventListener('pointerdown',function(e){e.preventDefault();addLog();});
+$('act').addEventListener('click',function(e){if(e.detail===0)addLog();});
 draw();stickTo();
 G.preload(Object.keys(ART).map(function(k){return ART[k];}),function(){
   G.intro({game:'camp',title:'露營生火',desc:'幫三隻烤棉花糖！<br>按「加柴」讓火保持在綠色的剛剛好<br>越接近中間的 ★ 烤越快<br>火太旺會烤焦，起風時火會掉得比較快',start:start});
@@ -195,3 +197,4 @@ document.addEventListener('visibilitychange',function(){last=performance.now();}
 </script>
 </body>
 </html>
+
