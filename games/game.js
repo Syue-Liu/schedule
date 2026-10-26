@@ -1,6 +1,8 @@
 /* 小遊戲共用：這支手機是誰、每天的獎勵次數、把獎勵和分數交給班表、排行榜、開始卡片、倒數、結算畫面。
    不直接寫雲端：先排進這支手機的 gameRewards，回到班表時由班表加進寵物紀錄（飼料、每人每款前 5 高分），
    再照平常一樣同步，兩支手機的排行榜就會一樣。 */
+// sound.js 沒載到也不會壞：換成什麼都不做的版本
+var SND=window.SND||{music:function(){},stop:function(){},sfx:function(){},tempo:function(){},level:function(){}};
 var G=(function(){
   var SCENES={
     whack:{label:'菜園小幫手',kind:'反應挑戰',time:'30 秒',goal:'25 分獲得三星',color:'#E8EED7'},
@@ -60,11 +62,11 @@ var G=(function(){
     var ov=el('<div class="g-ov"><section class="g-card g-intro" role="dialog" aria-modal="true" aria-labelledby="introTitle" style="--scene:'+meta.color+'"><div class="g-cover"><img src="../assets/games/'+o.game+'/'+(meta.cover||'cover.svg')+'" alt=""><button class="g-cover-back" data-lobby>‹ 大廳</button><span class="g-cover-stamp">'+meta.label+'</span></div><div class="g-card-body"><div class="g-eyebrow">'+meta.kind+' · '+meta.time+'</div><h2 id="introTitle">'+o.title+'</h2><ol class="g-rules">'+rules.map(function(t){return '<li>'+t+'</li>';}).join('')+'</ol><div class="g-goal"><img src="../assets/games/ui/star.svg" alt="">'+meta.goal+'</div><p class="g-small">'+leftTxt(o.game)+'</p><div class="g-btns"><button class="g-btn" data-go>一起出發 <span aria-hidden="true">→</span></button></div></div></section></div>');
     document.body.appendChild(ov);
     ov.querySelector('[data-lobby]').onclick=function(){location.href='./';};
-    ov.querySelector('[data-go]').onclick=function(){ov.remove();countdown(o.start);};
+    ov.querySelector('[data-go]').onclick=function(){ov.remove();SND.music(o.game);countdown(o.start);};
   }
   function countdown(cb){
     var c=el('<div class="g-count" aria-live="assertive"></div>'),seq=['3','2','1','開始！'],i=0;document.body.appendChild(c);
-    (function tick(){if(i>=seq.length){c.remove();cb();return;}c.innerHTML='<span>'+seq[i]+'</span>';i++;setTimeout(tick,i===seq.length?600:750);})();
+    (function tick(){if(i>=seq.length){c.remove();cb();return;}c.innerHTML='<span>'+seq[i]+'</span>';SND.sfx(i===seq.length-1?'go':'tick');i++;setTimeout(tick,i===seq.length?600:750);})();
   }
   // 結算：分數→星星→飼料（1～3 包），每天每款前 3 次有獎勵
   function finish(o){
@@ -80,7 +82,8 @@ var G=(function(){
     var ov=el('<div class="g-ov"><section class="g-card g-result" role="dialog" aria-modal="true" aria-label="遊戲結算"><div class="g-result-ribbon">'+SCENES[o.game].label+' · 冒險完成</div>'+pets()+'<h2>'+head+'</h2><div class="g-stars">'+st+'</div><div class="g-score">'+o.score+'<span style="font-size:16px"> '+o.unit+'</span></div>'+rk+(o.note?'<p>'+o.note+'</p>':'')+rw+
       '<p class="g-small">'+leftTxt(o.game)+'</p><div class="g-btns g-result-actions"><button class="g-btn" data-again>再玩一次 ↻</button><button class="g-btn ghost" data-lobby>冒險大廳</button><button class="g-btn ghost" data-home>回班表</button></div></section></div>');
     document.body.appendChild(ov);
-    ov.querySelector('[data-again]').onclick=function(){ov.remove();o.again();};
+    SND.stop();SND.sfx('fanfare',stars);for(var j=0;j<stars;j++)(function(j){setTimeout(function(){SND.sfx('star',j);},420+j*180);})(j);
+    ov.querySelector('[data-again]').onclick=function(){ov.remove();SND.music(o.game);o.again();};
     ov.querySelector('[data-lobby]').onclick=function(){location.href='./';};
     ov.querySelector('[data-home]').onclick=function(){location.href='../';};
   }

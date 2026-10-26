@@ -6,6 +6,8 @@ button:focus-visible{outline:3px solid #367C9C;outline-offset:4px;}
 .g-bar{max-width:640px;margin:auto;background:#FFFCF6;border-bottom:2px solid #665347;gap:7px;padding-inline:12px;box-shadow:0 3px 12px #493C2910;}
 .g-title{font-size:17px;}
 .g-back{height:36px;padding:0 12px;font-size:13px;border-color:#685548;box-shadow:0 2px 0 #BFA98D;background:#FFF9EF;}
+.g-snd{width:36px;height:36px;border-color:#685548;box-shadow:0 2px 0 #BFA98D;background:#FFF9EF;font-size:15px;}
+.g-snd.off{background:#EFE6D6;}
 .g-pill{min-width:48px;height:36px;padding:0 9px;font-size:14px;border-color:#685548;box-shadow:0 2px 0 #C4AF91;}
 .g-pill.hot{background:linear-gradient(#FFE8A8,#F6D27A);}
 .g-btn{border:2px solid #665347;border-radius:16px;background:linear-gradient(#FFE7A2,#F6D27A);box-shadow:0 4px 0 #9C7748,0 6px 12px #79613F15;transition:transform .12s,box-shadow .12s;}

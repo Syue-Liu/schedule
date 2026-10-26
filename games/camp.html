@@ -86,7 +86,8 @@ body{background:#36402F;touch-action:none;}
   </div>
   <button class="g-btn act" id="act">🪵 加柴</button>
 </div>
-<script src="game.js?v=storybook-20261026"></script>
+<script src="sound.js?v=sound-20261026"></script>
+<script src="game.js?v=sound-20261026"></script>
 <script>
 // 美術：之後換成畫好的圖，只要改這裡的檔名
 var A='../assets/games/camp/',ART={bg:A+'bg-painted.svg',fire:A+'fire.svg',pit:A+'pit.svg',log:A+'log.svg',raw:A+'marsh-raw.svg',gold:A+'marsh-gold.svg',burnt:A+'marsh-burnt.svg',smoke:A+'smoke.svg'};
@@ -117,23 +118,23 @@ function stickTo(){
 function newMarsh(){roast=0;burn=0;$('marsh').classList.remove('eaten');stickTo();}
 function addLog(){
   if(state!=='play')return;
-  fuel=Math.min(130,fuel+LOG);
+  fuel=Math.min(130,fuel+LOG);SND.sfx('log');
   var b=$('act').getBoundingClientRect(),f=$('fire').getBoundingClientRect();
   var lg=G.el('<img class="flylog" src="'+ART.log+'" alt="">');lg.style.left=(b.left+b.width/2)+'px';lg.style.top=b.top+'px';document.body.appendChild(lg);
   requestAnimationFrame(function(){requestAnimationFrame(function(){lg.style.left=(f.left+f.width/2)+'px';lg.style.top=(f.bottom-12)+'px';lg.style.transform='rotate(200deg) scale(.7)';});});
-  setTimeout(function(){lg.remove();var fe=$('fire');fe.classList.remove('puff');void fe.offsetWidth;fe.classList.add('puff');setTimeout(function(){fe.classList.remove('puff');},300);},420);
+  setTimeout(function(){lg.remove();SND.sfx('puff');var fe=$('fire');fe.classList.remove('puff');void fe.offsetWidth;fe.classList.add('puff');setTimeout(function(){fe.classList.remove('puff');},300);},420);
 }
 function fxAt(cls,x,y,dx){var e=document.createElement(cls==='smoke'?'img':'div');e.className=cls;if(cls==='smoke')e.src=ART.smoke;e.style.left=x+'px';e.style.top=y+'px';e.style.setProperty('--dx',dx+'px');$('world').appendChild(e);setTimeout(function(){e.remove();},2300);}
 // 烤好：金黃 +2、有點焦 +1；焦掉 0 分
 function done(){
   var gold=burn<.25,pts=gold?2:1,c=cook(),i=turn%3;score+=pts;made++;$('score').textContent=score+' 分';
   var r=$('marsh').getBoundingClientRect();G.float(r.left+r.width/2,r.top,gold?'完美金黃 +2':'有點焦 +1',gold?'gold':'');
-  pose(i,'eat');say(c.id,gold?'好好吃！':'焦焦的也好吃',1100);$('marsh').classList.add('eaten');
+  SND.sfx('yum',gold);pose(i,'eat');say(c.id,gold?'好好吃！':'焦焦的也好吃',1100);$('marsh').classList.add('eaten');
   tip(gold?'烤得剛剛好！':'有一點焦，火小一點會更好');
   setTimeout(function(){pose(i,'idle');},1000);next();
 }
 function burnt(){
-  var c=cook();fxAt('smoke',TIP[0],TIP[1]-30,20);say(c.id,'焦掉了…',1200);tip('火太旺，棉花糖燒焦了');
+  SND.sfx('burnt');var c=cook();fxAt('smoke',TIP[0],TIP[1]-30,20);say(c.id,'焦掉了…',1200);tip('火太旺，棉花糖燒焦了');
   $('marsh').classList.add('eaten');next();
 }
 function next(){pause=1;turn++;setTimeout(function(){if(state==='play')newMarsh();},800);}
@@ -144,25 +145,27 @@ function wobble(t){
   if(fire>=HOT){say(['pCat','pPg','pDg'][Math.floor(Math.random()*3)],'好燙！',1100);talk=t+2600;}
   else if(fire<25){say(['pCat','pPg','pDg'][Math.floor(Math.random()*3)],'好冷喔…',1100);talk=t+3000;}
 }
+var lastSec=0;
 function draw(){
   var s=.3+fire/100*.9;$('fire').style.transform='scale('+(.7+fire/100*.45)+','+s+')';
   $('glow').style.opacity=(.15+fire/100*.85).toFixed(2);
   $('needle').style.left=Math.max(2,Math.min(98,fire))+'%';
   $('mGold').style.opacity=Math.min(1,roast*1.15).toFixed(2);$('mBurnt').style.opacity=Math.min(1,burn).toFixed(2);
   var bar=$('rBar');bar.style.width=Math.min(100,roast*100)+'%';bar.style.background=burn>.25?'#8C5E45':'#E9B25A';
-  var tl=Math.max(0,Math.ceil(left));$('time').textContent='⏱ '+tl;$('time').classList.toggle('hot',left<8);
+  var tl=Math.max(0,Math.ceil(left));$('time').textContent='⏱ '+tl;
+  if(tl!==lastSec){lastSec=tl;if(state==='play'&&tl>0&&tl<=5)SND.sfx('tick');}$('time').classList.toggle('hot',left<8);
 }
 function tick(t){
   var dt=Math.min(.1,(t-last)/1000);last=t;
   if(state==='play'){
     left-=dt;
     // 起風：火掉得比較快，大概每 6～11 秒一次
-    if(!wind&&t>windNext){wind=t+2800;$('wind').classList.add('on');$('fire').classList.add('windy');tip('起風了！火會小得比較快');say('pPg','起風了！',1000);}
+    if(!wind&&t>windNext){wind=t+2800;$('wind').classList.add('on');$('fire').classList.add('windy');tip('起風了！火會小得比較快');say('pPg','起風了！',1000);SND.sfx('wind');}
     if(wind&&t>wind){wind=0;windNext=t+5000+Math.random()*5000;$('wind').classList.remove('on');$('fire').classList.remove('windy');}
     // 柴燒的速度每 2～4 秒變一下，不能只靠固定節奏
     if(t>decayNext){decay=5.5+Math.random()*4;decayNext=t+2000+Math.random()*2000;}
     fuel=Math.max(0,fuel-(wind?decay*2.4:decay)*dt);
-    fire+=(fuel-fire)*Math.min(1,dt*1.8);
+    fire+=(fuel-fire)*Math.min(1,dt*1.8);SND.level(fire/100);
     if(pause>0)pause-=dt;
     else{
       var r=0,b=0;

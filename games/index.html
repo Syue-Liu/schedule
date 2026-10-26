@@ -68,7 +68,8 @@ body{min-height:100%;background:var(--paper);}
   <div class="lb-list" id="lbList"></div>
   <div class="lb-note">每款遊戲每天前 3 次可以拿飼料（1～3 包，看星星）<br>拿到的飼料回到班表就會放進你的背包</div>
 </div>
-<script src="game.js?v=snowlake-20261026"></script>
+<script src="sound.js?v=sound-20261026"></script>
+<script src="game.js?v=sound-20261026"></script>
 <script>
 // 五個地點：有 href 的就是可以玩的
 var GAMES=[
@@ -109,7 +110,9 @@ function openRank(){
   ov.querySelector('[data-close]').onclick=function(){ov.remove();};
   ov.onclick=function(e){if(e.target===ov)ov.remove();};
 }
-document.getElementById('lbRank').onclick=openRank;
+document.getElementById('lbRank').onclick=function(){SND.sfx('tap');openRank();};
+// 大廳的主題曲（第一次點畫面才會開始）
+SND.music('lobby');
 draw();
 // 從遊戲按上一頁回來時重新算剩幾次
 window.addEventListener('pageshow',function(e){if(e.persisted)draw();});

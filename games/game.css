@@ -19,6 +19,9 @@ img{-webkit-user-drag:none;user-select:none;}
 .g-title{flex:1;min-width:0;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .g-pill{flex-shrink:0;min-width:58px;height:38px;padding:0 12px;display:flex;align-items:center;justify-content:center;gap:4px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);font-size:15px;box-shadow:0 3px 0 var(--ink);}
 .g-pill.hot{background:var(--yellow);}
+.g-snd{flex-shrink:0;width:38px;height:38px;padding:0;display:inline-flex;align-items:center;justify-content:center;border:var(--lw2) solid var(--ink);border-radius:50%;background:var(--paper);font-size:16px;line-height:1;box-shadow:0 3px 0 var(--ink);}
+.g-snd:active{transform:translateY(3px);box-shadow:none;}
+.g-snd.off{background:var(--paper2);}
 
 .g-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:48px;padding:0 22px;border:var(--lw) solid var(--ink);border-radius:999px;background:var(--yellow);font-size:17px;box-shadow:0 4px 0 var(--ink);}
 .g-btn:active{transform:translateY(4px);box-shadow:none;}

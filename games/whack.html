@@ -47,7 +47,8 @@ body{background:#BFD9A6;touch-action:none;}
 </div>
 <div class="g-bar"><button class="g-back" onclick="location.href='./'">‹ 大廳</button><div class="g-title">菜園打地鼠</div><div class="g-pill" id="time">⏱ 30</div><div class="g-pill hot" id="score">0 分</div></div>
 <div class="timebar" id="tbar"><i id="tfill"></i></div>
-<script src="game.js?v=storybook-20261026"></script>
+<script src="sound.js?v=sound-20261026"></script>
+<script src="game.js?v=sound-20261026"></script>
 <script>
 // 美術：之後換成畫好的圖，只要改這裡的檔名
 var A='../assets/games/whack/',ART={hb:A+'hole-back.svg',hf:A+'hole-front.svg',mole:A+'mole.svg',hit:A+'mole-hit.svg',gold:A+'mole-gold.svg',hog:A+'hedgehog.svg',hammer:A+'hammer.svg'};
@@ -75,28 +76,29 @@ function cheer(k,text,ms){
   var s=fan.querySelector('.g-say');s.textContent=text;s.classList.add('on');
   clearTimeout(fan._t);fan._t=setTimeout(function(){s.classList.remove('on');fan.querySelector('img').src=G.petImg(k,'idle');},ms||900);
 }
-function pop(o,kind,ms){o.el.setAttribute('aria-label',kind==='hog'?'刺蝟，請避開':kind==='gold'?'金色田鼠，加三分':'田鼠，加一分');o.kind=kind;o.hit=false;o.img.src=KINDS[kind].img;o.until=performance.now()+ms;o.el.classList.remove('hit');o.el.classList.add('up');}
+function pop(o,kind,ms){o.el.setAttribute('aria-label',kind==='hog'?'刺蝟，請避開':kind==='gold'?'金色田鼠，加三分':'田鼠，加一分');o.kind=kind;o.hit=false;o.img.src=KINDS[kind].img;o.until=performance.now()+ms;o.el.classList.remove('hit');o.el.classList.add('up');SND.sfx('pop');}
 function down(o){o.el.classList.remove('up');o.el.setAttribute('aria-label','等待田鼠出現');o.kind='';}
 function whack(o,e){
   if(!running)return;
   if(!e.clientX&&!e.clientY){var box=o.el.getBoundingClientRect();e={clientX:box.left+box.width/2,clientY:box.top+box.height/2};}
   var hm=G.el('<img class="hammer" src="'+ART.hammer+'" alt="">');hm.style.left=e.clientX+'px';hm.style.top=e.clientY+'px';document.body.appendChild(hm);setTimeout(function(){hm.remove();},240);
-  if(!o.kind||o.hit)return;
+  if(!o.kind||o.hit){SND.sfx('swish');return;}
   var k=KINDS[o.kind];o.hit=true;o.el.setAttribute('aria-label','已敲中');score=Math.max(0,score+k.pts);
   var r=o.el.getBoundingClientRect();
   if(o.kind==='hog'){
-    o.el.classList.add('shake');setTimeout(function(){o.el.classList.remove('shake');},300);
+    SND.sfx('ouch');o.el.classList.add('shake');setTimeout(function(){o.el.classList.remove('shake');},300);
     G.float(r.left+r.width/2,r.top+r.height*.3,k.pts+'','bad');cheer(['cat','pg','dg'][Math.floor(Math.random()*3)],OUCH[Math.floor(Math.random()*OUCH.length)]);
     if(navigator.vibrate)navigator.vibrate(60);
   }else{
-    o.img.src=ART.hit;if(o.kind==='gold')o.img.style.filter='sepia(1) saturate(3) hue-rotate(5deg)';
+    SND.sfx(o.kind==='gold'?'gold':'bonk');o.img.src=ART.hit;if(o.kind==='gold')o.img.style.filter='sepia(1) saturate(3) hue-rotate(5deg)';
     G.float(r.left+r.width/2,r.top+r.height*.3,'+'+k.pts,o.kind==='gold'?'gold':'');
     if(o.kind==='gold'||Math.random()<.35)cheer(['cat','pg','dg'][Math.floor(Math.random()*3)],o.kind==='gold'?'金色的！':CHEER[Math.floor(Math.random()*CHEER.length)]);
   }
   o.el.classList.add('hit');o.until=performance.now()+260;
   document.getElementById('score').textContent=score+' 分';
 }
-// 越後面冒得越快、待得越短
+// 越後面冒得越快、待得越短；最後 5 秒每秒嗶一聲
+var lastSec=0;
 function tick(t){
   var dt=Math.min(.1,(t-last)/1000);last=t;
   if(running){
@@ -109,6 +111,7 @@ function tick(t){
     }
     holes.forEach(function(o){if(o.kind&&t>=o.until){o.img.style.filter='';down(o);}});
     var s=Math.max(0,Math.ceil(left));document.getElementById('time').textContent='⏱ '+s;
+    if(s!==lastSec){lastSec=s;if(s>0&&s<=5)SND.sfx('tick');}
     document.getElementById('tfill').style.transform='scaleX('+Math.max(0,left/TIME)+')';
     document.getElementById('tbar').classList.toggle('low',left<8);
     if(left<=0){end();return;}

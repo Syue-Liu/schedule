@@ -70,7 +70,8 @@ body{background:#E4EEF4;touch-action:none;}
   </div>
 </div>
 <div class="g-bar"><button class="g-back" onclick="location.href='./'">‹ 大廳</button><div class="g-title">雪山挖溫泉</div><div class="g-pill hot" id="score">0 分</div></div>
-<script src="game.js?v=storybook-20261026"></script>
+<script src="sound.js?v=sound-20261026"></script>
+<script src="game.js?v=sound-20261026"></script>
 <script>
 // 美術：之後換成畫好的圖，只要改這裡的檔名
 var A='../assets/games/spring/',ART={bg:A+'bg-painted.svg',snow:A+'tile-snow.svg',dug:A+'tile-dug.svg',spring:A+'spring.svg',back:A+'pool-back.svg',front:A+'pool-front.svg',shovel:A+'shovel.svg',fish:'../assets/games/ui/fish.svg',kib:'../assets/games/ui/kib.svg'};
@@ -116,7 +117,7 @@ function newRound(){
 function dig(i){
   var b=tiles[i];
   if(state!=='play'||busy||b.classList.contains('dug')||left<=0)return;
-  busy=true;left--;drawHud();
+  busy=true;left--;drawHud();SND.sfx('dig');
   var r=b.getBoundingClientRect(),d=G.el('<img class="digger" src="'+ART.shovel+'" alt="">');d.style.left=(r.left+r.width/2)+'px';d.style.top=(r.top+r.height/2)+'px';document.body.appendChild(d);
   setTimeout(function(){d.remove();reveal(i);},280);
 }
@@ -124,20 +125,20 @@ function reveal(i){
   var b=tiles[i];b.classList.remove('drop');b.style.animationDelay='';b.classList.add('dug');
   var r=b.getBoundingClientRect(),x=r.left+r.width/2,y=r.top;
   if(i===spring){
-    b.classList.add('spring');b.setAttribute('aria-label','找到溫泉');b.querySelector('img').src=ART.spring;found++;score+=3;drawHud();G.float(x,y,'+3','gold');
+    b.classList.add('spring');b.setAttribute('aria-label','找到溫泉');b.querySelector('img').src=ART.spring;found++;score+=3;drawHud();G.float(x,y,'+3','gold');SND.sfx('spring');
     if(navigator.vibrate)navigator.vibrate([40,40,80]);
     return bath();
   }
   var t=HOTT-STEP*dist(i,spring),steps=dist(i,spring);
-  b.setAttribute('aria-label','已挖開，'+t+'度');b.querySelector('img').src=ART.dug;b.insertAdjacentHTML('beforeend','<span class="t" style="--c:'+color(t)+'">'+t+'°</span>');
-  if(treasure[i]){var k=treasure[i];score+=1;drawHud();b.insertAdjacentHTML('beforeend','<img class="it" src="'+ART[k]+'" alt="">');G.float(x,y,(k==='fish'?'挖到小魚':'挖到飼料')+' +1','gold');cheer(k==='fish'?'cat':'dg',k==='fish'?'是小魚！':'是飼料！');}
+  b.setAttribute('aria-label','已挖開，'+t+'度');b.querySelector('img').src=ART.dug;b.insertAdjacentHTML('beforeend','<span class="t" style="--c:'+color(t)+'">'+t+'°</span>');SND.sfx('temp',t);
+  if(treasure[i]){var k=treasure[i];score+=1;setTimeout(function(){SND.sfx('treasure');},160);drawHud();b.insertAdjacentHTML('beforeend','<img class="it" src="'+ART[k]+'" alt="">');G.float(x,y,(k==='fish'?'挖到小魚':'挖到飼料')+' +1','gold');cheer(k==='fish'?'cat':'dg',k==='fish'?'是小魚！':'是飼料！');}
   else if(t>=34)cheer(anyPet(),'就在旁邊！');
   else if(t>=22)cheer(anyPet(),'暖暖的～');
   else if(t<4)cheer(anyPet(),'好冰喔…',1100,'shiver');
   tip(t+'°：離溫泉還差 '+steps+' 步');
   if(left<=0){
     // 鏟子用完：告訴你溫泉其實在哪
-    setTimeout(function(){var s=tiles[spring];s.querySelector('img').src=ART.spring;s.classList.add('here');tip('鏟子用完了…溫泉在這裡！');cheer('pg','差一點！',1400);setTimeout(end,1500);},700);
+    setTimeout(function(){var s=tiles[spring];s.querySelector('img').src=ART.spring;s.classList.add('here');SND.sfx('escape');tip('鏟子用完了…溫泉在這裡！');cheer('pg','差一點！',1400);setTimeout(end,1500);},700);
     return;
   }
   busy=false;
@@ -155,7 +156,7 @@ function bath(){
 function end(){
   state='done';busy=true;
   var bonus=left;score+=bonus;drawHud();
-  if(bonus){var r=$('shovels').getBoundingClientRect();G.float(r.left+r.width/2,r.top,'沒用完的鏟子 +'+bonus,'gold');}
+  if(bonus){var r=$('shovels').getBoundingClientRect();G.float(r.left+r.width/2,r.top,'沒用完的鏟子 +'+bonus,'gold');SND.sfx('coin');}
   setTimeout(function(){G.finish({game:'spring',score:score,unit:'分',stars:stars(score),note:'溫泉 +3、寶物 +1、沒用完的鏟子每把 +1<br>13 分三顆星、9 分兩顆星',again:function(){G.countdown(start);}});},bonus?1000:400);
 }
 function start(){
