@@ -12,6 +12,9 @@ var G=(function(){
     moto:{label:'三寵兜風日',kind:'跳躍冒險',time:'40 秒',goal:'90 分獲得三星',color:'#F5E9C9'}
   };
   function escapeHtml(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  // 換季（跟班表的 GAME_SEASON、GAME_RESET_AT 一樣）：舊一季的分數和還沒交出去的結果不算
+  var SEASON=2,RESET_AT=1793016000000;
+  function cur(q){return q&&(q.v===SEASON||+q.at>=RESET_AT);}
   var CAP=3,NAMES={syue:'學',ling:'綾'}; // CAP：所有遊戲合計，每天最多拿幾包飼料
   var PET={cat:{name:'Pillow',art:'snowball'},pg:{name:'雪球',art:'dudu'},dg:{name:'薩摩耶',art:'samoyed'}};
   function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v);}catch(e){return null;}}
@@ -24,7 +27,7 @@ var G=(function(){
   function earned(){
     var me=who(),day=today(),n=0,r=(json('catV1',{})||{})[me];
     if(r&&r.d&&r.d.day===day&&r.d.gm)Object.keys(r.d.gm).forEach(function(g){n+=+r.d.gm[g]||0;});
-    queue().forEach(function(q){if(q.who===me&&q.day===day)n+=+q.kib||0;});
+    queue().forEach(function(q){if(cur(q)&&q.who===me&&q.day===day)n+=+q.kib||0;});
     return n;
   }
   function left(){return who()?Math.max(0,CAP-earned()):0;}
@@ -32,14 +35,14 @@ var G=(function(){
   function record(game,score,kib){
     if(!who()||!(score>0))return 0;
     var got=Math.max(0,Math.min(kib,left())),q=queue();
-    q.push({who:who(),game:game,day:today(),kib:got,score:score,at:Date.now()});ls('gameRewards',JSON.stringify(q));
+    q.push({who:who(),game:game,day:today(),kib:got,score:score,at:Date.now(),v:SEASON});ls('gameRewards',JSON.stringify(q));
     return got;
   }
   // 排行榜：兩個人各自的前 5 高分（班表同步過來的）＋這支手機還沒交給班表的
   function board(game){
     var d=json('catV1',{})||{},list=[];
-    ['syue','ling'].forEach(function(u){var r=d[u],g=r&&r.gs&&r.gs[game];if(Array.isArray(g))g.forEach(function(x){list.push({who:u,s:+x.s||0,d:x.d||''});});});
-    queue().forEach(function(q){if(q.game===game&&q.score!=null)list.push({who:q.who,s:+q.score||0,d:q.day,mine:true});});
+    ['syue','ling'].forEach(function(u){var r=d[u],g=r&&r.gsv===SEASON&&r.gs&&r.gs[game];if(Array.isArray(g))g.forEach(function(x){list.push({who:u,s:+x.s||0,d:x.d||''});});});
+    queue().forEach(function(q){if(cur(q)&&q.game===game&&q.score!=null)list.push({who:q.who,s:+q.score||0,d:q.day,mine:true});});
     return list.sort(function(a,b){return b.s-a.s||(a.d<b.d?-1:1);}).slice(0,10);
   }
   function best(game,u){var b=board(game).filter(function(x){return x.who===u;})[0];return b?b.s:null;}

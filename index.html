@@ -2783,7 +2783,10 @@ function catClamp(v,a,b){return Math.max(a,Math.min(b,v));}
 function catHash(s){var h=2166136261;for(var i=0;i<s.length;i++)h=Math.imul(h^s.charCodeAt(i),16777619);return h>>>0;}
 function catToday(){var t=new Date();return evDateStr(t.getFullYear(),t.getMonth()+1,t.getDate());}
 function petNewStat(){return {aff:0,fedAt:0,fedFull:0,name:'',nameAt:0};}
-function petNewRec(){var r=petNewStat();r.nameSchema=2;r.pts=0;r.kib=3;r.can=1;r.fish=2;r.squid=1;r.tix=1;r.acc={};r.eq={};r.gs={};r.last='';r.pg=petNewStat();r.dg=petNewStat();r.d=null;return r;}
+// 小遊戲換季：紀錄上的 gsv 不是這一季的，飼料回到起始的 3 包、排行榜清空（兩支手機各自讀到就會重設，不會被舊資料蓋回去）
+// 這個時間以前排隊、還沒交給班表的遊戲結果也不算
+var GAME_SEASON=2,GAME_RESET_AT=1793016000000;
+function petNewRec(){var r=petNewStat();r.nameSchema=2;r.pts=0;r.kib=3;r.can=1;r.fish=2;r.squid=1;r.tix=1;r.acc={};r.eq={};r.gs={};r.gsv=GAME_SEASON;r.last='';r.pg=petNewStat();r.dg=petNewStat();r.d=null;return r;}
 // 小遊戲：每款只留前 5 高分 [{s:分數,d:日期}]，分數一樣的話早的排前面
 function petTop5(list){
   return list.filter(function(x){return x&&isFinite(+x.s)&&/^\d{4}-\d{2}-\d{2}$/.test(x.d||'');}).map(function(x){return {s:Math.max(0,Math.min(9999,Math.round(+x.s))),d:x.d};})
@@ -2803,6 +2806,7 @@ function petClean(o){
   if(o.pg&&typeof o.pg==='object')petCleanStat(o.pg,r.pg);
   if(o.dg&&typeof o.dg==='object')petCleanStat(o.dg,r.dg);
   if(o.gs&&typeof o.gs==='object')Object.keys(o.gs).forEach(function(g){if(/^[a-z]{1,12}$/.test(g)&&Array.isArray(o.gs[g]))r.gs[g]=petTop5(o.gs[g]);});
+  if(+o.gsv!==GAME_SEASON){r.kib=petNewRec().kib;r.gs={};}
   // 修正舊版的物種／預設名字對應；之後自行取的新名字仍保留。
   if((+o.nameSchema||0)<2){
     if(r.name==='雪球'||r.name==='嘟嘟')r.name='Pillow';
@@ -2929,6 +2933,7 @@ function petApplyGames(){
   Object.keys(r.d.gm).forEach(function(g){used+=r.d.gm[g];});
   q.forEach(function(it){
     if(!it||it.who!==me||!/^[a-z]{1,12}$/.test(it.game||'')){if(it&&it.who&&it.who!==me)keep.push(it);return;}
+    if(it.v!==GAME_SEASON&&!(+it.at>=GAME_RESET_AT))return;
     var k=Math.max(0,Math.min(3,Math.floor(+it.kib||0)));
     // 今天的：所有遊戲合計最多 GAME_KIB 包（遊戲那邊算過了，這裡再擋一次）；d.gm 記每款拿了幾包
     if(k&&it.day===r.d.day){k=Math.min(k,Math.max(0,GAME_KIB-used));used+=k;if(k)r.d.gm[it.game]=(r.d.gm[it.game]||0)+k;}
@@ -3691,7 +3696,7 @@ function petFeed(p,food){
   },catReduce?900:2600);
   return true;
 }
-// 偶爾：畫面上冒出飼料、小魚、罐頭或透抽，點一下撿起來；愛吃那個的寵物會跑過去
+// 偶爾：畫面上冒出飼料、小魚、罐頭或透抽；寵物會自己走過去撿起來放進背包（也可以直接點，先搶先贏）
 function petScheduleDrop(){clearTimeout(petDropT);petDropT=setTimeout(petTryDrop,(80+Math.random()*160)*1000);}
 function petTryDrop(){
   petScheduleDrop();
@@ -3704,16 +3709,61 @@ function petTryDrop(){
   var b=petBounds(p),x=b.x0+10+Math.random()*(b.x1-b.x0),y=b.y0+10+Math.random()*(b.y1-b.y0);
   var el=document.createElement('button');el.className='cat-drop';el.setAttribute('aria-label','撿起'+FOODS[food].name);
   el.innerHTML=CAT_ART[food];el.style.left=x+'px';el.style.top=y+'px';
+  el._d={food:food,x:x,y:y,pref:p,born:Date.now()};
   document.body.appendChild(el);
-  if(petIdle(p))
-    petWalkTo(p,x>p.x?x-p.def.W+4:x+36,y+42-p.def.H,80,function(){petSay(p,'你看！有'+FOODS[food].name+'！',2400);petMeow(p);petNext(p,5000);});
-  var gone=setTimeout(function(){el.classList.add('bye');setTimeout(function(){el.remove();},450);},45000);
-  el.onclick=function(){
-    clearTimeout(gone);el.remove();
-    var r=petDay(petWho());r.d.drop++;r[food]++;petSave();
-    catFx('+ '+FOODS[food].name+' ×1','pt',x-14,y-8,0,-40);
-    toast('撿到'+FOODS[food].name+' ×1');
-  };
+  // 每 1.5 秒看一次有沒有空的寵物可以去撿；都沒人理的話 5 分鐘後消失
+  el._try=setInterval(function(){petFetchDrop(el);},1500);
+  el._gone=setTimeout(function(){clearInterval(el._try);el.classList.add('bye');setTimeout(function(){el.remove();},450);},300000);
+  setTimeout(function(){petFetchDrop(el);},900);
+  el.onclick=function(){petTakeDrop(el,null);};
+}
+// 派一隻寵物去撿：愛吃那個的優先，不然找最近的空閒寵物；睡著的等 15 秒還沒人去就叫醒愛吃的那隻
+function petFetchDrop(el){
+  var d=el._d;if(!el.isConnected||d.taken)return;
+  var g=d.going;
+  if(g){
+    // 走到一半被打斷（被點、被抱去合體…）就換人／重派
+    if(Date.now()-d.goAt<10000&&(g.raf||g.act==='pick'))return;
+    d.going=null;
+  }
+  var cand=petShown().filter(petIdle);
+  if(!cand.length&&Date.now()-d.born>15000&&!petHidden(d.pref)&&d.pref.el.classList.contains('sleep')&&!d.pref.menu&&!d.pref.pet&&!d.pref.act){petWake(d.pref);petSay(d.pref,'聞到'+FOODS[d.food].name+'的味道…',1600);cand=[d.pref];}
+  if(!cand.length)return;
+  var p=cand.indexOf(d.pref)>=0?d.pref:cand.sort(function(a,b){return Math.hypot(a.x-d.x,a.y-d.y)-Math.hypot(b.x-d.x,b.y-d.y);})[0];
+  d.going=p;d.goAt=Date.now();
+  petSay(p,'有'+FOODS[d.food].name+'！我去撿～',1600);
+  petWalkTo(p,d.x>p.x?d.x-p.def.W+4:d.x+36,d.y+42-p.def.H,95,function(){
+    if(d.going!==p||d.taken||!el.isConnected)return;
+    var cx=p.x+p.def.W/2,cy=p.y+p.def.H/2;
+    // 被擋住停在半路：等下一輪再派
+    if(Math.hypot(cx-(d.x+21),cy-(d.y+21))>p.def.W*.75+40){d.going=null;petNext(p,1500);return;}
+    petTakeDrop(el,p);
+  });
+}
+// 撿起來：p 是撿的寵物（沒有就是你自己點的）
+function petTakeDrop(el,p){
+  var d=el._d;if(!d||d.taken||!el.isConnected)return;
+  d.taken=1;clearInterval(el._try);clearTimeout(el._gone);
+  var me=petWho();if(!me){el.remove();return;}
+  var F=FOODS[d.food],r=petDay(me);r.d.drop++;r[d.food]++;petSave();
+  // 本來有寵物正要過去，被你先撿走了
+  var g=d.going;if(g&&g!==p&&g.raf){petStop(g);petSay(g,'被你搶先了～',1400);petNext(g,1500);}
+  if(!p){
+    el.remove();
+    catFx('+ '+F.name+' ×1','pt',d.x-14,d.y-8,0,-40);
+    toast('撿到'+F.name+' ×1');
+    return;
+  }
+  // 寵物撿：東西縮小飛進牠懷裡，開心一下，說放進背包了
+  p.dir=d.x+21<p.x+p.def.W/2?-1:1;petPlace(p);
+  p.act='pick';petMode(p,'happy');petMeow(p);
+  el.style.animation='none';el.style.transition='left .35s ease-in,top .35s ease-in,transform .35s ease-in,opacity .35s ease-in';
+  requestAnimationFrame(function(){el.style.left=(p.x+p.def.W/2-21)+'px';el.style.top=(p.y+p.def.H*.45-21)+'px';el.style.transform='scale(.3)';el.style.opacity='0';});
+  setTimeout(function(){el.remove();},400);
+  catFx('+ '+F.name+' ×1','pt',p.x+p.def.W/2-20,p.y-6,0,-40);
+  petSay(p,'撿到'+F.name+'了，放進背包～',2200);petHearts(p,2);
+  toast(petName(p.k)+' 撿到'+F.name+' ×1，放進背包了');
+  setTimeout(function(){if(p.act==='pick'){p.act='';petMode(p,'');}petNext(p,2200);},1200);
 }
 
 /* 寵物狀態卡：上面切換貓咪／企鵝 */
