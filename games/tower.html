@@ -101,8 +101,8 @@ var ZONES=[
 var TOWN=[['#FFF4D6','#E8D8B4'],['#F8D1CB','#E8ADA4'],['#D7ECCB','#B4D69F'],['#F6E2A8','#E0C67A'],['#DCEBF5','#B4CFE2']];
 var $=function(id){return document.getElementById(id);};
 var state='idle',s=1,viewH=1900,camY=-1500,n=0,blocks=[],hang=null,fallers=[],phase=0,t=0,hearts=HEARTS,score=0,combo=0,perfects=0,pets=0,zi=0,wind=0,windAt=0,raf=0,last=0,shake=0,nextAt=0;
-// 星星：400 分三顆、200 分兩顆
-function stars(x){return x>=400?3:x>=200?2:1;}
+// 星星：800 分三顆、300 分兩顆
+function stars(x){return x>=800?3:x>=300?2:1;}
 
 function fit(){s=Math.min(innerWidth,600)/1080;viewH=innerHeight/s;var w=$('world');w.style.height=viewH+'px';w.style.transform='translateX(-50%) scale('+s+')';}
 fit();addEventListener('resize',fit);
@@ -244,7 +244,7 @@ function start(){
 function end(){
   if(state!=='play')return;state='done';
   tip('房子掉光了…蓋到 '+n+' 樓');
-  setTimeout(function(){G.finish({game:'tower',score:score,unit:'分',stars:stars(score),note:'蓋到 '+n+' 樓（'+ZONES[zi].name.slice(2)+'）、完美 '+perfects+' 次、住進 '+pets+' 隻寵物<br>每層 +10、連續完美加更多；400 分三顆星、200 分兩顆星',again:function(){G.countdown(start);}});},600);
+  setTimeout(function(){G.finish({game:'tower',score:score,unit:'分',stars:stars(score),note:'蓋到 '+n+' 樓（'+ZONES[zi].name.slice(2)+'）、完美 '+perfects+' 次、住進 '+pets+' 隻寵物<br>每層 +10、連續完美加更多；800 分三顆星、300 分兩顆星',again:function(){G.countdown(start);}});},600);
 }
 // 操作：點畫面任何地方放開房子；鍵盤空白鍵也可以
 $('tap').addEventListener('pointerdown',function(e){e.preventDefault();drop();});
