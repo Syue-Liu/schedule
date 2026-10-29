@@ -2,7 +2,7 @@
    iPhone 要點過畫面才能出聲，所以第一次點的時候才開；右上角 🔊／🔇 可以關，會記在這支手機。
    聲音類型設成 ambient：手機開靜音時不會出聲，也不會把正在聽的音樂停掉。 */
 var SND=(function(){
-  var KEY='gameSound',MUSIC=.3,ctx=null,out=null,want=null,cur=null,timer=0,tempo=1,level=.5;
+  var KEY='gameSound',MUSIC=.3,ctx=null,out=null,want=null,cur=null,timer=0;
   function on(){try{return localStorage.getItem(KEY)!=='off';}catch(e){return true;}}
   function setOn(v){try{localStorage.setItem(KEY,v?'on':'off');}catch(e){}}
   // 音名→頻率（A4＝440）
@@ -16,7 +16,7 @@ var SND=(function(){
     var music=c.createGain();music.gain.value=MUSIC;music.connect(master);
     var fx=c.createGain();fx.gain.value=.75;fx.connect(master);
     var nb=c.createBuffer(1,c.sampleRate,c.sampleRate),nd=nb.getChannelData(0);for(var i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;
-    return {c:c,music:music,fx:fx,noise:nb,pl:{},amb:0,cri:0};
+    return {c:c,music:music,fx:fx,noise:nb,pl:{}};
   }
   // 基本零件：一個音（可以滑音）、一段濾過的雜音
   function tone(o,d,t,f,type,a,v,dec,f2){
@@ -107,26 +107,6 @@ var SND=(function(){
       {i:'bass',v:.3,n:'G2 - - - - - - - | E2 - - - - - - - | C2 - - - - - - - | D2 - - - - - - - | G2 - - - - - - - | E2 - - - - - - - | C2 - - - D2 - - - | G2 - - - - - - -'},
       {d:1,v:.32,n:rep('. . x . . . x .',8)}
     ]},
-    // 露營：夜晚的吉他分解和弦＋墊音，背景有營火劈啪聲和蟲叫（B 小調）
-    camp:{bpm:72,amb:'camp',parts:[
-      {i:'pluck',v:.33,n:'B2 F#3 B3 D4 F#4 D4 B3 F#3 | G2 D3 G3 B3 D4 B3 G3 D3 | D3 A3 D4 F#4 A4 F#4 D4 A3 | A2 E3 A3 C#4 E4 C#4 A3 E3 | B2 F#3 B3 D4 F#4 D4 B3 F#3 | G2 D3 G3 B3 D4 B3 G3 D3 | E2 B2 E3 G3 B3 G3 E3 B2 | F#2 C#3 F#3 A#3 C#4 A#3 F#3 C#3'},
-      {i:'pad',v:.07,n:'B3+D4+F#4 - - - - - - - | G3+B3+D4 - - - - - - - | A3+D4+F#4 - - - - - - - | A3+C#4+E4 - - - - - - - | B3+D4+F#4 - - - - - - - | G3+B3+D4 - - - - - - - | G3+B3+E4 - - - - - - - | A#3+C#4+F#4 - - - - - - -'},
-      {i:'flute',v:.17,n:'F#5 - - - - - E5 D5 | D5 - - - B4 - - - | A4 - - - D5 - F#5 - | E5 - - - - - . . | F#5 - - - - - A5 G5 | G5 - - - D5 - B4 - | B4 - - - E5 - G5 - | F#5 - - - - - . .'}
-    ]},
-    // 溫泉：三拍子的音樂盒＋鈴鐺（C 大調，一小節 6 格）
-    spring:{bpm:104,parts:[
-      {i:'box',v:.46,n:'E5 - G5 - C6 - | B5 - A5 - E5 - | F5 - A5 - C6 - | B5 - - - G5 - | E5 - G5 - C6 - | D6 - C6 - A5 - | F5 - A5 - B5 D6 | C6 - - - - -'},
-      {i:'bass',v:.3,n:'C3 - - - - - | A2 - - - - - | F2 - - - - - | G2 - - - - - | C3 - - - - - | A2 - - - - - | D3 - - - G2 - | C3 - - - - -'},
-      {i:'box',v:.11,n:'. . E4+G4 . E4+G4 . | . . C4+E4 . C4+E4 . | . . A4+C5 . A4+C5 . | . . B4+D5 . B4+D5 . | . . E4+G4 . E4+G4 . | . . C4+E4 . C4+E4 . | . . F4+A4 . B4+D5 . | . . E4+G4 . E4+G4 .'},
-      {d:1,v:.3,n:rep('j . x . x .',8)}
-    ]},
-    // 摩托車：輕快的兜風曲（A 大調），車子越快節奏越快
-    moto:{bpm:144,parts:[
-      {i:'lead',v:.17,n:'E5 . A5 . C#6 . A5 B5 | C#6 . A5 . F#5 . A5 . | F#5 . A5 . D6 . C#6 B5 | B5 . G#5 . E5 . . . | E5 . A5 . C#6 . E6 . | D6 . C#6 . A5 . F#5 . | F#5 . A5 . B5 . C#6 D6 | E6 . . . B5 . G#5 .'},
-      {i:'bass',v:.45,n:rep('A2 . A3 A2 . A2 A3 . | F#2 . F#3 F#2 . F#2 F#3 . | D2 . D3 D2 . D2 D3 . | E2 . E3 E2 . E2 E3 .',2)},
-      {i:'xylo',v:.14,n:rep('. A4+C#5+E5 . . . A4+C#5+E5 . . | . F#4+A4+C#5 . . . F#4+A4+C#5 . . | . F#4+A4+D5 . . . F#4+A4+D5 . . | . E4+G#4+B4 . . . E4+G#4+B4 . .',2)},
-      {d:1,v:.48,n:rep('k h s h k k s h',8)}
-    ]},
     // 爬樓梯：一直往上跳的木琴（D 大調）
     climb:{bpm:128,parts:[
       {i:'xylo',v:.4,n:'D5 F#5 A5 D6 . A5 F#5 A5 | C#5 E5 A5 C#6 . A5 E5 A5 | B4 D5 F#5 B5 . F#5 D5 F#5 | G4 B4 D5 G5 . D5 B4 D5 | D5 F#5 A5 D6 . E6 F#6 . | E6 . C#6 . A5 . E5 . | G5 B5 D6 B5 A5 C#6 E6 C#6 | D6 . A5 . F#5 . D5 .'},
@@ -153,28 +133,14 @@ var SND=(function(){
       else e.n.forEach(function(f){INST[p.i](o,o.music,t,f,e.len*sd,p.v);});
     });
   }
-  // 營火劈啪聲（火越大越密）和蟲叫
-  function ambient(o,t0,t1,lv){
-    if(!o.amb)o.amb=t0;if(!o.cri)o.cri=t0+.5;
-    while(o.amb<t1){
-      if(Math.random()<.25+lv*.6)noise(o,o.music,o.amb,'highpass',1500+Math.random()*3500,.7,.001,(.08+lv*.35)*Math.random(),.008+Math.random()*.02);
-      if(Math.random()<.04*lv)noise(o,o.music,o.amb,'lowpass',700,1,.002,.35*lv,.05);
-      o.amb+=.03+Math.random()*(.12-lv*.07);
-    }
-    while(o.cri<t1){
-      for(var i=0;i<3;i++)tone(o,o.music,o.cri+i*.055,4300+Math.random()*120,'sine',.006,.05,.03);
-      o.cri+=.9+Math.random()*1.8;
-    }
-  }
   function pump(){
     if(!cur||!ctx)return;
-    var tr=cur.tr,sd=60/(tr.bpm*tempo)/2,until=ctx.currentTime+.15;
+    var tr=cur.tr,sd=60/tr.bpm/2,until=ctx.currentTime+.15;
     while(cur.next<until){playStep(out,tr,cur.step,cur.next+(cur.step%2?sd*(tr.sw||0):0),sd);cur.next+=sd;cur.step=(cur.step+1)%tr.len;}
-    if(tr.amb)ambient(out,ctx.currentTime,until,level);
   }
   function startTrack(name){
     stopTrack(true);var tr=TR[name];if(!tr||!ctx)return;parse(tr);
-    var t=ctx.currentTime;cur={tr:tr,step:0,next:t+.08};out.amb=0;out.cri=0;
+    var t=ctx.currentTime;cur={tr:tr,step:0,next:t+.08};
     out.music.gain.cancelScheduledValues(t);out.music.gain.setValueAtTime(0,t);out.music.gain.linearRampToValueAtTime(MUSIC,t+.5);
     clearInterval(timer);timer=setInterval(pump,25);pump();
   }
@@ -202,28 +168,14 @@ var SND=(function(){
     ouch:function(o,d,t){tone(o,d,t,330,'square',.002,.12,.3,95);tone(o,d,t,165,'triangle',.002,.3,.3,60);},
     swish:function(o,d,t){noise(o,d,t,'bandpass',900,1.2,.02,.12,.1,3000);},
     // 釣魚
-    cast:function(o,d,t){noise(o,d,t,'bandpass',500,1,.08,.28,.35,2600);},
     plop:function(o,d,t){tone(o,d,t,720,'sine',.002,.4,.13,170);noise(o,d,t,'lowpass',900,1,.001,.18,.09);},
-    nibble:function(o,d,t){tone(o,d,t,620,'sine',.001,.14,.05,500);},
     bite:function(o,d,t){noise(o,d,t,'bandpass',1500,.7,.002,.45,.25);tone(o,d,t,1250,'triangle',.001,.25,.1);tone(o,d,t+.1,1650,'triangle',.001,.25,.12);},
     click:function(o,d,t){noise(o,d,t,'highpass',3200,1,.001,.14,.012);},
     catch:function(o,d,t){noise(o,d,t,'bandpass',1400,.7,.002,.3,.2);arp(o,d,t+.05,['G5','B5','D6','G6'],.07,'xylo',.42);},
     boot:function(o,d,t){tone(o,d,t,320,'triangle',.002,.4,.25,150);tone(o,d,t+.28,260,'triangle',.002,.35,.3,110);},
     escape:function(o,d,t){tone(o,d,t,620,'sine',.01,.25,.45,190);},
-    // 露營
-    log:function(o,d,t){tone(o,d,t,150,'triangle',.002,.5,.12,75);noise(o,d,t,'lowpass',700,1,.001,.3,.07);},
-    puff:function(o,d,t){noise(o,d,t,'lowpass',300,.8,.04,.3,.35,1600);},
-    yum:function(o,d,t,g){noise(o,d,t,'bandpass',1200,1,.002,.18,.04);arp(o,d,t+.05,g?['E6','G6','C7']:['E6','C6'],.08,'xylo',.35);},
-    burnt:function(o,d,t){noise(o,d,t,'highpass',2800,.7,.05,.22,.55);tone(o,d,t,180,'sawtooth',.01,.06,.4,90);},
-    wind:function(o,d,t){noise(o,d,t,'bandpass',380,1.4,.6,.28,1.4,900);},
-    // 溫泉：挖到的溫度越高，叮的聲音越高
-    dig:function(o,d,t){noise(o,d,t,'bandpass',1900,.6,.004,.42,.11,700);noise(o,d,t+.11,'bandpass',1500,.6,.004,.3,.1,600);},
-    temp:function(o,d,t,c){var f=260*Math.pow(2,((c==null?10:c)+30)/26);INST.box(o,d,t,f,.3,.35);if(c<4)tone(o,d,t+.05,f*1.5,'sine',.002,.06,.25);},
     treasure:function(o,d,t){arp(o,d,t,['E6','G6','B6','E7'],.06,'box',.3);},
-    spring:function(o,d,t){noise(o,d,t,'bandpass',1200,.7,.003,.45,.35);for(var i=0;i<7;i++)tone(o,d,t+.15+i*.07,500+Math.random()*700,'sine',.002,.09,.07,1500+Math.random()*900);arp(o,d,t+.2,['C6','E6','G6','C7'],.09,'bell',.25);},
-    // 摩托車
-    jump:function(o,d,t){tone(o,d,t,300,'triangle',.004,.28,.16,760);},
-    land:function(o,d,t){tone(o,d,t,110,'sine',.001,.35,.08,55);noise(o,d,t,'lowpass',380,1,.001,.14,.05);},
+    // 爬樓梯、釣魚共用
     coin:function(o,d,t){tone(o,d,t,988,'triangle',.001,.3,.05);tone(o,d,t+.055,1319,'triangle',.001,.3,.18);},
     fishup:function(o,d,t){arp(o,d,t,['C6','E6','G6','C7'],.045,'xylo',.38);},
     bump:function(o,d,t){noise(o,d,t,'lowpass',1300,1,.001,.5,.25,200);tone(o,d,t,140,'sine',.001,.5,.25,45);},
@@ -265,7 +217,7 @@ var SND=(function(){
   // 預覽用：在離線環境把一段配樂（或一串音效）算成聲音
   function render(name,sec,fxList){
     var sr=32000,oc=new OfflineAudioContext(1,Math.round(sr*sec),sr),o=chain(oc);
-    if(name){var tr=TR[name];parse(tr);var sd=60/tr.bpm/2,t=.1,s=0;while(t<sec-.5){playStep(o,tr,s,t+(s%2?sd*(tr.sw||0):0),sd);t+=sd;s=(s+1)%tr.len;}if(tr.amb)ambient(o,.05,sec-.3,.55);o.music.gain.setValueAtTime(MUSIC,sec-1.2);o.music.gain.linearRampToValueAtTime(0,sec-.2);}
+    if(name){var tr=TR[name];parse(tr);var sd=60/tr.bpm/2,t=.1,s=0;while(t<sec-.5){playStep(o,tr,s,t+(s%2?sd*(tr.sw||0):0),sd);t+=sd;s=(s+1)%tr.len;}o.music.gain.setValueAtTime(MUSIC,sec-1.2);o.music.gain.linearRampToValueAtTime(0,sec-.2);}
     (fxList||[]).forEach(function(x){SFX[x[1]](o,o.fx,x[0],x[2]);});
     return oc.startRendering();
   }
@@ -274,8 +226,6 @@ var SND=(function(){
     music:function(name){want=name||null;if(!name)return stopTrack();if(!ctx||!on())return;if(ctx.state==='running')startTrack(name);else ctx.resume();},
     stop:function(){want=null;stopTrack();},
     sfx:function(name,arg){if(!ctx||!on()||ctx.state!=='running'||!SFX[name])return;SFX[name](out,out.fx,ctx.currentTime+.005,arg);},
-    tempo:function(m){tempo=m>0?m:1;},
-    level:function(v){level=Math.max(0,Math.min(1,v));},
     on:on,render:render,tracks:TR
   };
 })();

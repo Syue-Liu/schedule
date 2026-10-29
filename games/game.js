@@ -2,15 +2,12 @@
    不直接寫雲端：先排進這支手機的 gameRewards，回到班表時由班表加進寵物紀錄（飼料、每人每款前 5 高分），
    再照平常一樣同步，兩支手機的排行榜就會一樣。 */
 // sound.js 沒載到也不會壞：換成什麼都不做的版本
-var SND=window.SND||{music:function(){},stop:function(){},sfx:function(){},tempo:function(){},level:function(){}};
+var SND=window.SND||{music:function(){},stop:function(){},sfx:function(){}};
 var G=(function(){
   var SCENES={
     whack:{label:'菜園小幫手',kind:'反應挑戰',time:'30 秒',goal:'50 分獲得三星',color:'#E8EED7'},
-    fish:{label:'雪湖火鍋祭',kind:'眼明手快',time:'肚子餓之前',goal:'1300 分獲得三星',color:'#E2EAF4',cover:'cover-winter.svg'},
-    camp:{label:'星空營火夜',kind:'火候控制',time:'40 秒',goal:'16 分獲得三星',color:'#F4DFCC'},
-    spring:{label:'雪國探險家',kind:'溫度推理',time:'11 把鏟子',goal:'13 分獲得三星',color:'#E2EAF4'},
-    moto:{label:'三寵兜風日',kind:'跳躍冒險',time:'40 秒',goal:'90 分獲得三星',color:'#F5E9C9'},
-    climb:{label:'雲端樓梯',kind:'跳躍反應',time:'掉下去為止',goal:'200 分獲得三星',color:'#E4F2F8'}
+    fish:{label:'雪湖火鍋祭',kind:'眼明手快',time:'肚子餓之前',goal:'2000 分獲得三星',color:'#E2EAF4',cover:'cover-winter.svg'},
+    climb:{label:'雲端樓梯',kind:'時機跳躍',time:'掉下去為止',goal:'150 分獲得三星',color:'#E4F2F8'}
   };
   function escapeHtml(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
   // 換季（跟班表的 GAME_SEASON、GAME_RESET_AT 一樣）：舊一季的分數和還沒交出去的結果不算

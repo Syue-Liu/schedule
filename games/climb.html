@@ -21,8 +21,14 @@ body{background:#CFE6F2;touch-action:none;}
 .cloud{position:absolute;left:0;top:0;opacity:.85;pointer-events:none;}
 .cloud i{position:absolute;border-radius:50%;background:#FFFFFF;}
 .ground{width:1080px;height:420px;background:linear-gradient(#9CC78A,#7FB36E 30%,#6E9A5E);border-top:6px solid #594C43;}
-.step{width:216px;height:66px;}
-.step.gone{transition:transform .6s ease-in,opacity .6s;opacity:0;}
+.step{height:44px;border:6px solid #594C43;border-radius:16px;background:linear-gradient(#E2B88E,#B98B6B);box-shadow:inset 0 6px 0 #FFFFFF55;}
+.step.move{background:linear-gradient(#BFE0EE,#7FB8D2);}
+.step.snow{background:linear-gradient(#FFFFFF,#CFE1EA);}
+.step.snow::after{content:'';position:absolute;left:30%;top:2px;width:26px;height:26px;border-left:4px solid #8CB4C8;border-bottom:4px solid #8CB4C8;transform:skewX(-30deg);}
+.step.snow.crack{animation:crack .1s linear infinite alternate;}
+@keyframes crack{to{translate:4px 0;}}
+.step.spike{height:66px;border:0;border-radius:0;background:url(../assets/games/climb/step-spike.svg) 0 0/100% 100% no-repeat;box-shadow:none;}
+.step.gone{transition:opacity .5s;opacity:0;}
 .spring{width:70px;height:70px;}
 .spring.on{animation:sprung .3s var(--pop);}
 @keyframes sprung{40%{transform:var(--t) scaleY(1.5);}}
@@ -50,10 +56,12 @@ body{background:#CFE6F2;touch-action:none;}
 .who button img{width:56px;height:46px;object-fit:contain;}
 .who button.on{background:var(--yellow);box-shadow:0 2px 0 var(--ink);}
 .who-h{font-size:12px;color:var(--t2);margin-top:8px;}
-/* 下面：左右按的位置 */
-.pad{position:fixed;bottom:calc(env(safe-area-inset-bottom) + 18px);z-index:21;width:64px;height:64px;border:var(--lw2) solid var(--ink);border-radius:50%;background:#FFFCF6CC;font-size:26px;display:flex;align-items:center;justify-content:center;pointer-events:none;transition:transform .08s,background .08s;}
-.pad.l{left:18px;}.pad.r{right:18px;}
-.pad.on{transform:scale(.9);background:var(--yellow);}
+/* 集氣條：按住越久跳越高 */
+.charge{position:absolute;left:25px;top:-34px;width:120px;height:16px;border:4px solid #594C43;border-radius:999px;background:#FFFCF6;overflow:hidden;opacity:0;transition:opacity .1s;}
+.charge.on{opacity:1;}
+.charge i{display:block;height:100%;width:0;background:linear-gradient(90deg,#B9DAA5,#F6D27A 60%,#F2A497);}
+.charge.full{animation:full .25s ease-in-out infinite alternate;}
+@keyframes full{to{box-shadow:0 0 0 6px #F6D27A88;}}
 .tip{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 34px);z-index:21;padding:6px 14px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);font-size:13px;white-space:nowrap;pointer-events:none;}
 .tap{position:fixed;inset:0;z-index:10;}
 </style>
@@ -66,23 +74,21 @@ body{background:#CFE6F2;touch-action:none;}
 <div class="tap" id="tap"></div>
 <div class="g-bar"><button class="g-back" onclick="location.href='./'">‹ 大廳</button><div class="g-title">三寵爬樓梯</div><div class="g-pill hot" id="score">0 分</div></div>
 <div class="hud"><b id="hearts">❤️❤️❤️</b><b id="floor">🪜 0 樓</b></div>
-<div class="pad l" id="padL">◀</div><div class="pad r" id="padR">▶</div>
-<div class="tip" id="tip">按住左右兩邊移動</div>
-<script src="sound.js?v=climb-20261029"></script>
-<script src="game.js?v=dive-20261029"></script>
+<div class="tip" id="tip">點一下跳、按久一點跳更高</div>
+<script src="sound.js?v=trim-20261029"></script>
+<script src="game.js?v=trim-20261029"></script>
 <script>
-// 美術：之後換成畫好的圖，只要改這裡的檔名
-var A='../assets/games/climb/',ART={step:A+'step.svg',move:A+'step-move.svg',snow:A+'step-snow.svg',spike:A+'step-spike.svg',spring:A+'spring.svg',ball:A+'snowball.svg',kib:'../assets/games/ui/kib.svg',fish:'../assets/games/ui/fish.svg'};
-// 跳起來大約 430 高，彈簧大約 1100；左右最快 720；120 高算一樓
-var GRAV=2700,JUMP=1520,SPRING=2450,MAXV=720,ACC=3000,PW=170,PH=150,SW=216,FLOOR=120,HEARTS=3;
-// 誰去爬：上升／下降的姿勢
-var POSE={cat:['pounce','idle'],pg:['flap-up','flap-down'],dg:['chase','idle']},ORDER=['cat','pg','dg'],FACE={cat:'🐱',pg:'🐧',dg:'🐶'};
+// 美術：之後換成畫好的圖，只要改這裡的檔名（台階本身是畫出來的色塊，尖刺台階用圖）
+var A='../assets/games/climb/',ART={spike:A+'step-spike.svg',spring:A+'spring.svg',ball:A+'snowball.svg',kib:'../assets/games/ui/kib.svg',fish:'../assets/games/ui/fish.svg'};
+// 寵物一直往前走，碰到畫面邊邊就轉頭。點一下跳約 290 高（一階）；按住集氣，最多約 800 高；彈簧約 1080
+var GRAV=2900,WALK=300,TAP=1300,FULL=2150,CHARGE=.8,SPRING=2500,PW=170,PH=150,SPIKEW=216,FLOOR=120,HEARTS=3;
+// 誰去爬：走路兩張輪流、集氣蹲下、往上、往下
+var POSE={cat:{walk:['walk-a','walk-b'],crouch:'eat',up:'pounce',down:'idle'},pg:{walk:['walk-a','walk-b'],crouch:'eat',up:'flap-up',down:'flap-down'},dg:{walk:['walk-a','walk-b'],crouch:'eat',up:'chase',down:'idle'}},ORDER=['cat','pg','dg'];
 var $=function(id){return document.getElementById(id);};
 var who=ORDER.indexOf(localStorage.getItem('climbPet'))>=0?localStorage.getItem('climbPet'):'cat';
-var state='idle',s=1,viewH=1900,camY=-1500,px=455,py=-PH,vx=0,vy=0,dir=0,face=1,hearts=HEARTS,inv=0,score=0,best=0,kibs=0,fishes=0,topY=0,steps=[],items=[],balls=[],ballAt=0,raf=0,last=0,mile=0,pose='';
-var pointers={};
-// 星星：200 分三顆、100 分兩顆
-function stars(n){return n>=200?3:n>=100?2:1;}
+var state='idle',s=1,viewH=1900,camY=-1500,px=455,py=-PH,vy=0,face=1,on=null,coyote=0,hold=0,holding=false,buf=0,bufV=0,hearts=HEARTS,inv=0,score=0,best=0,kibs=0,fishes=0,topY=0,steps=[],items=[],balls=[],ballAt=0,raf=0,last=0,mile=0,pose='',walkT=0,t=0,jumped=false;
+// 星星：150 分三顆、70 分兩顆
+function stars(n){return n>=150?3:n>=70?2:1;}
 
 function fit(){s=Math.min(innerWidth,600)/1080;viewH=innerHeight/s;var w=$('world');w.style.height=viewH+'px';w.style.transform='translateX(-50%) scale('+s+')';}
 fit();addEventListener('resize',fit);
@@ -97,23 +103,25 @@ var SKY=[[0,[207,230,242]],[4000,[168,211,230]],[9000,[246,215,184]],[14000,[181
 function skyAt(h){for(var i=1;i<SKY.length;i++)if(h<SKY[i][0]){var a=SKY[i-1],b=SKY[i],k=(h-a[0])/(b[0]-a[0]);return a[1].map(function(v,j){return Math.round(v+(b[1][j]-v)*k);});}return SKY[SKY.length-1][1];}
 function paintSky(){var h=-camY,c=skyAt(h),c2=skyAt(h+3000);$('sky').style.background='linear-gradient(rgb('+c2+'),rgb('+c+'))';$('stars').style.opacity=Math.max(0,Math.min(1,(h-13000)/6000)).toFixed(2);}
 
-// 台階：越高越稀、會動的／雪階／尖刺越多，彈簧越少
-function diff(){return Math.min(1,-topY/20000);}
-function addStep(type,x,y){
-  var p={type:type,x:x,y:y,vx:type==='move'?(Math.random()<.5?-1:1)*rnd(100,160+100*diff()):0,e:img('step',ART[type==='normal'?'step':type])};
+// 台階：越高越窄、間隔越大（有些要集氣才跳得上去），會動的／雪階／尖刺越多
+function diff(){return Math.min(1,-topY/16000);}
+function addStep(type,x,y,w){
+  var e=el('step '+type);e.style.width=w+'px';
+  var p={type:type,x:x,y:y,w:w,e:e,vx:type==='move'?(Math.random()<.5?-1:1)*rnd(90,150+90*diff()):0};
   steps.push(p);return p;
 }
 function gen(){
   while(topY>camY-400){
-    var d=diff(),gap=150+210*d+rnd(-25,25),y=topY-gap,x=rnd(20,1080-SW-20),h=-y;
-    var wN=60-25*d,wM=8+18*d,wS=6+14*d,wK=h>1500?3+9*d:0,r=Math.random()*(wN+wM+wS+wK),type=r<wN?'normal':r<wN+wM?'move':r<wN+wM+wS?'snow':'spike';
-    var p=addStep(type,x,y);
+    var d=diff(),gap=170+120*d+rnd(-30,40),y=topY-gap,h=-y;
+    var wN=60-22*d,wM=10+16*d,wS=6+14*d,wK=h>1500?3+8*d:0,r=Math.random()*(wN+wM+wS+wK),type=r<wN?'normal':r<wN+wM?'move':r<wN+wM+wS?'snow':'spike';
+    var w=type==='spike'?SPIKEW:Math.round(rnd(420-150*d,520-170*d)),x=rnd(0,1080-w);
+    var p=addStep(type,x,y,w);
     // 尖刺旁邊一定再放一個安全的，路不會斷
-    if(type==='spike'){var x2=x>540?rnd(20,x-SW-60):rnd(x+SW+60,1080-SW-20);addStep('normal',Math.max(20,Math.min(1080-SW-20,x2)),y+rnd(-40,40));}
+    if(type==='spike'){var w2=Math.round(rnd(280,380)),x2=x>540?rnd(0,Math.max(0,x-w2-40)):rnd(Math.min(1080-w2,x+SPIKEW+40),1080-w2);addStep('normal',x2,y+rnd(-30,30),w2);}
     if(type==='normal'){
-      if(Math.random()<.09-.04*d){p.spring=img('spring',ART.spring);}
-      else if(Math.random()<.22)addItem('kib',x+SW/2-42,y-84);
-      else if(Math.random()<.05)addItem('fish',x+SW/2-48,y-220);
+      if(Math.random()<.08-.03*d){p.sx=rnd(20,w-90);p.spring=img('spring',ART.spring);}
+      else if(Math.random()<.25)addItem('kib',x+rnd(20,w-104),y-90);
+      else if(Math.random()<.06)addItem('fish',x+rnd(20,w-116),y-520);
     }
     topY=y;
   }
@@ -127,13 +135,13 @@ function makeClouds(){
 }
 function drawClouds(dy){clouds.forEach(function(c){c.y+=dy*.45;if(c.y>viewH+120){c.y=-160;c.x=rnd(-60,980);}c.e.style.transform='translate('+c.x+'px,'+c.y+'px)';});}
 
-var pet,fans=[];
+var pet,fans=[],ground={type:'ground',x:-200,y:0,w:1480};
 function build(){
   $('objs').innerHTML='';steps=[];items=[];balls=[];document.querySelectorAll('.warn').forEach(function(w){w.remove();});
-  var g=el('ground');g.style.transform='translate(0px,'+(-camY)+'px)';g._y=0;g.id='ground';
+  var g=el('ground');g.id='ground';
   // 另外兩隻在地上加油
-  fans=ORDER.filter(function(k){return k!==who;}).map(function(k,i){var f=el('fan','<img src="'+G.petImg(k,'happy')+'" alt=""><div class="g-say"></div>');f._x=i?820:110;f._k=k;return f;});
-  pet=el('pet','<img alt=""><div class="g-say"></div>');setPose(POSE[who][1]);
+  fans=ORDER.filter(function(k){return k!==who;}).map(function(k,i){var f=el('fan','<img src="'+G.petImg(k,'happy')+'" alt=""><div class="g-say"></div>');f._x=i?860:70;f._k=k;return f;});
+  pet=el('pet','<img alt=""><div class="charge" id="charge"><i id="cfill"></i></div><div class="g-say"></div>');pose='';setPose(POSE[who].walk[0]);
 }
 function setPose(p){if(p===pose)return;pose=p;pet.querySelector('img').src=G.petImg(who,p);}
 function hurt(msg){
@@ -141,51 +149,87 @@ function hurt(msg){
   SND.sfx(hearts?'bump':'crash');say(pet,msg,900);if(navigator.vibrate)navigator.vibrate(90);
   if(hearts<=0)end('愛心用完了…');
 }
+// 按住集氣、放開跳：按不到 0.15 秒算點一下（跳一階），按越久跳越高
+function power(){var k=Math.max(0,Math.min(1,(hold-.15)/(CHARGE-.15)));return TAP+(FULL-TAP)*k;}
+function jump(v){
+  on=null;coyote=0;vy=-v;jumped=true;SND.sfx(v>TAP+200?'boing':'hop');
+  if(v>FULL-60)say(pet,'集氣跳！',700);
+}
+function pressStart(){if(state!=='play')return;holding=true;hold=0;}
+function pressEnd(){
+  if(state!=='play'||!holding)return;
+  holding=false;var v=power();hold=0;
+  if(on||coyote>0)jump(v);else{buf=.15;bufV=v;}
+}
 function tick(now){
-  var dt=Math.min(.04,(now-last)/1000);last=now;
+  // 第一格的時間可能比 last 早一點點：不能是負的
+  var dt=Math.max(0,Math.min(.04,(now-last)/1000));last=now;
   if(state==='play'){
-    // 左右：按住加速，放開慢慢停
-    if(dir)vx=Math.max(-MAXV,Math.min(MAXV,vx+dir*ACC*dt));else vx*=Math.max(0,1-7*dt);
-    if(Math.abs(vx)>40)face=vx<0?-1:1;
-    var prevB=py+PH;vy+=GRAV*dt;px+=vx*dt;py+=vy*dt;
-    // 從左邊出去從右邊出來
-    if(px+PW/2<0)px+=1080;else if(px+PW/2>1080)px-=1080;
-    var bot=py+PH,fl=px+42,fr=px+PW-42;
-    // 只有往下掉的時候會踩到台階
-    if(vy>0){
-      if(bot>=0&&prevB<=4){py=-PH;vy=-JUMP;SND.sfx('hop');}
-      else steps.forEach(function(p){
-        if(p.gone||prevB>p.y+6||bot<p.y||fr<p.x+6||fl>p.x+SW-6)return;
-        py=p.y-PH;
-        if(p.spring&&fr>p.x+SW/2-40&&fl<p.x+SW/2+40){vy=-SPRING;p.spring.classList.remove('on');void p.spring.offsetWidth;p.spring.classList.add('on');SND.sfx('boing');say(pet,'彈～！',700);}
-        else vy=-JUMP;
-        if(p.type==='snow'){p.gone=1;p.e.classList.add('gone');SND.sfx('crack');}
-        else if(p.type==='spike'){vy=-JUMP*.8;hurt('好痛！');}
-        else if(!p.spring)SND.sfx('hop');
-      });
+    t+=dt;
+    if(holding)hold+=dt;
+    // 一直往前走；碰到畫面邊邊就轉頭
+    var vx=face*WALK+(on&&on.vx?on.vx:0);px+=vx*dt;
+    if(px<0){px=0;face=1;}else if(px+PW>1080){px=1080-PW;face=-1;}
+    var prevB=py+PH,fl=px+48,fr=px+PW-48;
+    if(on){
+      // 走到台階邊邊會自己轉頭（不會走下去）；雪階塌掉才會掉下去
+      if(on!==ground&&!on.gone){if(face>0&&fr>=on.x+on.w-6){face=-1;px=on.x+on.w-6-(PW-48);}else if(face<0&&fl<=on.x+6){face=1;px=on.x+6-48;}}
+      if(on!==ground&&on.gone){on=null;coyote=.1;vy=0;}
+      else{py=on.y-PH;vy=0;}
+      if(on&&on.type==='snow'&&!on.gone){on.crack=(on.crack||0)+dt;on.e.classList.add('crack');if(on.crack>.6){on.gone=1;on.e.classList.add('gone');SND.sfx('crack');on=null;coyote=.08;}}
     }
+    if(!on){
+      if(coyote>0)coyote-=dt;
+      vy+=GRAV*dt;py+=vy*dt;var bot=py+PH;
+      // 只有往下掉的時候會踩到台階（從下面可以穿過去）
+      if(vy>0){
+        if(bot>=0&&prevB<=4&&camY>-viewH){land(ground);}
+        else steps.forEach(function(p){if(on||p.gone||prevB>p.y+6||bot<p.y||fr<p.x+4||fl>p.x+p.w-4)return;land(p);});
+      }
+    }
+    if(buf>0){buf-=dt;if(on){buf=0;jump(bufV);}}
     if(inv>0)inv-=dt;
     // 會動的台階左右來回
-    steps.forEach(function(p){if(p.vx&&!p.gone){p.x+=p.vx*dt;if(p.x<10||p.x>1080-SW-10){p.vx*=-1;p.x=Math.max(10,Math.min(1080-SW-10,p.x));}}});
+    steps.forEach(function(p){if(p.vx&&!p.gone){p.x+=p.vx*dt;if(p.x<0||p.x>1080-p.w){p.vx*=-1;p.x=Math.max(0,Math.min(1080-p.w,p.x));}}});
     // 吃飼料、魚
     items.forEach(function(it){if(it.got)return;if(px+PW-30>it.x&&px+30<it.x+it.w&&py+PH>it.y&&py<it.y+it.w){it.got=1;it.e.remove();if(it.k==='fish'){fishes++;score+=15;SND.sfx('fishup');}else{kibs++;score+=5;SND.sfx('coin');}var r=pet.getBoundingClientRect();G.float(r.left+r.width/2,r.top,'+'+(it.k==='fish'?15:5),'gold');}});
     // 高處開始掉雪球：先在上面亮驚嘆號，再掉下來
     var h=-(py+PH);
-    if(h>4000&&now>ballAt){ballAt=now+rnd(4200,7600)-1800*diff();var bx=Math.max(20,Math.min(980,px+PW/2+rnd(-260,260)));var w=document.createElement('div');w.className='warn';w.textContent='!';w.style.left=(innerWidth/2+(bx+50-540)*s)+'px';document.body.appendChild(w);setTimeout(function(){w.remove();if(state==='play')balls.push({x:bx,y:camY-140,v:650+250*diff(),e:img('snow',ART.ball)});},900);}
-    balls.forEach(function(b){b.y+=b.v*dt;var cx=b.x+50,cy=b.y+50;if(!b.hit&&cx>px+30&&cx<px+PW-30&&cy>py+20&&cy<py+PH){b.hit=1;hurt('被雪球砸到了！');vy=Math.max(vy,200);}});
-    // 鏡頭只往上：寵物超過畫面 42% 高就跟上去
-    var oc=camY,target=Math.min(camY,py-viewH*.42);camY+=(target-camY)*Math.min(1,dt*8);
+    if(h>4000&&now>ballAt){ballAt=now+rnd(4500,8000)-1800*diff();var bx=Math.max(20,Math.min(980,px+PW/2+face*WALK*1.2+rnd(-200,200)));var w=document.createElement('div');w.className='warn';w.textContent='!';w.style.left=(innerWidth/2+(bx+50-540)*s)+'px';document.body.appendChild(w);setTimeout(function(){w.remove();if(state==='play')balls.push({x:bx,y:camY-140,v:650+250*diff(),e:img('snow',ART.ball)});},900);}
+    balls.forEach(function(b){b.y+=b.v*dt;var cx=b.x+50,cy=b.y+50;if(!b.hit&&cx>px+30&&cx<px+PW-30&&cy>py+20&&cy<py+PH){b.hit=1;hurt('被雪球砸到了！');}});
+    // 鏡頭：跳第一下之後開始自己慢慢往上捲（越高越快），寵物爬太高也會跟上去
+    var oc=camY,target=Math.min(camY,py-viewH*.45);
+    if(jumped)target=Math.min(target,camY-(25+75*diff())*dt);
+    camY+=(target-camY)*Math.min(1,dt*8);
     gen();
     // 樓層和分數：爬到最高的地方算
     if(h>best){var f0=Math.floor(best/FLOOR);best=h;var f1=Math.floor(best/FLOOR);score+=f1-f0;
       if(Math.floor(f1/50)>mile){mile=Math.floor(f1/50);SND.sfx('fishup');var r2=pet.getBoundingClientRect();G.float(r2.left+r2.width/2,r2.top-30,f1+' 樓！','gold');say(pet,['好高喔！','還要再上去！','雲在下面了！','摸得到星星了'][Math.min(3,mile-1)],1200);}}
-    // 掉出畫面底下就結束
-    if(py>camY+viewH+60){SND.sfx('fall');end('掉下去了…');}
-    setPose(vy<0?POSE[who][0]:POSE[who][1]);
+    // 掉出畫面底下：扣一顆愛心，從畫面下半部的台階重新站好；愛心用完才結束
+    if(py>camY+viewH+40)fellOut();
+    // 姿勢：集氣蹲下、走路兩張輪流、跳起來／掉下來
+    walkT+=dt;
+    if(on)setPose(holding?POSE[who].crouch:POSE[who].walk[Math.floor(walkT/.16)%2]);else setPose(vy<0?POSE[who].up:POSE[who].down);
+    var c=$('charge'),k=holding?Math.max(0,Math.min(1,(hold-.15)/(CHARGE-.15))):0;c.classList.toggle('on',holding&&hold>.15);c.classList.toggle('full',k>=1);$('cfill').style.width=k*100+'%';
     draw(oc-camY);
     $('floor').textContent='🪜 '+Math.floor(best/FLOOR)+' 樓';$('score').textContent=score+' 分';
   }
   raf=requestAnimationFrame(tick);
+}
+function fellOut(){
+  SND.sfx('fall');hearts--;heartsTxt();if(navigator.vibrate)navigator.vibrate(120);
+  if(hearts<=0){end('掉下去了…');return;}
+  var lo=camY+viewH*.55,hi=camY+viewH-120,c=steps.filter(function(p){return !p.gone&&p.type!=='spike'&&p.type!=='snow'&&p.y>lo&&p.y<hi;}).sort(function(a,b){return a.y-b.y;})[0];
+  if(!c){c=addStep('normal',540-180,camY+viewH*.72,360);}
+  on=c;px=c.x+c.w/2-PW/2;py=c.y-PH;vy=0;inv=1.5;buf=0;
+  pet.classList.remove('hurt');void pet.offsetWidth;pet.classList.add('hurt');say(pet,'差點掉下去！',1000);tip('掉下去扣一顆愛心，還剩 '+hearts+' 顆');
+}
+// 落地：彈簧自動彈超高、尖刺扣愛心並彈開、雪階站一下就塌
+function land(p){
+  py=p.y-PH;vy=0;on=p;
+  if(p.spring&&px+PW-48>p.x+p.sx&&px+48<p.x+p.sx+70){p.spring.classList.remove('on');void p.spring.offsetWidth;p.spring.classList.add('on');vy=-SPRING;on=null;SND.sfx('boing');say(pet,'彈～！',700);return;}
+  if(p.type==='spike'){hurt('好痛！');vy=-900;on=null;return;}
+  if(buf<=0)SND.sfx('hop');
 }
 function place(e,x,y){e.style.transform='translate('+x+'px,'+(y-camY)+'px)';}
 function draw(dy){
@@ -193,37 +237,35 @@ function draw(dy){
   var g=$('ground');if(g)place(g,0,0);
   fans.forEach(function(f){place(f,f._x,-130);});
   // 看不到的就清掉
-  steps=steps.filter(function(p){if(p.y-camY>viewH+200){p.e.remove();if(p.spring)p.spring.remove();return false;}place(p.e,p.x-5,p.y-13);if(p.spring){p.spring.style.setProperty('--t','translate('+(p.x+SW/2-35)+'px,'+(p.y-66-camY)+'px)');place(p.spring,p.x+SW/2-35,p.y-66);}return true;});
+  steps=steps.filter(function(p){if(p.y-camY>viewH+200){p.e.remove();if(p.spring)p.spring.remove();return false;}place(p.e,p.x,p.type==='spike'?p.y-22:p.y);if(p.spring){var sx=p.x+p.sx,sy=p.y-66;p.spring.style.setProperty('--t','translate('+sx+'px,'+(sy-camY)+'px)');place(p.spring,sx,sy);}return true;});
   items=items.filter(function(it){if(it.got)return false;if(it.y-camY>viewH+200){it.e.remove();return false;}place(it.e,it.x,it.y);return true;});
   balls=balls.filter(function(b){if(b.y-camY>viewH+200){b.e.remove();return false;}place(b.e,b.x,b.y);return true;});
   paintSky();drawClouds(dy||0);
 }
 function start(){
-  camY=-(viewH-560);px=455;py=-PH;vx=0;vy=-JUMP;dir=0;hearts=HEARTS;inv=0;score=0;best=0;kibs=0;fishes=0;mile=0;topY=0;ballAt=0;pose='';
+  camY=-(viewH-560);px=455;py=-PH;vy=0;face=1;on=ground;coyote=0;hold=0;holding=false;buf=0;hearts=HEARTS;inv=0;score=0;best=0;kibs=0;fishes=0;mile=0;topY=0;ballAt=0;t=0;jumped=false;
   build();heartsTxt();makeClouds();
-  gen();state='play';tip('按住左右兩邊移動');
+  gen();state='play';tip('點一下跳、按久一點跳更高');
   fans.forEach(function(f,i){setTimeout(function(){f.classList.add('cheer');say(f,i?'加油～':'衝啊！',1400);},300+i*300);});
   last=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(tick);
 }
 function end(why){
-  if(state!=='play')return;state='done';dir=0;
+  if(state!=='play')return;state='done';holding=false;$('charge').classList.remove('on');
   var f=Math.floor(best/FLOOR);tip(why+'爬到 '+f+' 樓');
-  setTimeout(function(){G.finish({game:'climb',extra:chooser(),mount:mountChooser,score:score,unit:'分',stars:stars(score),note:'爬到 '+f+' 樓（每樓 +1）、飼料 ×'+kibs+'（+5）、魚 ×'+fishes+'（+15）<br>200 分三顆星、100 分兩顆星',again:function(){G.countdown(start);}});},900);
+  setTimeout(function(){G.finish({game:'climb',extra:chooser(),mount:mountChooser,score:score,unit:'分',stars:stars(score),note:'爬到 '+f+' 樓（每樓 +1）、飼料 ×'+kibs+'（+5）、魚 ×'+fishes+'（+15）<br>150 分三顆星、70 分兩顆星',again:function(){G.countdown(start);}});},900);
 }
-// 操作：按住畫面左半邊往左、右半邊往右；鍵盤左右鍵也可以
-function upd(){var ks=Object.keys(pointers),d=0;if(ks.length)d=pointers[ks[ks.length-1]];dir=state==='play'?d:0;$('padL').classList.toggle('on',dir<0);$('padR').classList.toggle('on',dir>0);}
+// 操作：點畫面任何地方跳，按住集氣；鍵盤空白鍵／上鍵也可以
 var tap=$('tap');
-tap.addEventListener('pointerdown',function(e){e.preventDefault();pointers[e.pointerId]=e.clientX<innerWidth/2?-1:1;try{tap.setPointerCapture(e.pointerId);}catch(_){}upd();});
-tap.addEventListener('pointermove',function(e){if(pointers[e.pointerId]!=null){pointers[e.pointerId]=e.clientX<innerWidth/2?-1:1;upd();}});
-['pointerup','pointercancel'].forEach(function(ev){tap.addEventListener(ev,function(e){delete pointers[e.pointerId];upd();});});
-addEventListener('keydown',function(e){if(e.key==='ArrowLeft'){pointers.kl=-1;upd();}else if(e.key==='ArrowRight'){pointers.kr=1;upd();}});
-addEventListener('keyup',function(e){if(e.key==='ArrowLeft'){delete pointers.kl;upd();}else if(e.key==='ArrowRight'){delete pointers.kr;upd();}});
+tap.addEventListener('pointerdown',function(e){e.preventDefault();try{tap.setPointerCapture(e.pointerId);}catch(_){}pressStart();});
+['pointerup','pointercancel'].forEach(function(ev){tap.addEventListener(ev,function(){pressEnd();});});
+addEventListener('keydown',function(e){if((e.code==='Space'||e.key==='ArrowUp')&&!e.repeat){e.preventDefault();pressStart();}});
+addEventListener('keyup',function(e){if(e.code==='Space'||e.key==='ArrowUp')pressEnd();});
 // 換誰去爬：開始卡片和結算卡片上選
 function chooser(){return '<div class="who-h">誰要去爬？</div><div class="who">'+ORDER.map(function(k){return '<button type="button" data-who="'+k+'"'+(k===who?' class="on"':'')+'><img src="'+G.petImg(k,'happy')+'" alt="">'+G.escapeHtml(G.petName(k))+'</button>';}).join('')+'</div>';}
 function mountChooser(ov){ov.querySelectorAll('[data-who]').forEach(function(b){b.onclick=function(){who=b.getAttribute('data-who');try{localStorage.setItem('climbPet',who);}catch(_){}ov.querySelectorAll('[data-who]').forEach(function(x){x.classList.toggle('on',x===b);});SND.sfx('tap');if(state!=='play'){build();draw();}};});}
 camY=-(viewH-560);build();makeClouds();heartsTxt();draw();
 G.preload(Object.keys(ART).map(function(k){return ART[k];}),function(){
-  G.intro({game:'climb',extra:chooser(),mount:mountChooser,title:'三寵爬樓梯',desc:'一直往上跳，看能爬幾樓！<br>按住畫面左邊／右邊移動，從邊邊出去會從另一邊出來<br>彈簧跳超高；雪階踩一次就塌；尖刺會扣愛心<br>高處會掉雪球（上面先亮驚嘆號）；掉出畫面或愛心用完就結束',start:start});
+  G.intro({game:'climb',extra:chooser(),mount:mountChooser,title:'三寵爬樓梯',desc:'寵物會在台階上一直來回走，走到邊邊會自己轉頭<br>點一下跳上一階；按久一點集氣，可以跳兩三階<br>彈簧跳超高；雪階站一下就塌；尖刺會扣愛心<br>畫面會慢慢往上捲，掉出畫面會扣一顆愛心，愛心用完就結束<br>高處會掉雪球（上面先亮驚嘆號）',start:start});
 });
 document.addEventListener('visibilitychange',function(){last=performance.now();});
 </script>

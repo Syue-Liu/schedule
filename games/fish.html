@@ -85,8 +85,8 @@ body{background:#2D6F9A;touch-action:none;}
 <div class="hud"><b>🍲 肚子</b><div class="gauge" id="gauge"><i id="gfill"></i><span id="gnum">100</span></div></div>
 <div class="combo" id="combo"></div>
 <div class="tip" id="tip">按住放線、放開收線，手指左右移動</div>
-<script src="sound.js?v=climb-20261029"></script>
-<script src="game.js?v=dive-20261029"></script>
+<script src="sound.js?v=trim-20261029"></script>
+<script src="game.js?v=trim-20261029"></script>
 <script>
 // 美術：之後換成畫好的圖，只要改這裡的檔名（黃金鮭魚先借大魚的圖染金色）
 var A='../assets/games/fish/',ART={bg:A+'bg-winter.svg',under:A+'underwater.svg',floe:A+'floe.svg',ledge:A+'ledge.svg',pot:A+'hotpot.svg',oct:A+'octopus.svg',
@@ -104,9 +104,10 @@ var TYPES={
   oct:{name:'章魚',w:250,h:195,rx:105,ry:82,sp:[60,95],y:[880,1460],bob:18}
 };
 var $=function(id){return document.getElementById(id);};
-var state='idle',t=0,food=100,score=0,combo=0,lastGot=-9,ax=200,tx=480,holding=false,hy=SURF+20,carry=null,stuck=0,fishes=[],raf=0,last=0,clickAt=0,talk=0,caught=0;
-// 星星：1300 分三顆、700 分兩顆
-function stars(s){return s>=1300?3:s>=700?2:1;}
+// haul：鉤子上掛的魚（一竿最多 5 隻）
+var MAXHAUL=5,state='idle',t=0,food=100,score=0,ax=200,tx=480,holding=false,hy=SURF+20,haul=[],stuck=0,fishes=[],raf=0,last=0,clickAt=0,talk=0,caught=0;
+// 星星：2000 分三顆、1000 分兩顆
+function stars(s){return s>=2000?3:s>=1000?2:1;}
 
 function fit(){var s=Math.min(Math.max(Math.min(innerWidth,600)/1080,innerHeight/1920),innerHeight/1300);$('world').style.transform='translateX(-50%) scale('+s+')';}
 fit();addEventListener('resize',fit);
@@ -133,26 +134,32 @@ function spawn(k,side){
 }
 function school(){var dir=Math.random()<.5?1:-1,y=rnd([720,1150]);for(var i=0;i<4;i++){var f=spawn('fish',dir);f.x-=dir*i*190;f.y0=y+(i%2)*70;f.v=200;}}
 function hit(f,x,y,sc){var dx=(x-(f.x+f.w/2))/(f.T.rx*(sc||1)),dy=(y-(f.y+f.h/2))/(f.T.ry*(sc||1));return dx*dx+dy*dy<=1;}
-function setCombo(n){combo=n;var c=$('combo');c.textContent='連釣 '+n+'！';c.classList.toggle('on',n>=2);}
-// 拉上岸：魚飛進火鍋
-function deliver(f){
-  var T=f.T,k=f.k,x0=ROD+ax-f.w/2,y0=hy,x1=965-f.w/2,y1=600-f.h/2,t0=performance.now(),fl=document.createElement('img');
+function showHaul(){var n=haul.length,c=$('combo');c.textContent='鉤上 '+n+' 隻'+(n>=MAXHAUL?'（滿了）':'！');c.classList.toggle('on',n>=2);}
+// 拉上岸：鉤子上的魚一條一條飛進火鍋；一竿釣到好幾隻（不算靴子）每多一隻 +10
+function deliverHaul(list){
+  var good=list.filter(function(f){return f.T.pts>0;}).length,bonus=good>=2?(good-1)*10:0;
+  list.forEach(function(f,i){fishes.splice(fishes.indexOf(f),1);setTimeout(function(){deliver(f,i===list.length-1?bonus:0,good);},i*140);});
+}
+function deliver(f,bonus,good){
+  var T=f.T,k=f.k,x0=f.x,y0=f.y,x1=965-f.w/2,y1=600-f.h/2,t0=performance.now(),fl=document.createElement('img');
   fl.className='fly'+(T.gold?' gold':'');fl.src=ART[k];fl.style.width=f.w+'px';$('world').appendChild(fl);f.el.remove();
   (function arc(){var p=Math.min(1,(performance.now()-t0)/550),x=x0+(x1-x0)*p,y=y0+(y1-y0)*p-260*Math.sin(Math.PI*p);fl.style.transform='translate('+x+'px,'+y+'px) rotate('+p*360+'deg) scale('+(1-p*.4)+')';if(p<1)requestAnimationFrame(arc);else land();})();
   function land(){
     fl.remove();var pot=$('pot');pot.classList.remove('puff');void pot.offsetWidth;pot.classList.add('puff');
     var r=pot.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top;
-    if(k==='boot'){food=Math.max(0,food-8);setCombo(0);SND.sfx('boot');G.float(cx,cy,'舊靴子 −8 🍲','bad');say('pCat','這不能吃啦！');tip('是舊靴子…肚子更餓了');return;}
-    combo=t-lastGot<4?combo+1:1;lastGot=t;setCombo(combo);
-    var bonus=T.pts&&combo>=2?Math.min(25,(combo-1)*5):0;score+=T.pts+bonus;caught++;$('score').textContent=score+' 分';
-    food=Math.min(100,food+T.food);
-    SND.sfx(k==='chest'?'treasure':k==='king'?'fishup':'catch');
-    G.float(cx,cy,'+'+(T.pts+bonus)+(bonus?' 連釣':''),'gold');
-    if(T.food)setTimeout(function(){G.float(cx-60,cy+30,'🍲 +'+T.food,'');},180);
-    if(k==='king'){say('pDg','黃金鮭魚！！',1500);say('pCat','發財了！',1500);}
-    else if(k==='chest'){say('pDg','寶箱耶！',1200);}
-    else if(Math.random()<.45)say(Math.random()<.5?'pCat':'pDg',['好吃！','再來一隻！','火鍋加料～','雪球好厲害'][Math.floor(Math.random()*4)]);
-    tip(T.name+'下鍋了！'+(combo>=2?'連釣 '+combo+' 隻':''));
+    if(k==='boot'){food=Math.max(0,food-8);SND.sfx('boot');G.float(cx,cy,'舊靴子 −8 🍲','bad');say('pCat','這不能吃啦！');tip('是舊靴子…肚子更餓了');}
+    else{
+      score+=T.pts;caught++;food=Math.min(100,food+T.food);
+      SND.sfx(k==='chest'?'treasure':k==='king'?'fishup':'catch');
+      G.float(cx,cy,'+'+T.pts,'gold');
+      if(T.food)setTimeout(function(){G.float(cx-60,cy+30,'🍲 +'+T.food,'');},180);
+      if(k==='king'){say('pDg','黃金鮭魚！！',1500);say('pCat','發財了！',1500);}
+      else if(k==='chest'){say('pDg','寶箱耶！',1200);}
+      else if(Math.random()<.35)say(Math.random()<.5?'pCat':'pDg',['好吃！','火鍋加料～','雪球好厲害'][Math.floor(Math.random()*3)]);
+    }
+    if(bonus){score+=bonus;SND.sfx('fishup');setTimeout(function(){G.float(cx-20,cy-50,'一竿 '+good+' 隻！+'+bonus,'gold');},250);say('pDg','一次 '+good+' 隻！',1400);tip('一竿釣到 '+good+' 隻！');}
+    else if(k!=='boot')tip(T.name+'下鍋了！');
+    $('score').textContent=score+' 分';
   }
 }
 function tick(now){
@@ -169,26 +176,32 @@ function tick(now){
     // 雪球跟著手指左右移動（有最快速度）
     var ta=Math.max(HX0,Math.min(HX1,tx))-ROD,d=ta-ax,mv=1100*dt;ax+=Math.abs(d)<mv?d:mv*Math.sign(d);
     var hx=ax+ROD;
-    // 鉤子：被章魚纏住就動不了；有魚就自動往上拉；按住往下、放開往上
+    // 鉤子：被章魚纏住就動不了；按住往下、放開往上拉。掛越多魚，上下都越慢
+    var n=haul.length,reel=n?Math.max(300,Math.min.apply(null,haul.map(function(f){return f.T.reel;}))-25*(n-1)):900;
     if(stuck>0){stuck-=dt;if(stuck<=0)$('hook').classList.remove('stuck');}
-    else if(carry){hy-=carry.T.reel*dt;}
-    else if(holding)hy=Math.min(DEEP,hy+560*dt);
-    else hy=Math.max(SURF+20,hy-900*dt);
-    if((carry||(!holding&&hy>SURF+30))&&now>clickAt){clickAt=now+70;SND.sfx('click');}
+    else if(holding)hy=Math.min(DEEP,hy+(560-45*n)*dt);
+    else hy=Math.max(SURF+20,hy-reel*dt);
+    if(!holding&&hy>SURF+30&&now>clickAt){clickAt=now+(n?60:90);SND.sfx('click');}
     fishes.forEach(function(f){
-      if(f===carry)return;
+      if(f.on)return;
       f.x+=f.dir*f.v*dt;f.y=f.y0+Math.sin(t*2+f.ph)*(f.T.bob||8);if(f.cd>0)f.cd-=dt;
       if(state!=='play'||stuck>0||f.cd>0||hy<SURF+40)return;
       if(f.k==='oct'){
-        // 章魚：碰到空鉤子會纏住；碰到拉到一半的魚會搶走
-        if(carry&&hit(f,hx,carry.y+carry.h/2,1.25)){var lost=carry;carry=null;lost.dir=-f.dir||1;lost.v=380;lost.el.classList.toggle('r',lost.dir>0);lost.cd=2;lost.y0=hy;f.cd=3;SND.sfx('escape');say('pPg','被章魚搶走了！');tip('魚被章魚搶走了…拉的時候閃開牠');setCombo(0);ink(f);}
-        else if(!carry&&hit(f,hx,hy)){stuck=1.2;f.cd=3;food=Math.max(0,food-10);$('hook').classList.add('stuck');SND.sfx('ouch');say('pPg','被章魚纏住了！');tip('被章魚纏住了，肚子 −10');setCombo(0);ink(f);}
-      }else if(!carry&&hit(f,hx,hy)){carry=f;SND.sfx('bite');tip(octs?'釣到'+f.T.name+'！小心章魚':'釣到'+f.T.name+'了！拉上來…');$('pPg').querySelector('img').src=G.petImg('pg','happy');}
+        // 章魚：碰到鉤子或掛著的魚，會搶走最後釣到的那隻；空鉤子會被纏住、肚子 −10
+        var touch=hit(f,hx,hy)||haul.some(function(h){return hit(f,h.x+h.w/2,h.y+h.h/2,1.15);});
+        if(!touch)return;
+        f.cd=3;ink(f);
+        if(haul.length){var lost=haul.pop();lost.on=0;lost.dir=-f.dir||1;lost.v=380;lost.el.classList.toggle('r',lost.dir>0);lost.cd=2;lost.y0=lost.y;stuck=.5;$('hook').classList.add('stuck');SND.sfx('escape');say('pPg','被章魚搶走一隻！');tip('章魚搶走了'+lost.T.name+'…拉的時候閃開牠');showHaul();}
+        else{stuck=1.2;food=Math.max(0,food-10);$('hook').classList.add('stuck');SND.sfx('ouch');say('pPg','被章魚纏住了！');tip('被章魚纏住了，肚子 −10');}
+      }else if(haul.length<MAXHAUL&&hit(f,hx,hy)){
+        f.on=1;haul.push(f);SND.sfx('bite');showHaul();$('pPg').querySelector('img').src=G.petImg('pg','happy');
+        tip(haul.length===1?'釣到'+f.T.name+'！繼續按住可以再釣，放開拉上來':'又釣到'+f.T.name+'！');
+      }
     });
-    if(carry){
-      carry.x=hx-carry.w/2;carry.y=hy-carry.h/2+carry.T.ry*.6;
-      if(hy<=SURF+20){var c=carry;carry=null;fishes.splice(fishes.indexOf(c),1);deliver(c);$('pPg').querySelector('img').src=G.petImg('pg','idle');}
-    }
+    // 掛在鉤子上的魚一隻接一隻往下排；拉到水面就全部丟進火鍋
+    var yy=hy;
+    haul.forEach(function(f,i){f.x=hx-f.w/2+(i%2?18:-18);f.y=yy-f.h/2+f.T.ry*.6;yy+=f.T.ry*1.1;});
+    if(haul.length&&hy<=SURF+20){var list=haul;haul=[];showHaul();deliverHaul(list);$('pPg').querySelector('img').src=G.petImg('pg','idle');}
     fishes=fishes.filter(function(f){if(f.x<-f.w-60||f.x>1140){f.el.remove();return false;}return true;});
     if(food<25&&t>talk){talk=t+4;say(Math.random()<.5?'pCat':'pDg','肚子好餓…',1200);}
     draw();
@@ -206,8 +219,8 @@ function draw(){
   $('gfill').style.width=food+'%';$('gnum').textContent=Math.ceil(food);$('gauge').classList.toggle('low',food<25);
 }
 function start(){
-  fishes.forEach(function(f){f.el.remove();});fishes=[];carry=null;stuck=0;$('hook').classList.remove('stuck');
-  state='play';t=0;food=100;score=0;caught=0;setCombo(0);lastGot=-9;hy=SURF+20;holding=false;talk=0;
+  fishes.forEach(function(f){f.el.remove();});fishes=[];haul=[];stuck=0;$('hook').classList.remove('stuck');
+  state='play';t=0;food=100;score=0;caught=0;showHaul();hy=SURF+20;holding=false;talk=0;
   $('score').textContent='0 分';tip('按住放線、放開收線，手指左右移動');
   for(var i=0;i<7;i++){var f=spawn(pick());f.x=100+Math.random()*880;}
   last=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(tick);
@@ -215,8 +228,8 @@ function start(){
 function end(){
   state='done';holding=false;
   ['pCat','pDg'].forEach(function(id){$(id).querySelector('img').src=G.petImg(id==='pCat'?'cat':'dg','happy');});
-  say('pDg',score>=1300?'吃得好飽！':'火鍋好好吃～',1600);tip('肚子餓扁了…今天的火鍋收工');
-  setTimeout(function(){G.finish({game:'fish',score:score,unit:'分',stars:stars(score),note:'釣了 '+caught+' 隻；連釣有加分<br>1300 分三顆星、700 分兩顆星',again:function(){G.countdown(start);}});},900);
+  say('pDg',score>=2000?'吃得好飽！':'火鍋好好吃～',1600);tip('肚子餓扁了…今天的火鍋收工');
+  setTimeout(function(){G.finish({game:'fish',score:score,unit:'分',stars:stars(score),note:'釣了 '+caught+' 隻；一竿好幾隻有加分<br>2000 分三顆星、1000 分兩顆星',again:function(){G.countdown(start);}});},900);
 }
 // 操作：按住放線、放開收線，手指左右移動
 var tap=$('tap');
@@ -225,7 +238,7 @@ tap.addEventListener('pointermove',function(e){if(state==='play'&&(holding||e.po
 ['pointerup','pointercancel'].forEach(function(ev){tap.addEventListener(ev,function(){holding=false;});});
 draw();
 G.preload(Object.keys(ART).map(function(k){return ART[k];}),function(){
-  G.intro({game:'fish',title:'湖邊釣魚',desc:'雪球在浮冰上釣魚，大家等著吃火鍋！<br>按住畫面放線、放開收線，手指左右移動對準魚<br>魚碰到鉤子就上鉤，拉上來丟進火鍋，肚子會飽一點<br>小心章魚：會纏住鉤子，也會搶走拉到一半的魚<br>肚子餓計量表歸零就結束，深水的大魚分數更高',start:start});
+  G.intro({game:'fish',title:'湖邊釣魚',desc:'雪球在浮冰上釣魚，大家等著吃火鍋！<br>按住畫面放線、放開收線，手指左右移動對準魚<br>魚碰到鉤子就上鉤，一竿最多掛 5 隻，拉上來一起丟進火鍋<br>小心章魚：會纏住鉤子，也會搶走拉到一半的魚<br>肚子餓計量表歸零就結束，深水的大魚分數更高',start:start});
 });
 document.addEventListener('visibilitychange',function(){last=performance.now();});
 </script>

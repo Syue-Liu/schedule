@@ -80,8 +80,6 @@ body[data-game="spring"] .field{padding:8px;border:1.5px solid #96B0BC;border-ra
 .tile .t{font-size:11px;line-height:17px;border:1px solid #6C6C69;padding-inline:4px;}
 .shovels{border:1.5px solid #7E8D91;box-shadow:0 2px 0 #AFC0C6;background:#FFFDF8;}
 .bath .bt{border:1.5px solid #796957;border-radius:12px;box-shadow:0 3px 0 #BAA58C;}
-body[data-game="moto"] .tip{padding:9px 18px;}
-body[data-game="camp"] .glow{mix-blend-mode:screen;}
 /* Lobby: illustrated destinations, each with its own postcard. */
 body[data-game="lobby"]{height:auto;min-height:100%;background:#F8F2E7;}
 .lb{max-width:900px;padding-top:calc(env(safe-area-inset-top) + 82px);}
