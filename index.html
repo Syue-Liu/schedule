@@ -2801,6 +2801,8 @@ function petNewStat(){return {aff:0,fedAt:0,fedFull:0,name:'',nameAt:0};}
 // 小遊戲換季：紀錄上的 gsv 不是這一季的，飼料回到起始的 3 包、排行榜清空（兩支手機各自讀到就會重設，不會被舊資料蓋回去）
 // 這個時間以前排隊、還沒交給班表的遊戲結果也不算
 var GAME_SEASON=2,GAME_RESET_AT=1793016000000;
+// 換了玩法的遊戲：這天以前的分數清掉（釣魚 10/29 換成新玩法）
+var GAME_SINCE={fish:'2026-10-29'};
 function petNewRec(){var r=petNewStat();r.nameSchema=2;r.pts=0;r.kib=3;r.can=1;r.fish=2;r.squid=1;r.tix=1;r.acc={};r.eq={};r.gs={};r.gsv=GAME_SEASON;r.last='';r.pg=petNewStat();r.dg=petNewStat();r.d=null;return r;}
 // 小遊戲：每款只留前 5 高分 [{s:分數,d:日期}]，分數一樣的話早的排前面
 function petTop5(list){
@@ -2822,6 +2824,7 @@ function petClean(o){
   if(o.dg&&typeof o.dg==='object')petCleanStat(o.dg,r.dg);
   if(o.gs&&typeof o.gs==='object')Object.keys(o.gs).forEach(function(g){if(/^[a-z]{1,12}$/.test(g)&&Array.isArray(o.gs[g]))r.gs[g]=petTop5(o.gs[g]);});
   if(+o.gsv!==GAME_SEASON){r.kib=petNewRec().kib;r.gs={};}
+  Object.keys(GAME_SINCE).forEach(function(g){if(r.gs[g])r.gs[g]=r.gs[g].filter(function(x){return x.d>=GAME_SINCE[g];});});
   // 修正舊版的物種／預設名字對應；之後自行取的新名字仍保留。
   if((+o.nameSchema||0)<2){
     if(r.name==='雪球'||r.name==='嘟嘟')r.name='Pillow';

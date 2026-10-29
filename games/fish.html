@@ -12,179 +12,222 @@
 <link rel="stylesheet" href="game.css">
 <style>
 html,body{overflow:hidden;}
-body{background:#DAE7EF;touch-action:none;}
-/* 整個場景用背景圖的座標（1080×1920）擺東西，再依螢幕縮放，碼頭和寵物永遠對得上 */
-.world{position:fixed;left:50%;bottom:0;width:1080px;height:1920px;transform-origin:50% 100%;background:url(../assets/games/fish/bg-winter.svg) 0 0/100% 100% no-repeat;}
+body{background:#2D6F9A;touch-action:none;}
+/* 場景用 1080×1920 的座標：上面是雪湖風景，700 以下是湖裡 */
+.world{position:fixed;left:50%;bottom:0;width:1080px;height:1920px;transform-origin:50% 100%;background:url(../assets/games/fish/bg-winter.svg) 0 0/1080px 1920px no-repeat;overflow:hidden;}
+.under{position:absolute;left:0;top:700px;width:1080px;height:1220px;background:url(../assets/games/fish/underwater.svg) 0 0/100% 100% no-repeat;}
+.surface{position:absolute;left:0;top:672px;width:1080px;height:60px;pointer-events:none;overflow:visible;}
+.surface path{animation:wave 3s ease-in-out infinite alternate;}
+@keyframes wave{to{transform:translateX(-40px);}}
+.ledge{position:absolute;left:790px;top:615px;width:340px;}
+.pot{position:absolute;left:860px;top:535px;width:215px;}
+.pot.puff{animation:potPuff .35s var(--pop);}
+@keyframes potPuff{40%{transform:scale(1.08,.94);}}
+.steam{position:absolute;left:900px;top:470px;width:140px;height:100px;display:flex;justify-content:space-around;pointer-events:none;}
+.steam i{width:16px;height:70px;border-radius:999px;background:rgba(255,255,255,.8);animation:steam 1.6s ease-out infinite;}
+.steam i:nth-child(2){animation-delay:.5s;}.steam i:nth-child(3){animation-delay:1s;}
+@keyframes steam{from{transform:translateY(30px) scaleY(.4);opacity:0;}50%{opacity:.9;}to{transform:translateY(-40px);opacity:0;}}
 .pet{position:absolute;}
 .pet img{width:100%;display:block;}
+.pet.flip img{transform:scaleX(-1);}
 .pet .g-say{font-size:30px;padding:6px 16px;border-width:4px;border-radius:24px;}
-.pet.cheer img{animation:petHop .5s var(--pop);}
+.pet.cheer{animation:petHop .5s var(--pop);}
 @keyframes petHop{40%{transform:translateY(-26px);}}
-.rod{position:absolute;left:0;top:0;width:1080px;height:1920px;pointer-events:none;overflow:visible;}
-.bobber{position:absolute;width:76px;height:76px;margin:-60px 0 0 -38px;transition:transform .25s;}
-.bobber.nibble{animation:nibble .35s ease-in-out 2;}
-@keyframes nibble{50%{transform:translateY(10px);}}
-.bobber.bite{transform:translateY(34px) scale(.92);}
-.bobber.fly{transition:left .7s cubic-bezier(.2,.7,.3,1),top .7s cubic-bezier(.5,-.6,.6,1);}
-.splash{position:absolute;width:220px;margin:-80px 0 0 -110px;opacity:0;pointer-events:none;}
-.splash.on{animation:splash .6s ease-out;}
-@keyframes splash{0%{opacity:0;transform:scale(.4);}30%{opacity:1;}100%{opacity:0;transform:scale(1.2) translateY(-20px);}}
-.bang{position:absolute;margin:-190px 0 0 -30px;font-size:96px;color:var(--coral);-webkit-text-stroke:5px var(--ink);opacity:0;}
-.bang.on{opacity:1;animation:bang .4s var(--pop);}
-@keyframes bang{from{transform:scale(.3);}}
-/* 釣到的東西：從水裡跳到畫面中間 */
-.catch{position:fixed;left:50%;top:42%;z-index:35;width:min(56vw,240px);transform:translate(-50%,-50%);text-align:center;pointer-events:none;animation:catchUp .7s var(--pop);}
-.catch img{width:100%;}
-.catch div{display:inline-block;margin-top:-8px;padding:6px 16px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);font-size:17px;box-shadow:0 3px 0 var(--ink);}
-@keyframes catchUp{from{transform:translate(-50%,40%) scale(.3) rotate(-30deg);opacity:0;}}
-/* 下面：主要按鈕和收線的拉扯條 */
-.ctrl{position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 18px);z-index:20;display:flex;flex-direction:column;align-items:center;gap:14px;padding:0 16px;}
-.tip{padding:6px 14px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);font-size:14px;min-height:34px;}
-.act{width:min(70vw,260px);height:66px;font-size:22px;}
-.act.pull{background:var(--coral);animation:pulse .5s ease-in-out infinite alternate;}
-@keyframes pulse{to{transform:scale(1.06);}}
-.act.hold{background:var(--mizu);}
-.act.wait{background:var(--paper2);color:var(--t3);}
-.reel{display:none;width:min(88vw,360px);}
-.reel.on{display:block;}
-.track{position:relative;height:48px;border:var(--lw) solid var(--ink);border-radius:16px;background:linear-gradient(180deg,#B9DDEC,#8FC3DA);overflow:hidden;}
-.zone{position:absolute;top:0;bottom:0;border-left:var(--lw2) solid var(--ink);border-right:var(--lw2) solid var(--ink);background:rgba(185,218,165,.85);}
-.zone.in{background:rgba(246,210,122,.9);}
-.fishmk{position:absolute;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;}
-.prog{margin-top:8px;height:14px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);overflow:hidden;}
-.prog i{display:block;height:100%;width:30%;background:var(--wakatake);}
+/* 雪球和浮冰一起左右移動 */
+.angler{position:absolute;left:0;top:0;width:320px;height:200px;will-change:transform;}
+.angler .floe{position:absolute;left:0;top:140px;width:320px;}
+.angler .pet{left:60px;bottom:52px;width:150px;}
+.line{position:absolute;left:0;top:0;width:1080px;height:1920px;pointer-events:none;overflow:visible;}
+.hook{position:absolute;left:0;top:0;width:56px;height:56px;margin:-28px 0 0 -28px;will-change:transform;}
+.hook.stuck{animation:shake .12s linear infinite alternate;}
+@keyframes shake{to{translate:6px 0;}}
+.fish{position:absolute;left:0;top:0;will-change:transform;}
+.fish img{width:100%;height:100%;display:block;}
+.fish.r img{transform:scaleX(-1);}
+.fish.gold img{filter:sepia(1) saturate(4) hue-rotate(-12deg) brightness(1.08) drop-shadow(0 0 10px #FFE08A);}
+.fish.oct{animation:octBob 1.2s ease-in-out infinite alternate;}
+@keyframes octBob{to{scale:1 .9;}}
+.ink{position:absolute;width:220px;height:220px;margin:-110px 0 0 -110px;border-radius:50%;background:radial-gradient(#3E3A39cc,#3E3A3900 70%);pointer-events:none;animation:ink 1.2s ease-out forwards;}
+@keyframes ink{from{transform:scale(.3);opacity:1;}to{transform:scale(1.6);opacity:0;}}
+.fly{position:absolute;left:0;top:0;pointer-events:none;z-index:3;}
+.fly.gold{filter:sepia(1) saturate(4) hue-rotate(-12deg) brightness(1.08);}
+/* 上面：肚子餓計量表 */
+.hud{position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top) + 70px);z-index:21;display:flex;align-items:center;gap:8px;max-width:560px;margin:auto;pointer-events:none;}
+.hud b{font-weight:400;font-size:14px;white-space:nowrap;padding:3px 10px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);}
+.gauge{position:relative;flex:1;height:22px;border:var(--lw2) solid var(--ink);border-radius:999px;background:#5A463C;overflow:hidden;}
+.gauge i{position:absolute;left:0;top:0;bottom:0;width:100%;background:linear-gradient(90deg,#E2675A,#F28C5B 45%,#F6D27A);transition:width .15s linear;}
+.gauge span{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:13px;color:#FFFCF6;text-shadow:0 1px 0 #3E3A39;}
+.gauge.low{animation:low .5s ease-in-out infinite alternate;}
+@keyframes low{to{box-shadow:0 0 0 4px #F2A49799;}}
+.combo{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 104px);z-index:21;transform:translateX(-50%);padding:3px 12px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--yellow);font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;}
+.combo.on{opacity:1;}
+.tip{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 18px);z-index:21;padding:6px 14px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);font-size:14px;white-space:nowrap;pointer-events:none;}
+.tap{position:fixed;inset:0;z-index:10;}
 </style>
 <link rel="stylesheet" href="polish.css?v=snowlake-20261026">
 </head>
 <body data-game="fish">
 <div class="world" id="world">
-  <svg class="rod" viewBox="0 0 1080 1920"><path id="rodPole" d="M500 975L700 745" stroke="#8C6A55" stroke-width="12" stroke-linecap="round"/><path id="line" d="" fill="none" stroke="#3E3A39" stroke-width="3"/></svg>
-  <div class="pet" id="pDg" style="left:10px;top:895px;width:240px"><img alt=""><div class="g-say"></div></div>
-  <div class="pet" id="pCat" style="left:190px;top:935px;width:200px"><img alt=""><div class="g-say"></div></div>
-  <div class="pet" id="pPg" style="left:380px;top:905px;width:190px"><img alt=""><div class="g-say"></div></div>
-  <img class="splash" id="splash" alt="">
-  <img class="bobber" id="bobber" alt="" style="display:none">
-  <div class="bang" id="bang">!</div>
+  <div class="under"></div>
+  <img class="ledge" id="ledge" alt="">
+  <div class="steam"><i></i><i></i><i></i></div>
+  <div class="pet flip" id="pDg" style="left:925px;top:455px;width:175px"><img alt=""><div class="g-say"></div></div>
+  <img class="pot" id="pot" alt="">
+  <div class="pet" id="pCat" style="left:770px;top:520px;width:150px"><img alt=""><div class="g-say"></div></div>
+  <svg class="surface" viewBox="0 0 1080 60"><path d="M-40 28 Q 30 14 100 28 T 240 28 T 380 28 T 520 28 T 660 28 T 800 28 T 940 28 T 1080 28 T 1220 28" fill="none" stroke="#FFFFFF" stroke-width="5" opacity=".85"/></svg>
+  <div id="fishes"></div>
+  <svg class="line" viewBox="0 0 1080 1920"><path id="line" d="" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-dasharray="14 10"/><path id="rod" d="" fill="none" stroke="#8C6A55" stroke-width="10" stroke-linecap="round"/></svg>
+  <div class="angler" id="angler"><img class="floe" id="floe" alt=""><div class="pet" id="pPg"><img alt=""><div class="g-say"></div></div></div>
+  <svg class="hook" id="hook" viewBox="0 0 56 56"><circle cx="28" cy="18" r="13" fill="#FFFFFF" stroke="#594C43" stroke-width="4"/><path d="M28 31v10a7 7 0 0 1-14 0" fill="none" stroke="#C9C2BB" stroke-width="5" stroke-linecap="round"/></svg>
 </div>
-<div class="g-bar"><button class="g-back" onclick="location.href='./'">‹ 大廳</button><div class="g-title">湖邊釣魚</div><div class="g-pill" id="casts">🎣 5</div><div class="g-pill hot" id="score">0 分</div></div>
-<div class="ctrl">
-  <div class="tip" id="tip">按「拋竿」開始</div>
-  <div class="reel" id="reel"><div class="track" id="track"><div class="zone" id="zone"></div><img class="fishmk" id="fishmk" alt=""></div><div class="prog"><i id="prog"></i></div></div>
-  <button class="g-btn act" id="act">🎣 拋竿</button>
-</div>
+<div class="tap" id="tap"></div>
+<div class="g-bar"><button class="g-back" onclick="location.href='./'">‹ 大廳</button><div class="g-title">湖邊釣魚</div><div class="g-pill hot" id="score">0 分</div></div>
+<div class="hud"><b>🍲 肚子</b><div class="gauge" id="gauge"><i id="gfill"></i><span id="gnum">100</span></div></div>
+<div class="combo" id="combo"></div>
+<div class="tip" id="tip">按住放線、放開收線，手指左右移動</div>
 <script src="sound.js?v=sound-20261026"></script>
-<script src="game.js?v=season2-20261026"></script>
+<script src="game.js?v=dive-20261029"></script>
 <script>
-var A='../assets/games/fish/',ART={bobber:A+'bobber.svg',splash:A+'splash.svg',fish:A+'catch-fish.svg',squid:A+'catch-squid.svg',big:A+'catch-big.svg',boot:A+'catch-boot.svg',chest:A+'catch-chest.svg'};
-// 黃金鮭魚先借大魚的圖染成金色，之後有畫好的圖再換
-ART.king=ART.big;var GOLD='sepia(1) saturate(4) hue-rotate(-12deg) brightness(1.08)';
-// 釣得到的東西：機率、分數、難度（魚跑多快、綠框多寬）
-var CATCH=[
-  {id:'fish',name:'小魚',w:48,pts:1,speed:.39,zone:.32},
-  {id:'squid',name:'透抽',w:20,pts:2,speed:.56,zone:.28},
-  {id:'big',name:'大魚',w:12,pts:3,speed:.84,zone:.24},
-  {id:'boot',name:'舊靴子',w:14,pts:0,speed:.22,zone:.38},
-  {id:'chest',name:'寶箱',w:6,pts:5,speed:.67,zone:.26},
-  {id:'king',name:'黃金鮭魚',w:4,pts:8,speed:1,zone:.2,gold:true}
-];
-var CASTS=5,ROD_TIP={x:700,y:745};
+// 美術：之後換成畫好的圖，只要改這裡的檔名（黃金鮭魚先借大魚的圖染金色）
+var A='../assets/games/fish/',ART={bg:A+'bg-winter.svg',under:A+'underwater.svg',floe:A+'floe.svg',ledge:A+'ledge.svg',pot:A+'hotpot.svg',oct:A+'octopus.svg',
+  fish:A+'catch-fish.svg',squid:A+'catch-squid.svg',big:A+'catch-big.svg',king:A+'catch-big.svg',boot:A+'catch-boot.svg',chest:A+'catch-chest.svg'};
+// 水面在 700，鉤子最深到 1790；雪球的鉤子左右可以到 180～750（右邊是放火鍋的雪堆）
+var SURF=700,DEEP=1790,HX0=180,HX1=750,ROD=300;
+// 湖裡的東西：分數、讓肚子飽多少、大小、游多快、在多深、出現的機率、拉上來的速度
+var TYPES={
+  fish:{name:'小魚',pts:10,food:7,w:250,h:250,rx:85,ry:52,sp:[150,220],y:[700,1250],wt:40,reel:620},
+  squid:{name:'透抽',pts:20,food:9,w:210,h:210,rx:70,ry:88,sp:[220,290],y:[780,1400],wt:18,reel:600,bob:28},
+  big:{name:'大魚',pts:30,food:14,w:320,h:320,rx:112,ry:70,sp:[110,160],y:[1050,1560],wt:14,reel:440},
+  king:{name:'黃金鮭魚',pts:80,food:25,w:290,h:290,rx:100,ry:62,sp:[300,360],y:[1300,1580],wt:3,reel:420,gold:1},
+  chest:{name:'寶箱',pts:50,food:0,w:210,h:210,rx:75,ry:75,sp:[40,60],y:[1600,1610],wt:3,reel:380},
+  boot:{name:'舊靴子',pts:0,food:-8,w:200,h:200,rx:70,ry:72,sp:[70,110],y:[740,1580],wt:9,reel:560},
+  oct:{name:'章魚',w:250,h:195,rx:105,ry:82,sp:[60,95],y:[880,1460],bob:18}
+};
 var $=function(id){return document.getElementById(id);};
-var state='idle',casts=CASTS,score=0,cur=null,bob={x:0,y:0},timer=0,nibT=[],raf=0,last=0,holding=false;
-var zone={x:.35,v:0},fishP=.5,fishT=.5,fishNext=0,prog=.3;
-// 星星：11 分三顆、6 分兩顆
-function stars(s){return s>=11?3:s>=6?2:1;}
+var state='idle',t=0,food=100,score=0,combo=0,lastGot=-9,ax=200,tx=480,holding=false,hy=SURF+20,carry=null,stuck=0,fishes=[],raf=0,last=0,clickAt=0,talk=0,caught=0;
+// 星星：1300 分三顆、700 分兩顆
+function stars(s){return s>=1300?3:s>=700?2:1;}
 
-function fit(){var s=Math.max(Math.min(innerWidth,600)/1080,innerHeight/1920);$('world').style.transform='translateX(-50%) scale('+s+')';}
+function fit(){var s=Math.min(Math.max(Math.min(innerWidth,600)/1080,innerHeight/1920),innerHeight/1300);$('world').style.transform='translateX(-50%) scale('+s+')';}
 fit();addEventListener('resize',fit);
-$('pDg').querySelector('img').src=G.petImg('dg','idle');$('pCat').querySelector('img').src=G.petImg('cat','idle');$('pPg').querySelector('img').src=G.petImg('pg','idle');
-$('bobber').src=ART.bobber;$('splash').src=ART.splash;
-function say(id,text,ms){var p=$(id),s=p.querySelector('.g-say');s.textContent=text;s.classList.add('on');p.classList.remove('cheer');void p.offsetWidth;p.classList.add('cheer');clearTimeout(p._t);p._t=setTimeout(function(){s.classList.remove('on');},ms||1300);}
-function line(){$('line').setAttribute('d',state==='idle'||state==='done'?'':'M'+ROD_TIP.x+' '+ROD_TIP.y+'Q'+(ROD_TIP.x+bob.x)/2+' '+(Math.max(ROD_TIP.y,bob.y)+60)+' '+bob.x+' '+(bob.y-56));}
-function tip(t){$('tip').textContent=t;}
-function btn(text,cls){var b=$('act');b.textContent=text;b.className='g-btn act '+(cls||'');}
-function pick(){var t=Math.random()*CATCH.reduce(function(a,c){return a+c.w;},0);for(var i=0;i<CATCH.length;i++){t-=CATCH[i].w;if(t<=0)return CATCH[i];}return CATCH[0];}
-function splash(){var s=$('splash');s.style.left=bob.x+'px';s.style.top=bob.y+'px';s.classList.remove('on');void s.offsetWidth;s.classList.add('on');}
+$('floe').src=ART.floe;$('ledge').src=ART.ledge;$('pot').src=ART.pot;
+$('pPg').querySelector('img').src=G.petImg('pg','idle');$('pCat').querySelector('img').src=G.petImg('cat','idle');$('pDg').querySelector('img').src=G.petImg('dg','idle');
 
-function cast(){
-  SND.sfx('cast');state='cast';casts--;$('casts').textContent='🎣 '+casts;btn('…','wait');tip('拋出去囉～');
-  bob.x=640+Math.random()*320;bob.y=1440+Math.random()*260;
-  var b=$('bobber');b.className='bobber';b.style.display='block';b.style.left=ROD_TIP.x+'px';b.style.top=ROD_TIP.y+'px';
-  requestAnimationFrame(function(){b.classList.add('fly');b.style.left=bob.x+'px';b.style.top=bob.y+'px';});
-  var t0=performance.now();(function f(){line();if(performance.now()-t0<720)requestAnimationFrame(f);})();
-  setTimeout(function(){b.classList.remove('fly');splash();SND.sfx('plop');wait();},720);
+function say(id,text,ms){var p=$(id),s=p.querySelector('.g-say');s.textContent=text;s.classList.add('on');p.classList.remove('cheer');void p.offsetWidth;p.classList.add('cheer');clearTimeout(p._t);p._t=setTimeout(function(){s.classList.remove('on');},ms||1300);}
+function tip(x){$('tip').textContent=x;}
+function rnd(a){return a[0]+Math.random()*(a[1]-a[0]);}
+// 螢幕座標→場景座標（手指在哪，鉤子就跟到哪個 x）
+function toWorld(cx){var r=$('world').getBoundingClientRect();return (cx-r.left)/r.width*1080;}
+function pick(){
+  var list=['fish','squid','big','king','chest','boot'].filter(function(k){return k!=='chest'||!fishes.some(function(f){return f.k==='chest';});});
+  var sum=list.reduce(function(a,k){return a+TYPES[k].wt;},0),x=Math.random()*sum;
+  for(var i=0;i<list.length;i++){x-=TYPES[list[i]].wt;if(x<=0)return list[i];}return 'fish';
 }
-// 等魚：先輕輕動幾下（假的，先別拉），真的咬下去才拉
-function wait(){
-  state='wait';btn('等一下…','wait');tip('浮標沉下去再拉！');cur=pick();
-  var nib=Math.floor(Math.random()*4),t=600;nibT.forEach(clearTimeout);nibT=[];
-  for(var i=0;i<nib;i++){t+=500+Math.random()*700;nibT.push(setTimeout(function(){if(state!=='wait')return;var b=$('bobber');b.classList.remove('nibble');void b.offsetWidth;b.classList.add('nibble');SND.sfx('nibble');},t));}
-  clearTimeout(timer);timer=setTimeout(bite,t+900+Math.random()*1800);
+function spawn(k,side){
+  var T=TYPES[k],dir=side||(Math.random()<.5?1:-1),el=document.createElement('div');
+  el.className='fish'+(dir>0?' r':'')+(T.gold?' gold':'')+(k==='oct'?' oct':'');el.style.width=T.w+'px';el.style.height=T.h+'px';
+  el.innerHTML='<img src="'+ART[k]+'" alt="">';$('fishes').appendChild(el);
+  // 越後面游得越快
+  var f={k:k,T:T,el:el,w:T.w,h:T.h,dir:dir,x:dir>0?-T.w-20:1100,y0:rnd(T.y),ph:Math.random()*6,v:rnd(T.sp)*(1+Math.min(.6,t/150)),cd:0};
+  f.y=f.y0;fishes.push(f);return f;
 }
-function bite(){
-  if(state!=='wait')return;
-  state='bite';$('bobber').classList.add('bite');splash();SND.sfx('bite');var g=$('bang');g.style.left=bob.x+'px';g.style.top=bob.y+'px';g.classList.add('on');
-  btn('拉！','pull');tip('咬到了！快拉！');if(navigator.vibrate)navigator.vibrate(80);
-  // 咬住的時間很短，大魚更短
-  timer=setTimeout(function(){if(state==='bite')miss('太慢了，魚跑掉了…');},cur.pts>=3?600:720);
+function school(){var dir=Math.random()<.5?1:-1,y=rnd([720,1150]);for(var i=0;i<4;i++){var f=spawn('fish',dir);f.x-=dir*i*190;f.y0=y+(i%2)*70;f.v=200;}}
+function hit(f,x,y,sc){var dx=(x-(f.x+f.w/2))/(f.T.rx*(sc||1)),dy=(y-(f.y+f.h/2))/(f.T.ry*(sc||1));return dx*dx+dy*dy<=1;}
+function setCombo(n){combo=n;var c=$('combo');c.textContent='連釣 '+n+'！';c.classList.toggle('on',n>=2);}
+// 拉上岸：魚飛進火鍋
+function deliver(f){
+  var T=f.T,k=f.k,x0=ROD+ax-f.w/2,y0=hy,x1=965-f.w/2,y1=600-f.h/2,t0=performance.now(),fl=document.createElement('img');
+  fl.className='fly'+(T.gold?' gold':'');fl.src=ART[k];fl.style.width=f.w+'px';$('world').appendChild(fl);f.el.remove();
+  (function arc(){var p=Math.min(1,(performance.now()-t0)/550),x=x0+(x1-x0)*p,y=y0+(y1-y0)*p-260*Math.sin(Math.PI*p);fl.style.transform='translate('+x+'px,'+y+'px) rotate('+p*360+'deg) scale('+(1-p*.4)+')';if(p<1)requestAnimationFrame(arc);else land();})();
+  function land(){
+    fl.remove();var pot=$('pot');pot.classList.remove('puff');void pot.offsetWidth;pot.classList.add('puff');
+    var r=pot.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top;
+    if(k==='boot'){food=Math.max(0,food-8);setCombo(0);SND.sfx('boot');G.float(cx,cy,'舊靴子 −8 🍲','bad');say('pCat','這不能吃啦！');tip('是舊靴子…肚子更餓了');return;}
+    combo=t-lastGot<4?combo+1:1;lastGot=t;setCombo(combo);
+    var bonus=T.pts&&combo>=2?Math.min(25,(combo-1)*5):0;score+=T.pts+bonus;caught++;$('score').textContent=score+' 分';
+    food=Math.min(100,food+T.food);
+    SND.sfx(k==='chest'?'treasure':k==='king'?'fishup':'catch');
+    G.float(cx,cy,'+'+(T.pts+bonus)+(bonus?' 連釣':''),'gold');
+    if(T.food)setTimeout(function(){G.float(cx-60,cy+30,'🍲 +'+T.food,'');},180);
+    if(k==='king'){say('pDg','黃金鮭魚！！',1500);say('pCat','發財了！',1500);}
+    else if(k==='chest'){say('pDg','寶箱耶！',1200);}
+    else if(Math.random()<.45)say(Math.random()<.5?'pCat':'pDg',['好吃！','再來一隻！','火鍋加料～','雪球好厲害'][Math.floor(Math.random()*4)]);
+    tip(T.name+'下鍋了！'+(combo>=2?'連釣 '+combo+' 隻':''));
+  }
 }
-function miss(t){SND.sfx('escape');state='after';clearTimeout(timer);nibT.forEach(clearTimeout);$('bang').classList.remove('on');$('bobber').style.display='none';line();tip(t);say('pPg','下次一定！');btn('…','wait');setTimeout(next,1400);}
-// 收線：按住讓綠框往右、放開往左，魚在綠框裡進度會漲
-function reel(){
-  state='reel';clearTimeout(timer);$('bang').classList.remove('on');
-  zone.x=.5-cur.zone/2;zone.v=0;fishP=.5;fishT=Math.random();fishNext=0;prog=.3;
-  $('zone').style.width=cur.zone*100+'%';$('fishmk').src=ART[cur.id];$('fishmk').style.filter=cur.gold?GOLD:'';$('reel').classList.add('on');
-  btn('按住收線','hold');tip('魚在框框裡進度會漲，按住框框往右、放開往左');
-  last=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(loop);
+function tick(now){
+  var dt=Math.min(.05,(now-last)/1000);last=now;
+  if(state==='play'){
+    t+=dt;
+    // 肚子越來越餓，掉得越來越快
+    food-=(3.5+t*.075)*dt;
+    if(food<=0){food=0;draw();return end();}
+    // 湖裡的數量慢慢變多，章魚 8 秒後出現，45 秒後變兩隻
+    var want=8+Math.min(4,Math.floor(t/20)),octs=fishes.filter(function(f){return f.k==='oct';}).length;
+    if(fishes.length-octs<want){if(Math.random()<.12)school();else spawn(pick());}
+    if(octs<(t>45?2:t>8?1:0)&&Math.random()<.02)spawn('oct');
+    // 雪球跟著手指左右移動（有最快速度）
+    var ta=Math.max(HX0,Math.min(HX1,tx))-ROD,d=ta-ax,mv=1100*dt;ax+=Math.abs(d)<mv?d:mv*Math.sign(d);
+    var hx=ax+ROD;
+    // 鉤子：被章魚纏住就動不了；有魚就自動往上拉；按住往下、放開往上
+    if(stuck>0){stuck-=dt;if(stuck<=0)$('hook').classList.remove('stuck');}
+    else if(carry){hy-=carry.T.reel*dt;}
+    else if(holding)hy=Math.min(DEEP,hy+560*dt);
+    else hy=Math.max(SURF+20,hy-900*dt);
+    if((carry||(!holding&&hy>SURF+30))&&now>clickAt){clickAt=now+70;SND.sfx('click');}
+    fishes.forEach(function(f){
+      if(f===carry)return;
+      f.x+=f.dir*f.v*dt;f.y=f.y0+Math.sin(t*2+f.ph)*(f.T.bob||8);if(f.cd>0)f.cd-=dt;
+      if(state!=='play'||stuck>0||f.cd>0||hy<SURF+40)return;
+      if(f.k==='oct'){
+        // 章魚：碰到空鉤子會纏住；碰到拉到一半的魚會搶走
+        if(carry&&hit(f,hx,carry.y+carry.h/2,1.25)){var lost=carry;carry=null;lost.dir=-f.dir||1;lost.v=380;lost.el.classList.toggle('r',lost.dir>0);lost.cd=2;lost.y0=hy;f.cd=3;SND.sfx('escape');say('pPg','被章魚搶走了！');tip('魚被章魚搶走了…拉的時候閃開牠');setCombo(0);ink(f);}
+        else if(!carry&&hit(f,hx,hy)){stuck=1.2;f.cd=3;food=Math.max(0,food-10);$('hook').classList.add('stuck');SND.sfx('ouch');say('pPg','被章魚纏住了！');tip('被章魚纏住了，肚子 −10');setCombo(0);ink(f);}
+      }else if(!carry&&hit(f,hx,hy)){carry=f;SND.sfx('bite');tip(octs?'釣到'+f.T.name+'！小心章魚':'釣到'+f.T.name+'了！拉上來…');$('pPg').querySelector('img').src=G.petImg('pg','happy');}
+    });
+    if(carry){
+      carry.x=hx-carry.w/2;carry.y=hy-carry.h/2+carry.T.ry*.6;
+      if(hy<=SURF+20){var c=carry;carry=null;fishes.splice(fishes.indexOf(c),1);deliver(c);$('pPg').querySelector('img').src=G.petImg('pg','idle');}
+    }
+    fishes=fishes.filter(function(f){if(f.x<-f.w-60||f.x>1140){f.el.remove();return false;}return true;});
+    if(food<25&&t>talk){talk=t+4;say(Math.random()<.5?'pCat':'pDg','肚子好餓…',1200);}
+    draw();
+  }
+  raf=requestAnimationFrame(tick);
 }
-var clickAt=0;
-function loop(t){
-  if(state!=='reel')return;
-  var dt=Math.min(.05,(t-last)/1000);last=t;
-  zone.v+=(holding?2.4:-2.4)*dt;zone.v*=.97;zone.x+=zone.v*dt;
-  if(zone.x<0){zone.x=0;zone.v=Math.max(0,-zone.v*.3);}if(zone.x>1-cur.zone){zone.x=1-cur.zone;zone.v=Math.min(0,-zone.v*.3);}
-  if(t>fishNext){fishT=Math.random();fishNext=t+(400+Math.random()*900)/(.6+cur.speed);}
-  fishP+=(fishT-fishP)*Math.min(1,dt*cur.speed*4);
-  var inZ=fishP>=zone.x&&fishP<=zone.x+cur.zone;
-  prog+=(inZ?.3:-.24)*dt*(cur.id==='boot'?1.6:1);
-  $('zone').style.left=zone.x*100+'%';$('zone').classList.toggle('in',inZ);
-  $('fishmk').style.left=fishP*100+'%';$('prog').style.width=Math.max(0,Math.min(1,prog))*100+'%';
-  // 收線的喀喀聲：按住比較快
-  if(t>clickAt){clickAt=t+(holding?55:140);SND.sfx('click');}
-  if(prog>=1)return got();
-  if(prog<=0)return escape();
-  raf=requestAnimationFrame(loop);
+function ink(f){var e=document.createElement('div');e.className='ink';e.style.left=(f.x+f.w/2)+'px';e.style.top=(f.y+f.h/2)+'px';$('world').appendChild(e);setTimeout(function(){e.remove();},1200);}
+function draw(){
+  var hx=ax+ROD;
+  $('angler').style.transform='translate('+ax+'px,'+(SURF-190)+'px)';
+  $('rod').setAttribute('d','M'+(ax+190)+' '+(SURF-70)+'L'+hx+' '+(SURF-150));
+  $('line').setAttribute('d','M'+hx+' '+(SURF-150)+'L'+hx+' '+hy);
+  $('hook').style.transform='translate('+hx+'px,'+hy+'px)';
+  fishes.forEach(function(f){f.el.style.transform='translate('+f.x+'px,'+f.y+'px)';});
+  $('gfill').style.width=food+'%';$('gnum').textContent=Math.ceil(food);$('gauge').classList.toggle('low',food<25);
 }
-function endReel(){$('reel').classList.remove('on');$('bobber').style.display='none';holding=false;}
-function got(){
-  SND.sfx(cur.id==='boot'?'boot':'catch');state='after';endReel();score+=cur.pts;$('score').textContent=score+' 分';line();
-  var c=G.el('<div class="catch"><img src="'+ART[cur.id]+'" alt=""'+(cur.gold?' style="filter:'+GOLD+'"':'')+'><div>釣到'+cur.name+(cur.pts?' +'+cur.pts:'')+'</div></div>');document.body.appendChild(c);setTimeout(function(){c.remove();},1500);
-  if(cur.id==='boot'){say('pCat','這是什麼啦');tip('……是舊靴子');}
-  else{say('pPg',cur.id==='king'?'黃金鮭魚！！':cur.id==='chest'?'寶箱！嘎！！':'嘎！釣到了！');setTimeout(function(){say(Math.random()<.5?'pCat':'pDg',cur.id==='big'?'好大一隻！':'好厲害！');},400);tip('釣到'+cur.name+'！');}
-  btn('…','wait');setTimeout(next,1600);
+function start(){
+  fishes.forEach(function(f){f.el.remove();});fishes=[];carry=null;stuck=0;$('hook').classList.remove('stuck');
+  state='play';t=0;food=100;score=0;caught=0;setCombo(0);lastGot=-9;hy=SURF+20;holding=false;talk=0;
+  $('score').textContent='0 分';tip('按住放線、放開收線，手指左右移動');
+  for(var i=0;i<7;i++){var f=spawn(pick());f.x=100+Math.random()*880;}
+  last=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(tick);
 }
-function escape(){SND.sfx('escape');state='after';endReel();line();tip('線鬆掉了，'+cur.name+'跑走了…');say('pDg','差一點點！');btn('…','wait');setTimeout(next,1400);}
-function next(){
-  if(casts<=0){state='done';btn('結算中…','wait');setTimeout(function(){G.finish({game:'fish',score:score,unit:'分',stars:stars(score),note:'5 竿合計，11 分三顆星、6 分兩顆星',again:function(){reset();}});},500);return;}
-  state='idle';btn('🎣 拋竿');tip('再拋一竿（還有 '+casts+' 次）');
+function end(){
+  state='done';holding=false;
+  ['pCat','pDg'].forEach(function(id){$(id).querySelector('img').src=G.petImg(id==='pCat'?'cat':'dg','happy');});
+  say('pDg',score>=1300?'吃得好飽！':'火鍋好好吃～',1600);tip('肚子餓扁了…今天的火鍋收工');
+  setTimeout(function(){G.finish({game:'fish',score:score,unit:'分',stars:stars(score),note:'釣了 '+caught+' 隻；連釣有加分<br>1300 分三顆星、700 分兩顆星',again:function(){G.countdown(start);}});},900);
 }
-function reset(){casts=CASTS;score=0;$('casts').textContent='🎣 '+casts;$('score').textContent='0 分';state='idle';btn('🎣 拋竿');tip('按「拋竿」開始');}
-// 按鈕：拋竿、拉、按住收線
-var act=$('act');
-act.addEventListener('pointerdown',function(e){
-  e.preventDefault();
-  if(state==='idle')cast();
-  else if(state==='wait'){clearTimeout(timer);miss('太早拉了，魚被嚇跑了…');}
-  else if(state==='bite')reel();
-  if(state==='reel'){holding=true;try{act.setPointerCapture(e.pointerId);}catch(_){}}
-});
-act.addEventListener('keydown',function(e){if(e.repeat||!['Space','Enter'].includes(e.code))return;e.preventDefault();if(state==='idle')cast();else if(state==='wait')miss('太早拉了，魚被嚇跑了…');else if(state==='bite')reel();if(state==='reel')holding=true;});
-act.addEventListener('keyup',function(e){if(['Space','Enter'].includes(e.code)){e.preventDefault();holding=false;}});
-['pointerup','pointercancel','pointerleave'].forEach(function(ev){act.addEventListener(ev,function(){holding=false;});});
-G.preload([ART.bobber,ART.splash,ART.fish,ART.squid,ART.big,ART.boot,ART.chest,'../assets/games/fish/bg-winter.svg'],function(){
-  G.intro({game:'fish',title:'湖邊釣魚',desc:'跟雪球一起釣 5 竿！<br>浮標會先假動作，真的沉下去才馬上按「拉」<br>收線時按住讓框框追著魚跑<br>運氣好會遇到 8 分的黃金鮭魚',start:function(){reset();tip('按「拋竿」開始');}});
+// 操作：按住放線、放開收線，手指左右移動
+var tap=$('tap');
+tap.addEventListener('pointerdown',function(e){e.preventDefault();if(state!=='play')return;holding=true;tx=toWorld(e.clientX);if(hy<=SURF+25)SND.sfx('plop');try{tap.setPointerCapture(e.pointerId);}catch(_){}});
+tap.addEventListener('pointermove',function(e){if(state==='play'&&(holding||e.pointerType==='mouse'))tx=toWorld(e.clientX);});
+['pointerup','pointercancel'].forEach(function(ev){tap.addEventListener(ev,function(){holding=false;});});
+draw();
+G.preload(Object.keys(ART).map(function(k){return ART[k];}),function(){
+  G.intro({game:'fish',title:'湖邊釣魚',desc:'雪球在浮冰上釣魚，大家等著吃火鍋！<br>按住畫面放線、放開收線，手指左右移動對準魚<br>魚碰到鉤子就上鉤，拉上來丟進火鍋，肚子會飽一點<br>小心章魚：會纏住鉤子，也會搶走拉到一半的魚<br>肚子餓計量表歸零就結束，深水的大魚分數更高',start:start});
 });
 document.addEventListener('visibilitychange',function(){last=performance.now();});
 </script>
 </body>
 </html>
-
