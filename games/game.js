@@ -9,7 +9,8 @@ var G=(function(){
     fish:{label:'雪湖火鍋祭',kind:'眼明手快',time:'肚子餓之前',goal:'1300 分獲得三星',color:'#E2EAF4',cover:'cover-winter.svg'},
     camp:{label:'星空營火夜',kind:'火候控制',time:'40 秒',goal:'16 分獲得三星',color:'#F4DFCC'},
     spring:{label:'雪國探險家',kind:'溫度推理',time:'11 把鏟子',goal:'13 分獲得三星',color:'#E2EAF4'},
-    moto:{label:'三寵兜風日',kind:'跳躍冒險',time:'40 秒',goal:'90 分獲得三星',color:'#F5E9C9'}
+    moto:{label:'三寵兜風日',kind:'跳躍冒險',time:'40 秒',goal:'90 分獲得三星',color:'#F5E9C9'},
+    climb:{label:'雲端樓梯',kind:'跳躍反應',time:'掉下去為止',goal:'200 分獲得三星',color:'#E4F2F8'}
   };
   function escapeHtml(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
   // 換季（跟班表的 GAME_SEASON、GAME_RESET_AT 一樣）：舊一季的分數和還沒交出去的結果不算
@@ -64,8 +65,8 @@ var G=(function(){
   }
   function intro(o){
     var meta=SCENES[o.game],rules=o.desc.split(/<br\s*\/?\s*>/i);
-    var ov=el('<div class="g-ov"><section class="g-card g-intro" role="dialog" aria-modal="true" aria-labelledby="introTitle" style="--scene:'+meta.color+'"><div class="g-cover"><img src="../assets/games/'+o.game+'/'+(meta.cover||'cover.svg')+'" alt=""><button class="g-cover-back" data-lobby>‹ 大廳</button><span class="g-cover-stamp">'+meta.label+'</span></div><div class="g-card-body"><div class="g-eyebrow">'+meta.kind+' · '+meta.time+'</div><h2 id="introTitle">'+o.title+'</h2><ol class="g-rules">'+rules.map(function(t){return '<li>'+t+'</li>';}).join('')+'</ol><div class="g-goal"><img src="../assets/games/ui/star.svg" alt="">'+meta.goal+'</div><p class="g-small">'+leftTxt(o.game)+'</p><div class="g-btns"><button class="g-btn" data-go>一起出發 <span aria-hidden="true">→</span></button></div></div></section></div>');
-    document.body.appendChild(ov);
+    var ov=el('<div class="g-ov"><section class="g-card g-intro" role="dialog" aria-modal="true" aria-labelledby="introTitle" style="--scene:'+meta.color+'"><div class="g-cover"><img src="../assets/games/'+o.game+'/'+(meta.cover||'cover.svg')+'" alt=""><button class="g-cover-back" data-lobby>‹ 大廳</button><span class="g-cover-stamp">'+meta.label+'</span></div><div class="g-card-body"><div class="g-eyebrow">'+meta.kind+' · '+meta.time+'</div><h2 id="introTitle">'+o.title+'</h2><ol class="g-rules">'+rules.map(function(t){return '<li>'+t+'</li>';}).join('')+'</ol><div class="g-goal"><img src="../assets/games/ui/star.svg" alt="">'+meta.goal+'</div>'+(o.extra||'')+'<p class="g-small">'+leftTxt(o.game)+'</p><div class="g-btns"><button class="g-btn" data-go>一起出發 <span aria-hidden="true">→</span></button></div></div></section></div>');
+    document.body.appendChild(ov);if(o.mount)o.mount(ov);
     ov.querySelector('[data-lobby]').onclick=function(){location.href='./';};
     ov.querySelector('[data-go]').onclick=function(){ov.remove();SND.music(o.game);countdown(o.start);};
   }
@@ -85,8 +86,8 @@ var G=(function(){
     var st='';for(var i=0;i<3;i++)st+='<img class="g-star'+(i<stars?' on':'')+'" src="../assets/games/ui/star.svg" alt="">';
     var rk=me&&o.score>0?'<div class="g-rank">'+(rec?'<b>🏆 '+NAMES[me]+'的新紀錄！</b>':'')+(rank>0?'<span>排行榜第 '+rank+' 名</span>':'<span>這局沒進前 10 名</span>')+'</div>':'';
     var ov=el('<div class="g-ov"><section class="g-card g-result" role="dialog" aria-modal="true" aria-label="遊戲結算"><div class="g-result-ribbon">'+SCENES[o.game].label+' · 冒險完成</div>'+pets()+'<h2>'+head+'</h2><div class="g-stars">'+st+'</div><div class="g-score">'+o.score+'<span style="font-size:16px"> '+o.unit+'</span></div>'+rk+(o.note?'<p>'+o.note+'</p>':'')+rw+
-      '<p class="g-small">'+leftTxt(o.game)+'</p><div class="g-btns g-result-actions"><button class="g-btn" data-again>再玩一次 ↻</button><button class="g-btn ghost" data-lobby>冒險大廳</button><button class="g-btn ghost" data-home>回班表</button></div></section></div>');
-    document.body.appendChild(ov);
+      '<p class="g-small">'+leftTxt(o.game)+'</p>'+(o.extra||'')+'<div class="g-btns g-result-actions"><button class="g-btn" data-again>再玩一次 ↻</button><button class="g-btn ghost" data-lobby>冒險大廳</button><button class="g-btn ghost" data-home>回班表</button></div></section></div>');
+    document.body.appendChild(ov);if(o.mount)o.mount(ov);
     SND.stop();SND.sfx('fanfare',stars);for(var j=0;j<stars;j++)(function(j){setTimeout(function(){SND.sfx('star',j);},420+j*180);})(j);
     ov.querySelector('[data-again]').onclick=function(){ov.remove();SND.music(o.game);o.again();};
     ov.querySelector('[data-lobby]').onclick=function(){location.href='./';};

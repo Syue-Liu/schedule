@@ -126,6 +126,13 @@ var SND=(function(){
       {i:'bass',v:.45,n:rep('A2 . A3 A2 . A2 A3 . | F#2 . F#3 F#2 . F#2 F#3 . | D2 . D3 D2 . D2 D3 . | E2 . E3 E2 . E2 E3 .',2)},
       {i:'xylo',v:.14,n:rep('. A4+C#5+E5 . . . A4+C#5+E5 . . | . F#4+A4+C#5 . . . F#4+A4+C#5 . . | . F#4+A4+D5 . . . F#4+A4+D5 . . | . E4+G#4+B4 . . . E4+G#4+B4 . .',2)},
       {d:1,v:.48,n:rep('k h s h k k s h',8)}
+    ]},
+    // 爬樓梯：一直往上跳的木琴（D 大調）
+    climb:{bpm:128,parts:[
+      {i:'xylo',v:.4,n:'D5 F#5 A5 D6 . A5 F#5 A5 | C#5 E5 A5 C#6 . A5 E5 A5 | B4 D5 F#5 B5 . F#5 D5 F#5 | G4 B4 D5 G5 . D5 B4 D5 | D5 F#5 A5 D6 . E6 F#6 . | E6 . C#6 . A5 . E5 . | G5 B5 D6 B5 A5 C#6 E6 C#6 | D6 . A5 . F#5 . D5 .'},
+      {i:'bass',v:.45,n:'D3 . D3 . A2 . A2 . | A2 . A2 . E3 . E3 . | B2 . B2 . F#2 . F#2 . | G2 . G2 . D3 . D3 . | D3 . D3 . A2 . A2 . | A2 . A2 . E3 . E3 . | G2 . G2 . A2 . A2 . | D3 . A2 . D3 . . .'},
+      {i:'box',v:.12,n:'. . D4+F#4+A4 . . . D4+F#4+A4 . | . . C#4+E4+A4 . . . C#4+E4+A4 . | . . B3+D4+F#4 . . . B3+D4+F#4 . | . . B3+D4+G4 . . . B3+D4+G4 . | . . D4+F#4+A4 . . . D4+F#4+A4 . | . . C#4+E4+A4 . . . C#4+E4+A4 . | . . B3+D4+G4 . . . C#4+E4+A4 . | . . D4+F#4+A4 . . . D4+F#4+A4 .'},
+      {d:1,v:.42,n:rep('k . h . s . h h',8)}
     ]}
   };
   function parse(tr){
@@ -220,7 +227,12 @@ var SND=(function(){
     coin:function(o,d,t){tone(o,d,t,988,'triangle',.001,.3,.05);tone(o,d,t+.055,1319,'triangle',.001,.3,.18);},
     fishup:function(o,d,t){arp(o,d,t,['C6','E6','G6','C7'],.045,'xylo',.38);},
     bump:function(o,d,t){noise(o,d,t,'lowpass',1300,1,.001,.5,.25,200);tone(o,d,t,140,'sine',.001,.5,.25,45);},
-    crash:function(o,d,t){SFX.bump(o,d,t);noise(o,d,t+.12,'bandpass',2500,1,.002,.25,.4,900);tone(o,d,t+.2,520,'triangle',.01,.18,.6,130);}
+    crash:function(o,d,t){SFX.bump(o,d,t);noise(o,d,t+.12,'bandpass',2500,1,.002,.25,.4,900);tone(o,d,t+.2,520,'triangle',.01,.18,.6,130);},
+    // 爬樓梯：踩台階彈一下、彈簧、雪階塌掉、掉下去
+    hop:function(o,d,t){tone(o,d,t,380,'sine',.003,.18,.12,720);},
+    boing:function(o,d,t){tone(o,d,t,220,'triangle',.004,.35,.38,1200);tone(o,d,t+.02,440,'sine',.004,.12,.3,1700);},
+    crack:function(o,d,t){noise(o,d,t,'bandpass',1400,.7,.002,.4,.18,500);tone(o,d,t,160,'triangle',.001,.2,.1,90);},
+    fall:function(o,d,t){tone(o,d,t,900,'sine',.01,.22,.9,150);}
   };
 
   // 第一次點畫面才開聲音（iPhone 規定）
