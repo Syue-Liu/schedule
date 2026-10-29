@@ -59,7 +59,7 @@ body{min-height:100%;background:var(--paper);}
 <div class="g-bar"><button class="g-back" onclick="location.href='../'">‹ 班表</button><div class="g-title">一起冒險</div></div>
 <div class="lb">
   <div class="lb-hero">
-    <div class="lb-eyebrow">三隻寵物・三個小世界</div><h1>今天要去哪裡玩？</h1>
+    <div class="lb-eyebrow">三隻寵物・四個小世界</div><h1>今天要去哪裡玩？</h1>
     <p>一起釣魚、烤棉花糖，收集今天的小快樂。</p>
     <div class="g-pets" id="lbPets"></div>
     <div class="lb-who" id="lbWho"></div>
@@ -75,7 +75,8 @@ body{min-height:100%;background:var(--paper);}
 var GAMES=[
   {id:'whack',name:'菜園打地鼠',s:'打地鼠',desc:'偷吃飼料的小田鼠冒出來了，快敲牠！',ic:'🔨',c:'#E7F2DF',href:'whack.html'},
   {id:'fish',name:'湖邊釣魚',s:'釣魚',desc:'雪球下鉤、大家等火鍋，肚子餓扁之前釣越多越好',ic:'🎣',c:'#E4F2F8',href:'fish.html'},
-  {id:'climb',name:'三寵爬樓梯',s:'爬樓梯',desc:'寵物一直走，看準時機跳上樓梯，按久一點跳更高',ic:'🪜',c:'#E4F2F8',href:'climb.html'}
+  {id:'climb',name:'三寵爬樓梯',s:'爬樓梯',desc:'寵物一直走，看準時機跳上樓梯，按久一點跳更高',ic:'🪜',c:'#E4F2F8',href:'climb.html'},
+  {id:'tower',name:'疊疊樂蓋房子',s:'蓋房子',desc:'怪手放房子，從地面一路蓋到天空、月球、火星',ic:'🏗️',c:'#E4F2F8',href:'tower.html'}
 ];
 function draw(){
   document.getElementById('lbPets').innerHTML=['cat','pg','dg'].map(function(k){return '<img'+(k==='pg'?' class="pg"':'')+' src="'+G.petImg(k,'happy')+'" alt="'+G.petName(k)+'">';}).join('');

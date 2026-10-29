@@ -113,6 +113,13 @@ var SND=(function(){
       {i:'bass',v:.45,n:'D3 . D3 . A2 . A2 . | A2 . A2 . E3 . E3 . | B2 . B2 . F#2 . F#2 . | G2 . G2 . D3 . D3 . | D3 . D3 . A2 . A2 . | A2 . A2 . E3 . E3 . | G2 . G2 . A2 . A2 . | D3 . A2 . D3 . . .'},
       {i:'box',v:.12,n:'. . D4+F#4+A4 . . . D4+F#4+A4 . | . . C#4+E4+A4 . . . C#4+E4+A4 . | . . B3+D4+F#4 . . . B3+D4+F#4 . | . . B3+D4+G4 . . . B3+D4+G4 . | . . D4+F#4+A4 . . . D4+F#4+A4 . | . . C#4+E4+A4 . . . C#4+E4+A4 . | . . B3+D4+G4 . . . C#4+E4+A4 . | . . D4+F#4+A4 . . . D4+F#4+A4 .'},
       {d:1,v:.42,n:rep('k . h . s . h h',8)}
+    ]},
+    // 疊疊樂：穩穩蓋上去的木琴（F 大調）
+    tower:{bpm:116,parts:[
+      {i:'xylo',v:.38,n:'F5 . A5 . C6 . A5 . | G5 . Bb5 . D6 . Bb5 . | A5 . C6 . F6 . C6 . | E6 . D6 . C6 . . . | F5 . A5 . C6 . D6 . | Bb5 . G5 . E5 . G5 . | A5 C6 F6 C6 G5 Bb5 E6 Bb5 | F6 . . . C6 . A5 .'},
+      {i:'bass',v:.42,n:'F2 . . . C3 . . . | G2 . . . D3 . . . | F2 . . . C3 . . . | C3 . . . G2 . . . | F2 . . . C3 . . . | Bb2 . . . F2 . . . | F2 . . . C3 . . . | F2 . C3 . F2 . . .'},
+      {i:'box',v:.11,n:'. . A4+C5+F5 . . . A4+C5+F5 . | . . Bb4+D5+G5 . . . Bb4+D5+G5 . | . . A4+C5+F5 . . . A4+C5+F5 . | . . G4+C5+E5 . . . G4+C5+E5 . | . . A4+C5+F5 . . . A4+C5+F5 . | . . Bb4+D5+F5 . . . Bb4+D5+F5 . | . . A4+C5+F5 . . . G4+C5+E5 . | . . A4+C5+F5 . . . A4+C5+F5 .'},
+      {d:1,v:.4,n:rep('k . h . s . h .',8)}
     ]}
   };
   function parse(tr){
@@ -184,7 +191,13 @@ var SND=(function(){
     hop:function(o,d,t){tone(o,d,t,380,'sine',.003,.18,.12,720);},
     boing:function(o,d,t){tone(o,d,t,220,'triangle',.004,.35,.38,1200);tone(o,d,t+.02,440,'sine',.004,.12,.3,1700);},
     crack:function(o,d,t){noise(o,d,t,'bandpass',1400,.7,.002,.4,.18,500);tone(o,d,t,160,'triangle',.001,.2,.1,90);},
-    fall:function(o,d,t){tone(o,d,t,900,'sine',.01,.22,.9,150);}
+    fall:function(o,d,t){tone(o,d,t,900,'sine',.01,.22,.9,150);},
+    // 疊疊樂：放開、落地、完美、掉下去、進到新的地方
+    drop:function(o,d,t){noise(o,d,t,'bandpass',600,1,.02,.16,.18,1600);},
+    thud:function(o,d,t){tone(o,d,t,120,'sine',.001,.45,.16,55);noise(o,d,t,'lowpass',500,1,.001,.25,.08);},
+    perfect:function(o,d,t,n){SFX.thud(o,d,t);arp(o,d,t+.03,n>=3?['E6','G6','C7','E7']:['E6','G6','C7'],.05,'box',.3);},
+    topple:function(o,d,t){tone(o,d,t,500,'triangle',.01,.25,.6,120);noise(o,d,t+.4,'lowpass',900,1,.001,.4,.3,200);},
+    zone:function(o,d,t){arp(o,d,t,['C5','E5','G5','C6','E6'],.08,'xylo',.4);['C5','E5','G5'].forEach(function(n){INST.box(o,d,t+.45,hz(n),.6,.2);});}
   };
 
   // 第一次點畫面才開聲音（iPhone 規定）

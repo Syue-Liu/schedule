@@ -7,7 +7,8 @@ var G=(function(){
   var SCENES={
     whack:{label:'菜園小幫手',kind:'反應挑戰',time:'30 秒',goal:'50 分獲得三星',color:'#E8EED7'},
     fish:{label:'雪湖火鍋祭',kind:'眼明手快',time:'肚子餓之前',goal:'2000 分獲得三星',color:'#E2EAF4',cover:'cover-winter.svg'},
-    climb:{label:'雲端樓梯',kind:'時機跳躍',time:'掉下去為止',goal:'150 分獲得三星',color:'#E4F2F8'}
+    climb:{label:'雲端樓梯',kind:'時機跳躍',time:'掉下去為止',goal:'150 分獲得三星',color:'#E4F2F8'},
+    tower:{label:'從地球蓋到火星',kind:'時機堆疊',time:'房子掉光為止',goal:'400 分獲得三星',color:'#E4F2F8'}
   };
   function escapeHtml(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
   // 換季（跟班表的 GAME_SEASON、GAME_RESET_AT 一樣）：舊一季的分數和還沒交出去的結果不算

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#BFE3F2">
+<title>疊疊樂蓋房子</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Huninn&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="game.css">
+<style>
+html,body{overflow:hidden;}
+body{background:#BFE3F2;touch-action:none;}
+/* 場景寬 1080，往上是負的 y（地面在 0）；camY 是畫面最上面的高度 */
+.sky{position:fixed;inset:0;}
+.stars{position:fixed;inset:0;opacity:0;pointer-events:none;background:radial-gradient(#FFF4D6 1.3px,transparent 1.7px) 0 0/48px 54px,radial-gradient(#FFF4D6 1px,transparent 1.4px) 24px 27px/66px 72px;}
+/* 背景的星球：地球在下面、月球和火星越來越近 */
+.orb{position:fixed;left:50%;top:0;border-radius:50%;border:6px solid #594C43;transform-origin:50% 50%;transition:transform 1.2s ease-out,opacity 1.2s;opacity:0;pointer-events:none;}
+.orb.earth{width:1400px;height:1400px;margin-left:-700px;background:radial-gradient(circle at 40% 30%,#8FD0E8,#3E86C2 55%,#2D5E96);box-shadow:inset 0 0 0 40px #9CC78A55;}
+.orb.moon{width:300px;height:300px;margin-left:-150px;background:radial-gradient(circle at 35% 30%,#EFEAE4,#C9C2BB 60%,#9C948E);}
+.orb.moon i{position:absolute;border-radius:50%;background:#B8B2A8;border:4px solid #8F8780;}
+.orb.mars{width:320px;height:320px;margin-left:-160px;background:radial-gradient(circle at 35% 30%,#F2A47E,#D9734E 55%,#A84A2E);}
+.world{position:fixed;left:50%;top:0;width:1080px;transform-origin:50% 0;overflow:hidden;}
+.o{position:absolute;left:0;top:0;will-change:transform;}
+.ground{width:1080px;height:700px;background:linear-gradient(#9CC78A,#7FB36E 25%,#6E9A5E);border-top:6px solid #594C43;}
+.slab{width:330px;height:26px;margin-left:-15px;border:6px solid #594C43;border-radius:8px;background:#C9C2BB;}
+.tree{width:120px;height:200px;}
+.tree::before{content:'';position:absolute;left:46px;bottom:0;width:28px;height:70px;background:#9A6B4F;border:5px solid #594C43;}
+.tree::after{content:'';position:absolute;left:0;top:0;width:110px;height:140px;border-radius:50%;background:#7FB36E;border:6px solid #594C43;}
+.hut{width:170px;height:150px;}
+.hut::before{content:'';position:absolute;left:10px;bottom:0;width:150px;height:96px;background:#FFF4D6;border:6px solid #594C43;border-radius:6px;}
+.hut::after{content:'';position:absolute;left:0;top:0;width:0;height:0;border-left:85px solid transparent;border-right:85px solid transparent;border-bottom:62px solid #E48C7E;}
+.cloud{opacity:.92;pointer-events:none;}
+.cloud i{position:absolute;border-radius:50%;background:#FFFFFF;}
+.bird{font-size:60px;pointer-events:none;}
+/* 房子：每一層 300×150，三個窗戶；不同地方長得不一樣 */
+.blk{width:300px;height:150px;border:6px solid #594C43;border-radius:16px;background:var(--c,#FFF4D6);box-shadow:inset 0 -16px 0 var(--d,#E8D8B4),inset 0 8px 0 #FFFFFF66;}
+.blk .w{position:absolute;top:30px;width:62px;height:58px;border:5px solid #594C43;border-radius:10px;background:#A8D3E6;overflow:hidden;}
+.blk .w:nth-child(1){left:30px;}.blk .w:nth-child(2){left:113px;}.blk .w:nth-child(3){left:196px;}
+.blk .w img{width:100%;height:120%;object-fit:cover;object-position:50% 10%;}
+.blk.sky{--c:#F5FAFD;--d:#CFE1EA;}.blk.sky .w{background:#7FB8D2;border-radius:4px;}
+.blk.space{--c:#D9DEE3;--d:#8FA3B5;}.blk.space .w{border-radius:50%;background:#2D3A5E;}
+.blk.moon{--c:#C9C2BB;--d:#9C948E;border-radius:40px 40px 16px 16px;}.blk.moon .w{border-radius:50%;background:#F6D27A;}
+.blk.mars{--c:#E48C5B;--d:#B5573A;border-radius:60px 60px 16px 16px;}.blk.mars .w{border-radius:50% 50% 8px 8px;background:#FFE3B5;}
+.blk.pet .w.p{background:#FDF2D2;}
+.blk.drop{transition:none;}
+.puff{width:120px;height:50px;border-radius:50%;background:#FFFCF6CC;border:4px solid #594C43;pointer-events:none;animation:puff .5s ease-out forwards;}
+@keyframes puff{to{transform:var(--t) scale(1.6);opacity:0;}}
+/* 怪手：上面一條黃色鋼梁、吊繩、夾子 */
+.rail{width:860px;height:44px;border:6px solid #594C43;border-radius:8px;background:repeating-linear-gradient(60deg,#F6D27A 0 26px,#E8B95A 26px 34px);}
+.trolley{width:90px;height:50px;margin-left:-45px;border:6px solid #594C43;border-radius:8px;background:#E8B95A;}
+.rope{position:absolute;left:0;top:0;width:1080px;height:3000px;pointer-events:none;overflow:visible;}
+.claw{width:110px;height:60px;margin-left:-55px;margin-top:-50px;transform-origin:50% 0;}
+.claw .bar{position:absolute;left:10px;top:0;width:90px;height:22px;border:5px solid #594C43;border-radius:6px;background:#F6D27A;}
+.claw .j{position:absolute;top:16px;width:22px;height:46px;border:5px solid #594C43;border-radius:4px 4px 10px 10px;background:#F6D27A;transform-origin:50% 0;transition:transform .15s;}
+.claw .j.l{left:10px;transform:rotate(12deg);}.claw .j.r{right:10px;transform:rotate(-12deg);}
+.claw.open .j.l{transform:rotate(40deg);}.claw.open .j.r{transform:rotate(-40deg);}
+/* 上面：愛心、樓層、在哪裡、風 */
+.hud{position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top) + 68px);z-index:21;display:flex;justify-content:space-between;align-items:center;gap:6px;max-width:560px;margin:auto;pointer-events:none;}
+.hud b{font-weight:400;font-size:14px;padding:3px 11px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);white-space:nowrap;}
+.hud .wind{opacity:0;transition:opacity .3s;}
+.hud .wind.on{opacity:1;}
+.banner{position:fixed;left:50%;top:36%;z-index:30;transform:translate(-50%,-50%);padding:10px 22px;border:var(--lw) solid var(--ink);border-radius:18px;background:var(--yellow);font-size:22px;white-space:nowrap;box-shadow:0 4px 0 var(--ink);pointer-events:none;animation:banner 2s ease-out forwards;}
+@keyframes banner{0%{transform:translate(-50%,-50%) scale(.4);opacity:0;}15%{transform:translate(-50%,-50%) scale(1.08);opacity:1;}80%{opacity:1;}100%{transform:translate(-50%,-70%);opacity:0;}}
+.tip{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 22px);z-index:21;padding:6px 14px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);font-size:13px;white-space:nowrap;pointer-events:none;}
+.tap{position:fixed;inset:0;z-index:10;}
+.fan{width:150px;height:130px;}
+.fan img{width:100%;height:100%;object-fit:contain;object-position:50% 100%;}
+.fan.cheer img{animation:fanHop .5s var(--pop);}
+@keyframes fanHop{40%{transform:translateY(-24px);}}
+.fan .g-say{font-size:28px;padding:6px 14px;border-width:4px;border-radius:22px;}
+</style>
+<link rel="stylesheet" href="polish.css?v=snowlake-20261026">
+</head>
+<body data-game="tower">
+<div class="sky" id="sky"></div>
+<div class="stars" id="stars"></div>
+<div class="orb earth" id="earth"></div>
+<div class="orb moon" id="moon"><i style="left:22%;top:26%;width:52px;height:52px"></i><i style="left:58%;top:52%;width:70px;height:70px"></i><i style="left:30%;top:66%;width:36px;height:36px"></i></div>
+<div class="orb mars" id="mars"></div>
+<div class="world" id="world"><div id="decor"></div><div id="objs"></div></div>
+<div class="tap" id="tap"></div>
+<div class="g-bar"><button class="g-back" onclick="location.href='./'">‹ 大廳</button><div class="g-title">疊疊樂蓋房子</div><div class="g-pill hot" id="score">0 分</div></div>
+<div class="hud"><b id="hearts">❤️❤️❤️</b><b id="zone">🏡 地面</b><b class="wind" id="wind">💨</b><b id="floor">🏠 0 樓</b></div>
+<div class="tip" id="tip">點一下放開房子，對準下面那層</div>
+<script src="sound.js?v=tower-20261029"></script>
+<script src="game.js?v=tower-20261029"></script>
+<script>
+// 一層房子 300×150；一開始在地基上蓋。至少要有一半疊在下面那層上，差 14 以內算完美
+var BW=300,BH=150,HEARTS=3,PERF=14,KEEP=.5;
+// 蓋到哪裡：樓層、房子樣子、重力、風多大、橫幅
+var ZONES=[
+  {at:0,id:'town',name:'🏡 地面',g:2600,wind:0},
+  {at:15,id:'sky',name:'☁️ 天空',g:2600,wind:320,banner:'☁️ 蓋到天空了！小心有風'},
+  {at:35,id:'space',name:'🚀 外太空',g:2600,wind:0,banner:'🚀 衝出大氣層！整棟開始搖'},
+  {at:60,id:'moon',name:'🌕 月球',g:1400,wind:200,banner:'🌕 抵達月球！重力變小了'},
+  {at:85,id:'mars',name:'🔴 火星',g:2300,wind:600,banner:'🔴 抵達火星！小心沙塵暴'}
+];
+var TOWN=[['#FFF4D6','#E8D8B4'],['#F8D1CB','#E8ADA4'],['#D7ECCB','#B4D69F'],['#F6E2A8','#E0C67A'],['#DCEBF5','#B4CFE2']];
+var $=function(id){return document.getElementById(id);};
+var state='idle',s=1,viewH=1900,camY=-1500,n=0,blocks=[],hang=null,fallers=[],phase=0,t=0,hearts=HEARTS,score=0,combo=0,perfects=0,pets=0,zi=0,wind=0,windAt=0,raf=0,last=0,shake=0,nextAt=0;
+// 星星：400 分三顆、200 分兩顆
+function stars(x){return x>=400?3:x>=200?2:1;}
+
+function fit(){s=Math.min(innerWidth,600)/1080;viewH=innerHeight/s;var w=$('world');w.style.height=viewH+'px';w.style.transform='translateX(-50%) scale('+s+')';}
+fit();addEventListener('resize',fit);
+function rnd(a,b){return a+Math.random()*(b-a);}
+function el(cls,html,parent){var e=document.createElement('div');e.className='o '+cls;if(html)e.innerHTML=html;(parent||$('objs')).appendChild(e);return e;}
+function tip(x){$('tip').textContent=x;}
+function say(e,text,ms){var b=e.querySelector('.g-say');if(!b)return;b.textContent=text;b.classList.add('on');clearTimeout(e._t);e._t=setTimeout(function(){b.classList.remove('on');},ms||1200);}
+function heartsTxt(){var h='';for(var i=0;i<HEARTS;i++)h+=i<hearts?'❤️':'🤍';$('hearts').textContent=h;}
+function zoneAt(k){var z=0;ZONES.forEach(function(Z,i){if(k>=Z.at)z=i;});return z;}
+
+// 越蓋越難：擺得越快、越大；樓越高整棟越會搖
+function swing(){return Math.min(4.4,1.4+.04*n);}
+function amp(){return Math.min(.8,.4+.005*n);}
+function swayK(){return Math.max(0,Math.min(2.4,(n-5)*.06))*(zi===2?1.3:1);}
+function sway(i,tt){return swayK()*(i+1)*Math.sin((1+n*.01)*tt);}
+function pivot(){return {x:540,y:camY+150};}
+function rope(){return Math.max(300,Math.min(460,viewH*.22));}
+function topY(){return -n*BH;}
+function topX(tt){if(!n)return 390;var b=blocks[n-1];return b.x+sway(n-1,tt);}
+
+// 天空顏色：用樓層算（地面淺藍→天空藍→外太空深藍→火星紅）
+var SKY=[[0,[191,227,242]],[14,[143,199,234]],[30,[70,110,170]],[36,[22,30,58]],[60,[10,12,26]],[82,[14,12,22]],[86,[107,46,34]],[100,[201,105,63]]];
+function skyAt(k){for(var i=1;i<SKY.length;i++)if(k<SKY[i][0]){var a=SKY[i-1],b=SKY[i],f=(k-a[0])/(b[0]-a[0]);return a[1].map(function(v,j){return Math.round(v+(b[1][j]-v)*f);});}return SKY[SKY.length-1][1];}
+function paintSky(){
+  var k=-camY/BH,c=skyAt(k),c2=skyAt(k+6);
+  $('sky').style.background='linear-gradient(rgb('+c2+'),rgb('+c+'))';
+  $('stars').style.opacity=Math.max(0,Math.min(1,(k-28)/8))*(k>84?Math.max(0,1-(k-84)/6):1);
+}
+// 星球：用目前蓋到幾樓決定位置和大小（慢慢移過去）
+function orbs(){
+  var H=innerHeight,e=$('earth'),m=$('moon'),r=$('mars');
+  var pe=(n-32)/30;e.style.opacity=n>=30&&n<64?1:0;e.style.transform='translateY('+(H*.82+pe*H*.9)+'px)';
+  var pm=n<60?(n-45)/15:1+(n-60)/12,mY=n<60?H*(.12+pm*.5):H*(.62+(pm-1)*.9);m.style.opacity=n>=42&&n<76?1:0;m.style.transform='translateY('+mY+'px) scale('+(n<60?.3+pm*1.1:1.4)+')';
+  var pr=Math.min(1.2,(n-70)/15);r.style.opacity=n>=68?1:0;r.style.transform='translateY('+H*(.1+Math.max(0,pr)*.62)+'px) scale('+(.3+Math.max(0,pr)*1.1)+')';
+}
+// 地面的小樹、小房子，天空的雲（固定在場景裡，跟著鏡頭捲）
+function decor(){
+  var d=$('decor');d.innerHTML='';
+  el('ground','',d).style.transform='translate(0px,0px)';
+  [[30,'tree',-200],[150,'hut',-150],[780,'hut',-150],[930,'tree',-200]].forEach(function(x){el(x[1],'',d).style.transform='translate('+x[0]+'px,'+x[2]+'px)';});
+  var sl=el('slab','',d);sl.style.transform='translate(390px,-26px)';
+  for(var i=0;i<26;i++){var w=rnd(180,320),c=el('cloud','<i style="left:0;top:'+w*.18+'px;width:'+w+'px;height:'+w*.42+'px"></i><i style="left:'+w*.22+'px;top:0;width:'+w*.55+'px;height:'+w*.45+'px"></i>',d);c._x=rnd(-120,1000);c._y=-rnd(9*BH,32*BH);c.style.transform='translate('+c._x+'px,'+c._y+'px)';}
+}
+var fans=[];
+function build(){
+  $('objs').innerHTML='';blocks=[];fallers=[];hang=null;
+  fans=['cat','pg','dg'].map(function(k,i){var f=el('fan','<img src="'+G.petImg(k,'happy')+'" alt=""><div class="g-say"></div>');f.style.transform='translate('+[60,880,220][i]+'px,'+(i===2?-140:-130)+'px)';return f;});
+  window.rail=el('rail');window.trolley=el('trolley');
+  var svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('class','rope');svg.innerHTML='<path id="ropeP" d="" stroke="#594C43" stroke-width="8" fill="none"/>';$('objs').appendChild(svg);
+  window.claw=el('claw','<div class="bar"></div><div class="j l"></div><div class="j r"></div>');
+}
+// 新的一層：用現在這個地方的樣子；有時候窗戶裡住著寵物
+function makeBlock(){
+  var z=ZONES[zoneAt(n)],b=el('blk '+z.id,'<div class="w"></div><div class="w"></div><div class="w"></div>');
+  if(z.id==='town'){var c=TOWN[Math.floor(Math.random()*TOWN.length)];b.style.setProperty('--c',c[0]);b.style.setProperty('--d',c[1]);}
+  var pet=n>1&&Math.random()<.18?['cat','pg','dg'][Math.floor(Math.random()*3)]:null;
+  if(pet){var w=b.querySelectorAll('.w')[1+Math.floor(Math.random()*2)-1];w.classList.add('p');w.innerHTML='<img src="'+G.petImg(pet,'happy')+'" alt="">';b.classList.add('pet');}
+  return {el:b,pet:pet,x:0,y:0,vx:0,vy:0,rot:0};
+}
+function spawn(){hang=makeBlock();claw.classList.remove('open');}
+function drop(){
+  if(state!=='play'||!hang||hang.falling)return;
+  var L=rope(),A=amp(),w=swing(),th=A*Math.sin(phase);
+  // 放開時帶著一點擺盪的速度（打折扣，比較好控制；越高帶得越多）
+  hang.vx=L*Math.cos(th)*A*Math.cos(phase)*w*Math.min(.55,.3+n*.004);hang.vy=0;hang.falling=true;hang.rot=th*30;
+  claw.classList.add('open');SND.sfx('drop');
+  fallers.push(hang);hang=null;
+}
+function land(b){
+  var tx=topX(t),dx=b.x-tx,ratio=(BW-Math.abs(dx))/BW;
+  if(n===0)ratio=(BW-Math.abs(b.x-390))/BW;
+  if(ratio<KEEP){
+    // 疊歪太多：往外面那邊翻下去
+    b.topple=dx<0?-1:1;b.vx=b.topple*220;b.vy=-200;b.spin=b.topple*140;combo=0;hearts--;heartsTxt();SND.sfx('topple');
+    say(fans[1],['歪掉了！','掉下去了…','差一點！'][Math.floor(Math.random()*3)],1100);tip(hearts?'疊太歪掉下去了，還剩 '+hearts+' 顆愛心':'房子掉光了…');
+    if(navigator.vibrate)navigator.vibrate(120);
+    if(hearts<=0)setTimeout(end,900);else nextAt=performance.now()+700;
+    return;
+  }
+  var perfect=Math.abs(n?dx:b.x-390)<PERF,pts=10;
+  if(perfect){b.x=n?tx:390;combo++;perfects++;pts+=5+5*Math.min(combo,8);SND.sfx('perfect',combo);}else{combo=0;SND.sfx('thud');}
+  if(b.pet){pts+=15;pets++;}
+  score+=pts;b.falling=false;b.rot=0;b.vx=b.vy=0;
+  // 存「沒搖晃時」的位置，之後跟著整棟一起搖
+  b.x-=n?sway(n,t):0;b.y=-(n+1)*BH;blocks.push(b);n++;shake=perfect?10:6;
+  var r=b.el.getBoundingClientRect();
+  G.float(r.left+r.width/2,r.top,perfect?'完美！+'+pts:'+'+pts,perfect?'gold':'');
+  if(b.pet)setTimeout(function(){G.float(r.left+r.width/2,r.top+40,G.petName(b.pet)+'住進來了！','gold');},250);
+  var p=el('puff');p.style.setProperty('--t','translate('+(b.x+90)+'px,'+(b.y+BH-30-camY)+'px)');place(p,b.x+90,b.y+BH-30);setTimeout(function(){p.remove();},520);
+  tip(perfect?(combo>=2?'連續完美 '+combo+' 次！':'完美！'):'蓋好 '+n+' 樓了');
+  var nz=zoneAt(n);if(nz!==zi){zi=nz;var Z=ZONES[zi];$('zone').textContent=Z.name;var bn=G.el('<div class="banner"></div>');bn.textContent=Z.banner;document.body.appendChild(bn);setTimeout(function(){bn.remove();},2000);SND.sfx('zone');windAt=0;}
+  nextAt=performance.now()+300;
+}
+function place(e,x,y,rot){e.style.transform='translate('+x+'px,'+(y-camY)+'px)'+(rot?' rotate('+rot+'deg)':'');}
+function tick(now){
+  var dt=Math.max(0,Math.min(.04,(now-last)/1000));last=now;
+  if(state==='play'){
+    t+=dt;phase+=swing()*dt;
+    // 風：天空、月球、火星會起風，每 4～7 秒換一次方向和大小
+    var Z=ZONES[zi];
+    if(now>windAt){windAt=now+rnd(4000,7000);wind=Z.wind?(Math.random()<.5?-1:1)*rnd(.4,1)*Z.wind:0;var wv=$('wind');wv.classList.toggle('on',!!wind);wv.textContent='💨 '+(wind<0?'←':'→').repeat(Math.max(1,Math.round(Math.abs(wind)/160)));}
+    if(!hang&&!fallers.some(function(f){return !f.topple;})&&state==='play'&&now>nextAt&&hearts>0)spawn();
+    // 掉下來的房子
+    var ty=topY();
+    fallers=fallers.filter(function(b){
+      b.vy+=Z.g*dt;b.vx+=(b.topple?0:wind)*dt;b.x+=b.vx*dt;b.y+=b.vy*dt;
+      if(b.topple){b.rot+=b.spin*dt;place(b.el,b.x,b.y,b.rot);if(b.y-camY>viewH+300){b.el.remove();return false;}return true;}
+      b.rot*=Math.max(0,1-6*dt);
+      if(b.y+BH>=ty){b.y=ty-BH;land(b);if(b.topple)return true;place(b.el,b.x,b.y);return false;}
+      place(b.el,b.x,b.y,b.rot);return true;
+    });
+    // 鏡頭：蓋好的頂端維持在畫面 62% 的位置
+    var target=topY()-viewH*.62;camY+=(target-camY)*Math.min(1,dt*5);
+    if(shake>0)shake=Math.max(0,shake-40*dt);
+    draw();
+  }
+  raf=requestAnimationFrame(tick);
+}
+function draw(){
+  var sh=shake?Math.sin(t*80)*shake:0,cy=camY;camY+=sh;
+  blocks.forEach(function(b,i){if(b.y-camY<viewH+200)place(b.el,b.x+sway(i,t),b.y);});
+  var p=pivot(),L=rope();
+  place(rail,110,p.y-70);place(trolley,p.x,p.y-30);
+  if(hang){var th=amp()*Math.sin(phase),cx=p.x+L*Math.sin(th),cyy=p.y+L*Math.cos(th);hang.x=cx-BW/2;hang.y=cyy;place(hang.el,hang.x,hang.y,-th*57*.5);place(claw,cx,cyy,-th*57*.5);$('ropeP').setAttribute('d','M'+p.x+' '+(p.y-camY)+'L'+cx+' '+(cyy-40-camY));}
+  else{var th2=amp()*Math.sin(phase)*.4,cx2=p.x+L*.7*Math.sin(th2),cy2=p.y+L*.7*Math.cos(th2);place(claw,cx2,cy2);$('ropeP').setAttribute('d','M'+p.x+' '+(p.y-camY)+'L'+cx2+' '+(cy2-40-camY));}
+  $('decor').style.transform='translateY('+(-camY)+'px)';
+  fans.forEach(function(f,i){f.style.transform='translate('+[60,880,220][i]+'px,'+((i===2?-140:-130)-camY)+'px)';});
+  camY=cy;
+  paintSky();orbs();
+  $('floor').textContent='🏠 '+n+' 樓';$('score').textContent=score+' 分';
+}
+function start(){
+  state='play';n=0;t=0;phase=0;hearts=HEARTS;score=0;combo=0;perfects=0;pets=0;zi=0;wind=0;windAt=0;nextAt=0;
+  camY=-viewH*.62;build();decor();heartsTxt();$('zone').textContent=ZONES[0].name;$('wind').classList.remove('on');
+  tip('點一下放開房子，對準下面那層');spawn();
+  fans.forEach(function(f,i){setTimeout(function(){f.classList.add('cheer');say(f,['開工囉！','蓋高高！','加油～'][i],1400);},300+i*300);});
+  last=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(tick);
+}
+function end(){
+  if(state!=='play')return;state='done';
+  tip('房子掉光了…蓋到 '+n+' 樓');
+  setTimeout(function(){G.finish({game:'tower',score:score,unit:'分',stars:stars(score),note:'蓋到 '+n+' 樓（'+ZONES[zi].name.slice(2)+'）、完美 '+perfects+' 次、住進 '+pets+' 隻寵物<br>每層 +10、連續完美加更多；400 分三顆星、200 分兩顆星',again:function(){G.countdown(start);}});},600);
+}
+// 操作：點畫面任何地方放開房子；鍵盤空白鍵也可以
+$('tap').addEventListener('pointerdown',function(e){e.preventDefault();drop();});
+addEventListener('keydown',function(e){if(e.code==='Space'&&!e.repeat){e.preventDefault();drop();}});
+camY=-viewH*.62;build();decor();heartsTxt();draw();
+G.intro({game:'tower',title:'疊疊樂蓋房子',desc:'怪手夾著房子左右擺，點一下放開，一層一層往上蓋<br>疊歪超過一半，那層會掉下去、扣一顆愛心<br>對得剛剛好是「完美」，連續完美分數越來越多<br>從地面蓋到天空、外太空、月球、火星，越高擺得越快、還會起風和搖晃<br>窗戶裡有寵物的那層，疊上去多 15 分',start:start});
+document.addEventListener('visibilitychange',function(){last=performance.now();});
+</script>
+</body>
+</html>
