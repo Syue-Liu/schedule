@@ -178,6 +178,10 @@ button.sc{font-family:inherit;color:var(--t);}
 .sl2{font-size:11px;color:var(--t2);margin-top:6px;}
 
 /* 有新版本的提示（正在編輯時不自動重新載入，改顯示這顆讓人自己點） */
+.vs-pill{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 56px);transform:translateX(-50%);z-index:90;display:flex;align-items:center;gap:2px;padding:4px;border:var(--lw2) solid var(--ink);border-radius:999px;background:#F7B9A9;box-shadow:0 3px 0 var(--ink);animation:menuIn .3s var(--pop);white-space:nowrap;}
+.vs-pill button{border:0;background:none;font-family:inherit;color:var(--t);cursor:pointer;}
+.vs-pill .vs-go{font-size:14px;padding:6px 6px 6px 12px;}
+.vs-pill .vs-x{width:28px;height:28px;border-radius:50%;background:var(--paper);font-size:12px;}
 .upd-pill{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 10px);transform:translateX(-50%);z-index:90;padding:8px 16px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--yellow);color:var(--t);font-family:inherit;font-size:13px;box-shadow:0 3px 0 var(--ink);cursor:pointer;animation:menuIn .3s var(--pop);}
 /* ── 底部彈出卡片 ── */
 .popup-ov{position:fixed;inset:0;background:rgba(255,252,246,0);z-index:60;display:none;align-items:flex-end;justify-content:center;padding:0 10px 14px;transition:background .28s ease;}
@@ -1270,7 +1274,32 @@ function startListener(code){
     setDot('ok');
   },err=>{console.error('listener error',err);setDot('err');});
   startPhotoListener(code);
+  startVsListener(code);
 }
+/* ── 連線對戰邀請：另一半在小遊戲的對戰房間等（banbiao/<代碼>_vs），上面跳出「加入」 ── */
+let unsubVs=null,vsRoom={},vsSeen={},vsHide='';
+function startVsListener(code){
+  if(unsubVs){unsubVs();unsubVs=null;}
+  if(!db||!code||code==='LOCAL')return;
+  unsubVs=onSnapshot(doc(db,'banbiao',code+'_vs'),function(snap){
+    vsRoom=snap.exists()?snap.data():{};
+    // 對方在房間裡每 8 秒報到一次：用「這支手機收到的時間」判斷還在不在（兩支手機時鐘不準也沒關係）
+    var r=vsRoom.climb||{};
+    ['syue','ling'].forEach(function(u){var o=r[u],k=o?String(o.at):'';if(o&&o.on&&vsSeen[u]!==k){vsSeen[u]=k;vsSeen[u+'T']=Date.now();}});
+    vsPaint();
+  },function(e){console.warn('vs listener',e);});
+}
+function vsPaint(){
+  var me=petWho(),op=me==='syue'?'ling':me==='ling'?'syue':'',o=op?(vsRoom.climb||{})[op]:null,at=o?+o.at||0:0;
+  var here=!!(o&&o.on&&Date.now()-(vsSeen[op+'T']||0)<25000&&Math.abs(Date.now()-at)<180000&&vsHide!==o.sid);
+  var el=document.getElementById('vsPill');
+  if(!here){if(el)el.remove();return;}
+  if(!el){el=document.createElement('div');el.id='vsPill';el.className='vs-pill';document.body.appendChild(el);}
+  el.innerHTML='<button class="vs-go">💌 '+USERS[op].label+' 在爬樓梯等你對戰！加入 →</button><button class="vs-x" aria-label="關閉">✕</button>';
+  el.querySelector('.vs-go').onclick=function(){location.href='games/climb.html?vs=1';};
+  el.querySelector('.vs-x').onclick=function(){vsHide=o.sid;el.remove();};
+}
+setInterval(function(){if(unsubVs)vsPaint();},5000);
 function saveLocalOnly(){lsSet('scheduleDataV2',JSON.stringify(scheduleData));lsSet('shiftSetsV2',JSON.stringify(shiftSets));lsSet('profilePinsV2',JSON.stringify(profilePins));lsSet('eventsV1',JSON.stringify(calEvents));}
 function saveAll(uid){saveLocalOnly();if(!isRemoteUpdate)scheduleWrite(uid||currentUser);}
 function applySyncCode(code){code=normalizeCode(code);syncCode=code;lsSet('syncCode',code);startListener(code);}
