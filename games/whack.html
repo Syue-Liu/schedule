@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Huninn&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="game.css">
+<link rel="stylesheet" href="game.css?v=vs-20261031">
 <style>
 html,body{overflow:hidden;}
 body{background:#BFD9A6;touch-action:none;}
@@ -42,6 +42,13 @@ body{background:#BFD9A6;touch-action:none;}
 .combo.on{opacity:1;}
 .combo.bump{animation:comboBump .35s var(--pop);}
 @keyframes comboBump{40%{transform:translateX(-50%) scale(1.25);}}
+/* 連線對戰：對方丟來的泥巴蓋住洞（點一下擦掉），被對方搶走的田鼠縮下去 */
+.vsbar{top:calc(env(safe-area-inset-top) + 88px);}
+.vs .fans{top:calc(env(safe-area-inset-top) + 146px);}
+.hole .mud{position:absolute;left:2%;right:2%;bottom:12%;height:74%;z-index:3;pointer-events:none;animation:mudIn .3s var(--pop);
+  background:radial-gradient(circle at 30% 40%,#8A6A4F 0 30%,transparent 31%),radial-gradient(circle at 66% 34%,#7A5C43 0 27%,transparent 28%),radial-gradient(circle at 50% 66%,#8A6A4F 0 36%,transparent 37%),radial-gradient(circle at 22% 72%,#6E523C 0 17%,transparent 18%),radial-gradient(circle at 80% 70%,#6E523C 0 19%,transparent 20%);}
+@keyframes mudIn{from{transform:scale(.2);opacity:0;}}
+.hole.stolen .who{filter:grayscale(.6);transition:transform .25s ease-in;}
 </style>
 <link rel="stylesheet" href="polish.css?v=storybook-20261026">
 </head>
@@ -54,11 +61,14 @@ body{background:#BFD9A6;touch-action:none;}
 <div class="timebar" id="tbar"><i id="tfill"></i></div>
 <script src="sound.js?v=tower-20261029"></script>
 <script src="game.js?v=tower-20261029"></script>
+<script src="vs.js?v=vs-20261031"></script>
 <script>
 // 美術：之後換成畫好的圖，只要改這裡的檔名
 var A='../assets/games/whack/',ART={hb:A+'hole-back.svg',hf:A+'hole-front.svg',mole:A+'mole.svg',hit:A+'mole-hit.svg',gold:A+'mole-gold.svg',hog:A+'hedgehog.svg',hammer:A+'hammer.svg'};
 var TIME=30,KINDS={mole:{pts:1,img:ART.mole},gold:{pts:3,img:ART.gold},hog:{pts:-2,img:ART.hog}};
-var holes=[],score=0,left=TIME,running=false,next=0,raf=0,last=0,combo=0;
+var holes=[],score=0,left=TIME,running=false,next=0,raf=0,last=0,combo=0,hitN=0,raw=0;
+// 連線對戰：整局的田鼠先用同一個種子排好（plan），兩支手機冒一樣的；vs＝這局對戰
+var vs=null,plan=[],pi=0;
 var CHEER=['好棒！','再一隻！','敲得好！','加油～'],OUCH=['小心刺蝟！','好痛！','那是刺蝟啦'];
 // 星星：50 分三顆、30 分兩顆，玩完至少一顆
 function stars(s){return s>=50?3:s>=30?2:1;}
@@ -81,14 +91,18 @@ function cheer(k,text,ms){
   var s=fan.querySelector('.g-say');s.textContent=text;s.classList.add('on');
   clearTimeout(fan._t);fan._t=setTimeout(function(){s.classList.remove('on');fan.querySelector('img').src=G.petImg(k,'idle');},ms||900);
 }
-function pop(o,kind,ms){o.el.setAttribute('aria-label',kind==='hog'?'刺蝟，請避開':kind==='gold'?'金色田鼠，加三分':'田鼠，加一分');o.kind=kind;o.hit=false;o.img.src=KINDS[kind].img;o.until=performance.now()+ms;o.el.classList.remove('hit');o.el.classList.add('up');SND.sfx('pop');}
+function pop(o,kind,ms){o.img.style.filter='';o.el.classList.remove('stolen');o.el.setAttribute('aria-label',kind==='hog'?'刺蝟，請避開':kind==='gold'?'金色田鼠，加三分':'田鼠，加一分');o.kind=kind;o.hit=false;o.img.src=KINDS[kind].img;o.until=performance.now()+ms;o.el.classList.remove('hit');o.el.classList.add('up');SND.sfx('pop');}
 function down(o){o.el.classList.remove('up');o.el.setAttribute('aria-label','等待田鼠出現');o.kind='';}
 function whack(o,e){
   if(!running)return;
   if(!e.clientX&&!e.clientY){var box=o.el.getBoundingClientRect();e={clientX:box.left+box.width/2,clientY:box.top+box.height/2};}
   var hm=G.el('<img class="hammer" src="'+ART.hammer+'" alt="">');hm.style.left=e.clientX+'px';hm.style.top=e.clientY+'px';document.body.appendChild(hm);setTimeout(function(){hm.remove();},240);
+  // 被泥巴蓋住：這一下先把泥巴擦掉
+  if(o.mud){unmud(o);SND.sfx('swish');return;}
   if(!o.kind||o.hit){SND.sfx('swish');if(!o.kind)setCombo(0);return;}
-  var k=KINDS[o.kind];o.hit=true;o.el.setAttribute('aria-label','已敲中');score=Math.max(0,score+k.pts);
+  var k=KINDS[o.kind];o.hit=true;o.el.setAttribute('aria-label','已敲中');score=Math.max(0,score+k.pts);raw=Math.max(0,raw+k.pts);
+  // 對戰：記下哪一隻、第幾毫秒敲到的（兩個人都敲到同一隻，算比較快的那個）
+  if(o.kind!=='hog'){hitN++;if(vs&&o.id!=null){var tm=Math.round(VS.time()*1000);vs.mine[o.id]={t:tm,p:k.pts};vs.h.push([o.id,tm]);VS.push(cur());}}
   var r=o.el.getBoundingClientRect();
   if(o.kind==='hog'){
     SND.sfx('ouch');setCombo(0);o.el.classList.add('shake');setTimeout(function(){o.el.classList.remove('shake');},300);
@@ -98,7 +112,9 @@ function whack(o,e){
     SND.sfx(o.kind==='gold'?'gold':'bonk');o.img.src=ART.hit;if(o.kind==='gold')o.img.style.filter='sepia(1) saturate(3) hue-rotate(5deg)';
     G.float(r.left+r.width/2,r.top+r.height*.3,'+'+k.pts,o.kind==='gold'?'gold':'');
     setCombo(combo+1);
-    if(combo%5===0){score+=2;SND.sfx('treasure');setTimeout(function(){G.float(r.left+r.width/2,r.top-10,combo+' 連擊 +2','gold');},180);}
+    if(combo%5===0){score+=2;raw+=2;SND.sfx('treasure');setTimeout(function(){G.float(r.left+r.width/2,r.top-10,combo+' 連擊 +2','gold');},180);}
+    // 對戰：敲到金色田鼠、每 10 連擊，丟泥巴給對方
+    if(vs&&(o.kind==='gold'||combo%10===0)){vs.a++;VS.push(cur());setTimeout(function(){G.float(r.left+r.width/2,r.top-50,'泥巴丟給'+VS.opName()+'！','gold');},300);}
     if(o.kind==='gold'||Math.random()<.35)cheer(['cat','pg','dg'][Math.floor(Math.random()*3)],o.kind==='gold'?'金色的！':CHEER[Math.floor(Math.random()*CHEER.length)]);
   }
   o.el.classList.add('hit');o.until=performance.now()+260;
@@ -115,9 +131,16 @@ var lastSec=0;
 function tick(t){
   var dt=Math.min(.1,(t-last)/1000);last=t;
   if(running){
-    left-=dt;
+    if(vs){
+      // 對戰：時間照伺服器算，照排好的順序冒；對方先敲走的就不冒了
+      var el=VS.time();left=TIME-el;
+      while(pi<plan.length&&plan[pi].at<=el){var q=plan[pi++],o=holes[q.h];if(q.gone)continue;if(o.kind)down(o);pop(o,q.k,Math.max(120,(q.at+q.st-el)*1000));o.id=q.id;}
+      holes.forEach(function(o){if(o.mud&&t>=o.mud)unmud(o);});
+      var r=VS.frame(cur());if(r){left=Math.min(left,0);}
+    }
+    else left-=dt;
     var p=1-left/TIME,gap=820-440*p,stay=1000-450*p,hogP=.18+.14*p;
-    if(t>=next){
+    if(!vs&&t>=next){
       for(var n=p>.45&&Math.random()<.35?2:1;n>0;n--){
         var free=holes.filter(function(o){return !o.kind;});
         if(free.length){var o=free[Math.floor(Math.random()*free.length)],r=Math.random();pop(o,r<.07?'gold':r<.07+hogP?'hog':'mole',stay*(r<.07?.72:1));}
@@ -134,17 +157,69 @@ function tick(t){
   raf=requestAnimationFrame(tick);
 }
 function start(){
-  score=0;left=TIME;running=true;setCombo(0);document.getElementById('score').textContent='0 分';
-  holes.forEach(down);last=performance.now();next=last+400;cancelAnimationFrame(raf);raf=requestAnimationFrame(tick);
+  score=0;hitN=0;raw=0;left=TIME;running=true;setCombo(0);document.getElementById('score').textContent='0 分';
+  holes.forEach(function(o){down(o);unmud(o);o.id=null;});
+  if(vs){plan=makePlan(vs.seed);pi=0;}
+  last=performance.now();next=last+400;cancelAnimationFrame(raf);raf=requestAnimationFrame(tick);
 }
 function end(){
-  running=false;holes.forEach(down);
+  running=false;holes.forEach(function(o){down(o);unmud(o);});
   var st=stars(score);['cat','pg','dg'].forEach(function(k){cheer(k,st>=3?'太強了！':'辛苦了～',1600);});
-  setTimeout(function(){G.finish({game:'whack',score:score,unit:'分',stars:st,note:'每 5 連擊多 2 分；50 分三顆星、30 分兩顆星',again:function(){G.countdown(start);}});},700);
+  if(vs){VS.finish(cur(),'時間到！');return;}
+  setTimeout(function(){G.finish({game:'whack',score:score,unit:'分',stars:st,note:'每 5 連擊多 2 分；50 分三顆星、30 分兩顆星',mount:VS.mount,again:function(){G.countdown(start);}});},700);
 }
+/* ── 連線對戰：同一批田鼠，誰先敲到算誰的（對方那邊會縮下去）；金色田鼠、每 10 連擊丟泥巴給對方 ── */
+// 整局的田鼠：什麼時候、哪個洞、冒什麼、待多久（跟一個人玩的節奏一樣，用種子排好）
+function makePlan(seed){
+  var R=VS.seeded(seed),list=[],busy=[0,0,0,0,0,0,0,0,0],tm=.4;
+  while(tm<TIME){
+    var p=tm/TIME,gap=.82-.44*p,stay=1-.45*p,hogP=.18+.14*p;
+    for(var n=p>.45&&R()<.35?2:1;n>0;n--){
+      var free=[];for(var i=0;i<9;i++)if(busy[i]<=tm)free.push(i);
+      if(!free.length)continue;
+      var h=free[Math.floor(R()*free.length)],r=R(),k=r<.07?'gold':r<.07+hogP?'hog':'mole',st=stay*(r<.07?.72:1);
+      busy[h]=tm+st+.12;list.push({id:list.length,at:tm,h:h,k:k,st:st});
+    }
+    tm+=gap*(.7+R()*.6);
+  }
+  return list;
+}
+// 送給對方：m＝分數、sb＝敲到幾隻（同分比這個）、r／hn＝還沒扣掉「對方比較快」的分數和隻數、h＝敲到哪幾隻和時間、a＝丟過幾次泥巴
+function cur(){return {m:score,sb:hitN,r:raw,hn:vs.h.length,h:vs.h,a:vs.a};}
+// 最後對齊：兩邊都敲到的那隻算比較快的人；兩支手機用一樣的資料算，結果一定一樣
+function settle(M){
+  var d=M.last||{},mine={},their={},ml=0,mn=0,ol=0,on=0;
+  vs.h.forEach(function(x){mine[x[0]]=x[1];});(d.h||[]).forEach(function(x){their[x[0]]=x[1];});
+  Object.keys(mine).forEach(function(id){if(their[id]==null||!plan[id])return;var p=KINDS[plan[id].k].pts;if(their[id]<mine[id]){ml+=p;mn++;}else if(mine[id]<their[id]){ol+=p;on++;}});
+  M.myM=score=Math.max(0,raw-ml);M.myS=vs.h.length-mn;M.opM=Math.max(0,(+d.r||0)-ol);M.opS=(+d.hn||0)-on;
+  document.getElementById('score').textContent=score+' 分';
+}
+function mud(o){if(o.mud)return;o.mud=performance.now()+3000;var m=document.createElement('div');m.className='mud';o.el.appendChild(m);}
+function unmud(o){o.mud=0;var m=o.el.querySelector('.mud');if(m)m.remove();}
+VS.setup({game:'whack',time:TIME,icon:'cat',clock:false,
+  rules:['同一批田鼠、同時開始，'+TIME+' 秒比分數','誰先敲到算誰的，對方那邊的田鼠會縮下去','敲到金色田鼠、每 10 連擊，會丟泥巴蓋住對方 3 個洞（點一下擦掉）'],
+  begin:function(M){vs=M;document.body.classList.add('vs');M.h=[];M.mine={};M.a=0;M.ra=0;M.got={};running=false;holes.forEach(function(o){down(o);unmud(o);});document.getElementById('score').textContent='0 分';setCombo(0);},
+  start:function(){start();},
+  live:function(d,M){
+    // 對方敲走的：還沒冒的就不冒，正在冒的縮下去；我也敲到了但對方比較快，我的分數扣回來
+    (d.h||[]).forEach(function(x){
+      var id=x[0],to=x[1];if(M.got[id]!=null)return;M.got[id]=to;var q=plan[id];if(!q)return;q.gone=1;
+      var o=holes[q.h],m=M.mine[id];
+      if(m){if(to<m.t){score=Math.max(0,score-m.p);hitN--;document.getElementById('score').textContent=score+' 分';var b=o.el.getBoundingClientRect();G.float(b.left+b.width/2,b.top,VS.opName()+'比較快 −'+m.p,'bad');}return;}
+      if(running&&o.id===id&&o.kind&&!o.hit){o.hit=true;o.el.classList.add('stolen');var r=o.el.getBoundingClientRect();G.float(r.left+r.width/2,r.top+r.height*.3,VS.opName()+'搶走了','bad');o.until=performance.now()+200;setTimeout(function(){o.el.classList.remove('stolen');},400);}
+    });
+    // 對方丟來的泥巴：隨便蓋住 3 個洞
+    while(M.ra<(+d.a||0)){M.ra++;if(!running)continue;var free=holes.filter(function(o){return !o.mud;});for(var i=0;i<3&&free.length;i++)mud(free.splice(Math.floor(Math.random()*free.length),1)[0]);SND.sfx('plop');cheer('pg',VS.opName()+'丟泥巴過來了！',1200);if(navigator.vibrate)navigator.vibrate(60);}
+  },
+  settle:settle,
+  bar:function(M){return M.opM+' 分';},
+  fmt:function(m){return m+' 分';},
+  solo:function(){vs=null;document.body.classList.remove('vs');G.countdown(start);}
+});
 build();
 G.preload(Object.keys(ART).map(function(k){return ART[k];}),function(){
-  G.intro({game:'whack',title:'菜園打地鼠',desc:'小田鼠偷抱飼料冒出來了！<br>敲田鼠 +1、金色田鼠 +3，連續敲中 5 隻再 +2<br>刺蝟會刺人，敲到 −2；敲空或讓田鼠溜走，連擊就斷了',start:start});
+  G.intro({game:'whack',title:'菜園打地鼠',desc:'小田鼠偷抱飼料冒出來了！<br>敲田鼠 +1、金色田鼠 +3，連續敲中 5 隻再 +2<br>刺蝟會刺人，敲到 −2；敲空或讓田鼠溜走，連擊就斷了',mount:VS.mount,start:start});
+  VS.auto();
 });
 // 切到背景就暫停（requestAnimationFrame 停下來，時間不會一直少）
 document.addEventListener('visibilitychange',function(){last=performance.now();});

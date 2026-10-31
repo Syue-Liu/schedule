@@ -1277,6 +1277,7 @@ function startListener(code){
   startVsListener(code);
 }
 /* ── 連線對戰邀請：另一半在小遊戲的對戰房間等（banbiao/<代碼>_vs），上面跳出「加入」 ── */
+const VS_GAMES={climb:'爬樓梯',whack:'打地鼠',fish:'釣魚',tower:'蓋房子'};
 let unsubVs=null,vsRoom={},vsSeen={},vsHide='';
 function startVsListener(code){
   if(unsubVs){unsubVs();unsubVs=null;}
@@ -1284,19 +1285,18 @@ function startVsListener(code){
   unsubVs=onSnapshot(doc(db,'banbiao',code+'_vs'),function(snap){
     vsRoom=snap.exists()?snap.data():{};
     // 對方在房間裡每 8 秒報到一次：用「這支手機收到的時間」判斷還在不在（兩支手機時鐘不準也沒關係）
-    var r=vsRoom.climb||{};
-    ['syue','ling'].forEach(function(u){var o=r[u],k=o?String(o.at):'';if(o&&o.on&&vsSeen[u]!==k){vsSeen[u]=k;vsSeen[u+'T']=Date.now();}});
+    Object.keys(VS_GAMES).forEach(function(g){var r=vsRoom[g]||{};['syue','ling'].forEach(function(u){var o=r[u],k=o?String(o.at):'',id=g+u;if(o&&o.on&&vsSeen[id]!==k){vsSeen[id]=k;vsSeen[id+'T']=Date.now();}});});
     vsPaint();
   },function(e){console.warn('vs listener',e);});
 }
 function vsPaint(){
-  var me=petWho(),op=me==='syue'?'ling':me==='ling'?'syue':'',o=op?(vsRoom.climb||{})[op]:null,at=o?+o.at||0:0;
-  var here=!!(o&&o.on&&Date.now()-(vsSeen[op+'T']||0)<25000&&Math.abs(Date.now()-at)<180000&&vsHide!==o.sid);
+  var me=petWho(),op=me==='syue'?'ling':me==='ling'?'syue':'',game='',o=null;
+  if(op)Object.keys(VS_GAMES).some(function(g){var x=(vsRoom[g]||{})[op],at=x?+x.at||0:0;if(x&&x.on&&Date.now()-(vsSeen[g+op+'T']||0)<25000&&Math.abs(Date.now()-at)<180000&&vsHide!==x.sid){game=g;o=x;return true;}return false;});
   var el=document.getElementById('vsPill');
-  if(!here){if(el)el.remove();return;}
+  if(!game){if(el)el.remove();return;}
   if(!el){el=document.createElement('div');el.id='vsPill';el.className='vs-pill';document.body.appendChild(el);}
-  el.innerHTML='<button class="vs-go">💌 '+USERS[op].label+' 在爬樓梯等你對戰！加入 →</button><button class="vs-x" aria-label="關閉">✕</button>';
-  el.querySelector('.vs-go').onclick=function(){location.href='games/climb.html?vs=1';};
+  el.innerHTML='<button class="vs-go">💌 '+USERS[op].label+' 在'+VS_GAMES[game]+'等你對戰！加入 →</button><button class="vs-x" aria-label="關閉">✕</button>';
+  el.querySelector('.vs-go').onclick=function(){location.href='games/'+game+'.html?vs=1';};
   el.querySelector('.vs-x').onclick=function(){vsHide=o.sid;el.remove();};
 }
 setInterval(function(){if(unsubVs)vsPaint();},5000);

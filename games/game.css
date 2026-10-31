@@ -78,3 +78,28 @@ img{-webkit-user-drag:none;user-select:none;}
 .g-board .g-d{font-size:12px;color:var(--t3);}
 .g-board b{font-weight:400;font-size:16px;}
 .g-empty{padding:18px 10px;font-size:14px;color:var(--t3);text-align:center;}
+/* 連線對戰（vs.js）：開始卡片的按鈕和邀請、房間、上面那排對手狀態、結果 */
+.vsbar{position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top) + 102px);z-index:21;display:flex;justify-content:center;gap:6px;pointer-events:none;}
+.vsbar[hidden]{display:none;}
+.vsbar b.clk{background:var(--paper);}
+.vsbar b{font-weight:400;font-size:13px;padding:2px 12px;border:var(--lw2) solid var(--ink);border-radius:999px;background:#FDEEEA;}
+.vsbar b.syue{background:#EEF6E8;}
+.vsbar b.lead{background:var(--yellow);}
+.g-result-actions [data-vs]{grid-column:1/-1;}
+.vs-inv{display:block;width:100%;margin:0 0 12px;padding:9px 10px;border:2px solid #665347;border-radius:14px;background:linear-gradient(#FFE3DA,#F7B9A9);font-size:14px;color:#5A3A30;box-shadow:0 3px 0 #B5765F;animation:vsHot 1s ease-in-out infinite alternate;}
+.vs-inv[hidden]{display:none;}
+.g-btn.hot{background:linear-gradient(#FFD9CF,#F2A497);animation:vsHot 1s ease-in-out infinite alternate;}
+@keyframes vsHot{to{transform:scale(1.03);}}
+.vs-row{display:flex;align-items:center;justify-content:center;gap:10px;margin:6px 0 10px;}
+.vs-slot{position:relative;display:flex;flex-direction:column;align-items:center;width:112px;padding:8px 6px;border:var(--lw2) solid var(--ink);border-radius:18px;background:var(--paper);font-size:13px;}
+.vs-slot.syue{background:#EEF6E8;}.vs-slot.ling{background:#FDEEEA;}
+.vs-slot img{width:72px;height:60px;object-fit:contain;}
+.vs-slot b{font-weight:400;font-size:16px;}
+.vs-slot span{font-size:12px;color:var(--t2);}
+.vs-slot.away{border-style:dashed;background:var(--paper2);}
+.vs-slot.away img{filter:grayscale(1);opacity:.45;}
+.vs-slot .crown{position:absolute;top:-18px;font-size:24px;}
+.vs-x{font-size:20px;color:var(--t2);}
+.vs-tally{display:inline-block;margin-top:6px;padding:3px 12px;border:1.5px solid var(--ink);border-radius:999px;background:var(--yellow);font-size:13px;}
+.vs-warn{margin-top:8px;padding:6px 10px;border:1.5px dashed var(--coral);border-radius:12px;font-size:12px;color:#B5533A;}
+.g-card .g-rules.vs-rules{text-align:left;}

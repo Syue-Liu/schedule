@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Huninn&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="game.css">
+<link rel="stylesheet" href="game.css?v=vs-20261031">
 <style>
 body{min-height:100%;background:var(--paper);}
 .lb{max-width:520px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 76px) 14px calc(env(safe-area-inset-bottom) + 28px);}
@@ -71,17 +71,17 @@ body{min-height:100%;background:var(--paper);}
   <a class="lb-inv" id="lbInv" href="climb.html?vs=1" hidden></a>
   <div class="lb-h"><span>冒險地點 <small id="lbCap" style="font-size:12px;color:var(--t3)"></small></span><button class="lb-rankbtn" id="lbRank">🏆 排行榜</button></div>
   <div class="lb-list" id="lbList"></div>
-  <div class="lb-note">所有遊戲合計，每天最多拿 3 包飼料（每局看星星給 1～3 包）<br>拿到的飼料回到班表就會放進你的背包</div>
+  <div class="lb-note">每個遊戲都可以和另一半用手機連線對戰（開始卡片下面的「📱 連線對戰」）<br>所有遊戲合計，每天最多拿 3 包飼料（每局看星星給 1～3 包）<br>拿到的飼料回到班表就會放進你的背包</div>
 </div>
 <script src="sound.js?v=tower-20261029"></script>
 <script src="game.js?v=tower-20261029"></script>
-<script src="vs.js?v=vs-20261030"></script>
+<script src="vs.js?v=vs-20261031"></script>
 <script>
 // 冒險地點：有 href 的就是可以玩的
 var GAMES=[
   {id:'whack',name:'菜園打地鼠',s:'打地鼠',desc:'偷吃飼料的小田鼠冒出來了，快敲牠！',ic:'🔨',c:'#E7F2DF',href:'whack.html'},
   {id:'fish',name:'湖邊釣魚',s:'釣魚',desc:'雪球下鉤、大家等火鍋，肚子餓扁之前釣越多越好',ic:'🎣',c:'#E4F2F8',href:'fish.html'},
-  {id:'climb',name:'三寵爬樓梯',s:'爬樓梯',desc:'寵物一直走，看準時機跳上樓梯，按久一點跳更高；也能兩支手機連線對戰',ic:'🪜',c:'#E4F2F8',href:'climb.html'},
+  {id:'climb',name:'三寵爬樓梯',s:'爬樓梯',desc:'寵物一直走，看準時機跳上樓梯，按久一點跳更高',ic:'🪜',c:'#E4F2F8',href:'climb.html'},
   {id:'tower',name:'疊疊樂蓋房子',s:'蓋房子',desc:'怪手放房子，從地面一路蓋到天空、月球、火星',ic:'🏗️',c:'#E4F2F8',href:'tower.html'}
 ];
 function draw(){
@@ -117,10 +117,13 @@ function openRank(){
   ov.onclick=function(e){if(e.target===ov)ov.remove();};
 }
 document.getElementById('lbRank').onclick=function(){SND.sfx('tap');openRank();};
-// 連線對戰：另一半在爬樓梯的對戰房間等，上面跳出邀請（每 5 秒再看一次，對方走了就收起來）
+// 連線對戰：另一半在哪個遊戲的對戰房間等，上面跳出邀請（每 5 秒再看一次，對方走了就收起來）
 var vsRoom={};
-function vsPaint(){var op=VS.other(),here=VS.can()&&VS.present(vsRoom[op]),el=document.getElementById('lbInv');el.hidden=!here;if(here)el.textContent='💌 '+G.NAMES[op]+' 在爬樓梯等你連線對戰！點這裡加入 →';}
-if(VS.can())VS.connect().then(function(){VS.watch('climb',function(r){vsRoom=r||{};vsPaint();});setInterval(vsPaint,5000);}).catch(function(e){console.warn('vs',e);});
+function vsPaint(){
+  var op=VS.other(),el=document.getElementById('lbInv'),g=VS.can()?VS.ORDER.filter(function(k){return VS.present((vsRoom[k]||{})[op]);})[0]:null;
+  el.hidden=!g;if(g){el.textContent='💌 '+G.NAMES[op]+' 在'+VS.NAMES[g]+'等你連線對戰！點這裡加入 →';el.href=g+'.html?vs=1';}
+}
+if(VS.can())VS.connect().then(function(){VS.watchAll(function(r){vsRoom=r||{};vsPaint();});setInterval(vsPaint,5000);}).catch(function(e){console.warn('vs',e);});
 // 大廳的主題曲（第一次點畫面才會開始）
 SND.music('lobby');
 draw();

@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Huninn&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="game.css">
+<link rel="stylesheet" href="game.css?v=vs-20261031">
 <style>
 html,body{overflow:hidden;}
 body{background:#CFE6F2;touch-action:none;}
@@ -76,29 +76,7 @@ body{background:#CFE6F2;touch-action:none;}
 .rival.l img{transform:scaleX(-1);}
 .rival .tag{position:absolute;left:50%;top:-50px;transform:translateX(-50%);padding:2px 16px;border:4px solid #594C43;border-radius:999px;background:#FDEEEA;font-size:28px;white-space:nowrap;}
 .rival.syue .tag{background:#EEF6E8;}
-.vsbar{position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top) + 102px);z-index:21;display:flex;justify-content:center;pointer-events:none;}
-.vsbar b{font-weight:400;font-size:13px;padding:2px 12px;border:var(--lw2) solid var(--ink);border-radius:999px;background:#FDEEEA;}
-.vsbar b.syue{background:#EEF6E8;}
-.vsbar b.lead{background:var(--yellow);}
 .vs .warn{top:calc(env(safe-area-inset-top) + 138px);}
-.g-result-actions [data-vs]{grid-column:1/-1;}
-.vs-inv{display:block;width:100%;margin:0 0 12px;padding:9px 10px;border:2px solid #665347;border-radius:14px;background:linear-gradient(#FFE3DA,#F7B9A9);font-size:14px;color:#5A3A30;box-shadow:0 3px 0 #B5765F;animation:vsHot 1s ease-in-out infinite alternate;}
-.vs-inv[hidden]{display:none;}
-.g-btn.hot{background:linear-gradient(#FFD9CF,#F2A497);animation:vsHot 1s ease-in-out infinite alternate;}
-@keyframes vsHot{to{transform:scale(1.03);}}
-.vs-row{display:flex;align-items:center;justify-content:center;gap:10px;margin:6px 0 10px;}
-.vs-slot{position:relative;display:flex;flex-direction:column;align-items:center;width:112px;padding:8px 6px;border:var(--lw2) solid var(--ink);border-radius:18px;background:var(--paper);font-size:13px;}
-.vs-slot.syue{background:#EEF6E8;}.vs-slot.ling{background:#FDEEEA;}
-.vs-slot img{width:72px;height:60px;object-fit:contain;}
-.vs-slot b{font-weight:400;font-size:16px;}
-.vs-slot span{font-size:12px;color:var(--t2);}
-.vs-slot.away{border-style:dashed;background:var(--paper2);}
-.vs-slot.away img{filter:grayscale(1);opacity:.45;}
-.vs-slot .crown{position:absolute;top:-18px;font-size:24px;}
-.vs-x{font-size:20px;color:var(--t2);}
-.vs-tally{display:inline-block;margin-top:6px;padding:3px 12px;border:1.5px solid var(--ink);border-radius:999px;background:var(--yellow);font-size:13px;}
-.vs-warn{margin-top:8px;padding:6px 10px;border:1.5px dashed var(--coral);border-radius:12px;font-size:12px;color:#B5533A;}
-.g-card .g-rules.vs-rules{text-align:left;}
 </style>
 <link rel="stylesheet" href="polish.css?v=snowlake-20261026">
 </head>
@@ -108,12 +86,11 @@ body{background:#CFE6F2;touch-action:none;}
 <div class="world" id="world"><div id="clouds"></div><div id="objs"></div></div>
 <div class="tap" id="tap"></div>
 <div class="g-bar"><button class="g-back" onclick="location.href='./'">‹ 大廳</button><div class="g-title">三寵爬樓梯</div><div class="g-pill hot" id="score">0 分</div></div>
-<div class="hud"><b id="hearts">❤️❤️❤️</b><b id="clock" hidden>⏱ 90</b><b id="floor">🪜 0 樓</b></div>
-<div class="vsbar" id="vsbar" hidden></div>
+<div class="hud"><b id="hearts">❤️❤️❤️</b><b id="floor">🪜 0 樓</b></div>
 <div class="tip" id="tip">點一下跳、按久一點跳更高</div>
 <script src="sound.js?v=tower-20261029"></script>
 <script src="game.js?v=tower-20261029"></script>
-<script src="vs.js?v=vs-20261030"></script>
+<script src="vs.js?v=vs-20261031"></script>
 <script>
 // 美術：之後換成畫好的圖，只要改這裡的檔名（台階本身是畫出來的色塊，尖刺台階用圖）
 var A='../assets/games/climb/',ART={spike:A+'step-spike.svg',spring:A+'spring.svg',ball:A+'snowball.svg',kib:'../assets/games/ui/kib.svg',fish:'../assets/games/ui/fish.svg'};
@@ -124,11 +101,10 @@ var POSE={cat:{walk:['walk-a','walk-b'],crouch:'eat',up:'pounce',down:'idle'},pg
 var $=function(id){return document.getElementById(id);};
 var who=ORDER.indexOf(localStorage.getItem('climbPet'))>=0?localStorage.getItem('climbPet'):'cat';
 var state='idle',s=1,viewH=1900,camY=-1500,px=455,py=-PH,vy=0,face=1,on=null,coyote=0,hold=0,holding=false,buf=0,bufV=0,hearts=HEARTS,inv=0,score=0,best=0,kibs=0,fishes=0,topY=0,steps=[],items=[],balls=[],ballAt=0,raf=0,last=0,mile=0,pose='',walkT=0,t=0,jumped=false,drop=null,dropT=0;
-// 連線對戰：限時幾秒、多久送一次位置、對方的影子晚多久畫（等資料到）、踩到對方彈多高
-var VS_T=90,SEND=300,LAG=.45,STOMP=1700,vs=null;
+// 連線對戰：限時幾秒、對方的影子晚多久畫（等資料到）、踩到對方彈多高
+var VS_T=90,LAG=.45,STOMP=1700,vs=null;
 // 關卡用的亂數：對戰時兩支手機用同一個種子，樓梯一模一樣
 var R=Math.random;
-function seeded(a){return function(){a|=0;a=a+0x6D2B79F5|0;var k=Math.imul(a^a>>>15,1|a);k=k+Math.imul(k^k>>>7,61|k)^k;return((k^k>>>14)>>>0)/4294967296;};}
 function lr(a,b){return a+R()*(b-a);}
 // 星星：150 分三顆、70 分兩顆
 function stars(n){return n>=150?3:n>=70?2:1;}
@@ -223,7 +199,7 @@ function tick(now){
   var dt=Math.max(0,Math.min(.04,(now-last)/1000));last=now;
   if(state==='play'){
     // 對戰：時間照伺服器算，兩支手機一樣
-    if(vs)t=(VS.now()-vs.at)/1000;else t+=dt;
+    if(vs)t=VS.time();else t+=dt;
     if(dropT>0){dropT-=dt;if(dropT<=0)drop=null;}
     if(holding)hold+=dt;
     // 一直往前走；碰到畫面邊邊就轉頭
@@ -308,9 +284,9 @@ function draw(dy){
 }
 function start(){
   // 對戰：學從左邊、綾從右邊出發，樓梯用同一個種子
-  R=vs?seeded(vs.seed):Math.random;var me=vs?VS.me():'';
-  camY=-(viewH-560);px=vs?(me==='syue'?250:660):455;py=-PH;vy=0;face=me==='ling'?-1:1;on=ground;coyote=0;hold=0;holding=false;buf=0;hearts=HEARTS;inv=0;score=0;best=0;kibs=0;fishes=0;mile=0;topY=0;ballAt=0;t=vs?(VS.now()-vs.at)/1000:0;jumped=false;drop=null;dropT=0;
-  document.body.classList.toggle('vs',!!vs);$('clock').hidden=$('vsbar').hidden=!vs;
+  R=vs?VS.seeded(vs.seed):Math.random;var me=vs?VS.me():'';
+  camY=-(viewH-560);px=vs?(me==='syue'?250:660):455;py=-PH;vy=0;face=me==='ling'?-1:1;on=ground;coyote=0;hold=0;holding=false;buf=0;hearts=HEARTS;inv=0;score=0;best=0;kibs=0;fishes=0;mile=0;topY=0;ballAt=0;t=vs?VS.time():0;jumped=false;drop=null;dropT=0;
+  document.body.classList.toggle('vs',!!vs);
   build();heartsTxt();makeClouds();
   gen();state='play';tip(vs?'踩'+G.NAMES[vs.op]+'的頭會彈起來；吃到魚會丟雪球':'點一下跳、按久一點跳更高');
   fans.forEach(function(f,i){setTimeout(function(){f.classList.add('cheer');say(f,i?'加油～':'衝啊！',1400);},300+i*300);});
@@ -319,7 +295,7 @@ function start(){
 function end(why){
   if(state!=='play')return;state='done';holding=false;$('charge').classList.remove('on');
   var f=Math.floor(best/FLOOR);tip(why+'爬到 '+f+' 樓');
-  if(vs){vs.done=1;vs.why=why;vsSend(1);setTimeout(vsAfter,900);return;}
+  if(vs){VS.finish(cur(),why);return;}
   setTimeout(function(){G.finish({game:'climb',extra:chooser(),mount:mountAll,score:score,unit:'分',stars:stars(score),note:'爬到 '+f+' 樓（每樓 +1）、飼料 ×'+kibs+'（+5）、魚 ×'+fishes+'（+15）<br>150 分三顆星、70 分兩顆星',again:function(){G.countdown(start);}});},900);
 }
 // 操作：點畫面任何地方跳，按住集氣；鍵盤空白鍵／上鍵也可以
@@ -330,119 +306,47 @@ addEventListener('keydown',function(e){if((e.code==='Space'||e.key==='ArrowUp')&
 addEventListener('keyup',function(e){if(e.code==='Space'||e.key==='ArrowUp')pressEnd();});
 // 換誰去爬：開始卡片和結算卡片上選
 function chooser(){return '<div class="who-h">誰要去爬？</div><div class="who">'+ORDER.map(function(k){return '<button type="button" data-who="'+k+'"'+(k===who?' class="on"':'')+'><img src="'+G.petImg(k,'happy')+'" alt="">'+G.escapeHtml(G.petName(k))+'</button>';}).join('')+'</div>';}
-function mountChooser(ov){ov.querySelectorAll('[data-who]').forEach(function(b){b.onclick=function(){who=b.getAttribute('data-who');try{localStorage.setItem('climbPet',who);}catch(_){}ov.querySelectorAll('[data-who]').forEach(function(x){x.classList.toggle('on',x===b);});SND.sfx('tap');if(state!=='play'){build();draw();}if(inRoom){VS.hello('climb',true,who).catch(function(){});paintRoom();}};});}
-function mountAll(ov){mountChooser(ov);mountVs(ov);}
+function mountChooser(ov){ov.querySelectorAll('[data-who]').forEach(function(b){b.onclick=function(){who=b.getAttribute('data-who');try{localStorage.setItem('climbPet',who);}catch(_){}ov.querySelectorAll('[data-who]').forEach(function(x){x.classList.toggle('on',x===b);});SND.sfx('tap');if(state!=='play'){build();draw();}VS.changed();};});}
+function mountAll(ov){mountChooser(ov);VS.mount(ov);}
 camY=-(viewH-560);build();makeClouds();heartsTxt();draw();
 G.preload(Object.keys(ART).map(function(k){return ART[k];}),function(){
   G.intro({game:'climb',extra:chooser(),mount:mountAll,title:'三寵爬樓梯',desc:'寵物會在台階上一直來回走，走到邊邊會自己轉頭<br>點一下跳上一階；按久一點集氣，可以跳兩三階<br>彈簧跳超高；雪階站一下就塌；尖刺會扣愛心<br>畫面會慢慢往上捲，掉出畫面會扣一顆愛心，愛心用完就結束<br>高處會掉雪球（上面先亮驚嘆號）',start:start});
-  if(/[?&]vs=1/.test(location.search))openRoom();
+  VS.auto();
 });
 document.addEventListener('visibilitychange',function(){last=performance.now();});
 /* ── 連線對戰：兩支手機同一座樓梯、同時出發；對方是半透明的影子 ──
-   房間（誰在等、開局、戰績）和位置都走 vs.js（班表的 Firebase）。學的手機負責開局。 */
-var room={},roomOff=null,inRoom=false,hb=0,goSeen='',going=0,barTxt='';
-function opName(){return G.NAMES[VS.other()]||'對方';}
+   房間、倒數、上面那排、結果和戰績在 vs.js；這裡是爬樓梯自己的：影子、踩頭、丟雪球 */
+function opName(){return VS.opName();}
 function fl(h){return Math.floor(h/FLOOR);}
 function cl(x){return Math.max(0,Math.min(1080-PW,x));}
-// 開始卡片、結算卡片多一顆「連線對戰」；對方在房間等的時候變成邀請
-function mountVs(ov){
-  var row=ov.querySelector('.g-btns');if(!row)return;
-  var b=document.createElement('button');b.type='button';b.className='g-btn ghost';b.setAttribute('data-vs','');row.appendChild(b);
-  b.onclick=function(){SND.sfx('tap');openRoom();};
-  // 對方在等的時候，卡片最上面多一條邀請（按鈕在下面要捲才看得到）
-  var body=ov.querySelector('.g-card-body'),inv=document.createElement('button');inv.type='button';inv.className='vs-inv';inv.setAttribute('data-vsinv','');inv.hidden=true;
-  if(body)body.insertBefore(inv,body.firstChild);else{var rb=ov.querySelector('.g-result-ribbon');if(rb)rb.after(inv);}
-  inv.onclick=b.onclick;
-  paintEntry();
-}
-function paintEntry(){
-  var wait=VS.can()&&VS.present(room[VS.other()]);
-  document.querySelectorAll('[data-vs]').forEach(function(b){b.textContent=wait?'💌 '+opName()+' 在等你！加入對戰':'📱 和'+(VS.can()?opName():'另一半')+'連線對戰';b.classList.toggle('hot',wait);});
-  document.querySelectorAll('[data-vsinv]').forEach(function(b){b.hidden=!wait;b.textContent='💌 '+opName()+' 在等你連線對戰！點這裡加入';});
-}
-function vsWatch(){
-  if(roomOff)return Promise.resolve();
-  return VS.connect().then(function(){if(!roomOff)roomOff=VS.watch('climb',onRoom);});
-}
-function onRoom(r){
-  room=r||{};paintEntry();
-  if(inRoom){paintRoom();maybeGo();}
-  var tl=document.getElementById('vsTally');if(tl)tl.textContent=tally();
-}
-function tally(){var w=room.win||{},a=+w.syue||0,b=+w.ling||0;return a||b?'戰績　學 '+a+' : '+b+' 綾':'還沒有對戰紀錄';}
-function slot(u,pet,here,txt,crown){return '<div class="vs-slot '+u+(here?'':' away')+'">'+(crown?'<span class="crown">👑</span>':'')+'<img src="'+G.petImg(pet||'cat','happy')+'" alt=""><b>'+G.NAMES[u]+'</b><span>'+txt+'</span></div>';}
-// 對戰房間：兩個人都進來（每 8 秒報到一次）就自動開始
-function openRoom(){
-  var old=document.querySelector('[data-room]');if(old)old.remove();
-  if(!VS.can()){
-    var info=G.el('<div class="g-ov" data-room><section class="g-card" role="dialog" aria-modal="true" aria-label="連線對戰"><h2>📱 連線對戰</h2><p>兩支手機要用同一個同步代碼，<br>而且各自選好你是誰（學／綾），才能連線對戰。<br>回班表的 ⚙️ 設定就能設定同步代碼。</p><div class="g-btns"><button class="g-btn ghost" data-cancel>知道了</button></div></section></div>');
-    document.body.appendChild(info);info.querySelector('[data-cancel]').onclick=function(){info.remove();};return;
-  }
-  var ov=G.el('<div class="g-ov" data-room><section class="g-card" role="dialog" aria-modal="true" aria-label="連線對戰"><h2>📱 連線對戰</h2><div id="vsRoom"><p>連線中…</p></div><div class="g-btns"><button class="g-btn ghost" data-cancel>取消</button></div></section></div>');
-  document.body.appendChild(ov);ov.querySelector('[data-cancel]').onclick=function(){SND.sfx('tap');leaveRoom();};
-  vsWatch().then(function(){
-    if(!document.body.contains(ov))return;
-    inRoom=true;VS.hello('climb',true,who).catch(roomErr);clearInterval(hb);hb=setInterval(function(){if(inRoom)VS.hello('climb',true,who).catch(roomErr);},8000);
-    paintRoom();maybeGo();
-  }).catch(roomErr);
-}
-function roomErr(e){console.warn('vs',e);var b=document.getElementById('vsRoom');if(b)b.innerHTML='<p>連不上，確認網路後再試一次</p>';}
-function leaveRoom(){inRoom=false;clearInterval(hb);if(roomOff)VS.hello('climb',false,who).catch(function(){});var ov=document.querySelector('[data-room]');if(ov)ov.remove();}
-function paintRoom(){
-  var box=document.getElementById('vsRoom');if(!box)return;
-  var me=VS.me(),op=VS.other(),o=room[op],here=VS.present(o);
-  box.innerHTML='<div class="vs-row">'+slot(me,who,true,'準備好了 ✓')+'<span class="vs-x">VS</span>'+slot(op,o&&o.pet,here,here?'準備好了 ✓':'還沒進來…')+'</div>'+
-    (VS.clash(room)?'<div class="vs-warn">另一支手機也是「'+G.NAMES[me]+'」！到班表的寵物狀態，把其中一支換成另一個人</div>':'')+
-    '<p>'+(here?'兩個人都到了，馬上開始！':'叫'+G.NAMES[op]+'也打開「爬樓梯」按「連線對戰」，<br>兩個人都進來就自動開始')+'</p>'+
-    '<ol class="g-rules vs-rules"><li>同一座樓梯、同時出發，限時 '+VS_T+' 秒，爬得比較高的贏</li><li>從上面踩到對方的頭會彈起來，對方被踩下去一階</li><li>吃到魚 🐟 會丟雪球給對方，被砸到也會掉下去一階</li><li>贏的人拿 1 包飼料（算在每天 3 包裡）</li></ol>'+
-    chooser()+'<div class="vs-tally" id="vsTally">'+tally()+'</div>';
-  mountChooser(box);
-}
-function maybeGo(){
-  if(!inRoom)return;
-  var g=room.go,T=VS.now(),me=VS.me();
-  if(g&&g.id!==goSeen&&g.p&&g.p[me]&&VS.ms(g.at)>T-3000&&VS.ms(g.at)<T+15000){goSeen=g.id;startVs(g);return;}
-  if(me==='syue'&&Date.now()-going>6000&&VS.present(room.syue)&&VS.present(room.ling)&&!VS.clash(room)){
-    going=Date.now();var p={syue:who,ling:room.ling.pet||'cat'};
-    VS.put('climb',{go:{id:Math.random().toString(36).slice(2,10),seed:Math.floor(Math.random()*4294967295),at:Math.round(VS.now()+4000),p:p}}).catch(roomErr);
-  }
-}
-function startVs(g){
-  inRoom=false;clearInterval(hb);VS.hello('climb',false,who).catch(function(){});
-  document.querySelectorAll('.g-ov').forEach(function(o){o.remove();});
-  if(vs&&vs.unsub)vs.unsub();
-  var me=VS.me(),op=VS.other();who=g.p[me]||who;
-  vs={id:g.id,seed:g.seed,at:VS.ms(g.at),op:op,opPet:POSE[g.p[op]]?g.p[op]:'cat',buf:[],gp:null,rx:0,sent:0,a:0,s:0,ra:0,rs:0,done:0,opDone:0,opB:0,opH:HEARTS,opSc:0,lost:0,stompT:0};
-  vs.rx=Date.now()+Math.max(0,vs.at-VS.now());
-  vs.unsub=VS.listen(op,onLive);
-  var P=POSE[vs.opPet];P.walk.concat([P.crouch,P.up,P.down]).forEach(function(k){new Image().src=G.petImg(vs.opPet,k);});
-  state='idle';camY=-(viewH-560);px=me==='syue'?250:660;py=-PH;face=me==='ling'?-1:1;t=0;build();setPose(POSE[who].walk[0]);draw();
-  SND.music('climb');vsCountdown(vs.at,start);
-}
-// 倒數照伺服器時間：兩支手機同一刻開始
-function vsCountdown(at,cb){
-  var c=G.el('<div class="g-count" aria-live="assertive"></div>'),n0=-1;document.body.appendChild(c);
-  (function loop(){
-    var r=at-VS.now();
-    if(r<=0){c.innerHTML='<span>開始！</span>';SND.sfx('go');setTimeout(function(){c.remove();},600);cb();return;}
-    var n=Math.ceil(r/1000);if(n!==n0){n0=n;c.innerHTML='<span'+(n>3?' style="font-size:52px"':'')+'>'+(n>3?'配對成功！':n)+'</span>';SND.sfx('tick');}
-    setTimeout(loop,40);
-  })();
-}
+// 送給對方的狀態：m＝樓層、sb＝分數；位置、速度、姿勢給對方畫影子；a、s＝丟過幾顆雪球、踩過幾次
+function cur(){return {m:fl(best),sb:score,t:Math.round(t*100)/100,x:Math.round(px),y:Math.round(py),vx:Math.round(face*WALK+(on&&on.vx?on.vx:0)),vy:on?0:Math.round(vy),o:on?1:0,f:face,p:pose,h:hearts,a:vs.a,s:vs.s};}
+VS.setup({game:'climb',time:VS_T,
+  rules:['同一座樓梯、同時出發，限時 '+VS_T+' 秒，爬得比較高的贏','從上面踩到對方的頭會彈起來，對方被踩下去一階','吃到魚 🐟 會丟雪球給對方，被砸到也會掉下去一階'],
+  pet:function(){return who;},extra:chooser,mountExtra:mountChooser,
+  // 開局：學從左邊、綾從右邊出發；先把對方的姿勢圖載好
+  begin:function(M){
+    vs=M;if(POSE[M.pet])who=M.pet;if(!POSE[M.opPet])M.opPet='cat';
+    M.buf=[];M.gp=null;M.a=0;M.s=0;M.ra=0;M.rs=0;M.stompT=0;M.opH=HEARTS;
+    var P=POSE[M.opPet];P.walk.concat([P.crouch,P.up,P.down]).forEach(function(k){new Image().src=G.petImg(M.opPet,k);});
+    var me=VS.me();state='idle';camY=-(viewH-560);px=me==='syue'?250:660;py=-PH;face=me==='ling'?-1:1;t=0;build();setPose(POSE[who].walk[0]);draw();
+  },
+  start:function(){start();},
+  live:onLive,
+  opDone:function(M){if(state==='play')tip(opName()+(M.lost?'斷線了':'停在 '+M.opM+' 樓')+'，超過就贏了！');},
+  bar:function(M){var hs='',g=M.gp;for(var i=0;i<HEARTS;i++)hs+=i<M.opH?'❤️':'🤍';return hs+' 🪜 '+M.opM+' 樓'+(g&&!M.opDone?(g.y+PH<camY?' ⬆️':g.y>camY+viewH?' ⬇️':''):'');},
+  fmt:function(m){return m+' 樓';},
+  solo:function(){vs=null;build();draw();G.countdown(start);}
+});
 // 對方的位置：0.3 秒一筆，畫的時候晚 0.45 秒、前後兩筆照速度接起來（跳起來的弧線會是對的）
-function onLive(d){
-  if(!vs||!d||d.g!==vs.id)return;
-  vs.rx=Date.now();
-  var L=vs.buf[vs.buf.length-1];
-  if(!L||+d.t>L.t){vs.buf.push({t:+d.t,x:+d.x,y:+d.y,vx:+d.vx||0,vy:+d.vy||0,o:+d.o,f:+d.f||1,p:d.p});if(vs.buf.length>24)vs.buf.shift();}
-  vs.opB=+d.b||0;vs.opH=d.h==null?HEARTS:+d.h;vs.opSc=+d.sc||0;
+function onLive(d,M){
+  var L=M.buf[M.buf.length-1];
+  if(!L||+d.t>L.t){M.buf.push({t:+d.t,x:+d.x,y:+d.y,vx:+d.vx||0,vy:+d.vy||0,o:+d.o,f:+d.f||1,p:d.p});if(M.buf.length>24)M.buf.shift();}
+  M.opH=d.h==null?HEARTS:+d.h;
   // 對方丟來的雪球、踩到我（用計數，漏掉的也會補上）
-  while(vs.ra<(+d.a||0)){vs.ra++;incoming();}
-  while(vs.rs<(+d.s||0)){vs.rs++;if(state==='play'&&inv<=0){knock('被'+opName()+'踩扁了！');pet.classList.remove('squash');void pet.offsetWidth;pet.classList.add('squash');}}
-  if(+d.d&&!vs.opDone){vs.opDone=1;opDoneTip();}
-  if(vs.done)vsAfter();
+  while(M.ra<(+d.a||0)){M.ra++;incoming();}
+  while(M.rs<(+d.s||0)){M.rs++;if(state==='play'&&inv<=0){knock('被'+opName()+'踩扁了！');pet.classList.remove('squash');void pet.offsetWidth;pet.classList.add('squash');}}
 }
-function opDoneTip(){if(state==='play')tip(opName()+(vs.lost?'斷線了':'停在 '+fl(vs.opB)+' 樓')+'，超過就贏了！');}
 function ghostAt(rt){
   var b=vs.buf,n=b.length;
   if(!n)return {x:vs.op==='syue'?250:660,y:-PH,f:vs.op==='ling'?-1:1,p:POSE[vs.opPet].walk[0]};
@@ -458,23 +362,19 @@ function ghostAt(rt){
   }
   return b[0];
 }
-function vsSend(d){
-  vs.sent=VS.now();
-  VS.send({g:vs.id,t:Math.round(t*100)/100,x:Math.round(px),y:Math.round(py),vx:Math.round(face*WALK+(on&&on.vx?on.vx:0)),vy:on?0:Math.round(vy),o:on?1:0,f:face,p:pose,h:hearts,b:Math.round(best),sc:score,a:vs.a,s:vs.s,d:d?1:0}).catch(function(){});
-}
 // 從上面踩到對方的頭：自己彈起來，對方那邊會被踩下去一階
 function stomp(prevB,bot,lft,rgt){
   var g=vs.gp;if(!g||vy<=0||t<vs.stompT||vs.opDone)return;
   var head=g.y+30;
   if(prevB<=head+12&&bot>=head&&rgt>g.x+40&&lft<g.x+PW-40){
     vy=-STOMP;py=head-PH;vs.s++;vs.stompT=t+.6;jumped=true;
-    SND.sfx('boing');say(pet,'踩到'+opName()+'了！',800);vsSend(0);
+    SND.sfx('boing');say(pet,'踩到'+opName()+'了！',800);VS.push(cur());
     if(ghost){ghost.classList.remove('squash');void ghost.offsetWidth;ghost.classList.add('squash');}
     var r=pet.getBoundingClientRect();G.float(r.left+r.width/2,r.top+r.height,'踩！','gold');
   }
 }
 // 吃到魚：丟一顆雪球給對方
-function throwBall(){vs.a++;say(pet,'雪球丟給'+opName()+'！',900);SND.sfx('swish');vsSend(0);}
+function throwBall(){vs.a++;say(pet,'雪球丟給'+opName()+'！',900);SND.sfx('swish');VS.push(cur());}
 function incoming(){
   if(state!=='play')return;
   var from=vs.op,bx=Math.max(20,Math.min(980,px+PW/2-50+face*WALK*.9)),w=document.createElement('div');
@@ -483,57 +383,10 @@ function incoming(){
   setTimeout(function(){w.remove();if(state==='play')balls.push({x:bx,y:camY-140,v:1000,from:from,e:img('snow',ART.ball)});},800);
 }
 function vsTick(){
-  if(state==='play'&&VS.now()-vs.sent>=SEND)vsSend(0);
-  if(!vs.opDone&&Date.now()-vs.rx>10000){vs.opDone=1;vs.lost=1;opDoneTip();}
-  var mf=fl(best),of=fl(vs.opB),g=vs.gp,hs='';for(var i=0;i<HEARTS;i++)hs+=i<vs.opH?'❤️':'🤍';
-  var arrow=g?(g.y+PH<camY?' ⬆️':g.y>camY+viewH?' ⬇️':''):'';
-  var txt='<b class="'+vs.op+(of>mf?' lead':'')+'">'+G.NAMES[vs.op]+' '+hs+' 🪜 '+of+' 樓'+(vs.opDone?(vs.lost?'・斷線':'・停了'):arrow)+'</b>';
-  if(txt!==barTxt){barTxt=txt;$('vsbar').innerHTML=txt;}
-  $('clock').textContent='⏱ '+Math.max(0,Math.ceil(VS_T-t));
+  var r=VS.frame(cur());
   if(state!=='play')return;
-  if(t>=VS_T)end('時間到！');
-  else if(vs.opDone&&mf>of)end('贏過'+opName()+'了！');
+  if(r==='time')end('時間到！');else if(r==='ahead')end('贏過'+opName()+'了！');
 }
-// 我結束了：對方還在爬就等；兩邊都結束就算輸贏
-function vsAfter(){
-  if(!vs||!vs.done||vs.shown)return;
-  if(!vs.opDone){vsWait();return;}
-  vs.shown=1;clearInterval(vs.waitT);
-  var w=document.querySelector('[data-wait]');if(w)w.remove();
-  vsResult();
-}
-function vsWait(){
-  var ov=document.querySelector('[data-wait]');
-  if(!ov){
-    ov=G.el('<div class="g-ov" data-wait><section class="g-card" role="dialog" aria-modal="true" aria-label="等對方"><div id="vsWaitBox"></div><div class="g-btns"><button class="g-btn ghost" data-lobby>冒險大廳</button></div></section></div>');
-    document.body.appendChild(ov);ov.querySelector('[data-lobby]').onclick=function(){location.href='./';};
-    // 每秒更新；對方 10 秒沒消息就當斷線
-    var v=vs;v.waitT=setInterval(function(){if(v.shown){clearInterval(v.waitT);return;}if(!v.opDone&&Date.now()-v.rx>10000){v.opDone=1;v.lost=1;}vsAfter();},1000);
-  }
-  var left=Math.max(0,Math.ceil(VS_T-(VS.now()-vs.at)/1000));
-  document.getElementById('vsWaitBox').innerHTML='<h2>停在 '+fl(best)+' 樓</h2><p>'+vs.why+'<br>等'+opName()+'爬完…現在 <b>'+fl(vs.opB)+'</b> 樓（還有 '+left+' 秒）</p>';
-}
-function vsResult(){
-  var me=VS.me(),op=vs.op,mf=fl(best),of=fl(vs.opB);
-  var w=mf!==of?(mf>of?me:op):score!==vs.opSc?(score>vs.opSc?me:op):'';
-  // 戰績：贏的一方加一（兩支手機都可能寫，寫的值一樣；用這局的 id 擋重複）
-  var win=room.win||{};
-  if(w&&win.last!==vs.id){var o={last:vs.id};o[w]=(+win[w]||0)+1;room.win=Object.assign({},win,o);VS.put('climb',{win:o}).catch(function(){});}
-  var got=w===me&&mf>0?G.record('climbvs',mf,1):0;
-  var head=!w?'平手！':w===me?'🏆 你贏了！':opName()+'贏了，再來一局！';
-  var why=!w?'一樣高、一樣分數':mf!==of?'學 '+(me==='syue'?mf:of)+' 樓 vs 綾 '+(me==='ling'?mf:of)+' 樓':'一樣高，分數 '+score+' vs '+vs.opSc;
-  var rw=w===me?(got?'<div class="g-reward"><img src="../assets/games/ui/kib.svg" alt="">獲得飼料 ×1<span class="g-small" style="margin:0 0 0 4px">回班表就會收到</span></div>':'<div class="g-reward none">'+(mf>0?'今天的 '+G.CAP+' 包飼料已經拿完了':'')+'</div>'):'';
-  var ov=G.el('<div class="g-ov" data-vsres><section class="g-card g-result" role="dialog" aria-modal="true" aria-label="對戰結果"><div class="g-result-ribbon">雲端樓梯 · 連線對戰</div><div class="vs-row">'+slot(me,who,true,mf+' 樓',w===me)+'<span class="vs-x">VS</span>'+slot(op,vs.opPet,true,of+' 樓'+(vs.lost?'・斷線':''),w===op)+'</div><h2>'+head+'</h2><p>'+why+'</p>'+rw+'<div class="vs-tally" id="vsTally">'+tally()+'</div><div class="g-btns g-result-actions"><button class="g-btn" data-again>再來一局 ↻</button><button class="g-btn ghost" data-solo>自己玩</button><button class="g-btn ghost" data-lobby>冒險大廳</button></div></section></div>');
-  document.body.appendChild(ov);
-  SND.stop();SND.sfx('fanfare',w===me?3:1);
-  if(vs.unsub){vs.unsub();vs.unsub=null;}
-  ov.querySelector('[data-again]').onclick=function(){SND.sfx('tap');openRoom();};
-  ov.querySelector('[data-solo]').onclick=function(){ov.remove();vs=null;SND.music('climb');build();draw();G.countdown(start);};
-  ov.querySelector('[data-lobby]').onclick=function(){location.href='./';};
-}
-addEventListener('pagehide',function(){if(inRoom)VS.hello('climb',false,who).catch(function(){});});
-// 一進來就看看對方在不在房間等（從邀請點進來的直接進房間）
-if(VS.can())vsWatch().catch(function(e){console.warn('vs',e);});
 </script>
 </body>
 </html>

@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Huninn&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="game.css">
+<link rel="stylesheet" href="game.css?v=vs-20261031">
 <style>
 html,body{overflow:hidden;}
 body{background:#BFE3F2;touch-action:none;}
@@ -62,6 +62,7 @@ body{background:#BFE3F2;touch-action:none;}
 .hud b{font-weight:400;font-size:14px;padding:3px 11px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);white-space:nowrap;}
 .hud .wind{opacity:0;transition:opacity .3s;}
 .hud .wind.on{opacity:1;}
+.hud .wind.gust{background:#FFD9CF;}
 .banner{position:fixed;left:50%;top:36%;z-index:30;transform:translate(-50%,-50%);padding:10px 22px;border:var(--lw) solid var(--ink);border-radius:18px;background:var(--yellow);font-size:22px;white-space:nowrap;box-shadow:0 4px 0 var(--ink);pointer-events:none;animation:banner 2s ease-out forwards;}
 @keyframes banner{0%{transform:translate(-50%,-50%) scale(.4);opacity:0;}15%{transform:translate(-50%,-50%) scale(1.08);opacity:1;}80%{opacity:1;}100%{transform:translate(-50%,-70%);opacity:0;}}
 .tip{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 22px);z-index:21;padding:6px 14px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);font-size:13px;white-space:nowrap;pointer-events:none;}
@@ -87,6 +88,7 @@ body{background:#BFE3F2;touch-action:none;}
 <div class="tip" id="tip">點一下放開房子，對準下面那層</div>
 <script src="sound.js?v=tower-20261029"></script>
 <script src="game.js?v=tower-20261029"></script>
+<script src="vs.js?v=vs-20261031"></script>
 <script>
 // 一層房子 300×150；一開始在地基上蓋。至少要有一半疊在下面那層上，差 14 以內算完美
 var BW=300,BH=150,HEARTS=3,PERF=14,KEEP=.5;
@@ -101,6 +103,8 @@ var ZONES=[
 var TOWN=[['#FFF4D6','#E8D8B4'],['#F8D1CB','#E8ADA4'],['#D7ECCB','#B4D69F'],['#F6E2A8','#E0C67A'],['#DCEBF5','#B4CFE2']];
 var $=function(id){return document.getElementById(id);};
 var state='idle',s=1,viewH=1900,camY=-1500,n=0,blocks=[],hang=null,fallers=[],phase=0,t=0,hearts=HEARTS,score=0,combo=0,perfects=0,pets=0,zi=0,wind=0,windAt=0,raf=0,last=0,shake=0,nextAt=0;
+// 連線對戰：限時幾秒、對方吹來的強風多大多久；vs＝這局對戰
+var VS_T=90,GUST=700,GUST_MS=4000,vs=null;
 // 星星：800 分三顆、300 分兩顆
 function stars(x){return x>=800?3:x>=300?2:1;}
 
@@ -183,7 +187,10 @@ function land(b){
     return;
   }
   var perfect=Math.abs(n?dx:b.x-390)<PERF,pts=10;
-  if(perfect){b.x=n?tx:390;combo++;perfects++;pts+=5+5*Math.min(combo,8);SND.sfx('perfect',combo);}else{combo=0;SND.sfx('thud');}
+  if(perfect){b.x=n?tx:390;combo++;perfects++;pts+=5+5*Math.min(combo,8);SND.sfx('perfect',combo);
+    // 對戰：連續完美 3 次，吹一陣強風給對方
+    if(vs&&combo%3===0){vs.a++;VS.push(cur());setTimeout(function(){tip('強風吹向'+VS.opName()+'！');},500);}}
+  else{combo=0;SND.sfx('thud');}
   if(b.pet){pts+=15;pets++;}
   score+=pts;b.falling=false;b.rot=0;b.vx=b.vy=0;
   // 存「沒搖晃時」的位置，之後跟著整棟一起搖
@@ -205,6 +212,7 @@ function tick(now){
     var Z=ZONES[zi];
     if(now>windAt){windAt=now+rnd(4000,7000);wind=Z.wind?(Math.random()<.5?-1:1)*rnd(.4,1)*Z.wind:0;var wv=$('wind');wv.classList.toggle('on',!!wind);wv.textContent='💨 '+(wind<0?'←':'→').repeat(Math.max(1,Math.round(Math.abs(wind)/160)));}
     if(!hang&&!fallers.some(function(f){return !f.topple;})&&state==='play'&&now>nextAt&&hearts>0)spawn();
+    if(gustAt&&now>gustAt){gustAt=0;$('wind').classList.remove('gust');}
     // 掉下來的房子
     var ty=topY();
     fallers=fallers.filter(function(b){
@@ -218,6 +226,7 @@ function tick(now){
     var target=topY()-viewH*.62;camY+=(target-camY)*Math.min(1,dt*5);
     if(shake>0)shake=Math.max(0,shake-40*dt);
     draw();
+    if(vs){var r=VS.frame(cur());if(r)end(r==='time'?'時間到！':'贏過'+VS.opName()+'了！');}
   }
   raf=requestAnimationFrame(tick);
 }
@@ -241,16 +250,41 @@ function start(){
   fans.forEach(function(f,i){setTimeout(function(){f.classList.add('cheer');say(f,['開工囉！','蓋高高！','加油～'][i],1400);},300+i*300);});
   last=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(tick);
 }
-function end(){
+function end(why){
   if(state!=='play')return;state='done';
-  tip('房子掉光了…蓋到 '+n+' 樓');
-  setTimeout(function(){G.finish({game:'tower',score:score,unit:'分',stars:stars(score),note:'蓋到 '+n+' 樓（'+ZONES[zi].name.slice(2)+'）、完美 '+perfects+' 次、住進 '+pets+' 隻寵物<br>每層 +10、連續完美加更多；800 分三顆星、300 分兩顆星',again:function(){G.countdown(start);}});},600);
+  tip((why||'房子掉光了…')+'蓋到 '+n+' 樓');
+  if(vs){VS.finish(cur(),why||'房子掉光了…');return;}
+  setTimeout(function(){G.finish({game:'tower',score:score,unit:'分',stars:stars(score),note:'蓋到 '+n+' 樓（'+ZONES[zi].name.slice(2)+'）、完美 '+perfects+' 次、住進 '+pets+' 隻寵物<br>每層 +10、連續完美加更多；800 分三顆星、300 分兩顆星',mount:VS.mount,again:function(){G.countdown(start);}});},600);
 }
+/* ── 連線對戰：各自蓋、同時開始，限時比樓層（一樣高比分數）；連續完美 3 次，吹一陣強風給對方 ── */
+var gustAt=0;
+// 送給對方：m＝樓層、sb＝分數、h＝愛心、a＝吹過幾次強風
+function cur(){return {m:n,sb:score,h:hearts,a:vs.a};}
+// 對方吹來的強風：4 秒，正在掉的房子會被吹歪
+function gust(){
+  var dir=Math.random()<.5?-1:1;wind=dir*GUST;gustAt=windAt=performance.now()+GUST_MS;
+  var wv=$('wind');wv.classList.add('on','gust');wv.textContent='💨 '+(dir<0?'←':'→').repeat(4);
+  var bn=G.el('<div class="banner"></div>');bn.textContent='💨 '+VS.opName()+'吹來一陣強風！';document.body.appendChild(bn);setTimeout(function(){bn.remove();},2000);
+  SND.sfx('swish');if(navigator.vibrate)navigator.vibrate(60);
+}
+VS.setup({game:'tower',time:VS_T,icon:'dg',
+  rules:['各自蓋、同時開始，限時 '+VS_T+' 秒，蓋得比較高的贏（一樣高比分數）','房子掉光就停在那一樓','連續完美 3 次，會吹一陣強風給對方，正在掉的房子會被吹歪'],
+  begin:function(M){
+    vs=M;M.a=0;M.ra=0;M.opH=HEARTS;document.body.classList.add('vs');
+    state='idle';n=0;camY=-viewH*.62;build();decor();heartsTxt();draw();
+  },
+  start:function(){gustAt=0;start();tip('連續完美 3 次，吹強風給'+VS.opName()+'！');},
+  live:function(d,M){M.opH=d.h==null?HEARTS:+d.h;while(M.ra<(+d.a||0)){M.ra++;if(state==='play')gust();}},
+  bar:function(M){var hs='';for(var i=0;i<HEARTS;i++)hs+=i<M.opH?'❤️':'🤍';return '🏠 '+M.opM+' 樓 '+hs;},
+  fmt:function(m){return m+' 樓';},
+  solo:function(){vs=null;document.body.classList.remove('vs');G.countdown(start);}
+});
 // 操作：點畫面任何地方放開房子；鍵盤空白鍵也可以
 $('tap').addEventListener('pointerdown',function(e){e.preventDefault();drop();});
 addEventListener('keydown',function(e){if(e.code==='Space'&&!e.repeat){e.preventDefault();drop();}});
 camY=-viewH*.62;build();decor();heartsTxt();draw();
-G.intro({game:'tower',title:'疊疊樂蓋房子',desc:'怪手夾著房子左右擺，點一下放開，一層一層往上蓋<br>疊歪超過一半，那層會掉下去、扣一顆愛心<br>對得剛剛好是「完美」，連續完美分數越來越多<br>從地面蓋到天空、外太空、月球、火星，越高擺得越快、還會起風和搖晃<br>窗戶裡有寵物的那層，疊上去多 15 分',start:start});
+G.intro({game:'tower',title:'疊疊樂蓋房子',desc:'怪手夾著房子左右擺，點一下放開，一層一層往上蓋<br>疊歪超過一半，那層會掉下去、扣一顆愛心<br>對得剛剛好是「完美」，連續完美分數越來越多<br>從地面蓋到天空、外太空、月球、火星，越高擺得越快、還會起風和搖晃<br>窗戶裡有寵物的那層，疊上去多 15 分',mount:VS.mount,start:start});
+VS.auto();
 document.addEventListener('visibilitychange',function(){last=performance.now();});
 </script>
 </body>

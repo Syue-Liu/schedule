@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Huninn&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="game.css">
+<link rel="stylesheet" href="game.css?v=vs-20261031">
 <style>
 html,body{overflow:hidden;}
 body{background:#2D6F9A;touch-action:none;}
@@ -61,6 +61,9 @@ body{background:#2D6F9A;touch-action:none;}
 @keyframes low{to{box-shadow:0 0 0 4px #F2A49799;}}
 .combo{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 104px);z-index:21;transform:translateX(-50%);padding:3px 12px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--yellow);font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;}
 .combo.on{opacity:1;}
+/* 連線對戰：上面那排放在肚子計量表下面，「鉤上幾隻」往下挪 */
+.vsbar{top:calc(env(safe-area-inset-top) + 104px);}
+.vs .combo{top:calc(env(safe-area-inset-top) + 136px);}
 .tip{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 18px);z-index:21;padding:6px 14px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);font-size:14px;white-space:nowrap;pointer-events:none;}
 .tap{position:fixed;inset:0;z-index:10;}
 </style>
@@ -87,6 +90,7 @@ body{background:#2D6F9A;touch-action:none;}
 <div class="tip" id="tip">按住放線、放開收線，手指左右移動</div>
 <script src="sound.js?v=tower-20261029"></script>
 <script src="game.js?v=tower-20261029"></script>
+<script src="vs.js?v=vs-20261031"></script>
 <script>
 // 美術：之後換成畫好的圖，只要改這裡的檔名（黃金鮭魚先借大魚的圖染金色）
 var A='../assets/games/fish/',ART={bg:A+'bg-winter.svg',under:A+'underwater.svg',floe:A+'floe.svg',ledge:A+'ledge.svg',pot:A+'hotpot.svg',oct:A+'octopus.svg',
@@ -106,6 +110,8 @@ var TYPES={
 var $=function(id){return document.getElementById(id);};
 // haul：鉤子上掛的魚（一竿最多 5 隻）
 var MAXHAUL=5,state='idle',t=0,food=100,score=0,ax=200,tx=480,holding=false,hy=SURF+20,haul=[],stuck=0,fishes=[],raf=0,last=0,clickAt=0,talk=0,caught=0;
+// 連線對戰：限時幾秒；vs＝這局對戰
+var VS_T=90,vs=null;
 // 星星：2000 分三顆、1000 分兩顆
 function stars(s){return s>=2000?3:s>=1000?2:1;}
 
@@ -138,6 +144,8 @@ function showHaul(){var n=haul.length,c=$('combo');c.textContent='鉤上 '+n+' �
 // 拉上岸：鉤子上的魚一條一條飛進火鍋；一竿釣到好幾隻（不算靴子）每多一隻 +10
 function deliverHaul(list){
   var good=list.filter(function(f){return f.T.pts>0;}).length,bonus=good>=2?(good-1)*10:0;
+  // 對戰：一竿 3 隻以上、或釣到黃金鮭魚，派一隻章魚去對方的湖
+  if(vs&&(good>=3||list.some(function(f){return f.k==='king';}))){vs.a++;VS.push(cur());setTimeout(function(){tip('派一隻章魚去'+VS.opName()+'的湖！');say('pDg','章魚去吧！',1200);},700);}
   list.forEach(function(f,i){fishes.splice(fishes.indexOf(f),1);setTimeout(function(){deliver(f,i===list.length-1?bonus:0,good);},i*140);});
 }
 function deliver(f,bonus,good){
@@ -165,10 +173,10 @@ function deliver(f,bonus,good){
 function tick(now){
   var dt=Math.min(.05,(now-last)/1000);last=now;
   if(state==='play'){
-    t+=dt;
+    if(vs)t=VS.time();else t+=dt;
     // 肚子越來越餓，掉得越來越快
     food-=(3.5+t*.075)*dt;
-    if(food<=0){food=0;draw();return end();}
+    if(food<=0){food=0;draw();end();raf=requestAnimationFrame(tick);return;}
     // 湖裡的數量慢慢變多，章魚 8 秒後出現，45 秒後變兩隻
     var want=8+Math.min(4,Math.floor(t/20)),octs=fishes.filter(function(f){return f.k==='oct';}).length;
     if(fishes.length-octs<want){if(Math.random()<.12)school();else spawn(pick());}
@@ -205,6 +213,7 @@ function tick(now){
     fishes=fishes.filter(function(f){if(f.x<-f.w-60||f.x>1140){f.el.remove();return false;}return true;});
     if(food<25&&t>talk){talk=t+4;say(Math.random()<.5?'pCat':'pDg','肚子好餓…',1200);}
     draw();
+    if(vs){var r=VS.frame(cur());if(r)end(r==='time'?'時間到！':'贏過'+VS.opName()+'了！');}
   }
   raf=requestAnimationFrame(tick);
 }
@@ -220,17 +229,36 @@ function draw(){
 }
 function start(){
   fishes.forEach(function(f){f.el.remove();});fishes=[];haul=[];stuck=0;$('hook').classList.remove('stuck');
-  state='play';t=0;food=100;score=0;caught=0;showHaul();hy=SURF+20;holding=false;talk=0;
+  state='play';t=vs?VS.time():0;food=100;score=0;caught=0;showHaul();hy=SURF+20;holding=false;talk=0;
   $('score').textContent='0 分';tip('按住放線、放開收線，手指左右移動');
   for(var i=0;i<7;i++){var f=spawn(pick());f.x=100+Math.random()*880;}
   last=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(tick);
 }
-function end(){
-  state='done';holding=false;
+function end(why){
+  if(state!=='play')return;state='done';holding=false;
   ['pCat','pDg'].forEach(function(id){$(id).querySelector('img').src=G.petImg(id==='pCat'?'cat':'dg','happy');});
-  say('pDg',score>=2000?'吃得好飽！':'火鍋好好吃～',1600);tip('肚子餓扁了…今天的火鍋收工');
-  setTimeout(function(){G.finish({game:'fish',score:score,unit:'分',stars:stars(score),note:'釣了 '+caught+' 隻；一竿好幾隻有加分<br>2000 分三顆星、1000 分兩顆星',again:function(){G.countdown(start);}});},900);
+  say('pDg',score>=2000?'吃得好飽！':'火鍋好好吃～',1600);tip(why||'肚子餓扁了…今天的火鍋收工');
+  if(vs){VS.finish(cur(),why||'肚子餓扁了…');return;}
+  setTimeout(function(){G.finish({game:'fish',score:score,unit:'分',stars:stars(score),note:'釣了 '+caught+' 隻；一竿好幾隻有加分<br>2000 分三顆星、1000 分兩顆星',mount:VS.mount,again:function(){G.countdown(start);}});},900);
 }
+/* ── 連線對戰：各自的湖、同時開始，限時比分數；一竿 3 隻以上或黃金鮭魚，派章魚去對方的湖 ── */
+// 送給對方：m＝分數、sb＝釣了幾隻、f＝肚子還剩多少、a＝派過幾隻章魚
+function cur(){return {m:score,sb:caught,f:Math.ceil(food),a:vs.a};}
+VS.setup({game:'fish',time:VS_T,icon:'pg',
+  rules:['各自在自己的湖釣，同時開始，限時 '+VS_T+' 秒比分數','肚子餓扁就停在那個分數','一竿釣到 3 隻以上、或釣到黃金鮭魚，會派一隻章魚去對方的湖搗蛋'],
+  begin:function(M){
+    vs=M;M.a=0;M.ra=0;M.opF=100;document.body.classList.add('vs');
+    state='idle';fishes.forEach(function(f){f.el.remove();});fishes=[];haul=[];food=100;score=0;$('score').textContent='0 分';showHaul();draw();
+  },
+  start:function(){start();tip('一竿 3 隻以上，派章魚去'+VS.opName()+'的湖！');},
+  live:function(d,M){
+    M.opF=d.f==null?100:+d.f;
+    while(M.ra<(+d.a||0)){M.ra++;if(state!=='play')continue;var o=spawn('oct');o.v*=1.25;SND.sfx('escape');say('pPg',VS.opName()+'派章魚來了！',1400);tip(VS.opName()+'派章魚來了，小心！');if(navigator.vibrate)navigator.vibrate(60);}
+  },
+  bar:function(M){return M.opM+' 分 🍲 '+M.opF;},
+  fmt:function(m){return m+' 分';},
+  solo:function(){vs=null;document.body.classList.remove('vs');G.countdown(start);}
+});
 // 操作：按住放線、放開收線，手指左右移動
 var tap=$('tap');
 tap.addEventListener('pointerdown',function(e){e.preventDefault();if(state!=='play')return;holding=true;tx=toWorld(e.clientX);if(hy<=SURF+25)SND.sfx('plop');try{tap.setPointerCapture(e.pointerId);}catch(_){}});
@@ -238,7 +266,8 @@ tap.addEventListener('pointermove',function(e){if(state==='play'&&(holding||e.po
 ['pointerup','pointercancel'].forEach(function(ev){tap.addEventListener(ev,function(){holding=false;});});
 draw();
 G.preload(Object.keys(ART).map(function(k){return ART[k];}),function(){
-  G.intro({game:'fish',title:'湖邊釣魚',desc:'雪球在浮冰上釣魚，大家等著吃火鍋！<br>按住畫面放線、放開收線，手指左右移動對準魚<br>魚碰到鉤子就上鉤，一竿最多掛 5 隻，拉上來一起丟進火鍋<br>小心章魚：會纏住鉤子，也會搶走拉到一半的魚<br>肚子餓計量表歸零就結束，深水的大魚分數更高',start:start});
+  G.intro({game:'fish',title:'湖邊釣魚',desc:'雪球在浮冰上釣魚，大家等著吃火鍋！<br>按住畫面放線、放開收線，手指左右移動對準魚<br>魚碰到鉤子就上鉤，一竿最多掛 5 隻，拉上來一起丟進火鍋<br>小心章魚：會纏住鉤子，也會搶走拉到一半的魚<br>肚子餓計量表歸零就結束，深水的大魚分數更高',mount:VS.mount,start:start});
+  VS.auto();
 });
 document.addEventListener('visibilitychange',function(){last=performance.now();});
 </script>
