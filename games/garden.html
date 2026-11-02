@@ -104,6 +104,18 @@ body{min-height:100%;background:#F4F8EC;}
 .mem-qa h3{font-weight:400;font-size:14px;margin-bottom:4px;}
 .mem-q{padding:7px 10px;border-top:1px dashed #D2C3AD;font-size:13px;line-height:1.6;}
 .mem-q i{font-style:normal;color:#96714D;}
+/* 3D 花園（three.js）：拖曳轉、兩指縮放；載不到或手機不支援就用上面的平面花園 */
+.g3{position:relative;margin-top:14px;height:min(62vh,560px);border:var(--lw2) solid var(--ink);border-radius:24px;overflow:hidden;background:#BFE3F2;box-shadow:0 3px 0 var(--ink);touch-action:none;}
+.g3 canvas{display:block;width:100%;height:100%;}
+.g3.full{position:fixed;inset:0;height:auto;margin:0;border:0;border-radius:0;z-index:40;}
+.g3-btn{position:absolute;right:10px;top:10px;width:40px;height:40px;border:var(--lw2) solid var(--ink);border-radius:12px;background:var(--paper);font-size:18px;box-shadow:0 2px 0 var(--ink);}
+.g3-drops{position:absolute;left:10px;top:10px;padding:4px 12px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);font-size:14px;pointer-events:none;}
+.g3.full .g3-btn,.g3.full .g3-drops{top:calc(env(safe-area-inset-top) + 12px);}
+.g3-tip{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);padding:4px 12px;border:var(--lw2) solid var(--ink);border-radius:999px;background:#FFFCF6E6;font-size:12px;white-space:nowrap;pointer-events:none;transition:opacity .6s;}
+.g3.full .g3-tip{bottom:calc(env(safe-area-inset-bottom) + 16px);}
+.g3-load{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--t2);}
+.try3d .garden,.is3d .garden{display:none;}
+.no3d .g3{display:none;}
 .toasts{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 66px);transform:translateX(-50%);z-index:60;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;width:max-content;max-width:92vw;}
 .toasts div{padding:6px 14px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);font-size:13px;box-shadow:0 3px 0 var(--ink);animation:tIn .3s var(--pop),tOut .4s ease-in 2.8s forwards;}
 @keyframes tIn{from{transform:translateY(-10px) scale(.9);opacity:0;}}
@@ -111,11 +123,12 @@ body{min-height:100%;background:#F4F8EC;}
 </style>
 <link rel="stylesheet" href="polish.css?v=snowlake-20261026">
 </head>
-<body data-game="garden">
+<body data-game="garden" class="try3d">
 <div class="g-bar"><button class="g-back" onclick="location.href='./'">‹ 大廳</button><div class="g-title">記憶小森林</div><div class="g-pill hot" id="drops">💧 …</div></div>
 <main class="gd">
   <div class="here" id="here"></div>
   <section class="qcard" id="qcard"></section>
+  <section class="g3" id="g3"><div class="g3-load">🌱 花園長出來中…</div><div class="g3-drops" id="g3drops"></div><button class="g3-btn" id="g3full" aria-label="全螢幕">⤢</button><div class="g3-tip" id="g3tip">拖曳轉一圈・兩指拉近・點土種樹・點植物澆水</div></section>
   <section class="garden"><div class="fence"></div><div class="g-pets" id="gpets"></div><div class="plots" id="plots"></div></section>
   <section class="forest"><h3>🌳 我們的森林 <small id="fcount"></small></h3><div class="ftrees" id="forest"></div></section>
   <p class="gnote" id="gnote"></p>
@@ -124,6 +137,7 @@ body{min-height:100%;background:#F4F8EC;}
 <script src="sound.js?v=garden-20261102"></script>
 <script src="game.js?v=garden-20261102"></script>
 <script src="vs.js?v=garden-20261102"></script>
+<script src="garden3d.js?v=garden3d-20261102"></script>
 <script>
 /* 記憶小森林：兩個人一起種。每天回答一題問答拿水滴，一起澆水，把種子種成樹；長大的樹放進森林，留著那段時間的問答和兩個人的話。
    資料：班表同一個 Firebase 的 banbiao/<同步代碼>_garden（沒有同步代碼就存在這支手機）
@@ -180,7 +194,7 @@ var QS=[
   {t:'pick',q:'誰的睡相比較差？',a:['學','綾']},{t:'text',q:'想對對方說的悄悄話'}
 ];
 var $=function(id){return document.getElementById(id);};
-var D={plants:{},qa:{},here:{}},cloud=false,first=true,recent=[],pendW={},wT=0,sheet=null,started=false;
+var D={plants:{},qa:{},here:{}},cloud=false,first=true,recent=[],pendW={},wT=0,sheet=null,started=false,g3=false;
 
 function pad(n){return (n<10?'0':'')+n;}
 function dayOf(ms){var t=new Date(ms);return t.getFullYear()+'-'+pad(t.getMonth()+1)+'-'+pad(t.getDate());}
@@ -295,7 +309,7 @@ function art(sp,stage){
 /* ── 畫面 ── */
 function paint(){
   if(!started)return;
-  $('drops').textContent='💧 '+left();
+  $('drops').textContent=$('g3drops').textContent='💧 '+left();
   paintHere();paintQ();paintPlots();paintForest();
   if(sheet)sheet.paint();
   // 給大廳看的：森林幾棵、今天各澆了幾滴
@@ -325,6 +339,7 @@ function paintQ(){
   box.querySelector('[data-hist]').onclick=openHist;
 }
 function paintPlots(){
+  if(g3){Garden3D.update(state3d());return;}
   var slots=garden(),h='';
   for(var i=0;i<PLOTS;i++){
     var p=slots[i];
@@ -365,10 +380,30 @@ function news(prev,next){
 }
 // 水滴掉下來（自己澆、另一半澆都會）；旁邊一隻寵物跳一下
 function splash(id){
+  if(g3){Garden3D.water(id);return;}
   var b=document.querySelector('.plot[data-id="'+id+'"]');if(!b)return;
   var c=document.createElement('div');c.className='can';c.textContent='🚿';c.style.left='60%';c.style.top='0';b.appendChild(c);setTimeout(function(){c.remove();},800);
   for(var i=0;i<3;i++)(function(i){setTimeout(function(){var d=document.createElement('div');d.className='drop';d.style.left=(36+i*14)+'%';d.style.top='24%';b.appendChild(d);setTimeout(function(){d.remove();},700);},i*120);})(i);
   var pets=$('gpets').querySelectorAll('img'),pp=pets[Math.floor(Math.random()*pets.length)];if(pp){pp.classList.remove('hop');void pp.offsetWidth;pp.classList.add('hop');}
+}
+
+/* ── 3D 花園：給 garden3d.js 每一格長多大、森林有哪些 ── */
+function state3d(){
+  var slots=garden(),out=[],LO=[0,0,.34,.67,1],HI=[0,.34,.67,1,1];
+  for(var i=0;i<PLOTS;i++){
+    var p=slots[i];if(!p){out.push(null);continue;}
+    var g=grow(p),lo=LO[g.stage],hi=HI[g.stage];
+    out.push({id:p.id,sp:p.sp,stage:g.stage,r:g.r,frac:hi>lo?Math.max(0,Math.min(1,(g.r-lo)/(hi-lo))):1,name:p.name||SP[p.sp].name,ready:g.stage===4,thirsty:g.stage<4&&thirsty(p)});
+  }
+  return {slots:out,forest:forest().slice().reverse().map(function(p){return {id:p.id,sp:p.sp};})};
+}
+function start3d(){
+  var box=$('g3');
+  box.addEventListener('pointerdown',function(){$('g3tip').style.opacity=0;},{once:true});
+  $('g3full').onclick=function(){var on=box.classList.toggle('full');this.textContent=on?'✕':'⤢';document.body.style.overflow=on?'hidden':'';SND.sfx('tap');};
+  Garden3D.init(box,{plot:function(i){SND.sfx('tap');openSeeds(i);},plant:function(id){SND.sfx('tap');openPlant(id);},tree:function(id){SND.sfx('tap');openMemory(id);}})
+    .then(function(){g3=true;document.body.classList.add('is3d');document.body.classList.remove('try3d');var l=box.querySelector('.g3-load');if(l)l.remove();paint();})
+    .catch(function(e){console.warn('3D 花園載不到，用平面的',e);document.body.classList.remove('try3d');document.body.classList.add('no3d');paint();});
 }
 
 /* ── 動作 ── */
@@ -499,6 +534,7 @@ var lastDayShown=today();setInterval(function(){if(today()!==lastDayShown){lastD
 // 離開或切到背景：還沒存的水滴馬上存
 document.addEventListener('visibilitychange',function(){if(document.hidden){clearTimeout(wT);flush();}else if(started){beat();paint();}});
 addEventListener('pagehide',function(){clearTimeout(wT);flush();});
+start3d();
 connect();
 </script>
 </body>
