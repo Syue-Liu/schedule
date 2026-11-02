@@ -1,5 +1,5 @@
 /* 記憶小森林的 3D 花園（three.js 0.160）
-   地上的小島：一片花園空地，中間是土（花園升級最多 12 塊），外圍一圈森林、一圈沙土小路；一邊有小山，山腳的泉水流成小溪繞過花園、流進旁邊的小湖；
+   地上的小島：一片花園空地，中間是土（花園升級最多 12 塊），外圍一圈森林、一圈沙土小路；一邊有個小泉水池，泉水流成小溪繞過花園、流進旁邊的小湖；
    外面是一直到地平線的草原、小山丘和樹，遠方一圈山脈。升級會開放新土地（用小路接到花園外面），每塊多三塊土、也多很多地方種森林。
    森林的樹可以「移植」：點空地選新位置；長大中的植物可以搬到別塊土（點有植物的土就交換）。
    學和綾會走去開放的新土地散步：從花園的路口走到外圈沙土小路、沿著小路走到那塊地（過溪走橋），逛一逛再走回來。
@@ -11,9 +11,9 @@
 var Garden3D=(function(){
   var SRC='https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js';
   var T=null,R,scene,cam,box,hooks,clock,GM,mats={},geos={},cloudMat,dropMat,waterMat,heartTex,hitMat;
-  var plots=[],trees={},pets=[],people=[],visitors=[],fx=[],flecks=[],ducks=[],lake=null,stars,flies=[],clouds,sun,hemi,skyAt=0,night=0,nextVisit=0,spots=[],flow=[],bridges=[],lands={},MTS=[],pondP=null,mv=null,lastSt=null,tgoal=null,rgoal=0,agoal=null,egoal=null;
+  var plots=[],trees={},pets=[],people=[],visitors=[],fx=[],flecks=[],ducks=[],lake=null,stars,flies=[],clouds,sun,hemi,skyAt=0,night=0,nextVisit=0,spots=[],flow=[],bridges=[],lands={},pondP=null,mv=null,lastSt=null,tgoal=null,rgoal=0,agoal=null,egoal=null;
   var tScale=1,az=.45,el=.62,rad=0,fitR=-1,tgt,ptrs={},pinch0=0,rad0=0,down=null,idleAt=0,running=false,vis=true,now=0;
-  // 小島半徑、散步的那一圈、小山在哪個方向、溪水往小湖流出去的方向
+  // 小島半徑、散步的那一圈、泉水池（溪的源頭）在哪個方向、溪水往小湖流出去的方向
   var ISL=8.6,RING=[4.65,7.1],MT=-2.2,WF=-.15;
   // 溪流最後往外流進小湖的幾個點（半徑、方向）
   var FLOW_OUT=[[6.6,WF-.24],[7.25,WF-.13],[7.95,WF-.05],[ISL+.1,WF],[9.5,WF+.03]];
@@ -122,7 +122,7 @@ var Garden3D=(function(){
   function heartTexture(){var c=document.createElement('canvas');c.width=c.height=64;var x=c.getContext('2d');x.fillStyle='#F2A497';x.strokeStyle='#594C43';x.lineWidth=4;x.beginPath();x.moveTo(32,54);x.bezierCurveTo(6,36,6,12,22,12);x.bezierCurveTo(28,12,32,18,32,22);x.bezierCurveTo(32,18,36,12,42,12);x.bezierCurveTo(58,12,58,36,32,54);x.closePath();x.fill();x.stroke();var t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;return t;}
   function hearts(x,y,z,n){for(var i=0;i<(n||3);i++)(function(i){var s=new T.Sprite(new T.SpriteMaterial({map:heartTex,transparent:true,depthWrite:false}));s.scale.setScalar(.38);s.position.set(x+(Math.random()-.5)*.5,y,z+(Math.random()-.5)*.5);scene.add(s);var d=i*.18;addFx({dur:1.3+d,up:function(f,dt){if(f.t<d)return;s.position.y+=dt*.9;s.material.opacity=1-(f.t-d)/1.3;},end:function(){scene.remove(s);s.material.dispose();}});})(i);}
 
-  /* ── 場景：花園空地、小山、溪流、小橋、小湖、草原、遠方的山 ── */
+  /* ── 場景：花園空地、泉水池、溪流、小橋、小湖、草原、遠方的山 ── */
   function ribbon(pts,w,y,mat){
     var pos=[],idx=[];
     pts.forEach(function(p,i){var a=pts[Math.max(0,i-1)],b=pts[Math.min(pts.length-1,i+1)],tx=b.x-a.x,tz=b.z-a.z,l=Math.hypot(tx,tz)||1,nx=-tz/l,nz=tx/l,ww=(typeof w==='function'?w(i/(pts.length-1)):w)/2;pos.push(p.x+nx*ww,y,p.z+nz*ww,p.x-nx*ww,y,p.z-nz*ww);if(i)idx.push(2*i-2,2*i,2*i-1,2*i-1,2*i,2*i+1);});
@@ -130,7 +130,6 @@ var Garden3D=(function(){
     var m=new T.Mesh(g,mat);m.receiveShadow=true;return m;
   }
   function along(t){var n=flow.length-1,f=Math.max(0,Math.min(n-1e-6,t*n)),i=Math.floor(f),k=f-i,a=flow[i],b=flow[i+1];return {x:a.x+(b.x-a.x)*k,z:a.z+(b.z-a.z)*k};}
-  function inMountain(a){return Math.abs(angDiff(a,MT))<.7;}
   /* ── 樹屋：在小島左前方，陽台朝向預設鏡頭；陽台上有兩人座長椅（學和綾可以一起坐），梯子在靠島中間那邊 ── */
   var TH_A=2.35,TH_R=6.3,TH_ROT=Math.PI-2.35,treeHome=null; // TH_ROT：讓梯子那邊朝島中間、陽台朝前面
   function prism(r,len,h,col,x,y,z){var m=mesh(cyl(r,r,len,3),col,x,y,z);m.rotation.set(-Math.PI/2,0,Math.PI/2);m.scale.set(1,1,h);return m;}
@@ -184,18 +183,17 @@ var Garden3D=(function(){
     treeHome={g:g,Y:Y,occ:[null,null],entry:w(2.75,0,LZ),top:w(1.62,Y,LZ),seats:[w(-.42,Y+.1,BZ+.04),w(.42,Y+.1,BZ+.04)],c:c};
   }
   function nearTree(x,z){return treeHome&&Math.hypot(x-treeHome.c.x,z-treeHome.c.z)<2.6;}
-  // 散步的目的地：避開樹屋、移植進來的樹、溪水、小山和池塘
+  // 散步的目的地：避開樹屋、移植進來的樹、溪水和泉水池
   function blocked(x,z){
     if(nearTree(x,z))return true;
     for(var id in trees){if(Math.hypot(trees[id].x-x,trees[id].z-z)<.8)return true;}
     for(var j=0;j<flow.length-1;j++)if(segDist(x,z,flow[j],flow[j+1])<.6)return true;
-    for(var m=0;m<MTS.length;m++)if(Math.hypot(x-MTS[m].x,z-MTS[m].z)<MTS[m].r+.25)return true;
     return !!pondP&&Math.hypot(x-pondP.x,z-pondP.z)<.95;
   }
-  /* ── 過溪：溪水（和小山）把花園分成「這邊」和「溪的對面」；不能直接走過水，要從橋上過 ── */
-  // 這個方向上，溪水（或小山腳）在多遠：比它遠就是對面
+  /* ── 過溪：溪水把花園分成「這邊」和「溪的對面」；不能直接走過水，要從橋上過 ── */
+  // 這個方向上，溪水（或泉水池）在多遠：比它遠就是對面
   function waterR(a){
-    a=angDiff(a,0);if(a<MT-.6||a>WF+.03)return Infinity;
+    a=angDiff(a,0);if(a<MT-.12||a>WF+.03)return Infinity;
     if(a<MT+.16)return 5.5;
     if(a<=WF-.38)return 6.25+Math.sin(a*4)*.16;
     var pts=[[6.25+Math.sin((WF-.38)*4)*.16,WF-.38]].concat(FLOW_OUT);
@@ -207,8 +205,12 @@ var Garden3D=(function(){
   function crosses(a0,r0,a1,r1){var s0=far(a0,r0),da=angDiff(a1,a0);for(var i=1;i<=14;i++){var k=i/14;if(far(a0+da*k,r0+(r1-r0)*k)!==s0)return true;}return false;}
   // 橋的兩頭：先走到自己這邊的橋頭、過橋、再走到對面
   function bridgeVia(fromFar){var B=bridges[0],e=[1,-1].map(function(sg){var x=B.x+B.ux*.8*sg,z=B.z+B.uz*.8*sg;return {a:Math.atan2(z,x),r:Math.hypot(x,z)};});if(far(e[0].a,e[0].r)!==fromFar)e.reverse();return e;}
-  function hitsHill(a0,r0,a1,r1){var da=angDiff(a1,a0);for(var i=0;i<=14;i++){var k=i/14,a=a0+da*k,r=r0+(r1-r0)*k,x=Math.cos(a)*r,z=Math.sin(a)*r;for(var m=0;m<MTS.length;m++)if(Math.hypot(x-MTS[m].x,z-MTS[m].z)<MTS[m].r+.15)return true;}return false;}
-  function pathOk(a0,r0,a1,r1){if(hitsHill(a0,r0,a1,r1))return false;var s0=far(a0,r0);if(s0===far(a1,r1))return !crosses(a0,r0,a1,r1);var v=bridgeVia(s0);return !crosses(a0,r0,v[0].a,v[0].r)&&!crosses(v[1].a,v[1].r,a1,r1);}
+  // 路線不要踩進泉水池
+  function hitsPond(a0,r0,a1,r1){var da=angDiff(a1,a0);for(var i=0;i<=14;i++){var k=i/14,a=a0+da*k,r=r0+(r1-r0)*k;if(Math.hypot(Math.cos(a)*r-pondP.x,Math.sin(a)*r-pondP.z)<.9)return true;}return false;}
+  // 路線不要貼著溪走到水裡（溪邊的草地可以，水裡不行）
+  function wetPath(a0,r0,a1,r1){var da=angDiff(a1,a0);for(var i=0;i<=14;i++){var k=i/14,a=a0+da*k,r=r0+(r1-r0)*k,x=Math.cos(a)*r,z=Math.sin(a)*r;for(var j=0;j<flow.length-1;j++)if(segDist(x,z,flow[j],flow[j+1])<.45)return true;}return false;}
+  function legOk(a0,r0,a1,r1){return !crosses(a0,r0,a1,r1)&&!wetPath(a0,r0,a1,r1);}
+  function pathOk(a0,r0,a1,r1){if(hitsPond(a0,r0,a1,r1))return false;var s0=far(a0,r0);if(s0===far(a1,r1))return legOk(a0,r0,a1,r1);var v=bridgeVia(s0);return legOk(a0,r0,v[0].a,v[0].r)&&legOk(v[1].a,v[1].r,a1,r1);}
   function needVia(p){if((!p.via||!p.via.length)&&far(p.ang,p.r)!==far(p.ta,p.tr))p.via=bridgeVia(far(p.ang,p.r));}
   function legTarget(p){return p.via&&p.via.length?p.via[0]:{a:p.ta,r:p.tr};}
   // 走在橋上：跟著拱起來的橋面高一點（橋頭有個小斜坡）
@@ -254,9 +256,6 @@ var Garden3D=(function(){
     var ground=new T.Mesh(new T.CircleGeometry(170,72),M('#97C383'));ground.rotation.x=-Math.PI/2;ground.position.y=-.03;ground.receiveShadow=true;scene.add(ground);
     var yard=new T.Mesh(new T.CircleGeometry(ISL,64),M(GRASS));yard.rotation.x=-Math.PI/2;yard.position.y=-.005;yard.receiveShadow=true;scene.add(yard);
     var path=new T.Mesh(new T.RingGeometry(ISL+.1,ISL+.85,72),M('#E3CFA0'));path.rotation.x=-Math.PI/2;path.position.y=-.012;path.receiveShadow=true;scene.add(path);
-    // 小山：三座，最高那座有雪
-    [[7.45,MT-.4,1.05,2.5],[7.5,MT,1.35,3.7],[7.35,MT+.42,1,2.2]].forEach(function(m,i){var p=polar(m[0],m[1]),mt=mesh(cone(m[2],m[3],7),['#9FB58C','#93AA84','#A6BB92'][i],p.x,m[3]/2-.05,p.z);mt.rotation.y=i;scene.add(mt);MTS.push({x:p.x,z:p.z,r:m[2]});var cap=mesh(cone(m[2]*.4,m[3]*.36,7),'#FFFFFF',p.x,m[3]*.82+.01,p.z);cap.rotation.y=i;scene.add(cap);});
-    for(var r0=0;r0<9;r0++){var rp=polar(6.6+rnd(r0+70)*1.4,MT+(rnd(r0+80)-.5)*1.4),rk=mesh(new T.DodecahedronGeometry(.18+rnd(r0)*.22),'#C9C2BB',rp.x,.02,rp.z);rk.scale.y=.6;scene.add(rk);}
     // 溪流：山腳的小池塘出發，沿著花園外圈流，最後穿過小路流進旁邊的小湖
     var pond=polar(6.15,MT+.02);pondP=pond;
     flow=[{x:pond.x,z:pond.z}];for(var a=MT+.16;a<=WF-.38;a+=.07){var p2=polar(6.25+Math.sin(a*4)*.16,a);flow.push(p2);}
@@ -277,7 +276,7 @@ var Garden3D=(function(){
     for(var rd=0;rd<14;rd++){var ra=rd*.45+2.2,rp2=polar(LR+.15,ra),rx=LK.x+rp2.x,rz=LK.z+rp2.z,rh=.7+rnd(rd+170)*.5;scene.add(mesh(cyl(.02,.025,rh,4),'#6FA35E',rx,rh/2,rz));if(rd%2)scene.add(mesh(cyl(.045,.045,.18,6),'#8C6A55',rx,rh+.02,rz));}
     for(var dk=0;dk<2;dk++){var duck=new T.Group(),bd=mesh(ball(.2,1),'#FFFFFF');bd.scale.set(1.25,.75,.95);duck.add(bd);duck.add(mesh(ball(.12,1),'#FFFFFF',.2,.17,0));var bk=mesh(cone(.045,.12,6),'#F2A15B',.33,.16,0);bk.rotation.z=-Math.PI/2;duck.add(bk);[-.05,.05].forEach(function(z){duck.add(mesh(ball(.018,0),'#3E3A39',.27,.21,z));});var tl=mesh(cone(.07,.14,5),'#FFFFFF',-.25,.08,0);tl.rotation.z=Math.PI/2+.5;duck.add(tl);duck.userData={a:dk*Math.PI,r:1.6+dk*.6,s:dk?-.12:.15};scene.add(duck);ducks.push(duck);}
     // 草地上的小花、溪邊的石頭
-    for(var j=0;j<44;j++){var b=j*2.39996,rr2=4.4+rnd(j+40)*3.9,fp=polar(rr2,b);if(inMountain(b)&&rr2>6.2)continue;var near=flow.some(function(q){return Math.hypot(q.x-fp.x,q.z-fp.z)<.55;});if(near)continue;var fo=mesh(ball(.07,0),['#FFFFFF','#F8C8D4','#F6D27A','#B9A6DE'][j%4],fp.x,.04,fp.z);fo.castShadow=false;scene.add(fo);}
+    for(var j=0;j<44;j++){var b=j*2.39996,rr2=4.4+rnd(j+40)*3.9,fp=polar(rr2,b);if(Math.hypot(fp.x-pond.x,fp.z-pond.z)<.95)continue;var near=flow.some(function(q){return Math.hypot(q.x-fp.x,q.z-fp.z)<.55;});if(near)continue;var fo=mesh(ball(.07,0),['#FFFFFF','#F8C8D4','#F6D27A','#B9A6DE'][j%4],fp.x,.04,fp.z);fo.castShadow=false;scene.add(fo);}
     for(var k=0;k<10;k++){var q=along(.08+k*.085),side=k%2?1:-1,nb=along(.08+k*.085+.01),tx=nb.x-q.x,tz=nb.z-q.z,l=Math.hypot(tx,tz)||1,rs=mesh(new T.DodecahedronGeometry(.1+rnd(k+60)*.1),'#C9C2BB',q.x-tz/l*.42*side,.03,q.z+tx/l*.42*side);rs.scale.y=.6;scene.add(rs);}
     // 遠方的山：一圈，站在地面上，越遠越淡（霧）
     for(var mm=0;mm<20;mm++){var ma=mm/20*Math.PI*2+rnd(mm)*.25,mr=62+rnd(mm+5)*18,mh=14+rnd(mm+9)*18,mw=12+rnd(mm+3)*9,mp=polar(mr,ma),mo=mesh(cone(mw,mh,6),['#A9C3B4','#9DB3C6','#B7C9A8','#AFC0CF'][mm%4],mp.x,mh/2-1,mp.z);mo.castShadow=mo.receiveShadow=false;mo.rotation.y=mm;scene.add(mo);if(mh>24){var cp=mesh(cone(mw*.34,mh*.3,6),'#F4F6F8',mp.x,mh*.85-.95,mp.z);cp.castShadow=false;cp.rotation.y=mm;scene.add(cp);}}
@@ -293,8 +292,8 @@ var Garden3D=(function(){
     trI.count=nt;crI.count=nc;cnI.count=nk;[trI,crI,cnI].forEach(function(m){m.castShadow=m.receiveShadow=false;if(m.instanceColor)m.instanceColor.needsUpdate=true;m.instanceMatrix.needsUpdate=true;scene.add(m);});
     // 小路外面的小灌木
     for(var bu=0;bu<22;bu++){var ba=bu*.29+rnd(bu+400)*.2,bp=polar(ISL+1.4+rnd(bu+410)*2.5,ba);if(Math.hypot(bp.x-lake.x,bp.z-lake.z)<lake.r+1||onLand(bp.x,bp.z,.9))continue;var bs=mesh(ball(.35+rnd(bu+420)*.25,1),['#86B67C','#9AC58C'][bu%2],bp.x,.15,bp.z);bs.scale.y=.75;scene.add(bs);if(bu%4===0)scene.add(mesh(ball(.07,0),'#F8C8D4',bp.x+.15,.42,bp.z));}
-    // 森林可以放的位置：兩圈，避開小山、溪水出口、樹屋，還有新土地的路口（學和綾從那裡走出去）
-    [[7.15,22,0],[7.95,26,.12]].forEach(function(rg){for(var i=0;i<rg[1];i++){var fa=i/rg[1]*Math.PI*2+rg[2]+.05;if(Math.abs(angDiff(fa,MT))<.62||Math.abs(angDiff(fa,WF))<.2||Math.abs(angDiff(fa,TH_A))<.5||LAND_IDS.some(function(id){return Math.abs(angDiff(fa,LAND_GEO[id].a))<.2;}))continue;spots.push({r:rg[0],a:fa});}});
+    // 森林可以放的位置：兩圈，避開泉水池、溪水出口、樹屋，還有新土地的路口（學和綾從那裡走出去）
+    [[7.15,22,0],[7.95,26,.12]].forEach(function(rg){for(var i=0;i<rg[1];i++){var fa=i/rg[1]*Math.PI*2+rg[2]+.05;var sp0=polar(rg[0],fa);if(Math.hypot(sp0.x-pond.x,sp0.z-pond.z)<1.5||Math.abs(angDiff(fa,WF))<.2||Math.abs(angDiff(fa,TH_A))<.5||LAND_IDS.some(function(id){return Math.abs(angDiff(fa,LAND_GEO[id].a))<.2;}))continue;spots.push({r:rg[0],a:fa});}});
     addLands();
     // 土：中間十二塊＋每塊新土地三塊（點的範圍做大一點、看不到）；還沒開放的先藏起來
     PLOT.forEach(function(p,i){
@@ -485,7 +484,7 @@ var Garden3D=(function(){
     });
   }
   // 下一步做什麼：去樹屋（另一個人在上面的話很想去陪）、去摸寵物、去找另一個人、散步（不走進樹屋底下）
-  /* ── 去新土地散步：先走到花園的路口（溪這邊是西邊花田、湖畔小園的方向，溪對面是果樹坡的方向），
+  /* ── 去新土地散步：先走到花園的路口（溪這邊是西邊花田、湖畔小園的方向，溪對面是果樹坡、山腳草地的方向），
      走上外圈沙土小路、沿著小路走到那塊地的路口（經過溪的地方走橋），進去逛幾個地方，再照原路走回花園 ── */
   var RINGW=8.95,EXIT_R=7.6,INNER=5.3;
   function openLands(){return LAND_IDS.map(function(id){return LAND_GEO[id];}).filter(function(L){return L.open;});}
@@ -498,13 +497,13 @@ var Garden3D=(function(){
   function exitTo(ids,a){var X=null,bd=9;ids.forEach(function(id){var d=Math.abs(angDiff(LAND_GEO[id].a,a));if(d<bd){bd=d;X=LAND_GEO[id];}});return X;}
   function gate(L){return {a:L.a,r:L.r-L.R+.4};}
   function goLand(p,L){
-    var isFar=far(p.ang,p.r),X=exitTo(isFar?['orchard']:['west','lake'],L.a),v=[];
+    var isFar=far(p.ang,p.r),X=exitTo(isFar?['orchard','hill']:['west','lake'],L.a),v=[];
     if(!isFar)v.push({a:p.ang,r:Math.min(p.r,INNER)},{a:X.a,r:INNER});
     v.push({a:X.a,r:EXIT_R},{a:X.a,r:RINGW},{a:L.a,r:RINGW},gate(L));
     var t=landPoint(L);p.via=v;p.ta=t.a;p.tr=t.r;p.land=L;p.landN=2+Math.floor(Math.random()*3);p.with=null;p.state='walk';
   }
   function leaveLand(p){
-    var L=p.land,X=exitTo(['west','lake','orchard'],L.a),t=null;
+    var L=p.land,X=exitTo(['west','lake','orchard','hill'],L.a),t=null;
     for(var n=0;n<8&&!t;n++){var ta=X.a+(Math.random()-.5)*1.2,tr=RING[0]+Math.random()*(RING[1]-RING[0]);if(!blocked(Math.cos(ta)*tr,Math.sin(ta)*tr)&&pathOk(X.a,EXIT_R,ta,tr))t={a:ta,r:tr};}
     if(!t)t={a:X.a,r:EXIT_R};
     p.via=[gate(L),{a:L.a,r:RINGW},{a:X.a,r:RINGW},{a:X.a,r:EXIT_R}];p.ta=t.a;p.tr=t.r;p.land=null;p.with=null;p.state='walk';
@@ -626,7 +625,7 @@ var Garden3D=(function(){
     var g=t.g,x0=t.x,z0=t.z;t.x=x;t.z=z;burst(x0,.3,z0,8,'#9C7258');
     addFx({dur:.35,up:function(f){g.scale.setScalar(Math.max(.01,1-f.t/f.dur));},end:function(){g.position.set(x,0,z);growIn(g,x,z);SND.sfx('plant');}});
   }
-  // 這裡能不能種森林的樹：要在開放的土地上、不能壓到土、小溪、小山、樹屋、別的樹；回傳原因（空字串＝可以）
+  // 這裡能不能種森林的樹：要在開放的土地上、不能壓到土、小溪、泉水池、樹屋、別的樹；回傳原因（空字串＝可以）
   function segDist(x,z,a,b){var dx=b.x-a.x,dz=b.z-a.z,l=dx*dx+dz*dz,t=l?Math.max(0,Math.min(1,((x-a.x)*dx+(z-a.z)*dz)/l)):0;return Math.hypot(x-a.x-dx*t,z-a.z-dz*t);}
   function canPlace(x,z,self){
     var ok=Math.hypot(x,z)<ISL-.45;
@@ -634,8 +633,7 @@ var Garden3D=(function(){
     if(!ok)return '要種在花園的草地上';
     for(var i=0;i<PLOT.length;i++){var lo=landOf(i);if((!lo||lo.open)&&Math.hypot(PLOT[i][0]-x,PLOT[i][1]-z)<1.2)return '這裡是種花的土';}
     for(var j=0;j<flow.length-1;j++)if(segDist(x,z,flow[j],flow[j+1])<.62)return '這裡是小溪';
-    if(pondP&&Math.hypot(x-pondP.x,z-pondP.z)<1)return '這裡是小池塘';
-    for(var m=0;m<MTS.length;m++)if(Math.hypot(x-MTS[m].x,z-MTS[m].z)<MTS[m].r+.35)return '這裡是小山';
+    if(pondP&&Math.hypot(x-pondP.x,z-pondP.z)<1)return '這裡是泉水池';
     if(treeHome&&Math.hypot(x-treeHome.c.x,z-treeHome.c.z)<3)return '這裡是樹屋';
     for(var id in trees)if(id!==self&&Math.hypot(trees[id].x-x,trees[id].z-z)<.85)return '太靠近別的樹了';
     return '';
