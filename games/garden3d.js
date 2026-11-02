@@ -10,7 +10,7 @@ var Garden3D=(function(){
   var plots=[],trees={},pets=[],people=[],visitors=[],fx=[],flecks=[],streaks=[],mist=[],stars,flies=[],clouds,sun,hemi,skyAt=0,night=0,nextVisit=0,spots=[],flow=[];
   var az=.45,el=.62,rad=0,fitR=-1,tgt,ptrs={},pinch0=0,rad0=0,down=null,idleAt=0,running=false,vis=true,now=0;
   // 小島半徑、散步的那一圈、小山在哪個方向、瀑布在哪個方向
-  var ISL=8.6,RING=[5.0,5.55],MT=-2.2,WF=-.15;
+  var ISL=8.6,RING=[4.65,7.1],MT=-2.2,WF=-.15;
   // 十二塊土：中間六塊先開，升級再開前後、左右
   var PLOT=[[-2.2,-1.1],[0,-1.1],[2.2,-1.1],[-2.2,1.1],[0,1.1],[2.2,1.1],[-1.1,-3],[1.1,-3],[-1.1,3],[1.1,3],[-4.1,0],[4.1,0]];
   var LEAF='#9CCB85',LEAF2='#7FB36E',TRUNK='#B98B6B',SOIL='#9C7258',GRASS='#A7CF8E',WATER='#7FC4E4',PS=1.45;
@@ -119,6 +119,28 @@ var Garden3D=(function(){
   }
   function along(t){var n=flow.length-1,f=Math.max(0,Math.min(n-1e-6,t*n)),i=Math.floor(f),k=f-i,a=flow[i],b=flow[i+1];return {x:a.x+(b.x-a.x)*k,z:a.z+(b.z-a.z)*k};}
   function inMountain(a){return Math.abs(angDiff(a,MT))<.7;}
+  // A shared destination with a clear ladder approach and a balcony.
+  var treeHome={x:0,z:6.45,entry:{x:-.7,z:4.95},top:{x:-.7,z:5.72},y:1.82,occupant:null};
+  function addTreehouse(){
+    var g=new T.Group();g.position.set(treeHome.x,0,treeHome.z);scene.add(g);
+    function box(w,h,d,c,x,y,z){var m=mesh(new T.BoxGeometry(w,h,d),c,x,y,z);g.add(m);return m;}
+    g.add(mesh(cyl(.25,.4,3.5,12),'#97705A',.48,1.72,.36));
+    [[.5,3.9,.3,1.1],[-.05,3.75,.25,.85],[1.05,3.75,.25,.8],[.55,4.25,.1,.85]].forEach(function(a,i){var m=mesh(ball(a[3],2),['#86B67C','#9AC58C','#77AA74'][i%3],a[0],a[1],a[2]);m.scale.set(1.2,.8,1);g.add(m);});
+    box(2.45,.15,1.9,'#A97853',0,1.78,0);
+    for(var i=0;i<7;i++)box(.3,.025,1.84,i%2?'#D6AD81':'#C99A6F',-1.04+i*.34,1.87,0);
+    box(1.55,1.35,1.05,'#E9CBA3',.18,2.54,.28);
+    for(var i=0;i<5;i++)box(1.55,.018,.022,'#BD936D',.18,2.05+i*.24,-.26);
+    var roof=mesh(cone(1.35,.8,4),'#A9694F',.18,3.62,.28);roof.rotation.y=Math.PI/4;roof.scale.set(1,1,.8);g.add(roof);
+    box(.48,.78,.035,'#88644F',.28,2.32,-.26);box(.39,.69,.04,'#A97959',.28,2.32,-.29);
+    g.add(mesh(ball(.035,2),'#EBC77F',.4,2.3,-.322));
+    box(.42,.42,.04,'#FFF1CF',-.38,2.68,-.29);box(.3,.3,.045,'#8FC6D1',-.38,2.68,-.32);box(.025,.31,.05,'#F8E8CB',-.38,2.68,-.35);box(.31,.025,.05,'#F8E8CB',-.38,2.68,-.35);
+    box(.075,.66,.075,'#956C50',-1.08,2.17,-.72);box(.075,.66,.075,'#956C50',1.08,2.17,-.72);box(.72,.07,.07,'#B9845E',-.72,2.45,-.72);box(.58,.07,.07,'#B9845E',.79,2.45,-.72);
+    // The ladder leans inward; its endpoints match the climbing animation.
+    [-.88,-.52].forEach(function(x){var rail=box(.075,2.02,.075,'#987052',x,.91,-1.115);rail.rotation.x=-.4;});
+    for(var j=0;j<7;j++)box(.42,.06,.07,'#DAB58A',-.7,.2+j*.245,-1.46+j*.103);
+    box(.5,.18,.12,'#F3D389',.76,2.13,-.64);box(.42,.12,.14,'#92B77F',.76,2.25,-.65);
+    var lantern=mesh(ball(.11,2),'#F5CE79',1.04,2.72,-.35);g.add(lantern);
+  }
   function build(){
     scene=new T.Scene();
     cam=new T.PerspectiveCamera(38,1,.1,260);tgt=new T.Vector3(0,.7,0);
@@ -159,7 +181,7 @@ var Garden3D=(function(){
     // 遠方的山：一圈，越遠越淡（霧）
     for(var mm=0;mm<18;mm++){var ma=mm/18*Math.PI*2+rnd(mm)*.3,mr=62+rnd(mm+5)*14,mh=18+rnd(mm+9)*16,mw=11+rnd(mm+3)*7,mp=polar(mr,ma),mo=mesh(cone(mw,mh,6),['#A9C3B4','#9DB3C6','#B7C9A8','#AFC0CF'][mm%4],mp.x,-24+mh/2,mp.z);mo.castShadow=mo.receiveShadow=false;mo.rotation.y=mm;scene.add(mo);if(mh>26){var cp=mesh(cone(mw*.34,mh*.3,6),'#F4F6F8',mp.x,-24+mh*.85+.05,mp.z);cp.castShadow=false;cp.rotation.y=mm;scene.add(cp);}}
     // 森林可以放的位置：兩圈，避開小山和瀑布出口
-    [[7.15,22,0],[7.95,26,.12]].forEach(function(rg){for(var i=0;i<rg[1];i++){var fa=i/rg[1]*Math.PI*2+rg[2]+.05;if(Math.abs(angDiff(fa,MT))<.62||Math.abs(angDiff(fa,WF))<.2)continue;spots.push({r:rg[0],a:fa});}});
+    [[7.15,22,0],[7.95,26,.12]].forEach(function(rg){for(var i=0;i<rg[1];i++){var fa=i/rg[1]*Math.PI*2+rg[2]+.05;if(Math.abs(angDiff(fa,MT))<.62||Math.abs(angDiff(fa,WF))<.2||Math.abs(angDiff(fa,Math.PI/2))<.24)continue;spots.push({r:rg[0],a:fa});}});
     // 十二塊土（點的範圍做大一點、看不到）；還沒開放的先藏起來
     PLOT.forEach(function(p,i){
       var base=new T.Group();base.position.set(p[0],0,p[1]);scene.add(base);
@@ -202,7 +224,7 @@ var Garden3D=(function(){
         var spr=new T.Sprite(new T.SpriteMaterial({map:ts[2].t,transparent:true}));spr.center.set(.5,.04);var H=k==='pg'?.95:1.1;spr.scale.set(H/ts[2].a,H,1);
         var sh=new T.Mesh(new T.CircleGeometry(.36,16),new T.MeshBasicMaterial({color:'#000000',transparent:true,opacity:.16,depthWrite:false}));sh.rotation.x=-Math.PI/2;
         scene.add(spr);scene.add(sh);
-        pets.push({k:k,spr:spr,sh:sh,ts:ts,H:H,ang:i*2.1+.9,r:5.25,ta:i*2.1+.9,wait:1+i,walkT:0,hop:0,flip:false,cur:2,x:0,z:0});
+        pets.push({k:k,spr:spr,sh:sh,ts:ts,H:H,ang:i*2.1+.9,r:5.25,ta:i*2.1+.9,tr:5.25,wait:1+i,walkT:0,hop:0,flip:false,cur:2,x:0,z:0});
       });
     }));
   }
@@ -210,8 +232,8 @@ var Garden3D=(function(){
   function movePets(dt){
     var right=new T.Vector3().setFromMatrixColumn(cam.matrixWorld,0);
     pets.forEach(function(p){
-      if(p.wait>0){p.wait-=dt;setTex(p,2);if(p.wait<=0){p.ta=p.ang+(Math.random()-.5)*2.4;}}
-      else{var d=p.ta-p.ang,st=.45/p.r*dt;if(Math.abs(d)<st){p.ang=p.ta;p.wait=1.5+Math.random()*3;}else{var x0=Math.cos(p.ang),z0=Math.sin(p.ang);p.ang+=Math.sign(d)*st;var v=new T.Vector3(Math.cos(p.ang)-x0,0,Math.sin(p.ang)-z0),fl=v.dot(right)<0;if(fl!==p.flip){p.flip=fl;p.dirty=true;}p.walkT+=dt;setTex(p,Math.floor(p.walkT/.18)%2);}}
+      if(p.wait>0){p.wait-=dt;setTex(p,2);if(p.wait<=0){p.ta=p.ang+(Math.random()-.5)*3.2;p.tr=RING[0]+Math.random()*(RING[1]-RING[0]);}}
+      else{var da=angDiff(p.ta,p.ang),dr=p.tr-p.r,dist=Math.hypot(da*p.r,dr),step=.5*dt;if(dist<step){p.ang=p.ta;p.r=p.tr;p.wait=1.5+Math.random()*3;}else{var x0=Math.cos(p.ang)*p.r,z0=Math.sin(p.ang)*p.r,k=step/dist;p.ang+=da*k;p.r+=dr*k;var v=new T.Vector3(Math.cos(p.ang)*p.r-x0,0,Math.sin(p.ang)*p.r-z0),fl=v.dot(right)<0;if(fl!==p.flip){p.flip=fl;p.dirty=true;}p.walkT+=dt;setTex(p,Math.floor(p.walkT/.18)%2);}}
       var y=0;if(p.hop>0){p.hop=Math.max(0,p.hop-dt);y=Math.sin((1-p.hop/.5)*Math.PI)*.5;}
       p.x=Math.cos(p.ang)*p.r;p.z=Math.sin(p.ang)*p.r;p.spr.position.set(p.x,y,p.z);p.sh.position.set(p.x,.02,p.z);p.sh.scale.setScalar(1-y*.6);
     });
@@ -222,10 +244,11 @@ var Garden3D=(function(){
   function hairCap(c,tilt){var m=mesh(new T.SphereGeometry(.29,14,9,0,Math.PI*2,0,Math.PI*.56),c,0,.02,-.01);m.rotation.x=-tilt;return m;}
   function human(o){
     var g=new T.Group(),b=new T.Group();b.scale.y=1.23;g.add(b);
-    function leg(x){var pv=new T.Group();pv.position.set(x,.4,0);pv.add(mesh(cyl(.065,.07,.4,7),o.legs,0,-.2,0));var sh=mesh(ball(.075,1),'#5A4A42',0,-.4,.03);sh.scale.set(1,.6,1.4);pv.add(sh);var sole=mesh(ball(.075,2),'#E9DCCB',0,-.425,.045);sole.scale.set(1,.16,1.4);pv.add(sole);b.add(pv);return pv;}
+    function leg(x){var pv=new T.Group();pv.position.set(x,.4,0);pv.add(mesh(cyl(.065,.07,.4,7),o.legs,0,-.2,0));var sh=mesh(ball(.075,2),o.k==='syue'?'#584B43':'#816B60',0,-.4,.03);sh.scale.set(1,.6,1.4);pv.add(sh);var sole=mesh(ball(.075,2),'#E9DCCB',0,-.425,.045);sole.scale.set(1,.16,1.4);pv.add(sole);b.add(pv);return pv;}
     function arm(x){var pv=new T.Group();pv.position.set(x,.8,0);pv.add(mesh(cyl(.05,.055,.34,6),o.top,0,-.17,0));pv.add(mesh(ball(.055,1),o.skin,0,-.36,0));pv.rotation.z=x>0?.12:-.12;b.add(pv);return pv;}
     var L1=leg(-.09),L2=leg(.09);
-    b.add(mesh(cyl(.17,.21,.44,9),o.top,0,.62,0));
+    var torso=mesh(new T.CylinderGeometry(.175,.20,.44,16),o.top,0,.62,0);torso.scale.z=.76;b.add(torso);
+    var shoulder=mesh(ball(.17,2),o.top,0,.79,0);shoulder.scale.set(1.22,.48,.76);b.add(shoulder);
     if(o.skirt){b.add(mesh(cone(.27,.32,12),o.skirt,0,.46,0));var hem=mesh(cyl(.27,.27,.025,16),'#596A8A',0,.305,0);b.add(hem);}
     // Layered neckline and small clothing details stay attached to the animated torso.
     var collar=mesh(cyl(.105,.13,.035,16),'#F8EFE2',0,.835,.01);b.add(collar);
@@ -246,7 +269,7 @@ var Garden3D=(function(){
     o.hair(hd);
     [-.09,.09].forEach(function(x){
       var eye=mesh(ball(.031,2),'#362B29',x,.0,.244);eye.scale.set(.8,1.12,.5);hd.add(eye);
-      hd.add(mesh(ball(.008,1),'#FFF9F1',x-.008,.012,.26));
+      hd.add(mesh(ball(.006,1),'#FFF9F1',x-.008,.012,.26));
       
       var brow=mesh(ball(.03,1),'#65463A',x,.079,.23);brow.scale.set(1,.18,.2);hd.add(brow);
     });
@@ -271,29 +294,38 @@ var Garden3D=(function(){
       else if(p.state==='walk'){
         if(p.with){var w=p.with.spr?p.with:p.with.g?p.with:null;if(w){var wa=w.ang!=null?w.ang:0,side=angDiff(p.ang,wa)>0?1:-1;p.ta=wa+side*.16;p.tr=w.r+(w.spr?.05:0);}}
         var da=angDiff(p.ta,p.ang),dr=p.tr-p.r,step=.75*dt,dist=Math.hypot(da*p.r,dr);
-        if(dist<.08){if(p.with)play(p);else{p.state='idle';p.timer=1.5+Math.random()*3;}}
+        if(dist<.08){if(p.toTree){p.toTree=false;p.state='climb';p.climbT=0;p.with=null;}else if(p.with)play(p);else{p.state='idle';p.timer=1.5+Math.random()*3;}}
         else{var k=Math.min(1,step/dist);p.ang+=da*k;p.r+=dr*k;p.walkT+=dt;var nq=pos(p);p.face=Math.atan2(nq.x-q.x,nq.z-q.z);}
+      }else if(p.state==='climb'||p.state==='descend'){
+        p.climbT=Math.min(1,p.climbT+dt/3.8);p.walkT+=dt;
+        if(p.climbT>=1){if(p.state==='climb'){p.state='tree-rest';p.timer=6+Math.random()*5;}else{p.state='idle';p.timer=2;p.ang=Math.atan2(treeHome.entry.z,treeHome.entry.x);p.r=Math.hypot(treeHome.entry.x,treeHome.entry.z);treeHome.occupant=null;}}
+      }else if(p.state==='tree-rest'){
+        p.timer-=dt;p.face=Math.PI;if(p.timer<=0){p.state='descend';p.climbT=0;}
       }else if(p.state==='play'){
         p.timer-=dt;var o=p.with;if(o){var op=o.spr?{x:o.x,z:o.z}:pos(o);p.face=Math.atan2(op.x-q.x,op.z-q.z);}
         if(p.act>0&&p.timer<p.act){p.act=0;hearts(q.x,1.5,q.z,2);if(o&&o.spr)o.hop=.5;}
         if(p.timer<=0){p.state='idle';p.timer=1+Math.random()*2;p.with=null;}
       }
       // 動作：走路擺手擺腳、摸寵物蹲下、打招呼揮手
-      var walking=p.state==='walk',sw=walking?Math.sin(p.walkT*9)*.6:0,pl=p.state==='play';
-      p.legs[0].rotation.x=sw;p.legs[1].rotation.x=-sw;p.arms[0].rotation.x=-sw*.8;
+      var climbing=p.state==='climb'||p.state==='descend',walking=p.state==='walk'||climbing,sw=walking?Math.sin(p.walkT*9)*.6:0,pl=p.state==='play';
+      p.legs[0].rotation.x=p.state==='tree-rest'?-1.2:sw;p.legs[1].rotation.x=p.state==='tree-rest'?-1.2:-sw;p.arms[0].rotation.x=-sw*.8;
       p.arms[1].rotation.x=pl?-2.4+Math.sin(now*10)*.35:sw*.8;
-      p.b.position.y=walking?Math.abs(Math.sin(p.walkT*9))*.05:pl&&p.with&&p.with.spr?-.12:0;
+      p.b.position.y=walking?Math.abs(Math.sin(p.walkT*9))*.05:p.state==='tree-rest'?-.23:pl&&p.with&&p.with.spr?-.12:0;
       p.b.rotation.x=pl&&p.with&&p.with.spr?.28:0;
       var cur=p.g.rotation.y,df=angDiff(p.face,cur);p.g.rotation.y=cur+df*Math.min(1,dt*8);
-      q=pos(p);p.g.position.set(q.x,0,q.z);
+      q=pos(p);
+      if(climbing){var u=p.state==='climb'?p.climbT:1-p.climbT;p.g.position.set(treeHome.entry.x+(treeHome.top.x-treeHome.entry.x)*u,treeHome.y*u,treeHome.entry.z+(treeHome.top.z-treeHome.entry.z)*u);p.face=0;}
+      else if(p.state==='tree-rest')p.g.position.set(treeHome.top.x,treeHome.y,treeHome.top.z);
+      else p.g.position.set(q.x,0,q.z);
     });
   }
   // 下一步做什麼：散步、去摸一隻寵物、去找另一個人
   function choose(p){
     var r=Math.random(),other=people.filter(function(o){return o!==p;})[0];
     // 去找最近的那隻寵物（太遠的話走很久）
-    if(r<.3&&pets.length){var pt=pets.slice().sort(function(a,b){return Math.abs(angDiff(a.ang,p.ang))-Math.abs(angDiff(b.ang,p.ang));})[0];p.with=pt;pt.wait=Math.max(pt.wait,8);p.state='walk';}
-    else if(r<.42&&other&&other.state!=='play'&&!other.with){p.with=other;p.state='walk';other.state='idle';other.timer=6;}
+    if(r<.16&&!treeHome.occupant){treeHome.occupant=p;p.with=null;p.ta=Math.atan2(treeHome.entry.z,treeHome.entry.x);p.tr=Math.hypot(treeHome.entry.x,treeHome.entry.z);p.toTree=true;p.state='walk';}
+    else if(r<.43&&pets.length){var pt=pets.slice().sort(function(a,b){return Math.abs(angDiff(a.ang,p.ang))-Math.abs(angDiff(b.ang,p.ang));})[0];p.with=pt;pt.wait=Math.max(pt.wait,8);p.state='walk';}
+    else if(r<.55&&other&&other.state==='idle'&&!other.with&&!other.toTree){p.with=other;p.state='walk';other.state='idle';other.timer=6;}
     else{p.with=null;p.ta=p.ang+(Math.random()-.5)*2.2;p.tr=RING[0]+Math.random()*(RING[1]-RING[0]);p.state='walk';}
   }
   function play(p){
@@ -419,7 +451,7 @@ var Garden3D=(function(){
     if(vh){var vv=vh.object.userData.v;hearts(vv.g.position.x,vv.g.position.y+.2,vv.g.position.z,vv.kind==='bird'?3:1);if(vv.kind==='bird'){if(vv.state!=='out')hooks.bird();}else SND.sfx('pop');leave(vv);return;}
     var pt=ray.intersectObjects(plots.filter(function(p){return p.pest;}).map(function(p){return p.pest.hb;}))[0];if(pt){hooks.pest(pt.object.userData.pest);return;}
     var ph=ray.intersectObjects(pets.map(function(p){return p.spr;}))[0];if(ph){var pp=pets.filter(function(p){return p.spr===ph.object;})[0];if(pp){pp.hop=.5;SND.sfx('pop');hearts(pp.x,1.2,pp.z,1);}return;}
-    var hu=ray.intersectObjects(people.map(function(p){return p.g.children[3];}))[0];if(hu){var who=people.filter(function(p){return p.k===hu.object.userData.person;})[0];if(who&&who.state!=='play'){who.state='play';who.with=null;who.timer=1.6;who.act=1.2;who.face=Math.atan2(cam.position.x-who.g.position.x,cam.position.z-who.g.position.z);SND.sfx('tap');}return;}
+    var hu=ray.intersectObjects(people.map(function(p){return p.g.children[3];}))[0];if(hu){var who=people.filter(function(p){return p.k===hu.object.userData.person;})[0];if(who&&who.state!=='play'&&who.state!=='climb'&&who.state!=='descend'&&who.state!=='tree-rest'&&!who.toTree){who.state='play';who.with=null;who.timer=1.6;who.act=1.2;who.face=Math.atan2(cam.position.x-who.g.position.x,cam.position.z-who.g.position.z);SND.sfx('tap');}return;}
     var objs=plots.filter(function(p){return p.on;}).map(function(p){return p.coll;});Object.keys(trees).forEach(function(id){objs.push(trees[id].g.children[1]);});
     var h=ray.intersectObjects(objs)[0];if(!h)return;var u=h.object.userData;
     if(u.tree)hooks.tree(u.tree);else if(u.plant)hooks.plant(u.plant);else if(u.slot!=null)hooks.plot(u.slot);
@@ -461,7 +493,7 @@ var Garden3D=(function(){
       R=new T.WebGLRenderer({canvas:cv,antialias:true,powerPreference:'low-power'});
       if(!R.getContext())throw new Error('no webgl');
       R.setPixelRatio(Math.min(2,window.devicePixelRatio||1));R.shadowMap.enabled=true;R.shadowMap.type=T.PCFSoftShadowMap;
-      build();addPeople();bind(cv);size();
+      build();addTreehouse();addPeople();bind(cv);size();
       if(window.ResizeObserver)new ResizeObserver(size).observe(box);else addEventListener('resize',size);
       if(window.IntersectionObserver)new IntersectionObserver(function(es){vis=es[0].isIntersecting;}).observe(box);
       clock=new T.Clock();running=true;rad=fitR;nextVisit=6;place();loop();
