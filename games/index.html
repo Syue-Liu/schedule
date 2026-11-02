@@ -79,12 +79,12 @@ body{min-height:100%;background:var(--paper);}
 <script>
 // 冒險地點：有 href 的就是可以玩的
 var GAMES=[
+  // 一起玩的（不比分數、不進排行榜）
+  {id:'garden',name:'記憶小森林',s:'種樹',desc:'每天回答問答拿水滴、一起澆水抓害蟲，在 3D 浮空小島種出森林；升級解鎖更多花和樹',ic:'🌳',c:'#E7F2DF',href:'garden.html',coop:true},
   {id:'whack',name:'菜園打地鼠',s:'打地鼠',desc:'偷吃飼料的小田鼠冒出來了，快敲牠！',ic:'🔨',c:'#E7F2DF',href:'whack.html'},
   {id:'fish',name:'湖邊釣魚',s:'釣魚',desc:'雪球下鉤、大家等火鍋，肚子餓扁之前釣越多越好',ic:'🎣',c:'#E4F2F8',href:'fish.html'},
   {id:'climb',name:'三寵爬樓梯',s:'爬樓梯',desc:'寵物一直走，看準時機跳上樓梯，按久一點跳更高',ic:'🪜',c:'#E4F2F8',href:'climb.html'},
-  {id:'tower',name:'疊疊樂蓋房子',s:'蓋房子',desc:'怪手放房子，從地面一路蓋到天空、月球、火星',ic:'🏗️',c:'#E4F2F8',href:'tower.html'},
-  // 一起玩的（不比分數、不進排行榜）
-  {id:'garden',name:'記憶小森林',s:'種樹',desc:'每天回答問答拿水滴、一起澆水抓害蟲，在 3D 浮空小島種出森林；升級解鎖更多花和樹',ic:'🌳',c:'#E7F2DF',href:'garden.html',coop:true}
+  {id:'tower',name:'疊疊樂蓋房子',s:'蓋房子',desc:'怪手放房子，從地面一路蓋到天空、月球、火星',ic:'🏗️',c:'#E4F2F8',href:'tower.html'}
 ];
 // 小森林：森林幾棵、今天兩個人各澆了幾滴（小森林頁面記在這支手機）
 function gardenLine(){
