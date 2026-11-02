@@ -209,7 +209,9 @@ var SND=(function(){
     water:function(o,d,t){noise(o,d,t,'bandpass',2200,1.4,.03,.13,.32,900);[0,.1,.21].forEach(function(dt,i){tone(o,d,t+.06+dt,1250+i*240,'sine',.002,.11,.08,650);});},
     plant:function(o,d,t){SFX.plop(o,d,t);arp(o,d,t+.08,['G5','C6'],.07,'box',.3);},
     grow:function(o,d,t){arp(o,d,t,['C5','E5','G5','C6','E6'],.06,'box',.32);},
-    chime:function(o,d,t){INST.bell(o,d,t,hz('E6'),.3,.2);INST.bell(o,d,t+.12,hz('A6'),.3,.16);}
+    chime:function(o,d,t){INST.bell(o,d,t,hz('E6'),.3,.2);INST.bell(o,d,t+.12,hz('A6'),.3,.16);},
+    // 小鳥：三聲啾啾
+    chirp:function(o,d,t){tone(o,d,t,3000,'sine',.004,.12,.07,4300);tone(o,d,t+.11,3500,'sine',.004,.1,.06,2700);tone(o,d,t+.21,3300,'sine',.004,.09,.06,4100);}
   };
 
   // 第一次點畫面才開聲音（iPhone 規定）
