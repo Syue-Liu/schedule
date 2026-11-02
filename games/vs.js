@@ -46,6 +46,10 @@ var VS=(function(){
   function present(slot){return !!(slot&&slot.on&&Math.abs(now()-ms(slot.at))<FRESH);}
   function clash(r){var s=r[me()];return present(s)&&s.sid!==sid;}
   function send(data){return fs.setDoc(liveRef(me()),data);}
+  // 兩個人共用的一份資料（例如小森林 banbiao/<代碼>_garden）：有變就通知；寫的時候只合併寫到的欄位，兩個人同時寫不會互蓋
+  function docRef(name){return fs.doc(db,'banbiao',code()+'_'+name);}
+  function docWatch(name,cb){return fs.onSnapshot(docRef(name),function(s){cb(s.exists()?s.data():{});},function(e){console.warn('vs doc',e);});}
+  function docPut(name,data){return fs.setDoc(docRef(name),data,{merge:true});}
   function listen(u,cb){return fs.onSnapshot(liveRef(u),function(s){cb(s.exists()?s.data():null);},function(e){console.warn('vs live',e);});}
 
   /* ── 對戰流程（每款遊戲共用） ──
@@ -221,7 +225,7 @@ var VS=(function(){
     ov.querySelector('[data-solo]').onclick=function(){ov.remove();M=null;hideBar();SND.music(cfg.game);cfg.solo();};
     ov.querySelector('[data-lobby]').onclick=function(){location.href='./';};
   }
-  return {NAMES:NAMES,ORDER:ORDER,can:can,me:me,other:other,connect:connect,now:now,ms:ms,seeded:seeded,watch:watch,watchAll:watchAll,present:present,
+  return {NAMES:NAMES,ORDER:ORDER,can:can,me:me,other:other,connect:connect,now:now,ms:ms,seeded:seeded,watch:watch,watchAll:watchAll,present:present,docWatch:docWatch,docPut:docPut,
     setup:setup,auto:auto,mount:mount,changed:changed,frame:frame,push:push,finish:finish,time:time,opName:opName,
     match:function(){return M;},cfg:function(){return cfg;},inRoom:function(){return inRoom;},sid:function(){return sid;}};
 })();

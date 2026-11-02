@@ -120,6 +120,13 @@ var SND=(function(){
       {i:'bass',v:.42,n:'F2 . . . C3 . . . | G2 . . . D3 . . . | F2 . . . C3 . . . | C3 . . . G2 . . . | F2 . . . C3 . . . | Bb2 . . . F2 . . . | F2 . . . C3 . . . | F2 . C3 . F2 . . .'},
       {i:'box',v:.11,n:'. . A4+C5+F5 . . . A4+C5+F5 . | . . Bb4+D5+G5 . . . Bb4+D5+G5 . | . . A4+C5+F5 . . . A4+C5+F5 . | . . G4+C5+E5 . . . G4+C5+E5 . | . . A4+C5+F5 . . . A4+C5+F5 . | . . Bb4+D5+F5 . . . Bb4+D5+F5 . | . . A4+C5+F5 . . . G4+C5+E5 . | . . A4+C5+F5 . . . A4+C5+F5 .'},
       {d:1,v:.4,n:rep('k . h . s . h .',8)}
+    ]},
+    // 小森林：慢慢的音樂盒＋暖暖的和弦（C 大調）
+    garden:{bpm:84,sw:.12,parts:[
+      {i:'box',v:.34,n:'E5 . G5 . C6 . . . | D6 . C6 . A5 . . . | G5 . A5 . C6 . E6 . | D6 . . . . . . . | C6 . A5 . G5 . E5 . | F5 . A5 . G5 . . . | E5 . D5 . C5 . D5 . | C5 . . . . . . .'},
+      {i:'pad',v:.14,n:'C4+E4+G4 - - - - - - - | F4+A4+C5 - - - - - - - | A3+C4+E4 - - - - - - - | G3+B3+D4 - - - - - - - | C4+E4+G4 - - - - - - - | F4+A4+C5 - - - - - - - | F4+A4+C5 - - - G3+B3+D4 - - - | C4+E4+G4 - - - - - - -'},
+      {i:'pluck',v:.18,n:'C3 G3 C4 G3 E4 G3 C4 G3 | F2 C3 F3 C3 A3 C3 F3 C3 | A2 E3 A3 E3 C4 E3 A3 E3 | G2 D3 G3 D3 B3 D3 G3 D3 | C3 G3 C4 G3 E4 G3 C4 G3 | F2 C3 F3 C3 A3 C3 F3 C3 | F2 C3 F3 C3 G2 D3 G3 D3 | C3 G3 C4 G3 E4 G3 C4 .'},
+      {d:1,v:.2,n:rep('. . x . . . x .',8)}
     ]}
   };
   function parse(tr){
@@ -197,7 +204,12 @@ var SND=(function(){
     thud:function(o,d,t){tone(o,d,t,120,'sine',.001,.45,.16,55);noise(o,d,t,'lowpass',500,1,.001,.25,.08);},
     perfect:function(o,d,t,n){SFX.thud(o,d,t);arp(o,d,t+.03,n>=3?['E6','G6','C7','E7']:['E6','G6','C7'],.05,'box',.3);},
     topple:function(o,d,t){tone(o,d,t,500,'triangle',.01,.25,.6,120);noise(o,d,t+.4,'lowpass',900,1,.001,.4,.3,200);},
-    zone:function(o,d,t){arp(o,d,t,['C5','E5','G5','C6','E6'],.08,'xylo',.4);['C5','E5','G5'].forEach(function(n){INST.box(o,d,t+.45,hz(n),.6,.2);});}
+    zone:function(o,d,t){arp(o,d,t,['C5','E5','G5','C6','E6'],.08,'xylo',.4);['C5','E5','G5'].forEach(function(n){INST.box(o,d,t+.45,hz(n),.6,.2);});},
+    // 小森林：澆水（水聲＋水滴）、種下去、長大、另一半做了什麼
+    water:function(o,d,t){noise(o,d,t,'bandpass',2200,1.4,.03,.13,.32,900);[0,.1,.21].forEach(function(dt,i){tone(o,d,t+.06+dt,1250+i*240,'sine',.002,.11,.08,650);});},
+    plant:function(o,d,t){SFX.plop(o,d,t);arp(o,d,t+.08,['G5','C6'],.07,'box',.3);},
+    grow:function(o,d,t){arp(o,d,t,['C5','E5','G5','C6','E6'],.06,'box',.32);},
+    chime:function(o,d,t){INST.bell(o,d,t,hz('E6'),.3,.2);INST.bell(o,d,t+.12,hz('A6'),.3,.16);}
   };
 
   // 第一次點畫面才開聲音（iPhone 規定）
