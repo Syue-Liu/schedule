@@ -438,7 +438,7 @@ var Garden3D=(function(){
     cv.addEventListener('pointerdown',function(e){ptrs[e.pointerId]={x:e.clientX,y:e.clientY};try{cv.setPointerCapture(e.pointerId);}catch(_){}idleAt=Date.now();var ids=Object.keys(ptrs);if(ids.length===1)down={x:e.clientX,y:e.clientY,t:Date.now(),moved:0};else{down=null;pinch0=dist();rad0=rad;}});
     cv.addEventListener('pointermove',function(e){var p=ptrs[e.pointerId];if(!p)return;var dx=e.clientX-p.x,dy=e.clientY-p.y;p.x=e.clientX;p.y=e.clientY;idleAt=Date.now();
       var ids=Object.keys(ptrs);if(ids.length>=2){var d=dist();if(pinch0)rad=Math.max(10,Math.min(40,rad0*pinch0/d));return;}
-      az-=dx*.009;el=Math.max(.3,Math.min(1.12,el+dy*.005));if(down)down.moved+=Math.abs(dx)+Math.abs(dy);});
+      az-=dx*.006;el=Math.max(.3,Math.min(1.12,el+dy*.0035));if(down)down.moved+=Math.abs(dx)+Math.abs(dy);});
     function up(e){var d=down;delete ptrs[e.pointerId];if(Object.keys(ptrs).length<2)pinch0=0;if(d&&d.moved<10&&Date.now()-d.t<600)pick(e);down=null;}
     cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',function(e){delete ptrs[e.pointerId];down=null;pinch0=0;});
     cv.addEventListener('wheel',function(e){e.preventDefault();rad=Math.max(10,Math.min(40,rad*(1+e.deltaY*.001)));idleAt=Date.now();},{passive:false});
@@ -460,7 +460,6 @@ var Garden3D=(function(){
   /* ── 每一格 ── */
   function tick(dt){
     now+=dt;
-    if(Date.now()-idleAt>6000)az+=dt*.05;
     place();
     if(Date.now()-skyAt>20000){skyAt=Date.now();sky();}
     clouds.rotation.y+=dt*.012;
@@ -539,7 +538,7 @@ var Garden3D=(function(){
     else if(o&&o.person){var h=people.filter(function(q){return q.k===o.person;})[0];if(h)v=h.g.position.clone().setY(.9);}
     if(!v)return null;v.project(cam);var r=R.domElement.getBoundingClientRect();return {x:r.left+(v.x+1)/2*r.width,y:r.top+(1-v.y)/2*r.height};
   }
-  return {init:init,update:update,water:water,shoo:shoo,hop:hop,active:function(){return !!T&&running;},screen:screen,
+  return {resetView:function(){az=.45;el=.62;rad=fitR;idleAt=Date.now();place();},init:init,update:update,water:water,shoo:shoo,hop:hop,active:function(){return !!T&&running;},screen:screen,
     fxCount:function(){return fx.length;},visitors:function(){return visitors.map(function(v){return v.kind+':'+v.state;});},
     spawn:function(k){var v=makeVisitor(k);return visitors.indexOf(v);},people:function(){return people.map(function(p){return p.k+':'+p.state+(p.with?'>'+(p.with.k||'?'):'');});},
     look:function(a,e2,r2){az=a;el=e2;if(r2)rad=r2;idleAt=Date.now()+1e9;}};
