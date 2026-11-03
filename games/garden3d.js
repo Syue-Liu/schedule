@@ -2,6 +2,7 @@
    地上的小島：一片花園空地，中間是土（花園升級最多 12 塊），外圍一圈森林、一圈沙土小路；一邊有個小泉水池，泉水流成小溪繞過花園、流進旁邊的小湖；
    外面是一直到地平線的草原、小山丘和樹，遠方一圈山脈。升級會開放新土地（用小路接到花園外面），每塊多三塊土、也多很多地方種森林。
    森林的樹可以「移植」：點空地選新位置；長大中的植物可以搬到別塊土（點有植物的土就交換）。
+   花園左後方的草地跟著時間換：白天溜滑梯、盪鞦韆，傍晚長椅看夕陽，晚上營火烤棉花糖；學和綾會自己過去玩，點它們也會叫他們來。
    學和綾會走去開放的新土地散步：從花園的路口走到外圈沙土小路、沿著小路走到那塊地（過溪走橋），逛一逛再走回來。
    學和綾、三隻寵物在島上散步，偶爾走去摸摸寵物、跟對方打招呼；蝴蝶、蜜蜂、小鳥會飛來玩，害蟲會跑到植物上。
    拖曳轉一圈、兩指（或滾輪）拉近；點土種樹、點植物澆水、點害蟲抓走、點小鳥收禮物、點森林的樹看回憶。天空跟著現在幾點變。
@@ -15,6 +16,12 @@ var Garden3D=(function(){
   var tScale=1,az=.45,el=.62,rad=0,fitR=-1,tgt,ptrs={},pinch0=0,rad0=0,down=null,idleAt=0,running=false,vis=true,now=0;
   // 小島半徑、散步的那一圈、泉水池（溪的源頭）在哪個方向、溪水往小湖流出去的方向
   var ISL=8.6,RING=[4.65,7.1],MT=-2.2,WF=-.15;
+  // 遊樂區：花園左後方的草地（中心的方向、離中間多遠）；裡面用「區域座標」：x 沿著圓周、z 往外（正的是外面）
+  var AREA_A=-2.75,AREA_R=7.35,AREA_ROT=Math.atan2(Math.cos(AREA_A),Math.sin(AREA_A)),SLIDE_Y=1.26,SWING_Y=1.95;
+  function AWp(x,z){var c=Math.cos(AREA_A),s=Math.sin(AREA_A);return {x:c*AREA_R+x*s+z*c,z:s*AREA_R-x*c+z*s};}
+  function AP(x,z){var q=AWp(x,z);return {a:Math.atan2(q.z,q.x),r:Math.hypot(q.x,q.z)};}
+  function toArea(x,z){var c=Math.cos(AREA_A),s=Math.sin(AREA_A),dx=x-c*AREA_R,dz=z-s*AREA_R;return {x:dx*s-dz*c,z:dx*c+dz*s};}
+  function inArea(x,z,m){var l=toArea(x,z);m=m||0;return l.x>-2.6-m&&l.x<2.6+m&&l.z>-.8-m&&l.z<1.45+m;}
   // 溪流最後往外流進小湖的幾個點（半徑、方向）
   var FLOW_OUT=[[6.6,WF-.24],[7.25,WF-.13],[7.95,WF-.05],[ISL+.1,WF],[9.5,WF+.03]];
   // 十二塊土：中間六塊先開，升級再開前後、左右
@@ -180,12 +187,12 @@ var Garden3D=(function(){
     // 人物用的位置（世界座標）
     g.updateMatrixWorld(true);
     function w(x,y,z){return g.localToWorld(new T.Vector3(x,y,z));}
-    treeHome={g:g,Y:Y,occ:[null,null],entry:w(2.75,0,LZ),top:w(1.62,Y,LZ),seats:[w(-.42,Y+.1,BZ+.04),w(.42,Y+.1,BZ+.04)],c:c};
+    treeHome={g:g,Y:Y,occ:[null,null],entry:w(2.75,0,LZ),top:w(1.62,Y,LZ),seats:[w(-.42,Y+.1,BZ+.04),w(.42,Y+.1,BZ+.04)],c:c,trunk:w(0,0,-.75)};
   }
   function nearTree(x,z){return treeHome&&Math.hypot(x-treeHome.c.x,z-treeHome.c.z)<2.6;}
   // 散步的目的地：避開樹屋、移植進來的樹、溪水和泉水池
   function blocked(x,z){
-    if(nearTree(x,z))return true;
+    if(nearTree(x,z)||inArea(x,z,.2))return true;
     for(var id in trees){if(Math.hypot(trees[id].x-x,trees[id].z-z)<.8)return true;}
     for(var j=0;j<flow.length-1;j++)if(segDist(x,z,flow[j],flow[j+1])<.6)return true;
     return !!pondP&&Math.hypot(x-pondP.x,z-pondP.z)<.95;
@@ -206,7 +213,7 @@ var Garden3D=(function(){
   // 橋的兩頭：先走到自己這邊的橋頭、過橋、再走到對面
   function bridgeVia(fromFar){var B=bridges[0],e=[1,-1].map(function(sg){var x=B.x+B.ux*.8*sg,z=B.z+B.uz*.8*sg;return {a:Math.atan2(z,x),r:Math.hypot(x,z)};});if(far(e[0].a,e[0].r)!==fromFar)e.reverse();return e;}
   // 路線不要踩進泉水池
-  function hitsPond(a0,r0,a1,r1){var da=angDiff(a1,a0);for(var i=0;i<=14;i++){var k=i/14,a=a0+da*k,r=r0+(r1-r0)*k;if(Math.hypot(Math.cos(a)*r-pondP.x,Math.sin(a)*r-pondP.z)<.9)return true;}return false;}
+  function hitsPond(a0,r0,a1,r1){var da=angDiff(a1,a0),tk=treeHome&&treeHome.trunk;for(var i=0;i<=16;i++){var k=i/16,a=a0+da*k,r=r0+(r1-r0)*k,x=Math.cos(a)*r,z=Math.sin(a)*r;if(Math.hypot(x-pondP.x,z-pondP.z)<.9||inArea(x,z,0)||(tk&&Math.hypot(x-tk.x,z-tk.z)<.95))return true;}return false;}
   // 路線不要貼著溪走到水裡（溪邊的草地可以，水裡不行）
   function wetPath(a0,r0,a1,r1){var da=angDiff(a1,a0);for(var i=0;i<=14;i++){var k=i/14,a=a0+da*k,r=r0+(r1-r0)*k,x=Math.cos(a)*r,z=Math.sin(a)*r;for(var j=0;j<flow.length-1;j++)if(segDist(x,z,flow[j],flow[j+1])<.45)return true;}return false;}
   function legOk(a0,r0,a1,r1){return !crosses(a0,r0,a1,r1)&&!wetPath(a0,r0,a1,r1);}
@@ -276,10 +283,10 @@ var Garden3D=(function(){
     for(var rd=0;rd<14;rd++){var ra=rd*.45+2.2,rp2=polar(LR+.15,ra),rx=LK.x+rp2.x,rz=LK.z+rp2.z,rh=.7+rnd(rd+170)*.5;scene.add(mesh(cyl(.02,.025,rh,4),'#6FA35E',rx,rh/2,rz));if(rd%2)scene.add(mesh(cyl(.045,.045,.18,6),'#8C6A55',rx,rh+.02,rz));}
     for(var dk=0;dk<2;dk++){var duck=new T.Group(),bd=mesh(ball(.2,1),'#FFFFFF');bd.scale.set(1.25,.75,.95);duck.add(bd);duck.add(mesh(ball(.12,1),'#FFFFFF',.2,.17,0));var bk=mesh(cone(.045,.12,6),'#F2A15B',.33,.16,0);bk.rotation.z=-Math.PI/2;duck.add(bk);[-.05,.05].forEach(function(z){duck.add(mesh(ball(.018,0),'#3E3A39',.27,.21,z));});var tl=mesh(cone(.07,.14,5),'#FFFFFF',-.25,.08,0);tl.rotation.z=Math.PI/2+.5;duck.add(tl);duck.userData={a:dk*Math.PI,r:1.6+dk*.6,s:dk?-.12:.15};scene.add(duck);ducks.push(duck);}
     // 草地上的小花、溪邊的石頭
-    for(var j=0;j<44;j++){var b=j*2.39996,rr2=4.4+rnd(j+40)*3.9,fp=polar(rr2,b);if(Math.hypot(fp.x-pond.x,fp.z-pond.z)<.95)continue;var near=flow.some(function(q){return Math.hypot(q.x-fp.x,q.z-fp.z)<.55;});if(near)continue;var fo=mesh(ball(.07,0),['#FFFFFF','#F8C8D4','#F6D27A','#B9A6DE'][j%4],fp.x,.04,fp.z);fo.castShadow=false;scene.add(fo);}
+    for(var j=0;j<44;j++){var b=j*2.39996,rr2=4.4+rnd(j+40)*3.9,fp=polar(rr2,b);if(Math.hypot(fp.x-pond.x,fp.z-pond.z)<.95||inArea(fp.x,fp.z,.1))continue;var near=flow.some(function(q){return Math.hypot(q.x-fp.x,q.z-fp.z)<.55;});if(near)continue;var fo=mesh(ball(.07,0),['#FFFFFF','#F8C8D4','#F6D27A','#B9A6DE'][j%4],fp.x,.04,fp.z);fo.castShadow=false;scene.add(fo);}
     for(var k=0;k<10;k++){var q=along(.08+k*.085),side=k%2?1:-1,nb=along(.08+k*.085+.01),tx=nb.x-q.x,tz=nb.z-q.z,l=Math.hypot(tx,tz)||1,rs=mesh(new T.DodecahedronGeometry(.1+rnd(k+60)*.1),'#C9C2BB',q.x-tz/l*.42*side,.03,q.z+tx/l*.42*side);rs.scale.y=.6;scene.add(rs);}
-    // 遠方的山：一圈，站在地面上，越遠越淡（霧）
-    for(var mm=0;mm<20;mm++){var ma=mm/20*Math.PI*2+rnd(mm)*.25,mr=62+rnd(mm+5)*18,mh=14+rnd(mm+9)*18,mw=12+rnd(mm+3)*9,mp=polar(mr,ma),mo=mesh(cone(mw,mh,6),['#A9C3B4','#9DB3C6','#B7C9A8','#AFC0CF'][mm%4],mp.x,mh/2-1,mp.z);mo.castShadow=mo.receiveShadow=false;mo.rotation.y=mm;scene.add(mo);if(mh>24){var cp=mesh(cone(mw*.34,mh*.3,6),'#F4F6F8',mp.x,mh*.85-.95,mp.z);cp.castShadow=false;cp.rotation.y=mm;scene.add(cp);}}
+    // 遠方的山：一圈，站在地面上，越遠越淡（霧）；遊樂區外面那個方向留一個缺口，傍晚看得到夕陽、晚上看得到月亮
+    for(var mm=0;mm<20;mm++){var ma=mm/20*Math.PI*2+rnd(mm)*.25;if(Math.abs(angDiff(ma,AREA_A))<.5)continue;var mr=62+rnd(mm+5)*18,mh=14+rnd(mm+9)*18,mw=12+rnd(mm+3)*9,mp=polar(mr,ma),mo=mesh(cone(mw,mh,6),['#A9C3B4','#9DB3C6','#B7C9A8','#AFC0CF'][mm%4],mp.x,mh/2-1,mp.z);mo.castShadow=mo.receiveShadow=false;mo.rotation.y=mm;scene.add(mo);if(mh>24){var cp=mesh(cone(mw*.34,mh*.3,6),'#F4F6F8',mp.x,mh*.85-.95,mp.z);cp.castShadow=false;cp.rotation.y=mm;scene.add(cp);}}
     // 草原上起伏的小山丘
     for(var hl=0;hl<14;hl++){var ha=hl/14*Math.PI*2+rnd(hl+200)*.3,hr=30+rnd(hl+210)*20,hs=7+rnd(hl+220)*8,hp=polar(hr,ha),hm=mesh(ball(1,2),['#93C07E','#A1CB8B','#8CB878'][hl%3],hp.x,-hs*.1,hp.z);hm.scale.set(hs*1.4,hs*.32,hs);hm.rotation.y=ha;hm.castShadow=hm.receiveShadow=false;scene.add(hm);}
     // 草原上的樹：圓樹和松樹（同一種形狀一次畫完）
@@ -293,7 +300,7 @@ var Garden3D=(function(){
     // 小路外面的小灌木
     for(var bu=0;bu<22;bu++){var ba=bu*.29+rnd(bu+400)*.2,bp=polar(ISL+1.4+rnd(bu+410)*2.5,ba);if(Math.hypot(bp.x-lake.x,bp.z-lake.z)<lake.r+1||onLand(bp.x,bp.z,.9))continue;var bs=mesh(ball(.35+rnd(bu+420)*.25,1),['#86B67C','#9AC58C'][bu%2],bp.x,.15,bp.z);bs.scale.y=.75;scene.add(bs);if(bu%4===0)scene.add(mesh(ball(.07,0),'#F8C8D4',bp.x+.15,.42,bp.z));}
     // 森林可以放的位置：兩圈，避開泉水池、溪水出口、樹屋，還有新土地的路口（學和綾從那裡走出去）
-    [[7.15,22,0],[7.95,26,.12]].forEach(function(rg){for(var i=0;i<rg[1];i++){var fa=i/rg[1]*Math.PI*2+rg[2]+.05;var sp0=polar(rg[0],fa);if(Math.hypot(sp0.x-pond.x,sp0.z-pond.z)<1.5||Math.abs(angDiff(fa,WF))<.2||Math.abs(angDiff(fa,TH_A))<.5||LAND_IDS.some(function(id){return Math.abs(angDiff(fa,LAND_GEO[id].a))<.2;}))continue;spots.push({r:rg[0],a:fa});}});
+    [[7.15,22,0],[7.95,26,.12]].forEach(function(rg){for(var i=0;i<rg[1];i++){var fa=i/rg[1]*Math.PI*2+rg[2]+.05;var sp0=polar(rg[0],fa);if(Math.hypot(sp0.x-pond.x,sp0.z-pond.z)<1.5||inArea(sp0.x,sp0.z,.45)||Math.abs(angDiff(fa,WF))<.2||Math.abs(angDiff(fa,TH_A))<.5||LAND_IDS.some(function(id){return Math.abs(angDiff(fa,LAND_GEO[id].a))<.2;}))continue;spots.push({r:rg[0],a:fa});}});
     addLands();
     // 土：中間十二塊＋每塊新土地三塊（點的範圍做大一點、看不到）；還沒開放的先藏起來
     PLOT.forEach(function(p,i){
@@ -325,6 +332,7 @@ var Garden3D=(function(){
     sun.color=lc;sun.intensity=A[3]+(B[3]-A[3])*k;hemi.intensity=A[4]+(B[4]-A[4])*k;hemi.color=new T.Color('#FFFFFF').lerp(bg,.25);
     var ang=(h-6)/12*Math.PI;sun.position.set(Math.cos(ang)*14,Math.max(5,Math.sin(Math.abs(ang))*16+5),7);
     night=h<5.5||h>19.5?1:h<6.5?(6.5-h):h>18.5?(h-18.5):0;night=Math.max(0,Math.min(1,night));
+    if(actG){setPhase(phaseOf(h),!phase);sunAt(h);}
     stars.material.opacity=night;pets.forEach(function(p){p.spr.material.color=new T.Color('#FFFFFF').lerp(new T.Color('#8C96B8'),night*.7);});
   }
 
@@ -345,7 +353,7 @@ var Garden3D=(function(){
   function movePets(dt){
     var right=new T.Vector3().setFromMatrixColumn(cam.matrixWorld,0);
     pets.forEach(function(p){
-      if(p.wait>0){p.wait-=dt;setTex(p,2);if(p.wait<=0){p.via=[];var okT=false;for(var n=0;n<6&&!okT;n++){p.ta=p.ang+(Math.random()-.5)*3.2;p.tr=RING[0]+Math.random()*(RING[1]-RING[0]);okT=!blocked(Math.cos(p.ta)*p.tr,Math.sin(p.ta)*p.tr)&&pathOk(p.ang,p.r,p.ta,p.tr);}if(!okT){p.ta=p.ang;p.tr=p.r;}}}
+      if(p.wait>0){p.wait-=dt;setTex(p,2);if(p.wait<=0){p.via=[];var okT=false;for(var n=0;n<6&&!okT;n++){if(n<2&&Math.random()<(phase==='night'?.45:.12)){var fp=AP((Math.random()-.5)*3.6,-1.3);p.ta=fp.a;p.tr=fp.r;}else{p.ta=p.ang+(Math.random()-.5)*3.2;p.tr=RING[0]+Math.random()*(RING[1]-RING[0]);}okT=!blocked(Math.cos(p.ta)*p.tr,Math.sin(p.ta)*p.tr)&&pathOk(p.ang,p.r,p.ta,p.tr);}if(!okT){p.ta=p.ang;p.tr=p.r;}}}
       else{needVia(p);var lg=legTarget(p),da=angDiff(lg.a,p.ang),dr=lg.r-p.r,dist=Math.hypot(da*p.r,dr),step=.5*dt;if(dist<step){p.ang=lg.a;p.r=lg.r;if(p.via&&p.via.length)p.via.shift();else p.wait=1.5+Math.random()*3;}else{var x0=Math.cos(p.ang)*p.r,z0=Math.sin(p.ang)*p.r,k=step/dist;p.ang+=da*k;p.r+=dr*k;var v=new T.Vector3(Math.cos(p.ang)*p.r-x0,0,Math.sin(p.ang)*p.r-z0),fl=v.dot(right)<0;if(fl!==p.flip){p.flip=fl;p.dirty=true;}p.walkT+=dt;setTex(p,Math.floor(p.walkT/.18)%2);}}
       var y=0;if(p.hop>0){p.hop=Math.max(0,p.hop-dt);y=Math.sin((1-p.hop/.5)*Math.PI)*.5;}
       p.x=Math.cos(p.ang)*p.r;p.z=Math.sin(p.ang)*p.r;var by=bridgeY(p.x,p.z);p.spr.position.set(p.x,y+by,p.z);p.sh.position.set(p.x,.02+by,p.z);p.sh.scale.setScalar(1-y*.6);
@@ -444,10 +452,11 @@ var Garden3D=(function(){
       else if(p.state==='walk'){
         if(p.with){var w=p.with;var wa=w.ang!=null?w.ang:0,side=angDiff(p.ang,wa)>0?1:-1;p.ta=wa+side*(.85/Math.max(1,w.r));p.tr=w.r+(w.spr?.05:0);}
         needVia(p);
-        var lg=legTarget(p),da=angDiff(lg.a,p.ang),dr=lg.r-p.r,step=(p.toTree?1:.75)*dt,dist=Math.hypot(da*p.r,dr);
+        var lg=legTarget(p),da=angDiff(lg.a,p.ang),dr=lg.r-p.r,step=(p.toTree||p.goAct?1:.75)*dt,dist=Math.hypot(da*p.r,dr);
         if(dist<.08&&p.via&&p.via.length)p.via.shift();
-        else if(dist<.08){if(p.toTree){p.toTree=false;p.state='climb';p.t=0;}else if(p.with)play(p);else{p.state='idle';p.timer=1.5+Math.random()*3;}}
+        else if(dist<.08){if(p.toTree){p.toTree=false;p.state='climb';p.t=0;}else if(p.goAct)startAct(p);else if(p.with)play(p);else{p.state='idle';p.timer=1.5+Math.random()*3;}}
         else{var k=Math.min(1,step/dist);p.ang+=da*k;p.r+=dr*k;p.walkT+=dt;var nq=pos(p);p.face=Math.atan2(nq.x-q.x,nq.z-q.z);}
+      }else if(p.state==='act'){actStep(p,dt);
       }else if(TREE_STATES[p.state]){
         var D=p.state==='climb'||p.state==='descend'?2.8:1.1;p.t=Math.min(1,p.t+dt/D);if(p.state!=='sit')p.walkT+=dt;
         if(p.state==='sit'){p.timer-=dt;if(both&&p.k==='syue'){p.hT=(p.hT||0)-dt;if(p.hT<=0){p.hT=3.2;var s0=treeHome.seats[0],s1=treeHome.seats[1];hearts((s0.x+s1.x)/2,s0.y+1.7,(s0.z+s1.z)/2,3);}}if(p.timer<=0){p.state='fromSeat';p.t=0;}}
@@ -475,13 +484,223 @@ var Garden3D=(function(){
       p.blink-=dt;var bl=p.blink<0&&p.blink>-.13;p.eyes.forEach(function(e){e.scale.y=bl?.12:1;});if(p.blink<=-.13)p.blink=2.5+Math.random()*3;
       p.hd.rotation.y=st==='idle'?Math.sin(now*.7+p.ph)*.35:0;
       p.hd.rotation.z=sit&&both?(p.seat===0?-.2:.2):0;
-      if(climbing){var u=st==='climb'?p.t:1-p.t;_v.lerpVectors(treeHome.entry,treeHome.top,u);p.g.position.copy(_v);p.face=TH_ROT-Math.PI/2;}
+      if(st==='act'&&p.A)actPose(p);
+      else if(climbing){var u=st==='climb'?p.t:1-p.t;_v.lerpVectors(treeHome.entry,treeHome.top,u);p.g.position.copy(_v);p.face=TH_ROT-Math.PI/2;}
       else if(onDeck){var u2=st==='toSeat'?p.t:1-p.t,sp=treeHome.seats[p.seat];_v.lerpVectors(treeHome.top,sp,u2);var dx=sp.x-treeHome.top.x,dz=sp.z-treeHome.top.z;p.face=st==='toSeat'?Math.atan2(dx,dz):Math.atan2(-dx,-dz);p.g.position.copy(_v);}
       else if(sit){p.g.position.copy(treeHome.seats[p.seat]);p.face=TH_ROT;}
       else{q=pos(p);p.g.position.set(q.x,bridgeY(q.x,q.z),q.z);}
-      p.sh.visible=!(climbing||onDeck||sit);
+      p.sh.visible=!(climbing||onDeck||sit||st==='act');
       var cur=p.g.rotation.y,df=angDiff(p.face,cur);p.g.rotation.y=cur+df*Math.min(1,dt*8);
     });
+  }
+  /* ── 遊樂區：白天溜滑梯＋盪鞦韆、傍晚長椅看夕陽、晚上營火烤棉花糖（跟著現在幾點換） ── */
+  var actG=null,ACTS={hits:{}},phase='',sunDisc=null,moonDisc=null,fireLight=null,sparkT=0,bothT=0;
+  var FACE_OUT=AREA_ROT,FACE_IN=AREA_ROT+Math.PI,FACE_X=Math.atan2(Math.sin(AREA_A),-Math.cos(AREA_A));
+  function AW(x,y,z){var q=AWp(x,z);return new T.Vector3(q.x,y,q.z);}
+  function rod(g,a,b,r,col){var d=new T.Vector3().subVectors(b,a),m=mesh(cyl(r,r,d.length(),6),col);m.position.copy(a).addScaledVector(d,.5);m.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),d.normalize());g.add(m);return m;}
+  function chuteAt(t){return new T.Vector3(-1.5+1.32*t,.16+1.1*Math.pow(1-t,1.7),.2);}
+  function phaseOf(h){return h>=5.5&&h<16.5?'day':h>=16.5&&h<19?'eve':'night';}
+  function discTex(a,b){var c=document.createElement('canvas');c.width=c.height=128;var x=c.getContext('2d'),g=x.createRadialGradient(64,64,4,64,64,64);g.addColorStop(0,a);g.addColorStop(.42,a);g.addColorStop(.5,b);g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,128,128);var t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;return t;}
+  function addActs(){
+    actG=new T.Group();var c=AWp(0,0);actG.position.set(c.x,0,c.z);actG.rotation.y=AREA_ROT;scene.add(actG);
+    var V=function(x,y,z){return new T.Vector3(x,y,z);};
+    function grp(){var g=new T.Group();g.visible=false;actG.add(g);return g;}
+    function hitBox(g,kind,x,z,r,h){var m=new T.Mesh(cyl(r,r,h,12),hitMat);m.position.set(x,h/2,z);m.rotation.y=.13;m.visible=false;m.userData={act:kind};g.add(m);return m;}
+    function box(g,w,h,d,col,x,y,z){var m=mesh(new T.BoxGeometry(w,h,d),col,x,y,z);g.add(m);return m;}
+    // 白天：溜滑梯（左邊，有小屋頂）
+    var day=grp(),Y=SLIDE_Y;ACTS.day=day;
+    [[-2.06,-.06],[-2.06,.46],[-1.5,-.06],[-1.5,.46]].forEach(function(q){day.add(mesh(cyl(.04,.04,Y+.75,6),'#E9CBA3',q[0],(Y+.75)/2,q[1]));});
+    box(day,.66,.08,.66,'#C99A6F',-1.78,Y-.04,.2);
+    var roof=mesh(cone(.56,.42,4),'#F6D27A',-1.78,Y+.96,.2);roof.rotation.y=Math.PI/4;day.add(roof);
+    [-.02,.42].forEach(function(z){rod(day,V(-2.5,0,z),V(-2.08,Y,z),.03,'#B98B6B');});
+    for(var k=1;k<=5;k++){var f=k/6,rg=mesh(cyl(.022,.022,.46,5),'#DAB58A',-2.5+.42*f,Y*f,.2);rg.rotation.x=Math.PI/2;day.add(rg);}
+    for(var sg=0;sg<8;sg++){var a=chuteAt(sg/8),b=chuteAt((sg+1)/8),d=b.clone().sub(a),ang=Math.atan2(d.y,d.x),m=box(day,d.length()+.03,.05,.5,'#F2A497',(a.x+b.x)/2,(a.y+b.y)/2,.2);m.rotation.z=ang;
+      [-.27,.27].forEach(function(dz){var rl=box(day,d.length()+.03,.1,.04,'#F6D27A',(a.x+b.x)/2,(a.y+b.y)/2+.06,.2+dz);rl.rotation.z=ang;});}
+    ACTS.slide={occ:null};
+    // 盪鞦韆（右邊，兩個位子：綠的是學、粉紅的是綾）
+    var SY=SWING_Y;
+    [.45,2.35].forEach(function(x){rod(day,V(x,0,-.62),V(x,SY,0),.045,'#8FB9D9');rod(day,V(x,0,.62),V(x,SY,0),.045,'#8FB9D9');});
+    rod(day,V(.42,SY,0),V(2.38,SY,0),.05,'#7FA8CB');
+    ACTS.swing={occ:[null,null],x:[1.0,1.8],seat:[],phi:[0,0],vel:[0,0],amp:[0,0]};
+    ACTS.swing.x.forEach(function(x,i){var g=new T.Group();g.position.set(x,SY,0);day.add(g);[-.2,.2].forEach(function(dx){g.add(mesh(cyl(.012,.012,1.5,4),'#C9A884',dx,-.75,0));});g.add(mesh(new T.BoxGeometry(.5,.05,.26),['#9CCB85','#F2A497'][i],0,-1.5,0));ACTS.swing.seat.push(g);});
+    ACTS.hits.day=[hitBox(day,'slide',-1.6,.2,1.0,2.3),hitBox(day,'swing',1.4,0,1.05,2.2)];
+    // 傍晚：長椅面向外面（夕陽那邊），後面一盞路燈
+    var eve=grp();ACTS.eve=eve;
+    box(eve,1.8,.07,.44,'#B9845E',0,.43,.42);box(eve,1.8,.36,.06,'#B9845E',0,.74,.19);box(eve,1.86,.06,.08,'#956C50',0,.95,.19);
+    [-.8,.8].forEach(function(x){box(eve,.07,.43,.07,'#956C50',x,.21,.6);box(eve,.07,.92,.07,'#956C50',x,.46,.2);});
+    box(eve,.6,.05,.36,'#CDE6BF',-.42,.48,.42);box(eve,.6,.05,.36,'#F8C8D4',.42,.48,.42);
+    eve.add(mesh(cyl(.04,.05,2.1,6),'#594C43',-1.25,1.05,-.1));
+    var bulb=new T.Mesh(ball(.13,2),new T.MeshBasicMaterial({color:'#FFE3A0'}));bulb.position.set(-1.25,2.17,-.1);eve.add(bulb);eve.add(mesh(cone(.2,.16,6),'#594C43',-1.25,2.33,-.1));
+    for(var fl=0;fl<6;fl++){var fx0=(fl<3?-1:1)*(1.15+fl%3*.22),fz0=.5+(fl%3)*.25;eve.add(mesh(ball(.06,0),['#F8C8D4','#F6D27A','#FFFFFF'][fl%3],fx0,.05,fz0));}
+    ACTS.bench={occ:[null,null],x:[-.42,.42]};
+    ACTS.hits.eve=[hitBox(eve,'bench',0,.35,1.1,1.3)];
+    // 晚上：營火（石頭圍一圈、木頭搭起來、火會跳）、外面一根大木頭可以坐
+    var night=grp();ACTS.night=night;
+    for(var st=0;st<10;st++){var sa=st/10*Math.PI*2,sm=mesh(new T.DodecahedronGeometry(.1),'#A9A39D',Math.cos(sa)*.42,.05,.3+Math.sin(sa)*.42);sm.scale.y=.7;night.add(sm);}
+    [0,2.1,4.2].forEach(function(a){rod(night,V(Math.cos(a)*.3,0,.3+Math.sin(a)*.3),V(0,.5,.3),.05,'#8E6A55');});
+    ACTS.flames=[];[['#FF8A3D',.24,.62,0,0],['#FFB347',.17,.48,.06,.03],['#FFE08A',.1,.32,-.05,-.03]].forEach(function(q){var m=new T.Mesh(cone(q[1],q[2],7),new T.MeshBasicMaterial({color:q[0],transparent:true,opacity:.92}));m.position.set(q[3],.1+q[2]/2,.3+q[4]);night.add(m);ACTS.flames.push({m:m,h:q[2]});});
+    var lg=mesh(cyl(.16,.16,1.9,8),'#8E6A55',0,.16,1.15);lg.rotation.z=Math.PI/2;night.add(lg);
+    [-.95,.95].forEach(function(x){var ec=mesh(cyl(.13,.13,.02,8),'#D9B48A',x,.16,1.15);ec.rotation.z=Math.PI/2;night.add(ec);});
+    box(night,.26,.14,.18,'#F6E7D8',1.25,.07,1.05);for(var mm=0;mm<3;mm++)night.add(mesh(cyl(.04,.04,.06,8),'#FFFFFF',1.17+mm*.08,.17,1.05));
+    ACTS.fire={occ:[null,null],x:[-.42,.42],c:AW(0,.5,.3)};
+    ACTS.hits.night=[hitBox(night,'fire',0,.55,1.2,1.4)];
+    fireLight=new T.PointLight('#FFA552',0,9,1.4);fireLight.position.copy(AW(0,.9,.3));scene.add(fireLight);
+    // 夕陽（傍晚在長椅前面慢慢落下）、月亮（晚上）
+    sunDisc=new T.Sprite(new T.SpriteMaterial({map:discTex('#FFE2A0','rgba(255,160,110,.5)'),fog:false,depthWrite:false,transparent:true}));sunDisc.scale.set(34,34,1);sunDisc.visible=false;scene.add(sunDisc);
+    moonDisc=new T.Sprite(new T.SpriteMaterial({map:discTex('#FFF8E2','rgba(255,248,226,.22)'),fog:false,depthWrite:false,transparent:true}));moonDisc.scale.set(16,16,1);moonDisc.visible=false;scene.add(moonDisc);
+    var mp=polar(150,AREA_A+.22);moonDisc.position.set(mp.x,25,mp.z);
+  }
+  // 換時段：舊的東西縮起來、新的長出來；正在玩的人先下來
+  function setPhase(ph,quiet){
+    if(ph===phase)return;var old=phase;phase=ph;
+    people.forEach(function(p){if(p.state==='act'||p.goAct)endAct(p);});
+    ['day','eve','night'].forEach(function(k){var g=ACTS[k];
+      if(k===ph){g.visible=true;if(old&&!quiet){var cc=AWp(0,.2);growIn(g,cc.x,cc.z);}}
+      else if(g.visible){if(old&&!quiet)addFx({dur:.4,up:function(f){g.scale.setScalar(Math.max(.01,1-f.t/f.dur));},end:function(){g.visible=false;g.scale.setScalar(1);}});else g.visible=false;}});
+    sunDisc.visible=ph==='eve';moonDisc.visible=ph==='night';if(ph!=='night')fireLight.intensity=0;
+    if(old&&!quiet&&hooks.phase)hooks.phase(ph);
+  }
+  function sunAt(h){var k=Math.max(0,Math.min(1,(h-16.5)/2.5)),q=polar(150,AREA_A);sunDisc.position.set(q.x,20-22*k,q.z);sunDisc.material.color.set('#FFFFFF').lerp(new T.Color('#FF9C70'),k);}
+  function freeP(p){return p.state!=='act'&&!p.goAct&&!p.toTree&&!TREE_STATES[p.state]&&!p.land&&p.state!=='play';}
+  function partner(p){return people.filter(function(o){return o!==p;})[0];}
+  // 走去玩：從現在的位置（溪對面先過橋）走到遊樂區旁邊，再走到那個東西前面；不好走就繞花園內圈
+  function goAct(p,k,i,n){
+    var S=ACTS[k],v=[],t,sd=i===0?-1:1;
+    if(k==='slide'){S.occ=p;v=[AP(-2.85,-1.1)];t=AP(-2.78,.2);}
+    else{S.occ[i]=p;var x=S.x[i];
+      if(k==='swing')t=AP(x,-1.05);
+      else if(k==='bench'){v=[AP(sd*1.75,-1.1)];t=AP(sd*1.45,.95);}
+      else{v=[AP(sd*1.95,-1.1)];t=AP(sd*1.6,.95);}}
+    var pre=far(p.ang,p.r)?bridgeVia(true):[],from=pre.length?pre[1]:{a:p.ang,r:p.r},first=v[0]||t;
+    if(hitsPond(from.a,from.r,first.a,first.r)||wetPath(from.a,from.r,first.a,first.r))pre=pre.concat([{a:from.a,r:Math.min(from.r,5.1)},{a:first.a,r:5.1}]);
+    p.with=null;p.via=pre.concat(v);p.ta=t.a;p.tr=t.r;p.goAct={k:k,i:i,n:n||1};p.state='walk';
+  }
+  // 選一個空的位子：學喜歡綠色那邊、綾粉紅那邊
+  function seatFor(p,k){var S=ACTS[k],pref=p.k==='syue'?0:1;if(!S.occ[pref])return pref;if(!S.occ[1-pref])return 1-pref;return -1;}
+  function tryAct(p,force){
+    var o=partner(p),ph=phase,r=Math.random();
+    if(ph==='day'){
+      if(o&&o.A&&o.A.k==='swing'&&seatFor(p,'swing')>=0&&(force||r<.7)){goAct(p,'swing',seatFor(p,'swing'));return true;}
+      if(!force&&r>.22)return false;
+      if(!ACTS.slide.occ&&(Math.random()<.5||seatFor(p,'swing')<0)){goAct(p,'slide',0,2+Math.floor(Math.random()*2));return true;}
+      if(seatFor(p,'swing')>=0){goAct(p,'swing',seatFor(p,'swing'));return true;}
+      return false;
+    }
+    var kk=ph==='eve'?'bench':'fire',i=seatFor(p,kk);if(i<0)return false;
+    if(o&&o.A&&o.A.k===kk&&(force||r<.8)){goAct(p,kk,i);return true;}
+    if(force||r<(ph==='eve'?.3:.35)){goAct(p,kk,i);return true;}
+    return false;
+  }
+  // 點遊樂區的東西：叫有空的人過來（長椅、營火兩個人都叫）
+  function callAct(k){
+    var who=[];
+    if(k==='fire')for(var b=0;b<14;b++)spark();
+    if(k==='swing')ACTS.swing.vel=ACTS.swing.vel.map(function(v,i){return ACTS.swing.occ[i]?v:v+1.4;});
+    people.filter(freeP).sort(function(a,b){return Math.hypot(a.r*Math.cos(a.ang)-actG.position.x,a.r*Math.sin(a.ang)-actG.position.z)-Math.hypot(b.r*Math.cos(b.ang)-actG.position.x,b.r*Math.sin(b.ang)-actG.position.z);}).forEach(function(p){
+      if(who.length&&k==='slide')return;
+      if(k==='slide'){if(!ACTS.slide.occ){goAct(p,'slide',0,2);who.push(p.k);}return;}
+      var i=seatFor(p,k);if(i>=0){goAct(p,k,i);who.push(p.k);}
+    });
+    SND.sfx(k==='fire'?'pop':'tap');
+    if(hooks.act)hooks.act(k,who);
+    return who;
+  }
+  function startAct(p){
+    var g=p.goAct;p.goAct=null;p.via=[];p.state='act';p.A={k:g.k,i:g.i,n:g.n,step:g.k==='slide'?'climb':'on',t:0,left:0,roast:0,eat:0};
+    var A=p.A;
+    if(A.k==='swing')A.left=9+Math.random()*5;
+    if(A.k==='bench')A.left=14+Math.random()*6;
+    if(A.k==='fire'){A.left=18+Math.random()*8;A.roastNeed=5+Math.random()*3;}
+    if(A.k==='slide')SND.sfx('tap');
+  }
+  function next(A,s){A.step=s;A.t=0;}
+  // 下來以後站在哪（之後自己走出遊樂區）
+  function offSpot(p){var A=p.A,sd=A.i===0?-1:1;if(A.k==='slide')return AP(-.05,.2);if(A.k==='swing')return AP(ACTS.swing.x[A.i],-1.05);if(A.k==='bench')return AP(sd*1.45,.95);return AP(sd*1.6,.95);}
+  function endAct(p){
+    var g=p.A||p.goAct;
+    if(g){var S=ACTS[g.k];if(g.k==='slide'){if(S.occ===p)S.occ=null;}else if(S.occ[g.i]===p)S.occ[g.i]=null;}
+    if(p.A&&p.state==='act'){var o=offSpot(p);p.ang=o.a;p.r=o.r;}
+    if(p.stick){scene.remove(p.stick);scene.remove(p.marsh);p.stick=p.marsh=null;}
+    p.A=null;p.goAct=null;p.via=[];p.state='idle';p.timer=.3+Math.random();p.b.rotation.x=0;
+  }
+  function actStep(p,dt){
+    var A=p.A;A.t+=dt;
+    if(A.k==='slide'){
+      if(A.step==='climb'&&A.t>1.3)next(A,'top');
+      else if(A.step==='top'&&A.t>.45){next(A,'down');SND.sfx('swish');}
+      else if(A.step==='down'&&A.t>.85)next(A,'land');
+      else if(A.step==='land'&&A.t>.45){
+        if(--A.n>0){var e=AP(-.05,.2);p.ang=e.a;p.r=e.r;p.A=null;p.state='walk';p.goAct={k:'slide',i:0,n:A.n};p.via=[AP(-.05,-1.1),AP(-2.85,-1.1)];var t=AP(-2.78,.2);p.ta=t.a;p.tr=t.r;}
+        else endAct(p);
+      }
+      return;
+    }
+    if(A.step==='on'){if(A.t>.55)next(A,'use');return;}
+    if(A.step==='use'){
+      A.left-=dt;
+      if(A.k==='fire'){
+        if(A.eat>0){A.eat-=dt;if(A.eat<=0){A.roast=0;A.roastNeed=5+Math.random()*3;var hp=p.feed?partner(p):p;var hv=new T.Vector3();hp.hd.getWorldPosition(hv);hearts(hv.x,hv.y+.3,hv.z,p.feed?3:1);if(p.feed)SND.sfx('chime');p.feed=false;}}
+        else{A.roast+=dt;if(A.roast>A.roastNeed){var o=partner(p);p.feed=!!(o&&o.A&&o.A.k==='fire'&&o.A.step==='use'&&Math.random()<.4);A.eat=1;}}
+      }
+      if(A.left<=0)next(A,'off');
+      return;
+    }
+    if(A.step==='off'&&A.t>.55)endAct(p);
+  }
+  function sitPose(p,arms){p.legs[0].rotation.x=p.legs[1].rotation.x=-1.38;p.arms[0].rotation.x=p.arms[1].rotation.x=arms==null?-.35:arms;p.b.position.y=-.23;p.b.rotation.x=0;}
+  // 每一格：照現在在做什麼放好位置、擺好姿勢
+  function actPose(p){
+    var A=p.A,k=A.k,u,pos,face=FACE_OUT,o=partner(p),both=o&&o.A&&o.A.k===k&&o.A.step==='use'&&A.step==='use';
+    p.hd.rotation.z=0;
+    if(k==='slide'){
+      if(A.step==='climb'){u=Math.min(1,A.t/1.3);pos=AW(-2.5+.5*u,SLIDE_Y*u,.2);face=FACE_X;var cl=Math.sin(A.t*9);p.legs[0].rotation.x=cl*.5-.3;p.legs[1].rotation.x=-cl*.5-.3;p.arms[0].rotation.x=-2.4+cl*.35;p.arms[1].rotation.x=-2.4-cl*.35;p.b.position.y=0;}
+      else if(A.step==='top'){pos=AW(-1.7,SLIDE_Y-.27,.2);face=FACE_X;sitPose(p);}
+      else if(A.step==='down'){u=Math.min(1,A.t/.85);u=u*u*(3-2*u);var c=chuteAt(u);pos=AW(c.x,c.y-.27,.2);face=FACE_X;sitPose(p,-2.7);p.b.rotation.x=-.2;}
+      else{pos=AW(-.05,0,.2);face=FACE_X;p.legs[0].rotation.x=p.legs[1].rotation.x=0;p.arms[0].rotation.x=p.arms[1].rotation.x=-2.5+Math.sin(now*10)*.3;p.b.position.y=Math.abs(Math.sin(A.t*7))*.08;}
+    }else{
+      var sd=A.i===0?-1:1,x=ACTS[k].x[A.i],from,seat;
+      if(k==='swing'){var ph=ACTS.swing.phi[A.i],L=1.785;from=AW(x,0,-1.05);seat=AW(x,SWING_Y-L*Math.cos(ph),-L*Math.sin(ph));face=FACE_IN;}
+      else if(k==='bench'){from=AW(sd*1.45,0,.95);seat=AW(x,.195,.44);face=FACE_OUT;}
+      else{from=AW(sd*1.6,0,.95);seat=AW(x,.01,1.15);face=FACE_IN;}
+      u=A.step==='on'?Math.min(1,A.t/.55):A.step==='off'?1-Math.min(1,A.t/.55):1;
+      pos=from.clone().lerp(seat,u);
+      if(u<.5){p.legs[0].rotation.x=p.legs[1].rotation.x=0;p.arms[0].rotation.x=p.arms[1].rotation.x=0;p.b.position.y=0;p.b.rotation.x=0;}
+      else if(k==='swing'){sitPose(p,-2.25);p.b.rotation.x=ACTS.swing.phi[A.i]*.5;}
+      else if(k==='bench'){sitPose(p,both?-.55:-.35);if(both)p.hd.rotation.z=A.i===0?-.2:.2;}
+      else{var eating=A.eat>0;sitPose(p);p.arms[1].rotation.x=eating?-1.9:-1.1;if(both)p.hd.rotation.z=A.i===0?-.12:.12;}
+      // 烤棉花糖：手上一根樹枝，前面插著棉花糖，烤得越久越金黃；烤好就吃掉（有時候餵另一個人）
+      if(k==='fire'&&A.step==='use'){
+        if(!p.stick){p.stick=mesh(cyl(.012,.012,1,4),'#B98B6B');p.marsh=new T.Mesh(cyl(.05,.05,.1,10),new T.MeshToonMaterial({color:'#FFFFFF',gradientMap:GM}));scene.add(p.stick);scene.add(p.marsh);}
+        var sh=new T.Vector3();p.arms[1].getWorldPosition(sh);var fw=new T.Vector3(Math.sin(face),0,Math.cos(face)),hand=sh.clone().addScaledVector(fw,.32).add(new T.Vector3(0,-.12,0)),tip;
+        if(A.eat>0){var who=p.feed?o:p,hv=new T.Vector3();who.hd.getWorldPosition(hv);var mouth=hv.add(new T.Vector3(Math.sin(who.g.rotation.y),0,Math.cos(who.g.rotation.y)).multiplyScalar(.22)).add(new T.Vector3(0,-.08,0));tip=hand.clone().lerp(mouth,Math.min(1,(1-A.eat)*2.5));}
+        else tip=ACTS.fire.c.clone().add(new T.Vector3(sd*.12,.12+Math.sin(now*1.7+A.i)*.03,0));
+        var dv=tip.clone().sub(hand),len=dv.length();p.stick.position.copy(hand).addScaledVector(dv,.5);p.stick.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),dv.clone().normalize());p.stick.scale.set(1,len,1);
+        p.marsh.position.copy(tip);p.marsh.quaternion.copy(p.stick.quaternion);p.marsh.visible=!(A.eat>0&&A.eat<.45);
+        var rf=Math.min(1,A.roast/A.roastNeed);p.marsh.material.color.set('#FFFFFF').lerp(new T.Color(rf<.7?'#F6D58A':'#C98A4B'),rf<.7?rf/.7:1).lerp(new T.Color('#B9773F'),rf<.7?0:(rf-.7)/.3*.6);
+      }else if(p.stick){scene.remove(p.stick);scene.remove(p.marsh);p.stick=p.marsh=null;}
+    }
+    p.g.position.copy(pos);p.face=face;
+  }
+  function spark(){var c=ACTS.fire.c,m=new T.Mesh(new T.OctahedronGeometry(.03),new T.MeshBasicMaterial({color:Math.random()<.5?'#FFB347':'#FFE08A',transparent:true}));m.position.set(c.x+(Math.random()-.5)*.25,c.y,c.z+(Math.random()-.5)*.25);scene.add(m);var vx=(Math.random()-.5)*.3,vz=(Math.random()-.5)*.3;
+    addFx({dur:1.1+Math.random()*.6,up:function(f,dt){m.position.y+=dt*(1.1-f.t*.4);m.position.x+=vx*dt;m.position.z+=vz*dt;m.material.opacity=1-f.t/f.dur;},end:function(){scene.remove(m);m.geometry.dispose();m.material.dispose();}});}
+  // 遊樂區每一格：鞦韆擺、火跳、兩個人一起的時候冒愛心
+  function tickActs(dt){
+    var S=ACTS.swing;
+    for(var i=0;i<2;i++){var o=S.occ[i];
+      if(o&&o.A&&o.A.k==='swing'&&o.A.step==='use'){S.amp[i]=Math.min(.55,S.amp[i]+dt*.18);S.phi[i]=S.amp[i]*Math.sin(now*2.35+i*.9);S.vel[i]=0;}
+      else{S.amp[i]=Math.max(0,S.amp[i]-dt*.5);S.vel[i]+=(-6*S.phi[i]-.8*S.vel[i])*dt;S.phi[i]+=S.vel[i]*dt;if(o&&o.A)S.phi[i]*=.9;}
+      S.seat[i].rotation.x=S.phi[i];}
+    if(phase==='night'){
+      ACTS.flames.forEach(function(f,j){var sc=.85+.25*Math.sin(now*(9+j*3))+.1*Math.sin(now*23+j);f.m.scale.set(1,sc,1);f.m.position.y=.1+f.h*sc/2;f.m.rotation.y+=dt*(j+1);});
+      fireLight.intensity=2.2+.5*Math.sin(now*11)+.3*Math.sin(now*29);
+      sparkT-=dt;if(sparkT<=0){sparkT=.18+Math.random()*.3;spark();}
+    }
+    var a=people[0],b=people[1];
+    if(a&&b&&a.A&&b.A&&a.A.k===b.A.k&&a.A.step==='use'&&b.A.step==='use'&&a.A.k!=='slide'){
+      // 兩個人一起：一起多待一下、每隔幾秒冒愛心
+      var m=Math.max(a.A.left,b.A.left);a.A.left=b.A.left=m;
+      bothT-=dt;if(bothT<=0){bothT=3.4;var mid=a.g.position.clone().add(b.g.position).multiplyScalar(.5);hearts(mid.x,mid.y+1.6,mid.z,a.A.k==='swing'?2:3);}
+    }
   }
   // 下一步做什麼：去樹屋（另一個人在上面的話很想去陪）、去摸寵物、去找另一個人、散步（不走進樹屋底下）
   /* ── 去新土地散步：先走到花園的路口（溪這邊是西邊花田、湖畔小園的方向，溪對面是果樹坡、山腳草地的方向），
@@ -519,6 +738,9 @@ var Garden3D=(function(){
   function choose(p){
     var r=Math.random(),other=people.filter(function(o){return o!==p;})[0],free=treeHome?treeHome.occ.indexOf(null):-1,ls=openLands();
     if(p.land){landChoose(p,other);return;}
+    var px=Math.cos(p.ang)*p.r,pz=Math.sin(p.ang)*p.r;
+    if(inArea(px,pz,.05)){var la=toArea(px,pz),ex=AP(Math.max(-2.4,Math.min(2.4,la.x)),-1.1);p.via=[];p.with=null;p.ta=ex.a;p.tr=ex.r;p.state='walk';return;}
+    if(phase&&tryAct(p))return;
     if(ls.length&&other&&other.land&&Math.random()<.5){goLand(p,other.land);return;}
     if(ls.length&&Math.random()<.14){goLand(p,ls[Math.floor(Math.random()*ls.length)]);return;}
     if(free>=0&&other&&(other.state==='sit'||other.state==='toSeat'||other.state==='climb')&&Math.random()<.7)goTree(p,free);
@@ -634,6 +856,7 @@ var Garden3D=(function(){
     for(var i=0;i<PLOT.length;i++){var lo=landOf(i);if((!lo||lo.open)&&Math.hypot(PLOT[i][0]-x,PLOT[i][1]-z)<1.2)return '這裡是種花的土';}
     for(var j=0;j<flow.length-1;j++)if(segDist(x,z,flow[j],flow[j+1])<.62)return '這裡是小溪';
     if(pondP&&Math.hypot(x-pondP.x,z-pondP.z)<1)return '這裡是泉水池';
+    if(inArea(x,z,.3))return '這裡是遊樂區';
     if(treeHome&&Math.hypot(x-treeHome.c.x,z-treeHome.c.z)<3)return '這裡是樹屋';
     for(var id in trees)if(id!==self&&Math.hypot(trees[id].x-x,trees[id].z-z)<.85)return '太靠近別的樹了';
     return '';
@@ -733,6 +956,7 @@ var Garden3D=(function(){
     var pt=ray.intersectObjects(plots.filter(function(p){return p.pest;}).map(function(p){return p.pest.hb;}))[0];if(pt){hooks.pest(pt.object.userData.pest);return;}
     var ph=ray.intersectObjects(pets.map(function(p){return p.spr;}))[0];if(ph){var pp=pets.filter(function(p){return p.spr===ph.object;})[0];if(pp){pp.hop=.5;SND.sfx('pop');hearts(pp.x,1.2,pp.z,1);}return;}
     var hu=ray.intersectObjects(people.map(function(p){return p.g.children[3];}))[0];if(hu){var who=people.filter(function(p){return p.k===hu.object.userData.person;})[0];if(who){if(TREE_STATES[who.state]||who.toTree)who.waveT=1.6;else if(who.state!=='play'){who.state='play';who.with=null;who.timer=1.6;who.act=1.2;who.face=Math.atan2(cam.position.x-who.g.position.x,cam.position.z-who.g.position.z);}SND.sfx('tap');}return;}
+    var ah=ray.intersectObjects(ACTS.hits[phase]||[])[0];if(ah){callAct(ah.object.userData.act);return;}
     var objs=plots.filter(function(p){return p.on;}).map(function(p){return p.coll;});Object.keys(trees).forEach(function(id){objs.push(trees[id].g.children[1]);});
     var h=ray.intersectObjects(objs)[0];if(!h)return;var u=h.object.userData;
     if(u.tree)hooks.tree(u.tree);else if(u.plant)hooks.plant(u.plant);else if(u.slot!=null)hooks.plot(u.slot);
@@ -747,7 +971,7 @@ var Garden3D=(function(){
     if(mv){var pu=1+Math.sin(now*5)*.08;mv.mark.scale.set(pu,pu,pu);if(mv.kind==='plot'){var sp0=mv.src;mv.mark.position.set(sp0.x,.2,sp0.z);}}
     if(Date.now()-skyAt>20000){skyAt=Date.now();sky();}
     clouds.rotation.y+=dt*.012;
-    movePets(dt);movePeople(dt);moveVisitors(dt);
+    movePets(dt);movePeople(dt);moveVisitors(dt);tickActs(dt);
     // 溪水往下流、湖上的小鴨子游來游去
     flecks.forEach(function(f){f.userData.t=(f.userData.t+dt*.045)%1;var p=along(f.userData.t),p2=along(Math.min(.999,f.userData.t+.01));f.position.set(p.x,.05,p.z);f.rotation.y=-Math.atan2(p2.z-p.z,p2.x-p.x);});
     ducks.forEach(function(d){var u=d.userData;u.a+=dt*u.s;d.position.set(lake.x+Math.cos(u.a)*u.r,.05+Math.sin(now*2.4+u.r)*.02,lake.z+Math.sin(u.a)*u.r);d.rotation.y=-u.a+(u.s>0?-Math.PI/2:Math.PI/2);});
@@ -775,7 +999,7 @@ var Garden3D=(function(){
       R=new T.WebGLRenderer({canvas:cv,antialias:true,powerPreference:'low-power'});
       if(!R.getContext())throw new Error('no webgl');
       R.setPixelRatio(Math.min(2,window.devicePixelRatio||1));R.shadowMap.enabled=true;R.shadowMap.type=T.PCFSoftShadowMap;
-      build();addTreehouse();addPeople();bind(cv);size();
+      build();addTreehouse();addActs();sky();addPeople();bind(cv);size();
       if(window.ResizeObserver)new ResizeObserver(size).observe(box);else addEventListener('resize',size);
       if(window.IntersectionObserver)new IntersectionObserver(function(es){vis=es[0].isIntersecting;}).observe(box);
       clock=new T.Clock();running=true;rad=fitR;nextVisit=6;place();loop();
@@ -828,6 +1052,7 @@ var Garden3D=(function(){
     else if(o&&o.visitor!=null&&visitors[o.visitor])v=visitors[o.visitor].g.position.clone();
     else if(o&&o.sign&&LAND_GEO[o.sign])v=LAND_GEO[o.sign].sign.hb.position.clone();
     else if(o&&o.at)v=new T.Vector3(o.at[0],0,o.at[1]);
+    else if(o&&o.act){var hh=(ACTS.hits[phase]||[]).filter(function(m){return m.userData.act===o.act;})[0];if(hh){v=new T.Vector3();hh.getWorldPosition(v);}}
     else if(o&&o.person){var h=people.filter(function(q){return q.k===o.person;})[0];if(h)v=h.g.position.clone().setY(.9);}
     if(!v)return null;v.project(cam);var r=R.domElement.getBoundingClientRect();return {x:r.left+(v.x+1)/2*r.width,y:r.top+(1-v.y)/2*r.height};
   }
@@ -842,7 +1067,10 @@ var Garden3D=(function(){
     goTo:function(k,a,r){var p=people.filter(function(o){return o.k===k;})[0]||pets.filter(function(o){return o.k===k;})[0];if(!p)return false;p.via=[];p.ta=a;p.tr=r;if(p.spr){p.wait=0;}else{p.with=null;p.toTree=false;p.state='walk';}return far(p.ang,p.r)!==far(a,r);},
     lands:function(){return LAND_IDS.map(function(id){var L=LAND_GEO[id];return {id:id,open:L.open,c:L.c,R:L.R,spots:L.spots.length,plots:PLOT.slice(L.p0,L.p0+3)};});},init:init,update:update,water:water,shoo:shoo,hop:hop,active:function(){return !!T&&running;},screen:screen,
     fxCount:function(){return fx.length;},visitors:function(){return visitors.map(function(v){return v.kind+':'+v.state;});},
-    spawn:function(k){var v=makeVisitor(k);return visitors.indexOf(v);},people:function(){return people.map(function(p){return p.k+':'+p.state+(p.with?'>'+(p.with.k||'?'):'')+(p.land?'@'+p.land.id:'');});},
+    spawn:function(k){var v=makeVisitor(k);return visitors.indexOf(v);},people:function(){return people.map(function(p){return p.k+':'+p.state+(p.with?'>'+(p.with.k||'?'):'')+(p.land?'@'+p.land.id:'')+(p.A?'#'+p.A.k+'.'+p.A.step:p.goAct?'~'+p.goAct.k:'');});},
+    phase:function(){return phase;},setPhase:function(ph){setPhase(ph);},act:function(k){return callAct(k);},
+    acts:function(){return {slide:ACTS.slide.occ&&ACTS.slide.occ.k,swing:ACTS.swing.occ.map(function(o){return o&&o.k;}),phi:ACTS.swing.phi.map(function(v){return +v.toFixed(2);}),bench:ACTS.bench.occ.map(function(o){return o&&o.k;}),fire:ACTS.fire.occ.map(function(o){return o&&o.k;}),light:+fireLight.intensity.toFixed(2),marsh:people.map(function(p){return p.marsh?'#'+p.marsh.material.color.getHexString():'';})};},
+    area:function(){return {c:AWp(0,.2),rot:AREA_ROT};},
     goLand:function(k,id){var p=people.filter(function(o){return o.k===k;})[0],L=LAND_GEO[id];if(!p||!L||!L.open||TREE_STATES[p.state]||p.toTree)return false;if(p.land)leaveLand(p);else goLand(p,L);return true;},
     look:function(a,e2,r2,tx,ty,tz){az=a;el=e2;agoal=egoal=null;if(r2){rad=r2;rgoal=0;}if(tx!=null){tgt.set(tx,ty,tz);tgoal.copy(tgt);}idleAt=Date.now()+1e9;},
     toTree:function(k){var p=people.filter(function(o){return o.k===k;})[0],i=treeHome.occ.indexOf(null);if(p&&i>=0&&!TREE_STATES[p.state]&&!p.toTree&&!p.land){p.timer=0;goTree(p,i);}},tree:function(){return {c:treeHome.c,rot:TH_ROT,entry:treeHome.entry,occ:treeHome.occ.map(function(o){return o&&o.k;}),pp:people.map(function(p){return [p.k,p.state,+p.ang.toFixed(2),+p.r.toFixed(2),+p.ta.toFixed(2),+p.tr.toFixed(2),!!p.toTree];})};}};
