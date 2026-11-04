@@ -993,8 +993,12 @@ var Garden3D=(function(){
   /* ── 給 garden.html 用的 ── */
   function init(el0,hk){
     box=el0;hooks=hk;
+    // 載入進度回報給 garden.html 的讀取畫面：lib（three.js 下載好）→ scene（場景蓋好、畫出第一格）→ 回傳的 promise 完成＝寵物也到了
+    // 蓋場景之前先讓瀏覽器畫一次，讀取畫面上的字才會先換成「種下樹木和花…」
     return import(SRC).then(function(m){
-      T=m;
+      T=m;if(hooks.progress)hooks.progress('lib');
+      return new Promise(function(ok){requestAnimationFrame(function(){setTimeout(ok,0);});});
+    }).then(function(){
       var cv=document.createElement('canvas');box.insertBefore(cv,box.firstChild);
       R=new T.WebGLRenderer({canvas:cv,antialias:true,powerPreference:'low-power'});
       if(!R.getContext())throw new Error('no webgl');
@@ -1003,6 +1007,7 @@ var Garden3D=(function(){
       if(window.ResizeObserver)new ResizeObserver(size).observe(box);else addEventListener('resize',size);
       if(window.IntersectionObserver)new IntersectionObserver(function(es){vis=es[0].isIntersecting;}).observe(box);
       clock=new T.Clock();running=true;rad=fitR;nextVisit=6;place();loop();
+      if(hooks.progress)hooks.progress('scene');
       return addPets();
     });
   }

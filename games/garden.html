@@ -10,6 +10,13 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Huninn&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="game.css?v=vs-20261031">
+<!-- 3D 花園和雲端資料要用的檔案，跟頁面同時開始下載（不用等程式跑到那裡才抓） -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js">
 <style>
 body{min-height:100%;background:#F4F8EC;}
 .gd{max-width:520px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 74px) 14px calc(env(safe-area-inset-bottom) + 30px);}
@@ -115,6 +122,27 @@ body{min-height:100%;background:#F4F8EC;}
 .g3.full .g3-btn,.g3.full .g3-drops{top:calc(env(safe-area-inset-top) + 12px);}
 .g3-tip{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);padding:4px 12px;border:var(--lw2) solid var(--ink);border-radius:999px;background:#FFFCF6E6;font-size:12px;white-space:nowrap;pointer-events:none;transition:opacity .6s;}
 .g3.full .g3-tip{bottom:calc(env(safe-area-inset-bottom) + 16px);}
+/* 讀取畫面：小芽在澆水、三隻寵物跳一跳；進度條跟著真的載入進度走（動畫只用 transform/opacity，載入卡住的時候也會動） */
+.ld{position:fixed;inset:0;z-index:80;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;background:radial-gradient(circle at 50% 36%,#FFFCF6 0,#F4F8EC 55%,#E2EFD8 100%);transition:opacity .45s ease;}
+.ld.out{opacity:0;pointer-events:none;}
+.ld-back{position:absolute;left:12px;top:calc(env(safe-area-inset-top) + 10px);}
+.ld-pot{position:relative;width:140px;height:132px;}
+.ld-plant{position:absolute;left:10px;right:10px;bottom:14px;height:110px;transform-origin:50% 100%;animation:ldGrow 1.7s ease-in-out infinite alternate;}
+.ld-plant svg{display:block;width:100%;height:100%;overflow:visible;}
+.ld-soil{position:absolute;left:22px;right:22px;bottom:4px;height:24px;border:var(--lw2) solid var(--ink);border-radius:50%;background:#9C7258;}
+.ld-drop{position:absolute;top:-6px;width:10px;height:14px;border:2.5px solid var(--ink);border-radius:50% 50% 50% 50%/62% 62% 38% 38%;background:#A8D3E6;opacity:0;animation:ldDrop 1.5s ease-in infinite;}
+.ld h1{margin:4px 0 0;font-size:25px;font-weight:400;letter-spacing:3px;color:var(--t);}
+.ld-pets{display:flex;align-items:flex-end;gap:12px;height:52px;}
+.ld-pets img{height:46px;width:auto;animation:ldHop 1s ease-in-out infinite;}
+.ld-pets img:nth-child(2){height:40px;animation-delay:.18s;}.ld-pets img:nth-child(3){animation-delay:.36s;}
+.ld-bar{width:min(70vw,270px);height:16px;margin-top:4px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);overflow:hidden;box-shadow:0 2px 0 var(--ink);}
+.ld-bar i{display:block;height:100%;background:linear-gradient(90deg,#B9DAA5,#7FB36E);transform-origin:0 50%;transform:scaleX(.04);transition:transform .35s ease;}
+.ld-txt{margin:0;min-height:20px;font-size:14px;color:var(--t2);}
+.ld-tip{margin:6px 0 0;max-width:270px;min-height:36px;text-align:center;font-size:12px;line-height:1.5;color:var(--t3);transition:opacity .3s;}
+@keyframes ldGrow{from{transform:scale(.9,.84) rotate(-3deg);}to{transform:scale(1,1) rotate(3deg);}}
+@keyframes ldDrop{0%{transform:translateY(0);opacity:0;}15%{opacity:1;}75%{opacity:1;}100%{transform:translateY(62px);opacity:0;}}
+@keyframes ldHop{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-12px);}}
+@media (prefers-reduced-motion:reduce){.ld *{animation:none!important;}}
 .g3-load{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--t2);}
 .try3d .garden,.is3d .garden{display:none;}
 .no3d .g3{display:none;}
@@ -152,6 +180,19 @@ body{min-height:100%;background:#F4F8EC;}
 <link rel="stylesheet" href="polish.css?v=snowlake-20261026">
 </head>
 <body data-game="garden" class="try3d">
+<div class="ld" id="ld" role="status" aria-live="polite">
+  <button class="g-back ld-back" onclick="location.href='./'">‹ 大廳</button>
+  <div class="ld-pot" aria-hidden="true">
+    <i class="ld-drop" style="left:46px"></i><i class="ld-drop" style="left:66px;animation-delay:.5s"></i><i class="ld-drop" style="left:86px;animation-delay:1s"></i>
+    <div class="ld-plant"><svg viewBox="0 0 120 110"><path d="M60 108C60 88 60 72 60 56" stroke="#3E3A39" stroke-width="10" stroke-linecap="round" fill="none"/><path d="M60 108C60 88 60 72 60 56" stroke="#7FB36E" stroke-width="5" stroke-linecap="round" fill="none"/><path d="M60 70q-30-4-38-28q26-4 38 28z" fill="#9CCB85" stroke="#3E3A39" stroke-width="4" stroke-linejoin="round"/><path d="M60 60q28-8 34-32q-26 0-34 32z" fill="#B9DAA5" stroke="#3E3A39" stroke-width="4" stroke-linejoin="round"/><circle cx="60" cy="52" r="6" fill="#F8C8D4" stroke="#3E3A39" stroke-width="3.5"/></svg></div>
+    <div class="ld-soil"></div>
+  </div>
+  <h1>記憶小森林</h1>
+  <div class="ld-pets" aria-hidden="true"><img src="../assets/pets/snowball-happy.svg" alt=""><img src="../assets/pets/dudu-happy.svg" alt=""><img src="../assets/pets/samoyed-happy.svg" alt=""></div>
+  <div class="ld-bar"><i id="ldBar"></i></div>
+  <p class="ld-txt" id="ldTxt">打開花園…</p>
+  <p class="ld-tip" id="ldTip"></p>
+</div>
 <div class="g-bar"><button class="g-back" onclick="location.href='./'">‹ 大廳</button><div class="g-title">記憶小森林</div><div class="g-pill hot" id="drops">💧 …</div></div>
 <main class="gd">
   <button class="lvl" id="lvl" aria-label="花園等級"></button>
@@ -167,7 +208,7 @@ body{min-height:100%;background:#F4F8EC;}
 <script src="sound.js?v=garden-lv-20261102"></script>
 <script src="game.js?v=garden-20261102"></script>
 <script src="vs.js?v=garden-20261102"></script>
-<script src="garden3d.js?v=daynight-20261103"></script>
+<script src="garden3d.js?v=loading-20261104"></script>
 <script>
 /* 記憶小森林：兩個人一起種。每天回答一題問答拿水滴，一起澆水，把種子種成樹；長大的樹放進森林，留著那段時間的問答和兩個人的話。
    資料：班表同一個 Firebase 的 banbiao/<同步代碼>_garden（沒有同步代碼就存在這支手機）
@@ -240,6 +281,29 @@ var QS=[
   {t:'pick',q:'誰的睡相比較差？',a:['學','綾']},{t:'text',q:'想對對方說的悄悄話'}
 ];
 var $=function(id){return document.getElementById(id);};
+/* ── 讀取畫面：雲端資料（data）＋ 3D 花園（lib 下載 three.js → scene 蓋好場景 → pets 寵物圖）都好了才收起來；
+   3D 不能用就只等資料；最多等 15 秒（之後 3D 還沒好的話，花園格子裡還是會顯示「花園長出來中…」） ── */
+var LD={data:0,lib:0,scene:0,pets:0,no3d:0,shown:.04,at:Date.now(),done:false,tipI:0},LDW={data:.3,lib:.35,scene:.2,pets:.15},LDORDER=['data','lib','scene','pets'];
+var LDTIPS=['每天回答今日問題，可以多拿 2 滴水 💧','同一天兩個人都澆同一棵，那天會多長一點 🌱','小鳥飛來的時候點牠，會送你一滴水 🐦','白天可以盪鞦韆，傍晚看夕陽，晚上烤棉花糖 🔥','森林的樹可以移植，排成你們喜歡的樣子 🌳','有害蟲要先抓走，植物才能澆水 🐛'];
+function ldTxt(){if(LD.no3d&&LD.data)return '改用平面花園…';for(var i=0;i<LDORDER.length;i++){var k=LDORDER[i];if(!LD[k]&&!(LD.no3d&&k!=='data'))return {data:VS.can()?'連線到你們的花園…':'打開花園…',lib:'下載 3D 花園…',scene:'種下樹木和花…',pets:'叫醒學、綾和三隻寵物…'}[k];}return '好了！';}
+function ldNextW(){for(var i=0;i<LDORDER.length;i++){var k=LDORDER[i];if(!LD[k]&&!(LD.no3d&&k!=='data'))return LDW[k];}return 0;}
+function ldTarget(){var f=0;LDORDER.forEach(function(k){if(LD[k]||(LD.no3d&&k!=='data'))f+=LDW[k];});return f;}
+function ldStep(k){if(LD.done||LD[k])return;LD[k]=1;LD.at=Date.now();$('ldTxt').textContent=ldTxt();if(LD.data&&(LD.pets||LD.no3d))ldDone();}
+function ldDone(){
+  if(LD.done)return;LD.done=true;clearInterval(LD.iv);clearInterval(LD.tv);
+  var ov=$('ld');if(!ov)return;$('ldBar').style.transform='scaleX(1)';$('ldTxt').textContent='好了！';
+  setTimeout(function(){ov.classList.add('out');setTimeout(function(){ov.remove();},500);},220);
+}
+(function(){
+  // 進度條：照已經完成的步驟走，等下一步的時候也慢慢往前爬一點（不會看起來卡住）
+  $('ldTxt').textContent=ldTxt();
+  LD.iv=setInterval(function(){var goal=ldTarget()+ldNextW()*Math.min(.85,(Date.now()-LD.at)/7000);LD.shown+=(goal-LD.shown)*.18;$('ldBar').style.transform='scaleX('+Math.max(.04,LD.shown).toFixed(3)+')';},120);
+  var tip=$('ldTip');LD.tipI=Math.floor(Math.random()*LDTIPS.length);tip.textContent='小提示：'+LDTIPS[LD.tipI];
+  LD.tv=setInterval(function(){tip.style.opacity=0;setTimeout(function(){LD.tipI=(LD.tipI+1)%LDTIPS.length;tip.textContent='小提示：'+LDTIPS[LD.tipI];tip.style.opacity=1;},300);},3200);
+  setTimeout(ldDone,15000);
+  // 3D 會用到的寵物圖先抓
+  ['cat','pg','dg'].forEach(function(k){['walk-a','walk-b','happy'].forEach(function(p){var im=new Image();im.src=G.petImg(k,p);});});
+})();
 var D={plants:{},qa:{},here:{}},cloud=false,first=true,recent=[],pendW={},wT=0,sheet=null,started=false,g3=false,moving=null;
 
 function pad(n){return (n<10?'0':'')+n;}
@@ -533,13 +597,13 @@ function start3d(){
   box.addEventListener('pointerdown',function(){$('g3tip').style.opacity=0;},{once:true});
   $('g3full').onclick=function(){setFull(!box.classList.contains('full'));SND.sfx('tap');};
   $('g3reset').onclick=function(){if(g3)Garden3D.resetView();};
-  Garden3D.init(box,{plot:function(i){SND.sfx('tap');openSeeds(i);},plant:function(id){SND.sfx('tap');openPlant(id);},tree:function(id){SND.sfx('tap');openMemory(id);},pest:function(id){catchPest(id);},bird:function(){return birdGift();},
+  Garden3D.init(box,{progress:function(s){ldStep(s);},plot:function(i){SND.sfx('tap');openSeeds(i);},plant:function(id){SND.sfx('tap');openPlant(id);},tree:function(id){SND.sfx('tap');openMemory(id);},pest:function(id){catchPest(id);},bird:function(){return birdGift();},
     land:function(id,open){var l=LANDS.filter(function(x){return x.id===id;})[0];if(!l)return;SND.sfx('tap');toast(open?'🏡 '+l.name:'🔒 花園升到 Lv.'+l.lv+' 會開放新土地「'+l.name+'」');},
     phase:function(ph){toast({day:'☀️ 天亮了！遊樂區有溜滑梯和盪鞦韆',eve:'🌇 傍晚了，長椅搬出來了，一起看夕陽吧',night:'🔥 晚上了，營火升起來，可以烤棉花糖了'}[ph]||'');},
     act:function(k,who){var n=who.map(function(u){return NAMES[u];}).join('和');toast(!n?'他們現在在忙，等一下再叫他們':{slide:n+'去溜滑梯了 🛝',swing:n+'去盪鞦韆了',bench:n+'坐到長椅上看夕陽 🌇',fire:n+'去營火邊烤棉花糖 🔥'}[k]);},
     moveSel:function(sel){if(!moving)return;if(moving.kind==='plot'){movePlotTo(sel.slot);return;}moving.sel=sel;SND.sfx(sel.ok?'tap':'swish');paintMove();}})
-    .then(function(){g3=true;document.body.classList.add('is3d');document.body.classList.remove('try3d');var l=box.querySelector('.g3-load');if(l)l.remove();paint();})
-    .catch(function(e){console.warn('3D 花園載不到，用平面的',e);document.body.classList.remove('try3d');document.body.classList.add('no3d');paint();});
+    .then(function(){g3=true;document.body.classList.add('is3d');document.body.classList.remove('try3d');var l=box.querySelector('.g3-load');if(l)l.remove();paint();ldStep('pets');})
+    .catch(function(e){console.warn('3D 花園載不到，用平面的',e);document.body.classList.remove('try3d');document.body.classList.add('no3d');paint();LD.no3d=1;$('ldTxt').textContent=ldTxt();if(LD.data)ldDone();});
 }
 
 /* ── 動作 ── */
@@ -730,6 +794,7 @@ function openHist(){
   ov.querySelector('[data-close]').onclick=closeSheet;
 }
 function askWho(){
+  ldDone();
   var ov=card('<h2>🌱 你是誰？</h2><p>選好之後，你們兩個人澆的水會分開記</p><div class="g-btns"><button class="g-btn" data-u="syue">學</button><button class="g-btn" data-u="ling">綾</button></div>');
   ov.querySelectorAll('[data-u]').forEach(function(b){b.onclick=function(){G.setWho(b.getAttribute('data-u'));location.reload();};});
 }
@@ -739,6 +804,7 @@ function help(){
   sheet.ov.querySelector('[data-close]').onclick=function(){closeSheet();try{localStorage.setItem('gardenHelp','1');}catch(e){}};
 }
 function ready(){
+  ldStep('data');
   started=true;
   $('gpets').innerHTML=['cat','pg','dg'].map(function(k){return '<img src="'+G.petImg(k,'happy')+'" alt="'+esc(G.petName(k))+'">';}).join('');
   paint();claim();SND.music('garden');pestSeen=pestsNow().map(function(x){return x.key;});setTimeout(visit2d,12000);
