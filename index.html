@@ -3747,7 +3747,7 @@ function petFeed(p,food){
   },catReduce?900:2600);
   return true;
 }
-// 偶爾：畫面上冒出飼料、小魚、罐頭或透抽；寵物會自己走過去撿起來放進背包（也可以直接點，先搶先贏）
+// 偶爾：畫面上冒出飼料、小魚、罐頭或透抽；點一下就收進背包（寵物不會自己去撿），5 分鐘沒點就消失
 function petScheduleDrop(){clearTimeout(petDropT);petDropT=setTimeout(petTryDrop,(80+Math.random()*160)*1000);}
 function petTryDrop(){
   petScheduleDrop();
@@ -3760,61 +3760,20 @@ function petTryDrop(){
   var b=petBounds(p),x=b.x0+10+Math.random()*(b.x1-b.x0),y=b.y0+10+Math.random()*(b.y1-b.y0);
   var el=document.createElement('button');el.className='cat-drop';el.setAttribute('aria-label','撿起'+FOODS[food].name);
   el.innerHTML=CAT_ART[food];el.style.left=x+'px';el.style.top=y+'px';
-  el._d={food:food,x:x,y:y,pref:p,born:Date.now()};
+  el._d={food:food,x:x,y:y,born:Date.now()};
   document.body.appendChild(el);
-  // 每 1.5 秒看一次有沒有空的寵物可以去撿；都沒人理的話 5 分鐘後消失
-  el._try=setInterval(function(){petFetchDrop(el);},1500);
-  el._gone=setTimeout(function(){clearInterval(el._try);el.classList.add('bye');setTimeout(function(){el.remove();},450);},300000);
-  setTimeout(function(){petFetchDrop(el);},900);
-  el.onclick=function(){petTakeDrop(el,null);};
+  el._gone=setTimeout(function(){el.classList.add('bye');setTimeout(function(){el.remove();},450);},300000);
+  el.onclick=function(){petTakeDrop(el);};
 }
-// 派一隻寵物去撿：愛吃那個的優先，不然找最近的空閒寵物；睡著的等 15 秒還沒人去就叫醒愛吃的那隻
-function petFetchDrop(el){
-  var d=el._d;if(!el.isConnected||d.taken)return;
-  var g=d.going;
-  if(g){
-    // 走到一半被打斷（被點、被抱去合體…）就換人／重派
-    if(Date.now()-d.goAt<10000&&(g.raf||g.act==='pick'))return;
-    d.going=null;
-  }
-  var cand=petShown().filter(petIdle);
-  if(!cand.length&&Date.now()-d.born>15000&&!petHidden(d.pref)&&d.pref.el.classList.contains('sleep')&&!d.pref.menu&&!d.pref.pet&&!d.pref.act){petWake(d.pref);petSay(d.pref,'聞到'+FOODS[d.food].name+'的味道…',1600);cand=[d.pref];}
-  if(!cand.length)return;
-  var p=cand.indexOf(d.pref)>=0?d.pref:cand.sort(function(a,b){return Math.hypot(a.x-d.x,a.y-d.y)-Math.hypot(b.x-d.x,b.y-d.y);})[0];
-  d.going=p;d.goAt=Date.now();
-  petSay(p,'有'+FOODS[d.food].name+'！我去撿～',1600);
-  petWalkTo(p,d.x>p.x?d.x-p.def.W+4:d.x+36,d.y+42-p.def.H,95,function(){
-    if(d.going!==p||d.taken||!el.isConnected)return;
-    var cx=p.x+p.def.W/2,cy=p.y+p.def.H/2;
-    // 被擋住停在半路：等下一輪再派
-    if(Math.hypot(cx-(d.x+21),cy-(d.y+21))>p.def.W*.75+40){d.going=null;petNext(p,1500);return;}
-    petTakeDrop(el,p);
-  });
-}
-// 撿起來：p 是撿的寵物（沒有就是你自己點的）
-function petTakeDrop(el,p){
+// 點了：收進背包
+function petTakeDrop(el){
   var d=el._d;if(!d||d.taken||!el.isConnected)return;
-  d.taken=1;clearInterval(el._try);clearTimeout(el._gone);
+  d.taken=1;clearTimeout(el._gone);
   var me=petWho();if(!me){el.remove();return;}
   var F=FOODS[d.food],r=petDay(me);r.d.drop++;r[d.food]++;petSave();
-  // 本來有寵物正要過去，被你先撿走了
-  var g=d.going;if(g&&g!==p&&g.raf){petStop(g);petSay(g,'被你搶先了～',1400);petNext(g,1500);}
-  if(!p){
-    el.remove();
-    catFx('+ '+F.name+' ×1','pt',d.x-14,d.y-8,0,-40);
-    toast('撿到'+F.name+' ×1');
-    return;
-  }
-  // 寵物撿：東西縮小飛進牠懷裡，開心一下，說放進背包了
-  p.dir=d.x+21<p.x+p.def.W/2?-1:1;petPlace(p);
-  p.act='pick';petMode(p,'happy');petMeow(p);
-  el.style.animation='none';el.style.transition='left .35s ease-in,top .35s ease-in,transform .35s ease-in,opacity .35s ease-in';
-  requestAnimationFrame(function(){el.style.left=(p.x+p.def.W/2-21)+'px';el.style.top=(p.y+p.def.H*.45-21)+'px';el.style.transform='scale(.3)';el.style.opacity='0';});
-  setTimeout(function(){el.remove();},400);
-  catFx('+ '+F.name+' ×1','pt',p.x+p.def.W/2-20,p.y-6,0,-40);
-  petSay(p,'撿到'+F.name+'了，放進背包～',2200);petHearts(p,2);
-  toast(petName(p.k)+' 撿到'+F.name+' ×1，放進背包了');
-  setTimeout(function(){if(p.act==='pick'){p.act='';petMode(p,'');}petNext(p,2200);},1200);
+  el.remove();
+  catFx('+ '+F.name+' ×1','pt',d.x-14,d.y-8,0,-40);
+  toast('撿到'+F.name+' ×1');
 }
 
 /* 寵物狀態卡：上面切換貓咪／企鵝 */
