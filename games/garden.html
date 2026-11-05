@@ -33,7 +33,7 @@ body{min-height:100%;background:#F4F8EC;}
 .q-opts button{flex:1;min-width:84px;height:44px;border:var(--lw2) solid var(--ink);border-radius:14px;background:var(--paper);font-size:15px;box-shadow:0 2px 0 var(--ink);}
 .q-opts button:active{transform:translateY(2px);box-shadow:none;}
 .q-text{display:flex;gap:8px;}
-.q-text textarea{flex:1;height:64px;padding:8px 10px;border:var(--lw2) solid var(--ink);border-radius:14px;background:var(--paper);font:inherit;font-size:15px;resize:none;}
+.q-text textarea{flex:1;height:64px;padding:8px 10px;border:var(--lw2) solid var(--ink);border-radius:14px;background:var(--paper);font:inherit;font-size:16px;resize:none;}
 .q-text button{width:64px;border:var(--lw2) solid var(--ink);border-radius:14px;background:var(--yellow);font-size:15px;box-shadow:0 2px 0 var(--ink);}
 .q-a{display:flex;gap:8px;align-items:flex-start;margin-top:6px;padding:7px 10px;border-radius:12px;background:#FFFFFFAA;font-size:15px;line-height:1.5;}
 .q-a b{flex-shrink:0;font-weight:400;padding:0 8px;border:1.5px solid var(--ink);border-radius:999px;font-size:13px;}
@@ -92,7 +92,7 @@ body{min-height:100%;background:#F4F8EC;}
 .sh-today{margin-top:8px;font-size:14px;}
 .sh-warn{margin-top:8px;padding:5px 10px;border-radius:12px;background:#E4F2F8;font-size:13px;}
 .sh-name{display:flex;gap:6px;margin-top:10px;}
-.sh-name input{flex:1;height:40px;padding:0 10px;border:var(--lw2) solid var(--ink);border-radius:12px;font:inherit;font-size:15px;}
+.sh-name input{flex:1;height:40px;padding:0 10px;border:var(--lw2) solid var(--ink);border-radius:12px;font:inherit;font-size:16px;}
 .sh-name button{padding:0 14px;border:var(--lw2) solid var(--ink);border-radius:12px;background:var(--yellow);font-size:14px;}
 .seeds{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px;}
 .seeds button{display:flex;flex-direction:column;align-items:center;padding:6px 2px;border:var(--lw2) solid var(--ink);border-radius:14px;background:var(--paper);font-size:13px;}
@@ -106,7 +106,7 @@ body{min-height:100%;background:#F4F8EC;}
 .mem-note b{flex-shrink:0;font-weight:400;padding:0 8px;border:1.5px solid var(--ink);border-radius:999px;font-size:12px;}
 .mem-note.syue b{background:#EEF6E8;}.mem-note.ling b{background:#FDEEEA;}
 .mem-note button{border:0;background:none;color:#96714D;font-size:13px;padding:0;}
-.mem-note textarea{flex:1;height:52px;border:1.5px solid var(--ink);border-radius:10px;padding:6px;font:inherit;font-size:14px;resize:none;}
+.mem-note textarea{flex:1;height:52px;border:1.5px solid var(--ink);border-radius:10px;padding:6px;font:inherit;font-size:16px;resize:none;}
 .mem-qa{margin-top:12px;}
 .mem-qa h3{font-weight:400;font-size:14px;margin-bottom:4px;}
 .mem-q{padding:7px 10px;border-top:1px dashed #D2C3AD;font-size:13px;line-height:1.6;}
@@ -281,6 +281,11 @@ var QS=[
   {t:'pick',q:'誰的睡相比較差？',a:['學','綾']},{t:'text',q:'想對對方說的悄悄話'}
 ];
 var $=function(id){return document.getElementById(id);};
+// 正在打字（輸入框有游標）：這時候不重畫卡片和今日問題。重畫會把輸入框換掉，手機鍵盤就收起來、打的字也不見了
+function typing(){var a=document.activeElement;return !!a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA');}
+// 真的要重畫的時候，先記下輸入框裡還沒存的字，畫完再放回去
+function keepVals(box){var v={};box.querySelectorAll('input[id],textarea[id]').forEach(function(e){v[e.id]=e.value;});return v;}
+function restoreVals(box,v){Object.keys(v).forEach(function(id){var e=box.querySelector('#'+id);if(e)e.value=v[id];});}
 /* ── 讀取畫面：雲端資料（data）＋ 3D 花園（lib 下載 three.js → scene 蓋好場景 → pets 寵物圖）都好了才收起來；
    3D 不能用就只等資料；最多等 15 秒（之後 3D 還沒好的話，花園格子裡還是會顯示「花園長出來中…」） ── */
 var LD={data:0,lib:0,scene:0,pets:0,no3d:0,shown:.04,at:Date.now(),done:false,tipI:0},LDW={data:.3,lib:.35,scene:.2,pets:.15},LDORDER=['data','lib','scene','pets'];
@@ -333,8 +338,10 @@ function onSnap(d){
   var prev=JSON.parse(JSON.stringify(D));D=d||{};norm();
   recent=recent.filter(function(r){return Date.now()-r.at<5000;});recent.forEach(function(r){merge(D,r.o);});
   Object.keys(pendW).forEach(function(id){if(D.plants[id])merge(D.plants[id],{w:obj(me,obj(today(),pendW[id]))});});
-  if(first){first=false;ready();}else{news(prev,D);paint();}
+  if(first){first=false;ready();}else{news(prev,D);if(sig(prev)!==sig(D))paint();else paintHere();}
 }
+// 資料裡除了 here（每 20 秒的「我在花園」）以外的部分；一樣的話就不用重畫
+function sig(d){var c={};for(var k in d)if(k!=='here')c[k]=d[k];return JSON.stringify(c);}
 function beat(){if(cloud&&me)write({here:obj(me,Date.now())});}
 
 /* ── 算出來的東西 ── */
@@ -475,7 +482,7 @@ function paint(){
   if(!started)return;
   $('drops').textContent=$('g3drops').textContent='💧 '+left();
   paintLvl();paintHere();paintQ();paintPlots();paintForest();
-  if(sheet)sheet.paint();if(moving)paintMove();
+  if(sheet&&!typing())sheet.paint();if(moving)paintMove();
   // 給大廳看的：森林幾棵、今天各澆了幾滴
   try{localStorage.setItem('gardenSum',JSON.stringify({day:today(),forest:forest().length,w:{syue:usedBy('syue',today()),ling:usedBy('ling',today())}}));}catch(e){}
 }
@@ -485,8 +492,11 @@ function paintLvl(){
   $('lvl').innerHTML='<b>🌳 花園 Lv.'+L+'</b><span class="xpb"><i style="width:'+Math.round(f*100)+'%"></i></span><small>'+(L>=20?'滿級':x+' / '+hi)+' ›</small>';
   $('lvl').onclick=function(){SND.sfx('tap');openLevels();};
   var seen=0;try{seen=+localStorage.getItem('gardenLv')||0;}catch(e){}
-  if(L!==seen){try{localStorage.setItem('gardenLv',L);}catch(e){}if(seen&&L>seen)setTimeout(function(){levelUp(seen,L);},400);}
+  if(L!==seen){try{localStorage.setItem('gardenLv',L);}catch(e){}if(seen&&L>seen){lvPending=[lvPending?lvPending[0]:seen,L];setTimeout(showLevelUp,400);}}
 }
+// 升級卡片：如果正在打字、開著別的卡片或在移植，先等一下（不然會把正在打字的卡片關掉），關掉之後再跳
+var lvPending=null;
+function showLevelUp(){if(!lvPending||sheet||typing()||moving)return;var a=lvPending;lvPending=null;levelUp(a[0],a[1]);}
 function unlockText(L){var a=[],n=newAt(L),nl=landAt(L);if(nl)a.push('開放新土地「'+nl.name+'」（多 3 塊土、森林多好多地方種）');else if(plotsAt(L)>plotsAt(L-1))a.push(L>4?'中間的花園多 '+(plotsAt(L)-plotsAt(L-1))+' 塊土（一共 '+plotsAt(L)+' 塊）':'土變成 '+plotsAt(L)+' 塊');if(n.length)a.push('解鎖 '+n.join('、'));return a.join('・');}
 function levelUp(a,b){
   var lines=[];for(var L=a+1;L<=b;L++){var t=unlockText(L);if(t)lines.push(t);}
@@ -506,6 +516,7 @@ function paintHere(){
   $('here').innerHTML=on?'<b class="on">🌱 '+NAMES[op]+' 也在花園裡</b>':'<b class="'+op+'">'+NAMES[op]+(n?' 今天澆了 '+n+' 滴水 💧':' 今天還沒來澆水')+'</b>';
 }
 function paintQ(){
+  if(document.activeElement&&document.activeElement.id==='qIn')return;
   var day=today(),Q=qOf(day),q=D.qa[day]||{},mine=q[me],his=op?q[op]:null,h='<div class="q-h"><span>💬 今日問題</span><small>'+md(day)+'</small></div><div class="q-q">'+esc(Q.q)+'</div>';
   if(mine==null){
     h+=Q.t==='pick'?'<div class="q-opts">'+opts(Q).map(function(a,i){return '<button data-a="'+i+'">'+esc(a)+'</button>';}).join('')+'</div>'
@@ -688,6 +699,7 @@ function endMove(){
   if(g3)Garden3D.moveEnd();
   if(m.full)setFull(false);
   paintMove();if(!g3)paintPlots();
+  if(lvPending)setTimeout(showLevelUp,350);
 }
 function paintMove(){
   var bar=$('mvbar');
@@ -731,13 +743,14 @@ function card(html,cls){
   sheet={ov:ov,paint:function(){}};
   return ov;
 }
-function closeSheet(){if(sheet&&sheet.ov)sheet.ov.remove();sheet=null;clearTimeout(wT);flush();}
+function closeSheet(){if(sheet&&sheet.ov)sheet.ov.remove();sheet=null;clearTimeout(wT);flush();if(lvPending)setTimeout(showLevelUp,350);}
 function openPlant(id){
   var naming=false;
   card('','plant');
   sheet.paint=function(){
     var p=D.plants[id];if(!p||p.done){closeSheet();return;}
     var g=grow(p),a=+(((p.w||{}).syue||{})[today()])||0,b=+(((p.w||{}).ling||{})[today()])||0,box=sheet.ov.querySelector('.g-card'),pe=pestOf(p);
+    var kept=keepVals(box);
     box.innerHTML='<div class="sh-art">'+art(p.sp,g.stage)+'</div><h2>'+esc(p.name||SP[p.sp].name)+'</h2><div class="sh-sp">'+SP[p.sp].name+'・'+stageName(p,g)+'・'+md(dayOf(p.at))+' '+NAMES[p.by]+'種的</div>'+
       '<div class="bar big"><i style="width:'+Math.round(g.r*100)+'%"></i></div><div class="sh-num">'+Math.min(g.pts,g.need)+' / '+g.need+'</div>'+
       '<div class="sh-today">今天 學 💧'+a+'・綾 💧'+b+(a&&b?' ✨ 兩個人都澆了 +'+TOGETHER:'')+'</div>'+
@@ -747,6 +760,7 @@ function openPlant(id){
       '<div class="g-btns">'+(g.stage===4?'<button class="g-btn" data-harvest>🌳 種進森林</button>':pe?'<button class="g-btn" data-catch>'+PESTS[pe.kind].e+' 抓走'+PESTS[pe.kind].name+'</button>':'<button class="g-btn" data-water>💧 澆水（還有 '+left()+' 滴）</button>')+
       (naming?'':'<button class="g-btn ghost" data-name>✏️ 取名字</button>')+'<button class="g-btn ghost" data-move>🪴 移植</button><button class="g-btn ghost" data-close>關閉</button></div>'+
       '<p class="g-small">同一天兩個人都有澆，這天多長 '+TOGETHER+' 點</p>';
+    restoreVals(box,kept);
     var w=box.querySelector('[data-water]');if(w)w.onclick=function(){water(id);};
     var ct=box.querySelector('[data-catch]');if(ct)ct.onclick=function(){catchPest(id);};
     var hv=box.querySelector('[data-harvest]');if(hv)hv.onclick=function(){harvest(id);};
@@ -774,11 +788,13 @@ function openMemory(id){
     var notes=['syue','ling'].map(function(u){var t=(p.note||{})[u];
       if(u===me&&editing)return '<div class="mem-note '+u+'"><b>'+NAMES[u]+'</b><textarea id="ntIn" maxlength="60">'+esc(t||'')+'</textarea><button data-nsave>好</button></div>';
       return '<div class="mem-note '+u+'"><b>'+NAMES[u]+'</b>'+(t?esc(t):'')+(u===me?' <button data-nedit>'+(t?'改一下':'寫一句話給這棵樹')+'</button>':(t?'':'<span style="color:var(--t3)">還沒寫</span>'))+'</div>';}).join('');
+    var kept=keepVals(box);
     box.innerHTML='<div class="sh-art">'+art(p.sp,4)+'</div><h2>'+esc(p.name||SP[p.sp].name)+'</h2>'+(p.name?'<div class="sh-sp">'+SP[p.sp].name+'</div>':'')+
       '<div class="mem-row">🌱 '+md(d0)+' '+NAMES[p.by]+'種下 → 🌳 '+md(d1)+' 長大（'+days+' 天）</div>'+
       '<div class="mem-row">學 💧'+g.sn+'・綾 💧'+g.ln+'・一起澆水 '+g.both+' 天</div>'+
       '<div class="mem-notes">'+notes+'</div>'+(qs?'<div class="mem-qa"><h3>💬 這段時間的問答</h3>'+qs+'</div>':'')+
       '<div class="g-btns">'+(g3&&p.done?'<button class="g-btn ghost" data-move>🌳 移植</button>':'')+'<button class="g-btn ghost" data-close>關閉</button></div>';
+    restoreVals(box,kept);
     var mvb=box.querySelector('[data-move]');if(mvb)mvb.onclick=function(){startMove('tree',id);};
     var ne=box.querySelector('[data-nedit]');if(ne)ne.onclick=function(){editing=true;sheet.paint();var t=$('ntIn');if(t)t.focus();};
     var ns=box.querySelector('[data-nsave]');if(ns)ns.onclick=function(){var v=($('ntIn').value||'').trim().slice(0,60);editing=false;write({plants:obj(id,{note:obj(me,v)})});SND.sfx('tap');sheet.paint();};
@@ -819,6 +835,7 @@ setInterval(function(){
   pestSeen=now;
   if(fresh.length){var pe=pestsNow().filter(function(x){return x.key===fresh[0];})[0],pl=D.plants[pe.id];toast(PESTS[pe.kind].e+' 有'+PESTS[pe.kind].name+'跑到'+label(pl)+'上了！快抓走');SND.sfx('bonk');paint();}
 },15000);
+document.addEventListener('focusout',function(e){var t=e.target;if(!t||(t.tagName!=='INPUT'&&t.tagName!=='TEXTAREA'))return;setTimeout(function(){if(started&&!typing()){paint();showLevelUp();}},450);});
 // 離開或切到背景：還沒存的水滴馬上存
 document.addEventListener('visibilitychange',function(){if(document.hidden){clearTimeout(wT);flush();}else if(started){beat();paint();}});
 addEventListener('pagehide',function(){clearTimeout(wT);flush();});
