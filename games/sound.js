@@ -214,6 +214,28 @@ var SND=(function(){
     chirp:function(o,d,t){tone(o,d,t,3000,'sine',.004,.12,.07,4300);tone(o,d,t+.11,3500,'sine',.004,.1,.06,2700);tone(o,d,t+.21,3300,'sine',.004,.09,.06,4100);}
   };
 
+  /* ── 環境音（小森林）：鳥叫、蟬、蟋蟀、營火劈啪、雨聲；amb({birds:0~1,…}) 設定每一種多大聲，0 就不出聲 ──
+     一閃一閃的（鳥、蟋蟀、劈啪）每 0.25 秒隨機排幾個；一直響的（雨、蟬、火的低鳴）用一段雜音慢慢調大小聲 */
+  var AMB={birds:0,cicada:0,crickets:0,fire:0,rain:0},ambIv=0,ambBus=null,loops={};
+  function ambAny(){for(var k in AMB)if(AMB[k]>0)return true;return false;}
+  function ambStart(){if(ambIv||!ctx||!out)return;ambBus=ctx.createGain();ambBus.gain.value=.9;ambBus.connect(out.fx);ambIv=setInterval(ambTick,250);}
+  function loopNoise(key,type,fq,q,lvl){
+    var L=loops[key];
+    if(!L){if(lvl<=0)return;var sr=ctx.createBufferSource(),f=ctx.createBiquadFilter(),g=ctx.createGain();sr.buffer=out.noise;sr.loop=true;f.type=type;f.frequency.value=fq;f.Q.value=q;g.gain.value=0;sr.connect(f);f.connect(g);g.connect(ambBus);sr.start();L=loops[key]={s:sr,f:f,g:g};}
+    L.g.gain.setTargetAtTime(Math.max(0,lvl),ctx.currentTime,.6);
+  }
+  function ambTick(){
+    if(!ctx||ctx.state!=='running')return;
+    var live=on()&&!document.hidden,t=ctx.currentTime+.02,o=out,d=ambBus,A=live?AMB:{birds:0,cicada:0,crickets:0,fire:0,rain:0};
+    if(A.birds>0&&Math.random()<.11*A.birds){var f=2600+Math.random()*1600,v=.05*A.birds;tone(o,d,t,f,'sine',.004,v,.06,f*1.35);if(Math.random()<.6)tone(o,d,t+.1,f*1.1,'sine',.004,v*.8,.05,f*.8);if(Math.random()<.4)tone(o,d,t+.19,f*1.2,'sine',.004,v*.7,.05,f*1.4);}
+    if(A.crickets>0&&Math.random()<.65){var cf=4300+Math.random()*500,cv=.016*A.crickets,n=3+Math.floor(Math.random()*3),t0=t+Math.random()*.1;for(var i=0;i<n;i++)tone(o,d,t0+i*.045,cf,'sine',.003,cv,.025);}
+    if(A.fire>0){var kk=Math.floor(Math.random()*4*A.fire+.3);for(var j=0;j<kk;j++)noise(o,d,t+Math.random()*.24,'highpass',1800+Math.random()*2500,1,.002,.05*A.fire,.02+Math.random()*.03);}
+    if(A.rain>0&&Math.random()<.5*A.rain)tone(o,d,t+Math.random()*.2,1800+Math.random()*1200,'sine',.001,.012*A.rain,.03,900);
+    loopNoise('fire','lowpass',380,.7,.035*A.fire);
+    loopNoise('rain','bandpass',1400,.4,.11*A.rain);
+    loopNoise('cicada','bandpass',5200,6,.028*A.cicada);if(loops.cicada)loops.cicada.f.frequency.setTargetAtTime(5000+Math.sin(t*2.7)*450,t,.1);
+  }
+
   // 第一次點畫面才開聲音（iPhone 規定）
   function ensure(){
     if(!on())return;
@@ -226,6 +248,7 @@ var SND=(function(){
     }
     if(ctx.state!=='running')ctx.resume();
     if(want&&!cur)startTrack(want);
+    if(ambAny())ambStart();
   }
   ['pointerdown','pointerup','touchend','click','keydown'].forEach(function(ev){addEventListener(ev,ensure,true);});
   document.addEventListener('visibilitychange',function(){if(!ctx)return;if(document.hidden)ctx.suspend();else if(on())ctx.resume();});
@@ -252,6 +275,7 @@ var SND=(function(){
   return {
     music:function(name){want=name||null;if(!name)return stopTrack();if(!ctx||!on())return;if(ctx.state==='running')startTrack(name);else ctx.resume();},
     stop:function(){want=null;stopTrack();},
+    amb:function(o){for(var k in AMB)AMB[k]=o&&o[k]>0?Math.min(1,o[k]):0;if(ctx&&ambAny())ambStart();},ambLevels:function(){var o={};for(var k in AMB)o[k]=AMB[k];return o;},
     sfx:function(name,arg){if(!ctx||!on()||ctx.state!=='running'||!SFX[name])return;SFX[name](out,out.fx,ctx.currentTime+.005,arg);},
     on:on,render:render,tracks:TR
   };

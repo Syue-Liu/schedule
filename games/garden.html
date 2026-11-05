@@ -24,6 +24,12 @@ body{min-height:100%;background:#F4F8EC;}
 .here{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:10px;font-size:13px;color:var(--t2);}
 .here b{font-weight:400;padding:3px 12px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);}
 .here b.on{background:#E7F2DF;}
+.wx{margin:-4px 0 10px;text-align:center;font-size:12px;color:var(--t2);}
+.party{margin:0 auto 8px;max-width:440px;padding:6px 12px;border:var(--lw2) solid var(--ink);border-radius:14px;background:linear-gradient(90deg,#FDEEEA,#FDF2D2,#E7F2DF);font-size:14px;color:var(--t);box-shadow:0 2px 0 var(--ink);}
+.days-f{display:flex;flex-direction:column;gap:8px;margin-top:4px;text-align:left;}
+.days-f label{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:14px;}
+.days-f input,.days-f select{padding:4px 6px;border:var(--lw2) solid var(--ink);border-radius:10px;background:var(--paper);font:inherit;font-size:16px;}
+.wx b{font-weight:400;display:inline-block;padding:2px 10px;border:1.5px solid var(--ink);border-radius:999px;background:#FFFFFFAA;}
 .here b.syue{background:#EEF6E8;}.here b.ling{background:#FDEEEA;}
 /* 今日問題 */
 .qcard{position:relative;padding:14px 14px 12px;border:var(--lw2) solid var(--ink);border-radius:20px;background:linear-gradient(#FFFDF7,#FDF2D2);box-shadow:0 3px 0 var(--ink);}
@@ -118,6 +124,19 @@ body{min-height:100%;background:#F4F8EC;}
 .g3-btn{position:absolute;right:10px;top:10px;width:40px;height:40px;border:var(--lw2) solid var(--ink);border-radius:12px;background:var(--paper);font-size:18px;box-shadow:0 2px 0 var(--ink);}
 .g3-reset{top:60px;font-size:14px;width:auto;padding:0 10px;}
 .g3.full .g3-btn.g3-reset{top:calc(env(safe-area-inset-top) + 62px);}
+.g3-decor{top:110px;}
+.g3.full .g3-btn.g3-decor{top:calc(env(safe-area-inset-top) + 112px);}
+.dec-e{display:block;font-size:30px;line-height:1.25;}
+.dec-big{font-size:56px;text-align:center;line-height:1.2;}
+.mailbtn{position:relative;padding:3px 10px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);font-size:13px;}
+.mailbtn i{position:absolute;right:-6px;top:-7px;min-width:18px;height:18px;padding:0 4px;border:2px solid var(--ink);border-radius:999px;background:#F2A497;font-style:normal;font-size:11px;line-height:14px;}
+.mail-new{display:flex;flex-direction:column;gap:6px;margin-top:6px;}
+.mail-new textarea{height:70px;padding:8px 10px;border:var(--lw2) solid var(--ink);border-radius:12px;font:inherit;font-size:16px;resize:none;}
+.mail-list{max-height:42vh;overflow:auto;margin-top:12px;text-align:left;}
+.mail{margin-bottom:8px;padding:8px 10px;border:1.5px solid var(--ink);border-radius:12px;}
+.mail.in{background:#FDEEEA;}.mail.out{background:#EEF6E8;}.mail.new{box-shadow:0 0 0 3px #F6D27A;}
+.mail b{font-weight:400;font-size:12px;color:var(--t2);}.mail small{float:right;font-size:11px;color:var(--t3);}
+.mail p{margin:4px 0 0;font-size:14px;line-height:1.55;white-space:pre-wrap;word-break:break-word;}
 .g3-drops{position:absolute;left:10px;top:10px;padding:4px 12px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);font-size:14px;pointer-events:none;}
 .g3.full .g3-btn,.g3.full .g3-drops{top:calc(env(safe-area-inset-top) + 12px);}
 .g3-tip{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);padding:4px 12px;border:var(--lw2) solid var(--ink);border-radius:999px;background:#FFFCF6E6;font-size:12px;white-space:nowrap;pointer-events:none;transition:opacity .6s;}
@@ -197,26 +216,73 @@ body{min-height:100%;background:#F4F8EC;}
 <main class="gd">
   <button class="lvl" id="lvl" aria-label="花園等級"></button>
   <div class="here" id="here"></div>
+  <div class="wx" id="wx"></div>
   <section class="qcard" id="qcard"></section>
-  <section class="g3" id="g3"><div class="g3-load">🌱 花園長出來中…</div><div class="g3-drops" id="g3drops"></div><button class="g3-btn" id="g3full" aria-label="全螢幕">⤢</button><button class="g3-btn g3-reset" id="g3reset" aria-label="恢復視角">↺ 視角</button><div class="g3-tip" id="g3tip">拖曳轉一圈・兩指拉近・點土種樹・點植物澆水</div></section>
+  <section class="g3" id="g3"><div class="g3-load">🌱 花園長出來中…</div><div class="g3-drops" id="g3drops"></div><button class="g3-btn" id="g3full" aria-label="全螢幕">⤢</button><button class="g3-btn g3-reset" id="g3reset" aria-label="恢復視角">↺ 視角</button><button class="g3-btn g3-decor" id="g3decor" aria-label="裝飾花園">🎀</button><div class="g3-tip" id="g3tip">拖曳轉一圈・兩指拉近・點土種樹・點植物澆水</div></section>
   <div class="mvbar" id="mvbar" hidden></div>
   <section class="garden"><div class="fence"></div><div class="g-pets" id="gpets"></div><div class="plots" id="plots"></div></section>
   <section class="forest"><h3>🌳 我們的森林 <small id="fcount"></small></h3><div class="ftrees" id="forest"></div></section>
   <p class="gnote" id="gnote"></p>
 </main>
 <div class="toasts" id="toasts"></div>
-<script src="sound.js?v=garden-lv-20261102"></script>
+<script src="sound.js?v=amb-20261105"></script>
 <script src="game.js?v=garden-20261102"></script>
-<script src="vs.js?v=garden-20261102"></script>
-<script src="garden3d.js?v=loading-20261104"></script>
+<script src="vs.js?v=plus-20261105"></script>
+<script src="garden3d.js?v=plus-20261105"></script>
 <script>
 /* 記憶小森林：兩個人一起種。每天回答一題問答拿水滴，一起澆水，把種子種成樹；長大的樹放進森林，留著那段時間的問答和兩個人的話。
    資料：班表同一個 Firebase 的 banbiao/<同步代碼>_garden（沒有同步代碼就存在這支手機）
      plants.<id>＝{sp 種類, slot 第幾格, at 種下時間, by 誰種的, w:{syue:{日期:滴數}, ling:{…}}, done 長大放進森林的時間, name 名字, note:{syue,ling}, got:{syue,ling} 領過飼料,
                   pos:{x,z} 森林裡的位置（移植過或在 3D 種進森林才有）, mv:{by,at} 最後一次誰移植的}
+     decor.<id>＝{k 哪一種裝飾, x, z, by, at, mv}（收起來＝null）；mail.<id>＝{from, to, text, at, read}
+     days＝{date 交往那天, wed 結婚那天（YYYY-MM-DD）, syue, ling 生日（MM-DD）}
      qa.<日期>＝{syue:答案, ling:答案}（二選一存第幾個，問答題存文字）；here.<誰>＝最後在花園的時間
    水滴和長多大都是從這些「算」出來的（每個人只寫自己的那幾格），兩個人同時操作也不會互相蓋掉。 */
 var BASE=3,ANSWER=2,MATCH=1,TOGETHER=2,BIRD=2,PEST_P=.22,PEST_MAX=3;
+/* ── 裝飾品：升級解鎖，擺在 3D 花園裡（點草地選位置，跟移植一樣）；點裝飾可以移動、收起來。信箱可以寫信給對方 ── */
+var DECOR={mailbox:{name:'小信箱',e:'📮',lv:1,max:1,tip:'寫信給對方，對方一打開花園就看得到'},lantern:{name:'小路燈',e:'🏮',lv:2,max:4,tip:'晚上會亮起來'},arch:{name:'花拱門',e:'🌸',lv:3,max:2,tip:'開滿小花的拱門'},windmill:{name:'小風車',e:'🎡',lv:4,max:2,tip:'會轉，下雨天轉得更快'},scarecrow:{name:'稻草人',e:'🧑‍🌾',lv:5,max:1,tip:'擺了之後害蟲比較少來'},birdhouse:{name:'鳥屋',e:'🐦',lv:6,max:2,tip:'小鳥比較常來，還會停在上面'},picnic:{name:'野餐墊',e:'🧺',lv:7,max:1,tip:'學和綾會來坐著野餐（放在中間的花園）'}};
+function decorList(){var o=[];Object.keys(D.decor||{}).forEach(function(id){var d=D.decor[id];if(d&&DECOR[d.k]&&isFinite(d.x))o.push({id:id,k:d.k,x:+d.x,z:+d.z});});return o;}
+function decorCount(k){return decorList().filter(function(d){return d.k===k;}).length;}
+// 稻草人：害蟲少一點（兩支手機看到的一樣）
+function pestP(){return decorCount('scarecrow')?.14:PEST_P;}
+/* ── 紀念日：交往、結婚、兩個人的生日、在一起第 100／200／…天，還有班表上每年重複的行程 ──
+   那天花園會布置（氣球、彩帶、晚上放煙火、壽星戴派對帽），每個人多 SPECIAL 滴水，第一次打開跳一張卡片 */
+var DAYS0={date:'2014-01-05',wed:'2020-01-12',syue:'09-18',ling:'03-26'},SPECIAL=3,yearly=[];
+function days(){var d=D.days||{};return {date:d.date||DAYS0.date,wed:d.wed||DAYS0.wed,syue:d.syue||DAYS0.syue,ling:d.ling||DAYS0.ling};}
+function together(day){var s=days();return s.date?dnum(day)-dnum(s.date)+1:0;}
+function special(day){
+  var m0=String(day).slice(5),y=+String(day).slice(0,4),s=days(),out=[];
+  if(s.date&&s.date.slice(5)===m0){var n=y-(+s.date.slice(0,4));out.push({k:'date',e:'💞',t:n>0?'交往 '+n+' 週年':'交往紀念日'});}
+  if(s.wed&&s.wed.slice(5)===m0){var n2=y-(+s.wed.slice(0,4));out.push({k:'wed',e:'💍',t:n2>0?'結婚 '+n2+' 週年':'結婚紀念日'});}
+  ['syue','ling'].forEach(function(u){if(s[u]===m0)out.push({k:'bday',who:u,e:'🎂',t:NAMES[u]+' 生日快樂'});});
+  var dn=together(day);if(dn>0&&dn%100===0)out.push({k:'days',e:'✨',t:'在一起第 '+dn+' 天'});
+  yearly.forEach(function(e){if(e.md===m0&&!out.some(function(o){return o.k!=='event'&&(e.title.indexOf('生日')>=0&&o.k==='bday'||e.title.indexOf('紀念')>=0&&(o.k==='date'||o.k==='wed'));}))out.push({k:'event',e:e.emoji||'🎉',t:e.title});});
+  return out;
+}
+// 接下來的紀念日（卡片上列出來）
+function upcoming(){var d=today(),list=[];for(var i=1;i<=400&&list.length<4;i++){var x=addDays(d,i),sp=special(x);sp.forEach(function(o){if(list.length<4)list.push({day:x,i:i,o:o});});}return list;}
+function loadYearly(){if(!cloud||!VS.mainGet)return;VS.mainGet().then(function(raw){var ev=raw&&raw.events;if(!ev||typeof ev!=='object')return;yearly=Object.keys(ev).map(function(k){return ev[k];}).filter(function(e){return e&&e.yearly&&/^\d{4}-\d{2}-\d{2}$/.test(e.date||'')&&e.title;}).map(function(e){return {md:e.date.slice(5),title:String(e.title).slice(0,20),emoji:e.emoji||'🎉'};});paint();partyCard();}).catch(function(e){console.warn('yearly',e);});}
+function partyText(){return special(today()).map(function(o){return o.e+' '+o.t;}).join('・');}
+// 今天第一次打開：跳一張慶祝卡片
+function partyCard(){
+  var d=today(),sp=special(d);if(!sp.length||sheet||typing())return;
+  try{if(localStorage.getItem('gardenParty')===d)return;localStorage.setItem('gardenParty',d);}catch(e){}
+  SND.sfx('fanfare',3);
+  var ov=card('<div class="dec-big">'+sp.map(function(o){return o.e;}).join('')+'</div><h2>'+esc(sp.map(function(o){return o.t;}).join('・'))+'</h2><p>'+(together(d)>0?'今天是在一起的第 '+together(d)+' 天 💗<br>':'')+'花園布置好了，今天每個人多 '+SPECIAL+' 滴水 🎁</p><div class="g-btns"><button class="g-btn" data-close>🎉 好開心</button></div>');
+  ov.querySelector('[data-close]').onclick=closeSheet;
+}
+// 設定紀念日：兩個人一起看到
+function openDays(){
+  var s=days(),M=function(v){return v?v.split('-'):['',''];},sb=M(s.syue),lb=M(s.ling);
+  function md2(id,v){var mm='',dd='';for(var i=1;i<=12;i++)mm+='<option'+(+v[0]===i?' selected':'')+'>'+i+'</option>';for(var j=1;j<=31;j++)dd+='<option'+(+v[1]===j?' selected':'')+'>'+j+'</option>';return '<select id="'+id+'M">'+mm+'</select> 月 <select id="'+id+'D">'+dd+'</select> 日';}
+  var up=upcoming().map(function(u){return '<div class="mem-row">'+u.o.e+' '+esc(u.o.t)+'・'+md(u.day)+'（還有 '+u.i+' 天）</div>';}).join('');
+  var ov=card('<h2>🎉 紀念日</h2><div class="days-f"><label>💞 交往<input type="date" id="dyDate" value="'+esc(s.date)+'"></label><label>💍 結婚<input type="date" id="dyWed" value="'+esc(s.wed)+'"></label><label>🎂 學的生日<span>'+md2('dySy',sb)+'</span></label><label>🎂 綾的生日<span>'+md2('dyLi',lb)+'</span></label></div>'+
+    (together(today())>0?'<p class="g-small">今天是在一起的第 '+together(today())+' 天</p>':'')+(up?'<div class="mem-qa"><h3>接下來</h3>'+up+'</div>':'')+(yearly.length?'<p class="g-small">班表上每年重複的行程也會一起慶祝（'+yearly.length+' 個）</p>':'')+
+    '<div class="g-btns"><button class="g-btn" data-save>儲存</button><button class="g-btn ghost" data-close>關閉</button></div>');
+  ov.querySelector('[data-save]').onclick=function(){var p2=function(n){return (n<10?'0':'')+n;},v={date:$('dyDate').value||'',wed:$('dyWed').value||'',syue:p2(+$('dySyM').value)+'-'+p2(+$('dySyD').value),ling:p2(+$('dyLiM').value)+'-'+p2(+$('dyLiD').value)};write({days:v});SND.sfx('chime');toast('🎉 紀念日存好了，兩個人都看得到');closeSheet();paint();};
+  ov.querySelector('[data-close]').onclick=closeSheet;
+}
+function unread(){var n=0;Object.keys(D.mail||{}).forEach(function(id){var m=D.mail[id];if(m&&m.to===me&&!m.read)n++;});return n;}
 // 新土地：升到 lv 級接到花園外面（3D 的位置在 garden3d.js），每塊多三塊土，森林也多很多地方種
 var LANDS=[{id:'orchard',name:'果樹坡',lv:4},{id:'west',name:'西邊花田',lv:6},{id:'hill',name:'山腳草地',lv:8},{id:'lake',name:'湖畔小園',lv:9}];
 // 每塊土幾級開：中間十二塊（1、3、5、7 級），接著每塊新土地三塊（第 12 塊以後）
@@ -327,7 +393,7 @@ function connect(){
   VS.connect().then(function(){cloud=true;VS.docWatch('garden',onSnap);beat();setInterval(beat,20000);}).catch(function(e){console.warn('garden',e);local();});
 }
 function local(){cloud=false;try{D=JSON.parse(localStorage.getItem('gardenLocal')||'{}')||{};}catch(e){D={};}norm();first=false;ready();}
-function norm(){D.plants=D.plants||{};D.qa=D.qa||{};D.here=D.here||{};D.pests=D.pests||{};D.bonus=D.bonus||{};}
+function norm(){D.plants=D.plants||{};D.qa=D.qa||{};D.here=D.here||{};D.pests=D.pests||{};D.bonus=D.bonus||{};D.decor=D.decor||{};D.mail=D.mail||{};}
 // 寫：先改畫面，再送出；剛寫的幾秒內，舊的雲端資料回來也不會蓋掉
 function write(o){
   recent.push({o:o,at:Date.now()});merge(D,o);
@@ -350,7 +416,7 @@ function opts(Q){return Q.a[0]==='PETS'?['cat','pg','dg'].map(G.petName):Q.a;}
 function ansText(Q,a){return Q.t==='pick'?(opts(Q)[+a]||''):String(a);}
 function matched(day){var Q=qOf(day),q=D.qa[day]||{};return Q.t==='pick'&&q.syue!=null&&q.ling!=null&&+q.syue===+q.ling;}
 // 今天可以澆幾滴：每天 3 滴，回答今日問題 +2，二選一兩個人選一樣再 +1，小鳥送的（每天最多 2 滴）
-function allow(u,day){var q=D.qa[day]||{};return BASE+(q[u]!=null?ANSWER:0)+(matched(day)?MATCH:0)+gifts(u,day);}
+function allow(u,day){var q=D.qa[day]||{};return BASE+(q[u]!=null?ANSWER:0)+(matched(day)?MATCH:0)+gifts(u,day)+(special(day).length?SPECIAL:0);}
 function gifts(u,day){return Math.min(BIRD,+((D.bonus[u]||{})[day])||0);}
 function usedBy(u,day){var n=0;all().forEach(function(p){n+=+(((p.w||{})[u]||{})[day])||0;});return n;}
 function left(){return Math.max(0,allow(me,today())-usedBy(me,today()));}
@@ -362,15 +428,29 @@ function garden(){
   return slots;
 }
 function forest(){return all().filter(function(p){return p.done;}).sort(function(a,b){return b.done-a.done;});}
-// 長多大：兩個人澆的水加起來；同一天兩個人都有澆，那天多 2 點
+/* ── 季節、天氣：照日期算（兩支手機一樣）；3～5 月春、6～8 夏、9～11 秋、12～2 冬；冬天的雨變成雪 ──
+   下雨（下雪）那天，花園裡每一棵還在長的植物都自己長 RAIN 點，也算有喝到水（不會口渴）；從 WX_START 這天開始算 */
+var RAIN=1,WX_START='2026-11-05',wxMemo={};
+function seasonOf(day){var m=+String(day).split('-')[1];return m>=3&&m<=5?'spring':m>=6&&m<=8?'summer':m>=9&&m<=11?'autumn':'winter';}
+function weatherOf(day){
+  if(wxMemo[day])return wxMemo[day];
+  var s=seasonOf(day),h=hash('wx:'+day),pr=s==='summer'?.27:s==='spring'?.25:s==='autumn'?.18:.2;
+  return wxMemo[day]=h<pr?(s==='winter'?'snow':'rain'):h<pr+.25?'cloudy':'sunny';
+}
+function wet(day){var w=weatherOf(day);return w==='rain'||w==='snow';}
+var WX={sunny:'☀️ 晴天',cloudy:'☁️ 多雲',rain:'🌧️ 下雨',snow:'❄️ 下雪'},SEASONN={spring:'春天',summer:'夏天',autumn:'秋天',winter:'冬天'};
+function addDays(day,n){var p=String(day).split('-'),t=new Date(Date.UTC(+p[0],+p[1]-1,+p[2]+n));return t.getUTCFullYear()+'-'+pad(t.getUTCMonth()+1)+'-'+pad(t.getUTCDate());}
+// 這棵植物淋過幾天雨：種下那天（最早從 WX_START）到長大那天（還沒長大就到今天）
+function rainDays(p){var a=dayOf(p.at||Date.now()),b=p.done?dayOf(p.done):today(),n=0;if(a<WX_START)a=WX_START;for(var d=a,i=0;d<=b&&i<400;d=addDays(d,1),i++)if(wet(d))n++;return n;}
+// 長多大：兩個人澆的水加起來；同一天兩個人都有澆，那天多 2 點；下雨天自己長一點
 function grow(p){
   var w=p.w||{},s=w.syue||{},l=w.ling||{},sn=0,ln=0,both=0;
   Object.keys(s).forEach(function(d){sn+=+s[d]||0;});
   Object.keys(l).forEach(function(d){ln+=+l[d]||0;if(+l[d]>0&&+s[d]>0)both++;});
-  var pts=sn+ln+TOGETHER*both,need=SP[p.sp].need,r=pts/need;
-  return {pts:pts,need:need,sn:sn,ln:ln,both:both,r:Math.min(1,r),stage:pts<=0?0:r>=1?4:r>=.67?3:r>=.34?2:1};
+  var rn=rainDays(p),pts=sn+ln+TOGETHER*both+RAIN*rn,need=SP[p.sp].need,r=pts/need;
+  return {pts:pts,need:need,sn:sn,ln:ln,both:both,rain:rn,r:Math.min(1,r),stage:pts<=0?0:r>=1?4:r>=.67?3:r>=.34?2:1};
 }
-function lastDay(p){var last=dayOf(p.at||Date.now()),w=p.w||{};['syue','ling'].forEach(function(u){Object.keys(w[u]||{}).forEach(function(d){if(+w[u][d]>0&&d>last)last=d;});});return last;}
+function lastDay(p){var last=dayOf(p.at||Date.now()),w=p.w||{};['syue','ling'].forEach(function(u){Object.keys(w[u]||{}).forEach(function(d){if(+w[u][d]>0&&d>last)last=d;});});for(var i=0;i<3;i++){var d=addDays(today(),-i);if(d>=WX_START&&d>last&&wet(d)){last=d;break;}}return last;}
 function thirsty(p){return dnum(today())-dnum(lastDay(p))>=3;}
 function label(p){return p.name?'「'+p.name+'」':SP[p.sp].name;}
 function stageName(p,g){return STAGE[SP[p.sp].kind][g.stage];}
@@ -398,7 +478,7 @@ function pestOn(p){
   var now=Date.now();
   for(var k=0;k<2;k++){
     var d=dayOf(now-k*864e5);if(d<dayOf(p.at))break;
-    var key=p.id+'_'+d;if(hash(key)>PEST_P)continue;
+    var key=p.id+'_'+d;if(hash(key)>pestP())continue;
     var at=dayStart(d)+(8+hash(key+'h')*12)*36e5;if(at>now||at<p.at)continue;
     // 一棵一次只有一隻（最近那天的）；抓走了就沒有
     return D.pests[key]?null:{key:key,id:p.id,kind:PK[Math.floor(hash(key+'k')*3)],at:at};
@@ -481,7 +561,7 @@ function art(sp,stage){
 function paint(){
   if(!started)return;
   $('drops').textContent=$('g3drops').textContent='💧 '+left();
-  paintLvl();paintHere();paintQ();paintPlots();paintForest();
+  paintLvl();paintHere();paintWx();paintQ();paintPlots();paintForest();
   if(sheet&&!typing())sheet.paint();if(moving)paintMove();
   // 給大廳看的：森林幾棵、今天各澆了幾滴
   try{localStorage.setItem('gardenSum',JSON.stringify({day:today(),forest:forest().length,w:{syue:usedBy('syue',today()),ling:usedBy('ling',today())}}));}catch(e){}
@@ -497,7 +577,7 @@ function paintLvl(){
 // 升級卡片：如果正在打字、開著別的卡片或在移植，先等一下（不然會把正在打字的卡片關掉），關掉之後再跳
 var lvPending=null;
 function showLevelUp(){if(!lvPending||sheet||typing()||moving)return;var a=lvPending;lvPending=null;levelUp(a[0],a[1]);}
-function unlockText(L){var a=[],n=newAt(L),nl=landAt(L);if(nl)a.push('開放新土地「'+nl.name+'」（多 3 塊土、森林多好多地方種）');else if(plotsAt(L)>plotsAt(L-1))a.push(L>4?'中間的花園多 '+(plotsAt(L)-plotsAt(L-1))+' 塊土（一共 '+plotsAt(L)+' 塊）':'土變成 '+plotsAt(L)+' 塊');if(n.length)a.push('解鎖 '+n.join('、'));return a.join('・');}
+function unlockText(L){var a=[],n=newAt(L),nl=landAt(L),dc=Object.keys(DECOR).filter(function(k){return DECOR[k].lv===L;}).map(function(k){return DECOR[k].e+' '+DECOR[k].name;});if(nl)a.push('開放新土地「'+nl.name+'」（多 3 塊土、森林多好多地方種）');else if(plotsAt(L)>plotsAt(L-1))a.push(L>4?'中間的花園多 '+(plotsAt(L)-plotsAt(L-1))+' 塊土（一共 '+plotsAt(L)+' 塊）':'土變成 '+plotsAt(L)+' 塊');if(n.length)a.push('解鎖 '+n.join('、'));if(dc.length&&L>1)a.push('裝飾 '+dc.join('、'));return a.join('・');}
 function levelUp(a,b){
   var lines=[];for(var L=a+1;L<=b;L++){var t=unlockText(L);if(t)lines.push(t);}
   SND.sfx('fanfare',3);
@@ -506,14 +586,16 @@ function levelUp(a,b){
 }
 function openLevels(){
   var L=level(),rows='';
-  for(var i=1;i<=TOPLV;i++)rows+='<div class="lv-row'+(i===L?' on':i<L?' done':'')+'"><b>Lv.'+i+'</b><span>'+(i===1?'六塊土・向日葵、鬱金香、櫻花樹、橘子樹':unlockText(i))+'</span></div>';
+  for(var i=1;i<=TOPLV;i++)rows+='<div class="lv-row'+(i===L?' on':i<L?' done':'')+'"><b>Lv.'+i+'</b><span>'+(i===1?'六塊土・向日葵、鬱金香、櫻花樹、橘子樹・裝飾 📮 小信箱':unlockText(i))+'</span></div>';
   card('<h2>🌳 花園等級</h2><p class="g-small" style="margin-top:0">澆一滴 +1、回答一題 +3、抓走害蟲 +2<br>種進森林：花 +10、樹 +20（兩個人一起算）</p><div class="lv-list">'+rows+'</div>'+'<div class="g-btns"><button class="g-btn ghost" data-close>關閉</button></div>');
   sheet.ov.querySelector('[data-close]').onclick=closeSheet;
 }
+function paintWx(){var d=today(),w=weatherOf(d),pt=partyText();$('wx').innerHTML=(pt?'<div class="party">'+esc(pt)+'　今天每個人多 '+SPECIAL+' 滴水 🎁</div>':'')+'<b>'+SEASONN[seasonOf(d)]+'・'+WX[w]+(wet(d)&&d>=WX_START?'：花園裡的植物都自己長 +'+RAIN+' 💧':'')+'</b> <button class="mailbtn" data-days aria-label="紀念日">🎉</button>';$('wx').querySelector('[data-days]').onclick=function(){SND.sfx('tap');openDays();};}
 function paintHere(){
   if(!cloud||!op){$('here').innerHTML='<b>🌱 一個人的花園</b><span>在班表設定同步代碼，就能和另一半一起種</span>';return;}
-  var on=Date.now()-(+D.here[op]||0)<50000,n=usedBy(op,today());
-  $('here').innerHTML=on?'<b class="on">🌱 '+NAMES[op]+' 也在花園裡</b>':'<b class="'+op+'">'+NAMES[op]+(n?' 今天澆了 '+n+' 滴水 💧':' 今天還沒來澆水')+'</b>';
+  var on=Date.now()-(+D.here[op]||0)<50000,n=usedBy(op,today()),u=unread();
+  $('here').innerHTML=(on?'<b class="on">🌱 '+NAMES[op]+' 也在花園裡</b>':'<b class="'+op+'">'+NAMES[op]+(n?' 今天澆了 '+n+' 滴水 💧':' 今天還沒來澆水')+'</b>')+'<button class="mailbtn" data-mail aria-label="信箱">📮'+(u?'<i>'+u+'</i>':'')+'</button>';
+  $('here').querySelector('[data-mail]').onclick=function(){SND.sfx('tap');openMail();};
 }
 function paintQ(){
   if(document.activeElement&&document.activeElement.id==='qIn')return;
@@ -557,7 +639,7 @@ function paintForest(){
   $('forest').innerHTML=f.length?f.map(function(p){return '<button class="ftree" data-m="'+p.id+'">'+art(p.sp,4)+'<b>'+esc(p.name||SP[p.sp].name)+'</b><span>'+md(dayOf(p.done))+'</span></button>';}).join(''):'<div class="fempty">還沒有長大的樹。<br>種下第一顆種子，兩個人一起澆水吧！</div>';
   $('forest').querySelectorAll('[data-m]').forEach(function(b){b.onclick=function(){SND.sfx('tap');openMemory(b.getAttribute('data-m'));};});
   var L=level(),nt=L<TOPLV?unlockText(L+1):'';
-  $('gnote').innerHTML='每天 '+BASE+' 滴水，回答今日問題 +'+ANSWER+'；同一天兩個人都澆同一棵，那天多長 '+TOGETHER+' 點<br>小鳥來的時候點牠，會送一滴水（每天最多 '+BIRD+' 滴）；有害蟲記得抓走<br>長大的樹種進森林，兩個人各拿 1 包飼料（算在每天 '+G.CAP+' 包裡）<br>植物和森林的樹都可以「移植」，把花園排成你們喜歡的樣子<br>遊樂區：白天溜滑梯、盪鞦韆，傍晚長椅看夕陽，晚上營火烤棉花糖（點它們叫學和綾過去）'+(nt?'<br>升到 Lv.'+(L+1)+'：'+nt:'');
+  $('gnote').innerHTML='每天 '+BASE+' 滴水，回答今日問題 +'+ANSWER+'；同一天兩個人都澆同一棵，那天多長 '+TOGETHER+' 點<br>小鳥來的時候點牠，會送一滴水（每天最多 '+BIRD+' 滴）；有害蟲記得抓走<br>長大的樹種進森林，兩個人各拿 1 包飼料（算在每天 '+G.CAP+' 包裡）<br>植物和森林的樹都可以「移植」，把花園排成你們喜歡的樣子<br>遊樂區：白天溜滑梯、盪鞦韆，傍晚長椅看夕陽，晚上營火烤棉花糖（點它們叫學和綾過去）<br>🎀 裝飾、📮 信箱、🎉 紀念日：3D 花園右上角、上面那幾顆按鈕'+(nt?'<br>升到 Lv.'+(L+1)+'：'+nt:'');
 }
 function toast(t){var e=document.createElement('div');e.textContent=t;$('toasts').appendChild(e);setTimeout(function(){e.remove();},3300);}
 // 另一半做了什麼：雲端資料變了就看看差在哪
@@ -576,6 +658,8 @@ function news(prev,next){
     if(((b.note||{})[op]||'')!==((a.note||{})[op]||'')&&(b.note||{})[op])tell(NAMES[op]+'對'+label(b)+'說了一句話 ✏️');
   });
   Object.keys(next.pests||{}).forEach(function(k){var x=next.pests[k];if(!x||x.by!==op||(prev.pests||{})[k])return;var pl=next.plants[k.split('_')[0]];tell(NAMES[op]+'抓走了'+(pl&&SP[pl.sp]?label(pl)+'上的':'')+'害蟲 🐛');if(g3&&pl)Garden3D.shoo(k.split('_')[0]);});
+  Object.keys(next.decor||{}).forEach(function(id){var b=next.decor[id],a=(prev.decor||{})[id];if(!b||!DECOR[b.k])return;if(!a&&b.by===op)tell(NAMES[op]+'在花園擺了'+DECOR[b.k].name+' '+DECOR[b.k].e);else if(a&&b.mv&&b.mv.by===op&&(!a.mv||a.mv.at!==b.mv.at))tell(NAMES[op]+'把'+DECOR[b.k].name+'搬到新的地方 '+DECOR[b.k].e);});
+  Object.keys(next.mail||{}).forEach(function(id){var m=next.mail[id];if(m&&m.to===me&&!(prev.mail||{})[id])tell('📮 '+NAMES[m.from]+'寄了一封信給你，點上面的 📮 看看');});
   var qa=(next.qa||{})[day]||{},qb=(prev.qa||{})[day]||{};
   if(qa[op]!=null&&qb[op]==null)tell(NAMES[op]+'回答了今日問題 💬');
   // 另一半剛打開花園（超過一分鐘沒報到、現在又報到）
@@ -601,15 +685,18 @@ function state3d(){
     var pe=pestOf(p);
     out.push({id:p.id,sp:p.sp,stage:g.stage,r:g.r,frac:hi>lo?Math.max(0,Math.min(1,(g.r-lo)/(hi-lo))):1,name:p.name||SP[p.sp].name,ready:g.stage===4,thirsty:g.stage<4&&thirsty(p),pest:pe?pe.kind:null,pkey:pe?pe.key:null});
   }
-  return {slots:out,open:open,lands:LANDS.map(function(l){return {id:l.id,name:l.name,lv:l.lv,open:L>=l.lv};}),forest:forest().slice().reverse().map(function(p){return {id:p.id,sp:p.sp,pos:p.pos||null};})};
+  var sp=special(today());
+  return {party:sp.length?{title:sp.map(function(o){return o.e+' '+o.t;}).join('  '),bday:sp.filter(function(o){return o.k==='bday';}).map(function(o){return o.who;})}:null,decor:decorList(),mail:unread()>0,weather:weatherOf(today()),season:seasonOf(today()),slots:out,open:open,lands:LANDS.map(function(l){return {id:l.id,name:l.name,lv:l.lv,open:L>=l.lv};}),forest:forest().slice().reverse().map(function(p){return {id:p.id,sp:p.sp,pos:p.pos||null};})};
 }
 function start3d(){
   var box=$('g3');
   box.addEventListener('pointerdown',function(){$('g3tip').style.opacity=0;},{once:true});
   $('g3full').onclick=function(){setFull(!box.classList.contains('full'));SND.sfx('tap');};
   $('g3reset').onclick=function(){if(g3)Garden3D.resetView();};
+  $('g3decor').onclick=function(){SND.sfx('tap');openDecor();};
   Garden3D.init(box,{progress:function(s){ldStep(s);},plot:function(i){SND.sfx('tap');openSeeds(i);},plant:function(id){SND.sfx('tap');openPlant(id);},tree:function(id){SND.sfx('tap');openMemory(id);},pest:function(id){catchPest(id);},bird:function(){return birdGift();},
     land:function(id,open){var l=LANDS.filter(function(x){return x.id===id;})[0];if(!l)return;SND.sfx('tap');toast(open?'🏡 '+l.name:'🔒 花園升到 Lv.'+l.lv+' 會開放新土地「'+l.name+'」');},
+    decor:function(id){openDecorItem(id);},
     phase:function(ph){toast({day:'☀️ 天亮了！遊樂區有溜滑梯和盪鞦韆',eve:'🌇 傍晚了，長椅搬出來了，一起看夕陽吧',night:'🔥 晚上了，營火升起來，可以烤棉花糖了'}[ph]||'');},
     act:function(k,who){var n=who.map(function(u){return NAMES[u];}).join('和');toast(!n?'他們現在在忙，等一下再叫他們':{slide:n+'去溜滑梯了 🛝',swing:n+'去盪鞦韆了',bench:n+'坐到長椅上看夕陽 🌇',fire:n+'去營火邊烤棉花糖 🔥'}[k]);},
     moveSel:function(sel){if(!moving)return;if(moving.kind==='plot'){movePlotTo(sel.slot);return;}moving.sel=sel;SND.sfx(sel.ok?'tap':'swish');paintMove();}})
@@ -704,11 +791,22 @@ function endMove(){
 function paintMove(){
   var bar=$('mvbar');
   if(!moving){bar.hidden=true;bar.innerHTML='';return;}
+  var s=moving.sel,h,ls=LANDS.filter(function(l){return level()>=l.lv;}),chips=ls.length?'<div class="mv-lands"><button data-land="">🌳 中間</button>'+ls.map(function(l){return '<button data-land="'+l.id+'">🏡 '+esc(l.name)+'</button>';}).join('')+'</div>':'';
+  if(moving.kind==='decor'||moving.kind==='decorNew'){
+    if(moving.kind==='decor'&&!D.decor[moving.id]){endMove();return;}
+    var dk=DECOR[moving.k];
+    h='<b>'+dk.e+' '+(moving.kind==='decor'?'移動':'擺放')+dk.name+'</b>'+(s?(s.ok?'<span>放在這裡嗎？也可以再點別的地方</span>':'<span class="bad">'+esc(s.why)+'，換個地方</span>'):'<span>點草地選位置・拖曳轉動、兩指拉近</span>')+chips+
+      '<div class="g-btns">'+(s&&s.ok?'<button class="g-btn" data-ok>放在這裡</button>':'')+'<button class="g-btn ghost" data-cancel>取消</button></div>';
+    bar.innerHTML=h;bar.hidden=false;
+    bar.querySelector('[data-cancel]').onclick=function(){SND.sfx('tap');endMove();};
+    var okb=bar.querySelector('[data-ok]');if(okb)okb.onclick=placeDecor;
+    bar.querySelectorAll('[data-land]').forEach(function(b){b.onclick=function(){SND.sfx('tap');Garden3D.focusLand(b.getAttribute('data-land'));};});
+    return;
+  }
   var p=D.plants[moving.id];if(!p||(moving.kind==='plot'&&p.done)){endMove();return;}
-  var s=moving.sel,h,ls=LANDS.filter(function(l){return level()>=l.lv;});
   if(moving.kind==='tree'){
     h='<b>🌳 移植'+esc(label(p))+'</b>'+(s?(s.ok?'<span>種在這裡嗎？也可以再點別的地方</span>':'<span class="bad">'+esc(s.why)+'，換個地方</span>'):'<span>點草地選新位置・拖曳轉動、兩指拉近</span>')+
-      (ls.length?'<div class="mv-lands"><button data-land="">🌳 中間</button>'+ls.map(function(l){return '<button data-land="'+l.id+'">🏡 '+esc(l.name)+'</button>';}).join('')+'</div>':'')+
+      chips+
       '<div class="g-btns">'+(s&&s.ok?'<button class="g-btn" data-ok>種在這裡</button>':'')+'<button class="g-btn ghost" data-cancel>取消</button></div>';
   }else h='<b>🪴 移植'+esc(label(p))+'</b><span>點一塊空的土搬過去；點有植物的土會交換位置</span><div class="g-btns"><button class="g-btn ghost" data-cancel>取消</button></div>';
   bar.innerHTML=h;bar.hidden=false;
@@ -734,6 +832,55 @@ function moveTreeTo(){
   endMove();paint();
 }
 
+/* ── 裝飾：選一個擺上去、點裝飾移動或收起來 ── */
+function openDecor(){
+  var L=level();
+  var ov=card('<h2>🎀 裝飾花園</h2><p class="g-small" style="margin-top:0">選一個，點草地擺上去；點花園裡的裝飾可以移動或收起來</p><div class="seeds">'+Object.keys(DECOR).map(function(k){var d=DECOR[k],lock=L<d.lv,n=decorCount(k),full=n>=d.max;return '<button data-k="'+k+'"'+(lock||full?' disabled':'')+'><span class="dec-e">'+d.e+'</span>'+d.name+'<small>'+(lock?'Lv.'+d.lv+' 解鎖':full?'擺了 '+n+' 個（最多 '+d.max+'）':(n?n+'/'+d.max+'・':'')+d.tip)+'</small></button>';}).join('')+'</div><div class="g-btns"><button class="g-btn ghost" data-close>關閉</button></div>');
+  ov.querySelectorAll('[data-k]').forEach(function(b){b.onclick=function(){startDecor('decorNew',b.getAttribute('data-k'));};});
+  ov.querySelector('[data-close]').onclick=closeSheet;
+}
+function openDecorItem(id){
+  var d=D.decor[id];if(!d||!DECOR[d.k])return;var dk=DECOR[d.k],u=unread();
+  var ov=card('<div class="dec-big">'+dk.e+'</div><h2>'+dk.name+'</h2><div class="sh-sp">'+md(dayOf(d.at||Date.now()))+' '+(NAMES[d.by]||'')+'擺的</div><p class="g-small">'+dk.tip+'</p><div class="g-btns">'+(d.k==='mailbox'?'<button class="g-btn" data-mail>📬 打開信箱'+(u?'（'+u+' 封新信）':'')+'</button>':'')+'<button class="g-btn ghost" data-mv>↔️ 移動</button><button class="g-btn ghost" data-rm>收起來</button><button class="g-btn ghost" data-close>關閉</button></div>');
+  var ml=ov.querySelector('[data-mail]');if(ml)ml.onclick=openMail;
+  ov.querySelector('[data-mv]').onclick=function(){startDecor('decor',id);};
+  ov.querySelector('[data-rm]').onclick=function(){write({decor:obj(id,null)});SND.sfx('pop');toast(dk.e+' '+dk.name+'收起來了');closeSheet();paint();};
+  ov.querySelector('[data-close]').onclick=closeSheet;
+}
+function startDecor(kind,x){
+  closeSheet();
+  if(!g3){toast('裝飾要在 3D 花園裡擺');return;}
+  var k=kind==='decor'?(D.decor[x]&&D.decor[x].k):x;if(!DECOR[k])return;
+  if(!Garden3D.move(kind,x)){toast('等一下再試一次');return;}
+  moving={kind:kind,id:kind==='decor'?x:null,k:k,sel:null,full:!$('g3').classList.contains('full')};
+  if(moving.full)setFull(true);
+  $('g3tip').style.opacity=0;SND.sfx('tap');paintMove();
+}
+function placeDecor(){
+  var s=moving&&moving.sel;if(!s||!s.ok)return;var m=moving,o={decor:{}},dk=DECOR[m.k];
+  if(m.kind==='decor')o.decor[m.id]={x:s.x,z:s.z,mv:{by:me,at:Date.now()}};
+  else{if(decorCount(m.k)>=dk.max){toast(dk.name+'最多擺 '+dk.max+' 個');endMove();return;}o.decor['d'+Date.now().toString(36)+Math.random().toString(36).slice(2,5)]={k:m.k,x:s.x,z:s.z,by:me,at:Date.now()};}
+  write(o);SND.sfx('plant');toast(dk.e+' '+dk.name+(m.kind==='decor'?'搬好了':'擺好了'));
+  endMove();paint();
+}
+// 信箱：最上面寫信，下面是兩個人的信（新信有黃框）；打開就算讀過
+function openMail(){
+  var fresh={},o={mail:{}},n=0;Object.keys(D.mail||{}).forEach(function(id){var m=D.mail[id];if(m&&m.to===me&&!m.read){fresh[id]=1;o.mail[id]={read:1};n++;}});
+  card('','memcard');
+  sheet.paint=function(){
+    var box=sheet.ov.querySelector('.g-card'),kept=keepVals(box),list=Object.keys(D.mail||{}).map(function(id){var m=D.mail[id];return m?{id:id,from:m.from,to:m.to,text:m.text,at:m.at}:null;}).filter(Boolean).sort(function(a,b){return b.at-a.at;}).slice(0,30);
+    box.innerHTML='<h2>📮 信箱</h2>'+(cloud&&op?'<div class="mail-new"><textarea id="mlIn" maxlength="120" placeholder="寫一封信給'+NAMES[op]+'（120 字以內）"></textarea><button class="g-btn" data-send>寄出 ✉️</button></div>':'<p class="g-small">在班表設定同步代碼，就能寫信給另一半</p>')+
+      '<div class="mail-list">'+(list.length?list.map(function(m){return '<div class="mail '+(m.from===me?'out':'in')+(fresh[m.id]?' new':'')+'"><b>'+(NAMES[m.from]||'')+' → '+(NAMES[m.to]||'')+'</b><small>'+md(dayOf(m.at))+'</small><p>'+esc(m.text)+'</p></div>';}).join(''):'<p class="g-small">還沒有信，寫第一封吧 ✉️</p>')+'</div>'+
+      '<div class="g-btns"><button class="g-btn ghost" data-close>關閉</button></div>';
+    restoreVals(box,kept);
+    var sd=box.querySelector('[data-send]');if(sd)sd.onclick=function(){var v=($('mlIn').value||'').trim().slice(0,120);if(!v){toast('先寫一點點再寄');return;}
+      write({mail:obj('m'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),{from:me,to:op,text:v,at:Date.now(),read:0})});$('mlIn').value='';SND.sfx('chime');toast('✉️ 寄出去了，'+NAMES[op]+'打開花園就看得到');sheet.paint();paint();};
+    box.querySelector('[data-close]').onclick=closeSheet;
+  };
+  sheet.paint();
+  if(n){write(o);paint();}
+}
+
 /* ── 卡片 ── */
 // 開一張卡片（一次只開一張）；sheet.paint 讓資料變了的時候重畫
 function card(html,cls){
@@ -743,7 +890,7 @@ function card(html,cls){
   sheet={ov:ov,paint:function(){}};
   return ov;
 }
-function closeSheet(){if(sheet&&sheet.ov)sheet.ov.remove();sheet=null;clearTimeout(wT);flush();if(lvPending)setTimeout(showLevelUp,350);}
+function closeSheet(){if(sheet&&sheet.ov)sheet.ov.remove();sheet=null;clearTimeout(wT);flush();if(lvPending)setTimeout(showLevelUp,350);else if(started&&special(today()).length)setTimeout(partyCard,450);}
 function openPlant(id){
   var naming=false;
   card('','plant');
@@ -753,7 +900,7 @@ function openPlant(id){
     var kept=keepVals(box);
     box.innerHTML='<div class="sh-art">'+art(p.sp,g.stage)+'</div><h2>'+esc(p.name||SP[p.sp].name)+'</h2><div class="sh-sp">'+SP[p.sp].name+'・'+stageName(p,g)+'・'+md(dayOf(p.at))+' '+NAMES[p.by]+'種的</div>'+
       '<div class="bar big"><i style="width:'+Math.round(g.r*100)+'%"></i></div><div class="sh-num">'+Math.min(g.pts,g.need)+' / '+g.need+'</div>'+
-      '<div class="sh-today">今天 學 💧'+a+'・綾 💧'+b+(a&&b?' ✨ 兩個人都澆了 +'+TOGETHER:'')+'</div>'+
+      '<div class="sh-today">今天 學 💧'+a+'・綾 💧'+b+(a&&b?' ✨ 兩個人都澆了 +'+TOGETHER:'')+(wet(today())&&today()>=WX_START?'・'+(weatherOf(today())==='snow'?'❄️':'🌧️')+' +'+RAIN:'')+'</div>'+(g.rain?'<div class="g-small" style="margin:2px 0 0">淋雨自己長了 '+g.rain*RAIN+' 點</div>':'')+
       (g.stage<4&&thirsty(p)?'<div class="sh-warn">好幾天沒人澆水，口渴了…</div>':'')+
       (pe?'<div class="sh-pest">'+PESTS[pe.kind].e+' 有'+PESTS[pe.kind].name+'在啃葉子！先抓走才能澆水</div>':'')+
       (naming?'<div class="sh-name"><input id="nmIn" maxlength="10" placeholder="幫它取名字" value="'+esc(p.name||'')+'"><button data-save>好</button></div>':'')+
@@ -816,11 +963,17 @@ function askWho(){
 }
 // 第一次來：說明怎麼玩
 function help(){
-  card('<h2>🌳 記憶小森林</h2><ol class="g-rules"><li>每天有一題「今日問題」，回答拿 '+ANSWER+' 滴水；二選一兩個人選一樣，再各多 '+MATCH+' 滴</li><li>每個人每天有 '+BASE+' 滴水，點植物就能澆</li><li>同一天兩個人都澆同一棵，那天多長 '+TOGETHER+' 點</li><li>長大的植物種進森林，會留下那段時間的問答和你們寫的話</li><li>種進森林兩個人各拿 1 包飼料</li><li>澆水、回答、抓害蟲都會加經驗；花園升級會多幾塊土、解鎖新的花和樹</li><li>小鳥來的時候點牠，會送一滴水；害蟲跑來要抓走才能澆水</li><li>升級會開放新土地；植物和森林的樹都可以移植，一起把花園排成喜歡的樣子</li><li>花園左後方的遊樂區跟著時間變：白天溜滑梯、盪鞦韆，傍晚長椅看夕陽，晚上營火烤棉花糖；點它們，學和綾就會過去</li></ol><div class="g-btns"><button class="g-btn" data-close>開始種</button></div>');
+  card('<h2>🌳 記憶小森林</h2><ol class="g-rules"><li>每天有一題「今日問題」，回答拿 '+ANSWER+' 滴水；二選一兩個人選一樣，再各多 '+MATCH+' 滴</li><li>每個人每天有 '+BASE+' 滴水，點植物就能澆</li><li>同一天兩個人都澆同一棵，那天多長 '+TOGETHER+' 點</li><li>長大的植物種進森林，會留下那段時間的問答和你們寫的話</li><li>種進森林兩個人各拿 1 包飼料</li><li>澆水、回答、抓害蟲都會加經驗；花園升級會多幾塊土、解鎖新的花和樹</li><li>小鳥來的時候點牠，會送一滴水；害蟲跑來要抓走才能澆水</li><li>升級會開放新土地；植物和森林的樹都可以移植，一起把花園排成喜歡的樣子</li><li>花園跟著季節和天氣變；下雨、下雪那天，所有植物都會自己長一點</li><li>🎉 紀念日（交往、結婚、生日、在一起每 100 天）花園會布置，每個人多 3 滴水</li><li>升級會解鎖裝飾品（3D 花園右上角 🎀）：路燈、花拱門、風車、稻草人、鳥屋、野餐墊；📮 信箱可以寫信給對方</li><li>花園左後方的遊樂區跟著時間變：白天溜滑梯、盪鞦韆，傍晚長椅看夕陽，晚上營火烤棉花糖；點它們，學和綾就會過去</li></ol><div class="g-btns"><button class="g-btn" data-close>開始種</button></div>');
   sheet.ov.querySelector('[data-close]').onclick=function(){closeSheet();try{localStorage.setItem('gardenHelp','1');}catch(e){}};
 }
+// 環境音：白天鳥叫（夏天加蟬）、傍晚鳥少一點、晚上蟋蟀＋營火（鏡頭越靠近營火越大聲）、下雨天雨聲
+function ambient(){
+  var t=new Date(),h=t.getHours()+t.getMinutes()/60,d=today(),w=weatherOf(d),se=seasonOf(d),ph=h>=5.5&&h<16.5?'day':h>=16.5&&h<19?'eve':'night',wt=w==='rain'||w==='snow',near=g3&&Garden3D.fireNear?Garden3D.fireNear():.5;
+  SND.amb({birds:wt?0:ph==='day'?(se==='winter'?.45:1):ph==='eve'?.3:0,cicada:se==='summer'&&ph==='day'&&!wt?.8:0,crickets:ph==='night'&&se!=='winter'&&w!=='rain'?(se==='summer'||se==='autumn'?1:.6):0,fire:ph==='night'?.3+.7*near:0,rain:w==='rain'?1:0});
+}
 function ready(){
-  ldStep('data');
+  ldStep('data');loadYearly();setTimeout(partyCard,1200);setInterval(ambient,2500);ambient();
+  setTimeout(function(){var d=today();try{if(wet(d)&&d>=WX_START&&localStorage.getItem('gardenWx')!==d){localStorage.setItem('gardenWx',d);toast(weatherOf(d)==='snow'?'❄️ 今天下雪了，花園裡的植物都喝到水、自己長了一點':'🌧️ 今天下雨，花園裡的植物都喝到水、自己長了一點');}}catch(e){}},1600);
   started=true;
   $('gpets').innerHTML=['cat','pg','dg'].map(function(k){return '<img src="'+G.petImg(k,'happy')+'" alt="'+esc(G.petName(k))+'">';}).join('');
   paint();claim();SND.music('garden');pestSeen=pestsNow().map(function(x){return x.key;});setTimeout(visit2d,12000);
