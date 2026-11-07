@@ -1157,31 +1157,104 @@ var Garden3D=(function(){
   /* ── 鏡頭：拖曳轉、兩指拉近；沒人動的時候自己慢慢轉 ── */
   function place(){var x=Math.cos(el)*Math.sin(az),y=Math.sin(el),z=Math.cos(el)*Math.cos(az);cam.position.set(tgt.x+x*rad,tgt.y+y*rad,tgt.z+z*rad);cam.lookAt(tgt);}
   function bind(cv){
-    cv.addEventListener('pointerdown',function(e){ptrs[e.pointerId]={x:e.clientX,y:e.clientY};try{cv.setPointerCapture(e.pointerId);}catch(_){}idleAt=Date.now();var ids=Object.keys(ptrs);if(ids.length===1)down={x:e.clientX,y:e.clientY,t:Date.now(),moved:0};else{down=null;pinch0=dist();rad0=rad;}});
-    cv.addEventListener('pointermove',function(e){var p=ptrs[e.pointerId];if(!p)return;var dx=e.clientX-p.x,dy=e.clientY-p.y;p.x=e.clientX;p.y=e.clientY;idleAt=Date.now();
+    cv.addEventListener('pointerdown',function(e){ptrs[e.pointerId]={x:e.clientX,y:e.clientY};try{cv.setPointerCapture(e.pointerId);}catch(_){}idleAt=Date.now();var ids=Object.keys(ptrs);if(ids.length===1){down={x:e.clientX,y:e.clientY,t:Date.now(),moved:0};if(!mv){down.tg=targetAt(e.clientX,e.clientY);hl.hold=null;setHL(down.tg,true);}}else{down=null;pinch0=dist();rad0=rad;}});
+    var hoverT=0;
+    cv.addEventListener('pointermove',function(e){var p=ptrs[e.pointerId];
+      if(!p){if(e.pointerType==='mouse'&&!mv&&Date.now()-hoverT>60){hoverT=Date.now();var ht=targetAt(e.clientX,e.clientY);if(hl.hold==null)setHL(ht,false);}return;}var dx=e.clientX-p.x,dy=e.clientY-p.y;p.x=e.clientX;p.y=e.clientY;idleAt=Date.now();
       var ids=Object.keys(ptrs);if(ids.length>=2){var d=dist();if(pinch0){rad=Math.max(10,Math.min(40,rad0*pinch0/d));rgoal=0;}return;}
-      agoal=egoal=null;az-=dx*.006;el=Math.max(.3,Math.min(1.12,el+dy*.0035));if(down)down.moved+=Math.abs(dx)+Math.abs(dy);});
-    function up(e){var d=down;delete ptrs[e.pointerId];if(Object.keys(ptrs).length<2)pinch0=0;if(d&&d.moved<10&&Date.now()-d.t<600)pick(e);down=null;}
-    cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',function(e){delete ptrs[e.pointerId];down=null;pinch0=0;});
+      agoal=egoal=null;az-=dx*.006;el=Math.max(.3,Math.min(1.12,el+dy*.0035));if(down){down.moved+=Math.abs(dx)+Math.abs(dy);if(down.moved>=10&&down.tg){down.tg=null;setHL(null);}}});
+    cv.addEventListener('pointerleave',function(e){if(e.pointerType==='mouse'&&hl.hold==null)setHL(null);});
+    function up(e){var d=down;delete ptrs[e.pointerId];if(Object.keys(ptrs).length<2)pinch0=0;if(d&&d.moved<10&&Date.now()-d.t<1500)pick(e,d.tg);else if(d&&e.pointerType!=='mouse')setHL(null);down=null;}
+    cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',function(e){delete ptrs[e.pointerId];down=null;pinch0=0;setHL(null);});
     cv.addEventListener('wheel',function(e){e.preventDefault();rad=Math.max(10,Math.min(40,rad*(1+e.deltaY*.001)));rgoal=0;idleAt=Date.now();},{passive:false});
   }
   function dist(){var p=Object.keys(ptrs).map(function(k){return ptrs[k];});return p.length<2?1:Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y);}
   // 點到什麼：小鳥 → 送水、蝴蝶蜜蜂 → 飛走、害蟲 → 抓走、寵物 → 跳一下、人 → 揮手、土 → 種、植物 → 澆水卡片、森林的樹 → 回憶
-  function pick(e){
-    var r=R.domElement.getBoundingClientRect(),v=new T.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1),ray=new T.Raycaster();ray.setFromCamera(v,cam);
-    if(mv){movePick(ray);return;}
-    var lh=ray.intersectObjects(LAND_IDS.map(function(id){return LAND_GEO[id].sign.hb;}))[0];
-    if(lh){var L=LAND_GEO[lh.object.userData.land];if(L.open)focusLand(lh.object.userData.land);if(hooks.land)hooks.land(lh.object.userData.land,L.open);return;}
-    var vh=ray.intersectObjects(visitors.map(function(q){return q.hb;}))[0];
-    if(vh){var vv=vh.object.userData.v;hearts(vv.g.position.x,vv.g.position.y+.2,vv.g.position.z,vv.kind==='bird'?3:1);if(vv.kind==='bird'){if(vv.state!=='out')hooks.bird();}else SND.sfx('pop');leave(vv);return;}
-    var pt=ray.intersectObjects(plots.filter(function(p){return p.pest;}).map(function(p){return p.pest.hb;}))[0];if(pt){hooks.pest(pt.object.userData.pest);return;}
-    var ph=ray.intersectObjects(pets.map(function(p){return p.spr;}))[0];if(ph){var pp=pets.filter(function(p){return p.spr===ph.object;})[0];if(pp){pp.hop=.5;SND.sfx('pop');hearts(pp.x,1.2,pp.z,1);}return;}
-    var hu=ray.intersectObjects(people.map(function(p){return p.g.children[3];}))[0];if(hu){var who=people.filter(function(p){return p.k===hu.object.userData.person;})[0];if(who){if(TREE_STATES[who.state]||who.toTree)who.waveT=1.6;else if(who.state!=='play'){who.state='play';who.with=null;who.timer=1.6;who.act=1.2;who.face=Math.atan2(cam.position.x-who.g.position.x,cam.position.z-who.g.position.z);}SND.sfx('tap');}return;}
-    var ah=ray.intersectObjects(ACTS.hits[phase]||[])[0];if(ah){callAct(ah.object.userData.act);return;}
-    var dh=ray.intersectObjects(Object.keys(decors).map(function(id){return decors[id].g.children[decors[id].g.children.length-1];}))[0];if(dh&&hooks.decor){SND.sfx('tap');hooks.decor(dh.object.userData.decor);return;}
-    var objs=plots.filter(function(p){return p.on;}).map(function(p){return p.coll;});Object.keys(trees).forEach(function(id){objs.push(trees[id].g.children[1]);});
-    var h=ray.intersectObjects(objs)[0];if(!h)return;var u=h.object.userData;
-    if(u.tree)hooks.tree(u.tree);else if(u.plant)hooks.plant(u.plant);else if(u.slot!=null)hooks.plot(u.slot);
+  /* ── 點到什麼：先找出手指（滑鼠）下面是哪一個東西，再決定要做什麼 ──
+     植物和森林的樹最容易點錯：先看名字標籤（畫在最上面，點名字最準）→ 再看植物本身的形狀 → 點到地上就找最近的那塊土或樹幹 */
+  function rayAt(cx,cy){var r=R.domElement.getBoundingClientRect(),v=new T.Vector2((cx-r.left)/r.width*2-1,-(cy-r.top)/r.height*2+1),ray=new T.Raycaster();ray.setFromCamera(v,cam);return ray;}
+  var _p1=null,_p2=null;
+  function toScreen(v,r){var q=v.clone().project(cam);return {x:r.left+(q.x+1)/2*r.width,y:r.top+(1-q.y)/2*r.height,z:q.z};}
+  // 名字標籤（含下面的進度條）：用螢幕上的位置比，手指離哪個標籤中間最近就是哪個
+  function labelAt(cx,cy){
+    var r=R.domElement.getBoundingClientRect(),best=null,bd=1e9,right=new T.Vector3().setFromMatrixColumn(cam.matrixWorld,0),up=new T.Vector3().setFromMatrixColumn(cam.matrixWorld,1);
+    plots.forEach(function(p){
+      if(!p.on||!p.lab.visible)return;
+      var sx=p.lab.scale.x,sy=p.lab.scale.y,c=p.lab.position.clone().addScaledVector(up,sy*.6),c0=toScreen(c,r);if(c0.z>1)return;
+      var ex=toScreen(c.clone().addScaledVector(right,sx*(p.id?.24:.12)),r),ey=toScreen(c.clone().addScaledVector(up,sy*.36),r),hw=Math.abs(ex.x-c0.x),hh=Math.abs(ey.y-c0.y),dx=Math.abs(cx-c0.x)/hw,dy=Math.abs(cy-c0.y)/hh;
+      if(dx<=1&&dy<=1){var d=dx*dx+dy*dy+c0.z*.01;if(d<bd){bd=d;best=p;}}
+    });
+    return best;
+  }
+  // 植物、森林的樹：射線打到真的形狀；沒打到就看地上最近的土（.9 以內）或樹幹（.7 以內）
+  function plantAt(ray){
+    var hits=[],hp=null,ht=null,dp=1e9,dt=1e9;
+    plots.forEach(function(p){if(p.on&&p.id){var h=ray.intersectObject(p.holder,true)[0];if(h&&h.distance<dp){dp=h.distance;hp=p;}}});
+    Object.keys(trees).forEach(function(id){var h=ray.intersectObject(trees[id].g.children[0],true)[0];if(h&&h.distance<dt){dt=h.distance;ht=id;}});
+    if(hp||ht)return dp<=dt?{kind:'plot',p:hp}:{kind:'tree',id:ht};
+    var pt=new T.Vector3();if(!ray.ray.intersectPlane(new T.Plane(new T.Vector3(0,1,0),0),pt))return null;
+    var bp=null,bd=.9;plots.forEach(function(p){var d=Math.hypot(p.x-pt.x,p.z-pt.z);if(p.on&&d<bd){bd=d;bp=p;}});if(bp)return {kind:'plot',p:bp};
+    var bt=null,bt2=.7;Object.keys(trees).forEach(function(id){var d=Math.hypot(trees[id].x-pt.x,trees[id].z-pt.z);if(d<bt2){bt2=d;bt=id;}});if(bt)return {kind:'tree',id:bt};
+    return null;
+  }
+  function targetAt(cx,cy){
+    var ray=rayAt(cx,cy);
+    var lh=ray.intersectObjects(LAND_IDS.map(function(id){return LAND_GEO[id].sign.hb;}))[0];if(lh)return {kind:'sign',id:lh.object.userData.land};
+    var vh=ray.intersectObjects(visitors.map(function(q){return q.hb;}))[0];if(vh)return {kind:'visitor',v:vh.object.userData.v};
+    var lb=labelAt(cx,cy);if(lb)return {kind:'plot',p:lb};
+    var pt=ray.intersectObjects(plots.filter(function(p){return p.pest;}).map(function(p){return p.pest.hb;}))[0];if(pt)return {kind:'pest',id:pt.object.userData.pest};
+    var ph=ray.intersectObjects(pets.map(function(p){return p.spr;}))[0];if(ph){var pp=pets.filter(function(p){return p.spr===ph.object;})[0];if(pp)return {kind:'pet',p:pp};}
+    var hu=ray.intersectObjects(people.map(function(p){return p.g.children[3];}))[0];if(hu){var who=people.filter(function(p){return p.k===hu.object.userData.person;})[0];if(who)return {kind:'person',p:who};}
+    var ah=ray.intersectObjects(ACTS.hits[phase]||[])[0];if(ah)return {kind:'act',k:ah.object.userData.act,o:ah.object};
+    var dh=ray.intersectObjects(Object.keys(decors).map(function(id){return decors[id].g.children[decors[id].g.children.length-1];}))[0];if(dh)return {kind:'decor',id:dh.object.userData.decor};
+    return plantAt(ray);
+  }
+  // 亮起來的地方：地上一個圈（滑鼠移過去、手指按下去就亮），植物的名字標籤也放大一點
+  var hl={ring:null,lab:null,key:'',t:0,strong:false},flashes=[];
+  function hlSpot(t){
+    if(!t)return null;
+    if(t.kind==='plot')return {x:t.p.x,z:t.p.z,r:.95,lab:t.p.lab};
+    if(t.kind==='tree'&&trees[t.id])return {x:trees[t.id].x,z:trees[t.id].z,r:.8};
+    if(t.kind==='decor'&&decors[t.id])return {x:decors[t.id].x,z:decors[t.id].z,r:(DECOR_R[decors[t.id].k]||.5)+.25};
+    if(t.kind==='pet')return {x:t.p.x,z:t.p.z,r:.5};
+    if(t.kind==='person'){var g=t.p.g.position;return {x:g.x,z:g.z,r:.5};}
+    if(t.kind==='act'){var w=new T.Vector3();t.o.getWorldPosition(w);return {x:w.x,z:w.z,r:1.3};}
+    return null;
+  }
+  function setHL(t,strong){
+    var sp=hlSpot(t),key=sp?t.kind+':'+(t.id||(t.p&&(t.p.k||t.p.i))||t.k):'';
+    if(hl.lab&&hl.lab!==(sp&&sp.lab)){hl.lab.scale.set(hl.lab.userData.sx,hl.lab.userData.sy,1);hl.lab=null;}
+    if(!sp){if(hl.ring)hl.ring.visible=false;hl.key='';R.domElement.style.cursor=t?'pointer':'';return;}
+    if(!hl.ring){hl.ring=new T.Mesh(new T.RingGeometry(.8,1,40),new T.MeshBasicMaterial({color:'#FFE27A',transparent:true,opacity:.95,depthWrite:false}));hl.ring.rotation.x=-Math.PI/2;hl.ring.renderOrder=6;scene.add(hl.ring);}
+    hl.ring.visible=true;hl.ring.position.set(sp.x,.045,sp.z);hl.r=sp.r;hl.strong=!!strong;hl.key=key;hl.t=0;hl.ring.material.color.set(strong?'#FFC93C':'#FFE68A');
+    if(sp.lab&&hl.lab!==sp.lab){hl.lab=sp.lab;if(!sp.lab.userData.sx){sp.lab.userData.sx=sp.lab.scale.x;sp.lab.userData.sy=sp.lab.scale.y;}sp.lab.scale.set(sp.lab.userData.sx*1.14,sp.lab.userData.sy*1.14,1);}
+    R.domElement.style.cursor='pointer';
+  }
+  function act(t){
+    if(!t)return;
+    if(t.kind==='sign'){var L=LAND_GEO[t.id];if(L.open)focusLand(t.id);if(hooks.land)hooks.land(t.id,L.open);return;}
+    if(t.kind==='visitor'){var vv=t.v;hearts(vv.g.position.x,vv.g.position.y+.2,vv.g.position.z,vv.kind==='bird'?3:1);if(vv.kind==='bird'){if(vv.state!=='out')hooks.bird();}else SND.sfx('pop');leave(vv);return;}
+    if(t.kind==='pest'){hooks.pest(t.id);return;}
+    if(t.kind==='pet'){var pp=t.p;pp.hop=.5;SND.sfx('pop');hearts(pp.x,1.2,pp.z,1);return;}
+    if(t.kind==='person'){var who=t.p;if(TREE_STATES[who.state]||who.toTree)who.waveT=1.6;else if(who.state!=='play'){who.state='play';who.with=null;who.timer=1.6;who.act=1.2;who.face=Math.atan2(cam.position.x-who.g.position.x,cam.position.z-who.g.position.z);}SND.sfx('tap');return;}
+    if(t.kind==='act'){callAct(t.k);return;}
+    if(t.kind==='decor'){if(hooks.decor){SND.sfx('tap');hooks.decor(t.id);}return;}
+    if(t.kind==='tree'){hooks.tree(t.id);return;}
+    if(t.kind==='plot'){var p=t.p;if(p.id)hooks.plant(p.id);else hooks.plot(p.i);}
+  }
+  function pick(e,pre){
+    if(mv){movePick(rayAt(e.clientX,e.clientY));return;}
+    var t=pre!==undefined?pre:targetAt(e.clientX,e.clientY);
+    setHL(t,true);hl.hold=.7;act(t);
+  }
+  // 森林分類：讓某幾棵樹在 3D 裡閃幾秒（地上一圈一圈亮）
+  function flashTrees(ids){
+    flashes.forEach(function(f){scene.remove(f.m);f.m.geometry.dispose();f.m.material.dispose();});flashes=[];
+    (ids||[]).forEach(function(id){var t=trees[id];if(!t)return;var m=new T.Mesh(new T.RingGeometry(.62,.8,32),new T.MeshBasicMaterial({color:'#FFD45E',transparent:true,opacity:.95,depthWrite:false}));m.rotation.x=-Math.PI/2;m.renderOrder=6;m.position.set(t.x,.05,t.z);scene.add(m);flashes.push({m:m,t:0});});
+  }
+  function tickHL(dt){
+    if(hl.ring&&hl.ring.visible){hl.t+=dt;var k=1+Math.sin(hl.t*6)*.06;hl.ring.scale.set(hl.r*k,hl.r*k,1);if(hl.hold!=null){hl.hold-=dt;if(hl.hold<=0){hl.hold=null;setHL(null);}}}
+    for(var i=flashes.length-1;i>=0;i--){var f=flashes[i];f.t+=dt;var s=1+Math.sin(f.t*5)*.15;f.m.scale.set(s,s,1);f.m.material.opacity=f.t<5?.95:Math.max(0,.95-(f.t-5)*1.5);if(f.t>5.7){scene.remove(f.m);f.m.geometry.dispose();f.m.material.dispose();flashes.splice(i,1);}}
   }
 
   /* ── 每一格 ── */
@@ -1193,7 +1266,7 @@ var Garden3D=(function(){
     if(mv){var pu=1+Math.sin(now*5)*.08;mv.mark.scale.set(pu,pu,pu);if(mv.kind==='plot'){var sp0=mv.src;mv.mark.position.set(sp0.x,.2,sp0.z);}}
     if(Date.now()-skyAt>20000){skyAt=Date.now();sky();}
     clouds.rotation.y+=dt*.012;
-    movePets(dt);movePeople(dt);moveVisitors(dt);tickActs(dt);tickWeather(dt);tickDecor(dt);tickParty(dt);
+    movePets(dt);movePeople(dt);moveVisitors(dt);tickActs(dt);tickWeather(dt);tickDecor(dt);tickParty(dt);tickHL(dt);
     // 溪水往下流、湖上的小鴨子游來游去
     flecks.forEach(function(f){f.userData.t=(f.userData.t+dt*.045)%1;var p=along(f.userData.t),p2=along(Math.min(.999,f.userData.t+.01));f.position.set(p.x,.05,p.z);f.rotation.y=-Math.atan2(p2.z-p.z,p2.x-p.x);});
     ducks.forEach(function(d){var u=d.userData;u.a+=dt*u.s;d.position.set(lake.x+Math.cos(u.a)*u.r,.05+Math.sin(now*2.4+u.r)*.02,lake.z+Math.sin(u.a)*u.r);d.rotation.y=-u.a+(u.s>0?-Math.PI/2:Math.PI/2);});
@@ -1302,7 +1375,13 @@ var Garden3D=(function(){
     // 測試用：每個人、每隻寵物在溪的哪一邊、離水多近、是不是在橋上；叫某個人／寵物走去某個地方
     // 營火有多近（看著遊樂區＝1、很遠＝0）：給環境音調營火聲大小
     fireNear:function(){if(!actG)return 0;var c=AWp(0,.3),d=Math.hypot(tgt.x-c.x,tgt.z-c.z)+Math.max(0,rad-14)*.5;return Math.max(0,Math.min(1,1-(d-3)/12));},
-    speed:function(n){tScale=n||1;},party:function(){return party?{n:party.objs.length,cake:!!party.cake,hats:people.map(function(p){return p.hat.visible;})}:null;},firework:function(){firework();},decors:function(){return Object.keys(decors).map(function(id){var d=decors[id];return {id:id,k:d.k,x:d.x,z:d.z,flag:d.parts.flag?+d.parts.flag.rotation.z.toFixed(2):null};});},weather:function(){return {w:wx.w,s:wx.s,precip:precip?precip.N:0,drift:drift?drift.N:0,umb:people.map(function(p){return p.umb.visible;})};},setWeather:function(w,s){wx.w='';setWeather(w,s);},frames:function(){return drawn;},quality:function(t){if(t==null)return {tier:qTier,lock:qLock};qLock=t;setQuality(t);return qTier;},
+    speed:function(n){tScale=n||1;},flashTrees:flashTrees,
+    // 卡片上換到別棵的時候，3D 裡也標出現在是哪一棵
+    mark:function(kind,id){var t=null;if(kind==='plant'){var p=plots.filter(function(q){return q.on&&q.id===id;})[0];if(p)t={kind:'plot',p:p};}else if(trees[id])t={kind:'tree',id:id};if(t){setHL(t,true);hl.hold=1.6;}},
+    // 測試用：螢幕上這一點會點到什麼
+    labelScreen:function(i){var p=plots[i];if(!p)return null;var up=new T.Vector3().setFromMatrixColumn(cam.matrixWorld,1);return toScreen(p.lab.position.clone().addScaledVector(up,p.lab.scale.y*.68),R.domElement.getBoundingClientRect());},
+    plantScreen:function(i){var p=plots[i];if(!p||!p.id)return null;return toScreen(new T.Vector3(p.x,Math.max(.25,p.top*.55),p.z),R.domElement.getBoundingClientRect());},
+    targetAt:function(x,y){var t=targetAt(x,y);return t?{kind:t.kind,id:t.id||(t.p&&(t.p.id||t.p.k))||t.k||null,slot:t.p&&t.p.i!=null?t.p.i:null}:null;},hl:function(){return {on:!!(hl.ring&&hl.ring.visible),key:hl.key};},party:function(){return party?{n:party.objs.length,cake:!!party.cake,hats:people.map(function(p){return p.hat.visible;})}:null;},firework:function(){firework();},decors:function(){return Object.keys(decors).map(function(id){var d=decors[id];return {id:id,k:d.k,x:d.x,z:d.z,flag:d.parts.flag?+d.parts.flag.rotation.z.toFixed(2):null};});},weather:function(){return {w:wx.w,s:wx.s,precip:precip?precip.N:0,drift:drift?drift.N:0,umb:people.map(function(p){return p.umb.visible;})};},setWeather:function(w,s){wx.w='';setWeather(w,s);},frames:function(){return drawn;},quality:function(t){if(t==null)return {tier:qTier,lock:qLock};qLock=t;setQuality(t);return qTier;},
     stats:function(){var n=0,m=0;scene.traverse(function(o){if(o.isMesh||o.isSprite||o.isPoints){n++;if(o.visible)m++;}});return {calls:R.info.render.calls,tris:R.info.render.triangles,objects:n,programs:R.info.programs?R.info.programs.length:0,geos:R.info.memory.geometries};},
     walkers:function(){return people.map(function(p){return {k:p.k,land:p.land?p.land.id:'',st:p.state,a:p.ang,r:p.r,far:far(p.ang,p.r),via:(p.via||[]).length,y:p.g.position.y};}).concat(pets.map(function(p){return {k:p.k,st:p.wait>0?'wait':'walk',a:p.ang,r:p.r,far:far(p.ang,p.r),via:(p.via||[]).length,y:p.spr.position.y-(p.hop>0?Math.sin((1-p.hop/.5)*Math.PI)*.5:0)};}));},
     wet:function(x,z){var d=1e9;for(var j=0;j<flow.length-1;j++)d=Math.min(d,segDist(x,z,flow[j],flow[j+1]));var onB=bridges.some(function(B){return Math.abs((x-B.x)*B.uz-(z-B.z)*B.ux)<.5&&Math.abs((x-B.x)*B.ux+(z-B.z)*B.uz)<.8*B.s;});return {d:d,bridge:onB};},

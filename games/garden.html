@@ -87,6 +87,17 @@ body{min-height:100%;background:#F4F8EC;}
 .ftree svg{width:100%;height:70px;}
 .ftree b{font-weight:400;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
 .ftree span{color:var(--t3);}
+.ftabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 2px 10px;}
+.ftabs button{padding:3px 10px;border:2px solid var(--ink);border-radius:999px;background:var(--paper);font-size:12px;color:var(--t);}
+.ftabs button.on{background:#E7F2DF;box-shadow:0 2px 0 var(--ink);}
+.ftabs .fx{background:#FDF2D2;}
+.ftabs .fsort{margin-left:auto;background:transparent;border-style:dashed;}
+.ftabs .ffind{background:#FDEEEA;}
+.ftree.none svg{filter:grayscale(1);opacity:.3;}.ftree.none b{color:var(--t3);}
+.ftree:disabled{opacity:.75;}
+.sh-nav{display:flex;align-items:center;justify-content:space-between;margin:-6px -6px 2px;}
+.sh-nav button{width:40px;height:34px;border:2px solid var(--ink);border-radius:12px;background:var(--paper);font-size:20px;line-height:1;}
+.sh-nav span{font-size:12px;color:var(--t3);}
 .fempty{grid-column:1/-1;padding:16px 10px;border:2px dashed #C5AA83;border-radius:16px;font-size:13px;color:var(--t3);text-align:center;}
 .gnote{margin-top:16px;font-size:12px;color:var(--t3);text-align:center;line-height:1.7;}
 /* 卡片（澆水、種子、回憶） */
@@ -221,14 +232,14 @@ body{min-height:100%;background:#F4F8EC;}
   <section class="g3" id="g3"><div class="g3-load">🌱 花園長出來中…</div><div class="g3-drops" id="g3drops"></div><button class="g3-btn" id="g3full" aria-label="全螢幕">⤢</button><button class="g3-btn g3-reset" id="g3reset" aria-label="恢復視角">↺ 視角</button><button class="g3-btn g3-decor" id="g3decor" aria-label="裝飾花園">🎀</button><div class="g3-tip" id="g3tip">拖曳轉一圈・兩指拉近・點土種樹・點植物澆水</div></section>
   <div class="mvbar" id="mvbar" hidden></div>
   <section class="garden"><div class="fence"></div><div class="g-pets" id="gpets"></div><div class="plots" id="plots"></div></section>
-  <section class="forest"><h3>🌳 我們的森林 <small id="fcount"></small></h3><div class="ftrees" id="forest"></div></section>
+  <section class="forest"><h3>🌳 我們的森林 <small id="fcount"></small></h3><div class="ftabs" id="ftabs"></div><div class="ftrees" id="forest"></div></section>
   <p class="gnote" id="gnote"></p>
 </main>
 <div class="toasts" id="toasts"></div>
 <script src="sound.js?v=amb-20261105"></script>
 <script src="game.js?v=garden-20261102"></script>
 <script src="vs.js?v=plus-20261105"></script>
-<script src="garden3d.js?v=plus-20261105"></script>
+<script src="garden3d.js?v=pick-20261107"></script>
 <script>
 /* 記憶小森林：兩個人一起種。每天回答一題問答拿水滴，一起澆水，把種子種成樹；長大的樹放進森林，留著那段時間的問答和兩個人的話。
    資料：班表同一個 Firebase 的 banbiao/<同步代碼>_garden（沒有同步代碼就存在這支手機）
@@ -634,10 +645,40 @@ function paintPlots(){
   $('plots').querySelectorAll('[data-id]').forEach(function(b){b.onclick=function(){SND.sfx('tap');openPlant(b.getAttribute('data-id'));};});
   $('plots').querySelectorAll('[data-to]').forEach(function(b){b.onclick=function(){movePlotTo(+b.getAttribute('data-to'));};});
 }
+/* ── 森林分類：全部／樹／花／誰種的／📖 圖鑑（十八種各種了幾棵），可以排最新或最早；
+   點圖鑑裡的一種就只看那一種，3D 花園裡那幾棵也會亮起來 ── */
+var fTab='all',fSort='new',fSp='';
+try{var fs0=JSON.parse(localStorage.getItem('gardenFTab')||'{}');fTab=fs0.t||'all';fSort=fs0.s||'new';}catch(e){}
+function forestList(){
+  var f=forest();
+  if(fSp)f=f.filter(function(p){return p.sp===fSp;});
+  else if(fTab==='tree'||fTab==='flower')f=f.filter(function(p){return SP[p.sp].kind===fTab;});
+  else if(fTab==='syue'||fTab==='ling')f=f.filter(function(p){return p.by===fTab;});
+  return fSort==='old'?f.slice().reverse():f;
+}
+function setForestTab(t,sp){fTab=t;fSp=sp||'';try{localStorage.setItem('gardenFTab',JSON.stringify({t:fTab,s:fSort}));}catch(e){}SND.sfx('tap');paintForest();}
 function paintForest(){
-  var f=forest();$('fcount').textContent=f.length?f.length+' 棵':'';
-  $('forest').innerHTML=f.length?f.map(function(p){return '<button class="ftree" data-m="'+p.id+'">'+art(p.sp,4)+'<b>'+esc(p.name||SP[p.sp].name)+'</b><span>'+md(dayOf(p.done))+'</span></button>';}).join(''):'<div class="fempty">還沒有長大的樹。<br>種下第一顆種子，兩個人一起澆水吧！</div>';
-  $('forest').querySelectorAll('[data-m]').forEach(function(b){b.onclick=function(){SND.sfx('tap');openMemory(b.getAttribute('data-m'));};});
+  var all=forest(),n=all.length,cnt=function(fn){return all.filter(fn).length;},seen={};all.forEach(function(p){seen[p.sp]=(seen[p.sp]||0)+1;});
+  var nSp=Object.keys(seen).length,nAll=Object.keys(SP).length;
+  $('fcount').textContent=n?n+' 棵':'';
+  var tabs=[['all','全部 '+n],['tree','🌳 樹 '+cnt(function(p){return SP[p.sp].kind==='tree';})],['flower','🌸 花 '+cnt(function(p){return SP[p.sp].kind==='flower';})],['syue','學種的 '+cnt(function(p){return p.by==='syue';})],['ling','綾種的 '+cnt(function(p){return p.by==='ling';})],['book','📖 圖鑑 '+nSp+'/'+nAll]];
+  var th=n?tabs.map(function(t){return '<button data-ft="'+t[0]+'"'+(fTab===t[0]&&!fSp?' class="on"':'')+'>'+t[1]+'</button>';}).join(''):'';
+  if(fSp)th='<button class="fx" data-ft="book">📖 '+esc(SP[fSp].name)+' ×'+(seen[fSp]||0)+'　✕</button>';
+  var list=forestList(),book=fTab==='book'&&!fSp;
+  if(n&&!book)th+=(g3&&(fSp||fTab!=='all')&&list.length?'<button class="ffind" data-find>✨ 在花園裡標出來</button>':'')+'<button class="fsort" data-fs>'+(fSort==='new'?'最新的在前 ↓':'最早的在前 ↑')+'</button>';
+  $('ftabs').innerHTML=th;
+  $('ftabs').querySelectorAll('[data-ft]').forEach(function(b){b.onclick=function(){setForestTab(b.getAttribute('data-ft'));};});
+  var fsb=$('ftabs').querySelector('[data-fs]');if(fsb)fsb.onclick=function(){fSort=fSort==='new'?'old':'new';setForestTab(fTab,fSp);};
+  var ffb=$('ftabs').querySelector('[data-find]');if(ffb)ffb.onclick=function(){SND.sfx('tap');Garden3D.flashTrees(forestList().map(function(p){return p.id;}));$('g3').scrollIntoView({behavior:'smooth',block:'center'});};
+  if(book){
+    var L=level();
+    $('forest').innerHTML=Object.keys(SP).map(function(k){var c=seen[k]||0,lock=L<SP[k].lv;return '<button class="ftree'+(c?'':' none')+'" data-sp="'+k+'"'+(c?'':' disabled')+'>'+art(k,c?4:4)+'<b>'+SP[k].name+'</b><span>'+(c?'×'+c:lock?'Lv.'+SP[k].lv+' 解鎖':'還沒種過')+'</span></button>';}).join('');
+    $('forest').querySelectorAll('[data-sp]').forEach(function(b){b.onclick=function(){var k=b.getAttribute('data-sp');setForestTab('book',k);if(g3)Garden3D.flashTrees(all.filter(function(p){return p.sp===k;}).map(function(p){return p.id;}));};});
+  }else{
+  var f=list;
+  $('forest').innerHTML=f.length?f.map(function(p){return '<button class="ftree" data-m="'+p.id+'">'+art(p.sp,4)+'<b>'+esc(p.name||SP[p.sp].name)+'</b><span>'+md(dayOf(p.done))+'</span></button>';}).join(''):n?'<div class="fempty">這一類還沒有長大的</div>':'<div class="fempty">還沒有長大的樹。<br>種下第一顆種子，兩個人一起澆水吧！</div>';
+  $('forest').querySelectorAll('[data-m]').forEach(function(b){b.onclick=function(){SND.sfx('tap');openMemory(b.getAttribute('data-m'),forestList().map(function(p){return p.id;}));};});
+  }
   var L=level(),nt=L<TOPLV?unlockText(L+1):'';
   $('gnote').innerHTML='每天 '+BASE+' 滴水，回答今日問題 +'+ANSWER+'；同一天兩個人都澆同一棵，那天多長 '+TOGETHER+' 點<br>小鳥來的時候點牠，會送一滴水（每天最多 '+BIRD+' 滴）；有害蟲記得抓走<br>長大的樹種進森林，兩個人各拿 1 包飼料（算在每天 '+G.CAP+' 包裡）<br>植物和森林的樹都可以「移植」，把花園排成你們喜歡的樣子<br>遊樂區：白天溜滑梯、盪鞦韆，傍晚長椅看夕陽，晚上營火烤棉花糖（點它們叫學和綾過去）<br>🎀 裝飾、📮 信箱、🎉 紀念日：3D 花園右上角、上面那幾顆按鈕'+(nt?'<br>升到 Lv.'+(L+1)+'：'+nt:'');
 }
@@ -891,6 +932,10 @@ function card(html,cls){
   return ov;
 }
 function closeSheet(){if(sheet&&sheet.ov)sheet.ov.remove();sheet=null;clearTimeout(wT);flush();if(lvPending)setTimeout(showLevelUp,350);else if(started&&special(today()).length)setTimeout(partyCard,450);}
+// 卡片最上面的 ‹ 3／8 ›：換到上一棵／下一棵（3D 裡也會標出來是哪一棵）
+function navHtml(list,id){var i=list.indexOf(id);return list.length>1&&i>=0?'<div class="sh-nav"><button data-prev aria-label="上一棵">‹</button><span>'+(i+1)+' / '+list.length+'</span><button data-next aria-label="下一棵">›</button></div>':'';}
+function wireNav(box,list,id,go){var i=list.indexOf(id),pv=box.querySelector('[data-prev]'),nx=box.querySelector('[data-next]');if(pv)pv.onclick=function(){SND.sfx('tap');go(list[(i-1+list.length)%list.length]);};if(nx)nx.onclick=function(){SND.sfx('tap');go(list[(i+1)%list.length]);};}
+function plantNav(){var o=[];garden().forEach(function(p){if(p)o.push(p.id);});return o;}
 function openPlant(id){
   var naming=false;
   card('','plant');
@@ -898,7 +943,8 @@ function openPlant(id){
     var p=D.plants[id];if(!p||p.done){closeSheet();return;}
     var g=grow(p),a=+(((p.w||{}).syue||{})[today()])||0,b=+(((p.w||{}).ling||{})[today()])||0,box=sheet.ov.querySelector('.g-card'),pe=pestOf(p);
     var kept=keepVals(box);
-    box.innerHTML='<div class="sh-art">'+art(p.sp,g.stage)+'</div><h2>'+esc(p.name||SP[p.sp].name)+'</h2><div class="sh-sp">'+SP[p.sp].name+'・'+stageName(p,g)+'・'+md(dayOf(p.at))+' '+NAMES[p.by]+'種的</div>'+
+    var nav=plantNav();
+    box.innerHTML=navHtml(nav,id)+'<div class="sh-art">'+art(p.sp,g.stage)+'</div><h2>'+esc(p.name||SP[p.sp].name)+'</h2><div class="sh-sp">'+SP[p.sp].name+'・'+stageName(p,g)+'・'+md(dayOf(p.at))+' '+NAMES[p.by]+'種的</div>'+
       '<div class="bar big"><i style="width:'+Math.round(g.r*100)+'%"></i></div><div class="sh-num">'+Math.min(g.pts,g.need)+' / '+g.need+'</div>'+
       '<div class="sh-today">今天 學 💧'+a+'・綾 💧'+b+(a&&b?' ✨ 兩個人都澆了 +'+TOGETHER:'')+(wet(today())&&today()>=WX_START?'・'+(weatherOf(today())==='snow'?'❄️':'🌧️')+' +'+RAIN:'')+'</div>'+(g.rain?'<div class="g-small" style="margin:2px 0 0">淋雨自己長了 '+g.rain*RAIN+' 點</div>':'')+
       (g.stage<4&&thirsty(p)?'<div class="sh-warn">好幾天沒人澆水，口渴了…</div>':'')+
@@ -908,6 +954,7 @@ function openPlant(id){
       (naming?'':'<button class="g-btn ghost" data-name>✏️ 取名字</button>')+'<button class="g-btn ghost" data-move>🪴 移植</button><button class="g-btn ghost" data-close>關閉</button></div>'+
       '<p class="g-small">同一天兩個人都有澆，這天多長 '+TOGETHER+' 點</p>';
     restoreVals(box,kept);
+    wireNav(box,nav,id,function(nid){id=nid;naming=false;if(g3)Garden3D.mark('plant',nid);sheet.paint();});
     var w=box.querySelector('[data-water]');if(w)w.onclick=function(){water(id);};
     var ct=box.querySelector('[data-catch]');if(ct)ct.onclick=function(){catchPest(id);};
     var hv=box.querySelector('[data-harvest]');if(hv)hv.onclick=function(){harvest(id);};
@@ -925,8 +972,8 @@ function openSeeds(slot){
   ov.querySelector('[data-close]').onclick=closeSheet;
 }
 // 回憶：這棵樹的日子、兩個人澆了多少、留的話、那段時間的問答
-function openMemory(id){
-  var editing=false;
+function openMemory(id,list){
+  var editing=false;list=list||forest().map(function(p){return p.id;});
   card('','memcard');
   sheet.paint=function(){
     var p=D.plants[id];if(!p){closeSheet();return;}
@@ -936,12 +983,13 @@ function openMemory(id){
       if(u===me&&editing)return '<div class="mem-note '+u+'"><b>'+NAMES[u]+'</b><textarea id="ntIn" maxlength="60">'+esc(t||'')+'</textarea><button data-nsave>好</button></div>';
       return '<div class="mem-note '+u+'"><b>'+NAMES[u]+'</b>'+(t?esc(t):'')+(u===me?' <button data-nedit>'+(t?'改一下':'寫一句話給這棵樹')+'</button>':(t?'':'<span style="color:var(--t3)">還沒寫</span>'))+'</div>';}).join('');
     var kept=keepVals(box);
-    box.innerHTML='<div class="sh-art">'+art(p.sp,4)+'</div><h2>'+esc(p.name||SP[p.sp].name)+'</h2>'+(p.name?'<div class="sh-sp">'+SP[p.sp].name+'</div>':'')+
+    box.innerHTML=navHtml(list,id)+'<div class="sh-art">'+art(p.sp,4)+'</div><h2>'+esc(p.name||SP[p.sp].name)+'</h2>'+(p.name?'<div class="sh-sp">'+SP[p.sp].name+'</div>':'')+
       '<div class="mem-row">🌱 '+md(d0)+' '+NAMES[p.by]+'種下 → 🌳 '+md(d1)+' 長大（'+days+' 天）</div>'+
       '<div class="mem-row">學 💧'+g.sn+'・綾 💧'+g.ln+'・一起澆水 '+g.both+' 天</div>'+
       '<div class="mem-notes">'+notes+'</div>'+(qs?'<div class="mem-qa"><h3>💬 這段時間的問答</h3>'+qs+'</div>':'')+
       '<div class="g-btns">'+(g3&&p.done?'<button class="g-btn ghost" data-move>🌳 移植</button>':'')+'<button class="g-btn ghost" data-close>關閉</button></div>';
     restoreVals(box,kept);
+    wireNav(box,list,id,function(nid){id=nid;editing=false;if(g3)Garden3D.mark('tree',nid);sheet.paint();});
     var mvb=box.querySelector('[data-move]');if(mvb)mvb.onclick=function(){startMove('tree',id);};
     var ne=box.querySelector('[data-nedit]');if(ne)ne.onclick=function(){editing=true;sheet.paint();var t=$('ntIn');if(t)t.focus();};
     var ns=box.querySelector('[data-nsave]');if(ns)ns.onclick=function(){var v=($('ntIn').value||'').trim().slice(0,60);editing=false;write({plants:obj(id,{note:obj(me,v)})});SND.sfx('tap');sheet.paint();};
