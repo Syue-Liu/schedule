@@ -120,6 +120,8 @@ body{min-height:100%;background:#F4F8EC;}
 .seeds button svg{width:64px;height:70px;}
 .seeds button small{font-size:10px;color:var(--t3);}
 .seeds button[disabled]{opacity:.45;border-style:dashed;}
+.seeds.newsp{max-height:46vh;overflow:auto;}.seeds.newsp div{display:flex;flex-direction:column;align-items:center;padding:6px 2px;border:var(--lw2) solid var(--ink);border-radius:14px;background:var(--paper);font-size:13px;}
+.seeds.newsp div svg{width:64px;height:70px;}.seeds.newsp div small{font-size:10px;color:var(--t3);}
 .mem,.mem-notes,.mem-qa{text-align:left;}
 .mem-row{margin-top:6px;font-size:13px;color:var(--t2);text-align:center;}
 .mem-notes{margin-top:10px;display:flex;flex-direction:column;gap:6px;}
@@ -261,7 +263,7 @@ body{min-height:100%;background:#F4F8EC;}
 <script src="sound.js?v=amb-20261105"></script>
 <script src="game.js?v=garden-20261102"></script>
 <script src="vs.js?v=mail-20261108"></script>
-<script src="garden3d.js?v=hol-20261108"></script>
+<script src="garden3d.js?v=plants-20261108"></script>
 <script>
 /* 記憶小森林：兩個人一起種。每天回答一題問答拿水滴，一起澆水，把種子種成樹；長大的樹放進森林，留著那段時間的問答和兩個人的話。
    資料：班表同一個 Firebase 的 banbiao/<同步代碼>_garden（沒有同步代碼就存在這支手機）
@@ -342,28 +344,40 @@ function unread(){var n=0;Object.keys(D.mail||{}).forEach(function(id){var m=D.m
 var LANDS=[{id:'orchard',name:'果樹坡',lv:4},{id:'west',name:'西邊花田',lv:6},{id:'hill',name:'山腳草地',lv:8},{id:'lake',name:'湖畔小園',lv:9}];
 // 每塊土幾級開：中間十二塊（1、3、5、7 級），接著每塊新土地三塊（第 12 塊以後）
 var SLOT_LV=[1,1,1,1,1,1,3,3,5,5,7,7];LANDS.forEach(function(l){SLOT_LV.push(l.lv,l.lv,l.lv);});
-var MAXPLOTS=SLOT_LV.length,TOPLV=9;
+var MAXPLOTS=SLOT_LV.length,TOPLV=10;
 var NAMES=G.NAMES,me=G.who(),op=me==='syue'?'ling':me==='ling'?'syue':'';
 // 種類：花長得快、樹長得慢；花園升到 lv 級才能種
 var SP={
   sunflower:{name:'向日葵',kind:'flower',need:14,c:'#F6D27A',lv:1},
   tulip:{name:'鬱金香',kind:'flower',need:12,c:'#F2A497',lv:1},
+  strawberry:{name:'草莓',kind:'flower',need:12,c:'#E8505B',lv:1},
   cherry:{name:'櫻花樹',kind:'tree',shape:'round',need:40,c:'#F8C8D4',dot:'#E88FA6',lv:1},
   orange:{name:'橘子樹',kind:'tree',shape:'round',need:40,c:'#9CCB85',dot:'#F2A15B',lv:1},
+  plum:{name:'梅花樹',kind:'tree',shape:'branch',need:44,c:'#FBE3EA',dot:'#E5708A',lv:1},
   daisy:{name:'雛菊',kind:'flower',need:10,c:'#FFFFFF',lv:2},
   lavender:{name:'薰衣草',kind:'flower',need:14,c:'#B9A6DE',lv:2},
+  lilyvalley:{name:'鈴蘭',kind:'flower',need:12,c:'#FFFFFF',lv:2},
   maple:{name:'楓樹',kind:'tree',shape:'round',need:56,c:'#F2A497',dot:'#D9654F',lv:3},
   rose:{name:'玫瑰',kind:'flower',need:16,c:'#E2675A',lv:3},
+  persimmon:{name:'柿子樹',kind:'tree',shape:'round',need:52,c:'#E0B45C',dot:'#F07A2A',lv:3},
   succulent:{name:'多肉',kind:'flower',need:10,c:'#A8D3C4',lv:4},
   lemon:{name:'檸檬樹',kind:'tree',shape:'round',need:48,c:'#9CCB85',dot:'#F6E06E',lv:4},
+  bellflower:{name:'桔梗',kind:'flower',need:14,c:'#8F8BE8',lv:4},
   ginkgo:{name:'銀杏',kind:'tree',shape:'fan',need:56,c:'#F6D27A',dot:'#E0B347',lv:5},
   hydrangea:{name:'繡球花',kind:'flower',need:18,c:'#A8C8F0',lv:5},
+  jacaranda:{name:'藍花楹',kind:'tree',shape:'round',need:58,c:'#B7A0E6',dot:'#8E6FD6',lv:5},
   apple:{name:'蘋果樹',kind:'tree',shape:'round',need:60,c:'#9CCB85',dot:'#E2675A',lv:6},
   cosmos:{name:'波斯菊',kind:'flower',need:12,c:'#F8B4D0',lv:6},
+  lily:{name:'百合',kind:'flower',need:16,c:'#FFF6F2',lv:6},
   bamboo:{name:'竹子',kind:'tree',shape:'bamboo',need:50,c:'#8CC47A',lv:7},
   peach:{name:'桃樹',kind:'tree',shape:'round',need:60,c:'#F8D1CB',dot:'#F7A582',lv:7},
+  willow:{name:'柳樹',kind:'tree',shape:'willow',need:56,c:'#A8D38A',lv:7},
   pine:{name:'松樹',kind:'tree',shape:'pine',need:60,c:'#6FA37E',dot:'#FFFFFF',lv:8},
-  palm:{name:'椰子樹',kind:'tree',shape:'palm',need:64,c:'#7FB36E',dot:'#8C6A55',lv:8}
+  palm:{name:'椰子樹',kind:'tree',shape:'palm',need:64,c:'#7FB36E',dot:'#8C6A55',lv:8},
+  dandelion:{name:'蒲公英',kind:'flower',need:10,c:'#F6D24A',lv:8},
+  goldshower:{name:'阿勃勒',kind:'tree',shape:'drape',need:62,c:'#9CCB85',dot:'#F6CE3A',lv:9},
+  orchid:{name:'蝴蝶蘭',kind:'flower',need:20,c:'#F7D3E6',lv:9},
+  cactus:{name:'仙人掌',kind:'tree',shape:'cactus',need:50,c:'#6FAF6A',dot:'#F49AC1',lv:10}
 };
 // 害蟲：長大中的植物每天有機會跑來一隻，抓走之前不能澆水
 var PESTS={bug:{name:'毛毛蟲',e:'🐛'},snail:{name:'蝸牛',e:'🐌'},beetle:{name:'甲蟲',e:'🪲'}},PK=['bug','snail','beetle'];
@@ -564,6 +578,10 @@ function head(sp,x,y,s){
   else if(sp==='daisy'||sp==='cosmos'){var n=sp==='daisy'?10:8,rx=sp==='daisy'?6:9,ry=sp==='daisy'?15:16,cr=sp==='daisy'?10:8;for(var j=0;j<n;j++)o+='<ellipse cx="0" cy="-'+(cr+ry-3)+'" rx="'+rx+'" ry="'+ry+'" transform="translate('+x+' '+y+') rotate('+j*360/n+') scale('+s+')" fill="'+S.c+'" stroke="'+INK+'" stroke-width="3"/>';o+='<circle cx="'+x+'" cy="'+y+'" r="'+cr*s+'" fill="#F6D27A" stroke="'+INK+'" stroke-width="3.5"/>';}
   else if(sp==='rose'){o='<g transform="translate('+x+' '+y+') scale('+s+')"><path d="M-15 6Q-26 -6 -15 -19Q0 -27 15 -19Q26 -6 15 6Q0 15 -15 6Z" fill="'+S.c+'" stroke="'+INK+'" stroke-width="4" stroke-linejoin="round"/><path d="M-6 -6Q0 -17 8 -8Q9 1 0 3Q-7 1 -4 -6" fill="none" stroke="'+INK+'" stroke-width="3" stroke-linecap="round"/></g>';}
   else if(sp==='hydrangea'){o='<g transform="translate('+x+' '+y+') scale('+s+')">';[[0,-24],[-16,-16],[16,-16],[-14,-2],[14,-2],[0,-8],[-6,10],[8,10]].forEach(function(c,j){o+='<circle cx="'+c[0]+'" cy="'+c[1]+'" r="11" fill="'+(j%3?S.c:'#C9B8F0')+'" stroke="'+INK+'" stroke-width="3"/>';});o+='</g>';}
+  else if(sp==='bellflower'){var d='';for(var i2=0;i2<10;i2++){var r2=i2%2?11:25,a2=-Math.PI/2+i2*Math.PI/5;d+=(i2?'L':'M')+(x+Math.cos(a2)*r2*s).toFixed(1)+' '+(y+Math.sin(a2)*r2*s).toFixed(1);}o='<path d="'+d+'Z" fill="'+S.c+'" stroke="'+INK+'" stroke-width="3.5" stroke-linejoin="round"/><path d="'+d.replace(/[\d.]+ [\d.]+/g,function(m){var q=m.split(' ');return ((+q[0]-x)*.45+x).toFixed(1)+' '+((+q[1]-y)*.45+y).toFixed(1);})+'Z" fill="#B9B6F4"/><circle cx="'+x+'" cy="'+y+'" r="'+4*s+'" fill="#FFFCF6" stroke="'+INK+'" stroke-width="2"/>';}
+  else if(sp==='lily'){o='<g transform="translate('+x+' '+y+') scale('+s+')">';for(var i3=0;i3<6;i3++)o+='<g transform="rotate('+(i3*60)+')"><path d="M0 0Q-10 -15 0 -32Q10 -15 0 0Z" fill="'+S.c+'" stroke="'+INK+'" stroke-width="3" stroke-linejoin="round"/><path d="M0 -5V-22" stroke="#F2A0B5" stroke-width="3" stroke-linecap="round"/></g>';[-6,0,6].forEach(function(dx){o+='<path d="M0 0L'+dx+' -13" stroke="#8DBB5E" stroke-width="1.8"/><circle cx="'+dx+'" cy="-14" r="2.8" fill="#E8913A"/>';});o+='</g>';}
+  else if(sp==='dandelion'){if(s<1){for(var i4=0;i4<16;i4++)o+='<ellipse cx="0" cy="-13" rx="3.5" ry="11" transform="translate('+x+' '+y+') rotate('+i4*22.5+') scale('+s+')" fill="'+S.c+'" stroke="'+INK+'" stroke-width="2"/>';o+='<circle cx="'+x+'" cy="'+y+'" r="'+7*s+'" fill="#F2B83A" stroke="'+INK+'" stroke-width="2.5"/>';}
+    else{o='<circle cx="'+x+'" cy="'+y+'" r="27" fill="#FFFFFF" stroke="'+INK+'" stroke-width="3"/>';for(var j4=0;j4<16;j4++){var a4=j4/16*6.283;o+='<path d="M'+x+' '+y+'L'+(x+Math.cos(a4)*24).toFixed(1)+' '+(y+Math.sin(a4)*24).toFixed(1)+'" stroke="#D6CFC4" stroke-width="1.6"/>';}o+='<circle cx="'+x+'" cy="'+y+'" r="4" fill="#B9A28A"/>';[[36,-32],[50,-52]].forEach(function(q){o+='<path d="M'+(x+q[0])+' '+(y+q[1]+3)+'v9" stroke="#C9C2B8" stroke-width="1.6"/><circle cx="'+(x+q[0])+'" cy="'+(y+q[1])+'" r="4.5" fill="#FFFFFF" stroke="#C9C2B8" stroke-width="1.6"/>';});}}
   else if(sp==='tulip'){o='<g transform="translate('+x+' '+y+') scale('+s+')"><path d="M-20 -4Q-25 -34 -12 -42L0 -27L12 -42Q25 -34 20 -4Q0 12 -20 -4Z" fill="'+S.c+'" stroke="'+INK+'" stroke-width="4" stroke-linejoin="round"/><path d="M-9 -28Q0 -48 9 -28" fill="none" stroke="'+INK+'" stroke-width="3.5" stroke-linecap="round"/></g>';}
   return o;
 }
@@ -580,14 +598,38 @@ function dots(sp,x,y,s){
   var S=SP[sp],o='';
   if(S.shape==='pine'){[[0,-62],[0,-36],[0,-8]].forEach(function(t,i){var yy=y+t[1]*s;o+='<path d="M'+(x-10*s)+' '+(yy+10*s)+'Q'+x+' '+(yy-4*s)+' '+(x+10*s)+' '+(yy+10*s)+'Q'+x+' '+(yy+4*s)+' '+(x-10*s)+' '+(yy+10*s)+'Z" fill="#FFFFFF" stroke="'+INK+'" stroke-width="2.5"/>';});o+='<path d="M'+x+' '+(y-86*s)+'l5 10 11 2-8 7 2 11-10-6-10 6 2-11-8-7 11-2z" fill="#F6D27A" stroke="'+INK+'" stroke-width="2.5" stroke-linejoin="round"/>';return o;}
   var P=S.shape==='fan'?[[-30,-14],[2,-40],[30,-16],[-12,8],[18,4]]:[[-26,-22],[10,-40],[26,-6],[-6,4],[44,14],[-44,12],[0,-20]];
-  var r=sp==='cherry'||sp==='maple'||sp==='ginkgo'?6:9;
+  if(S.shape==='drape'){[-40,-24,-8,8,24,40].forEach(function(dx,i){var x0=x+dx*s,y0=y+(24-Math.abs(dx)*.3)*s,n=4+(i%2);o+='<path d="M'+x0+' '+y0+'v'+(n*9)+'" stroke="#8C9A55" stroke-width="2"/>';for(var j=0;j<n;j++)o+='<circle cx="'+(x0+(j%2?2:-2))+'" cy="'+(y0+4+j*9)+'" r="'+(5.5-j*.5)+'" fill="'+S.dot+'" stroke="'+INK+'" stroke-width="2"/>';});return o;}
+  var r=sp==='cherry'||sp==='maple'||sp==='ginkgo'||sp==='jacaranda'?6:9;
   P.forEach(function(p){o+='<circle cx="'+(x+p[0]*s)+'" cy="'+(y+p[1]*s)+'" r="'+r*s+'" fill="'+S.dot+'" stroke="'+INK+'" stroke-width="'+(r>6?3:2)+'"/>';});
   if(sp==='cherry')o+='<ellipse cx="'+(x-62*s)+'" cy="'+(y+60*s)+'" rx="5" ry="3" fill="'+S.dot+'" transform="rotate(-25 '+(x-62*s)+' '+(y+60*s)+')"/><ellipse cx="'+(x+66*s)+'" cy="'+(y+74*s)+'" rx="5" ry="3" fill="'+S.dot+'"/>';
   return o;
 }
-// 竹子（一節一節）、椰子樹（彎彎的樹幹＋大葉子）
+// 竹子（一節一節）、椰子樹（彎彎的樹幹＋大葉子）、梅花樹（枝幹開花）、柳樹（垂下來的枝條）、仙人掌
 function odd(sp,stage){
   var S=SP[sp],o='';
+  if(S.shape==='branch'){
+    var k=[0,0,.55,.8,1][stage],tx=100,ty=204-70*k;
+    o+='<path d="M93 204Q90 '+(204-36*k)+' '+(tx-3)+' '+ty+'L'+(tx+5)+' '+ty+'Q100 '+(204-36*k)+' 107 204Z" fill="#6E5449" stroke="'+INK+'" stroke-width="4" stroke-linejoin="round"/>';
+    var B=[[0,-66,-40],[0,-58,36],[-8,-34,-56],[6,-30,54],[2,-80,6]],tips=[];
+    B.slice(0,stage===2?3:5).forEach(function(b){var x1=tx+b[0]*k,y1=ty+12*k,x2=tx+b[2]*k,y2=ty+b[1]*k;o+='<path d="M'+x1+' '+y1+'Q'+((x1+x2)/2+8*k)+' '+((y1+y2)/2)+' '+x2+' '+y2+'" fill="none" stroke="#6E5449" stroke-width="'+(6*k+2)+'" stroke-linecap="round"/>';tips.push([x2,y2],[(x1+x2)/2+4*k,(y1+y2)/2]);});
+    if(stage>=3)tips.forEach(function(t,i){var big=stage===4,r=big?8:4;o+='<g transform="translate('+t[0].toFixed(1)+' '+t[1].toFixed(1)+')">'+(big?[0,1,2,3,4].map(function(j){return '<circle cx="'+(Math.cos(j*1.2566+i)*6).toFixed(1)+'" cy="'+(Math.sin(j*1.2566+i)*6).toFixed(1)+'" r="5" fill="'+(i%3?S.c:'#F7B8C8')+'" stroke="'+INK+'" stroke-width="2"/>';}).join('')+'<circle r="3" fill="'+S.dot+'"/>':'<circle r="'+r+'" fill="'+S.dot+'" stroke="'+INK+'" stroke-width="2"/>')+'</g>';});
+    return o;
+  }
+  if(S.shape==='willow'){
+    var k6=[0,0,.55,.82,1][stage],cy=204-120*k6,col6=stage===4?S.c:LEAF;
+    o+='<path d="M94 204Q92 '+(204-50*k6)+' 97 '+(cy+14)+'H104Q109 '+(204-50*k6)+' 107 204Z" fill="'+TRUNK+'" stroke="'+INK+'" stroke-width="4" stroke-linejoin="round"/>';
+    o+='<ellipse cx="100" cy="'+cy+'" rx="'+52*k6+'" ry="'+26*k6+'" fill="'+col6+'" stroke="'+INK+'" stroke-width="4"/>';
+    for(var i6=0;i6<9;i6++){var sx=100+(i6-4)*12*k6,len=(46+((i6*7)%3)*12)*k6;o+='<path d="M'+sx+' '+(cy+4*k6)+'Q'+(sx+(i6-4)*3*k6)+' '+(cy+len*.6)+' '+(sx+(i6-4)*5*k6)+' '+(cy+len)+'" fill="none" stroke="'+INK+'" stroke-width="6" stroke-linecap="round"/><path d="M'+sx+' '+(cy+4*k6)+'Q'+(sx+(i6-4)*3*k6)+' '+(cy+len*.6)+' '+(sx+(i6-4)*5*k6)+' '+(cy+len)+'" fill="none" stroke="'+col6+'" stroke-width="3" stroke-linecap="round"/>';}
+    return o;
+  }
+  if(S.shape==='cactus'){
+    var k7=[0,0,.5,.8,1][stage],h7=100*k7,w7=20*k7+6;
+    o+='<rect x="'+(100-w7)+'" y="'+(204-h7)+'" width="'+w7*2+'" height="'+h7+'" rx="'+w7+'" fill="'+S.c+'" stroke="'+INK+'" stroke-width="4"/><path d="M100 '+(210-h7)+'V198" stroke="'+INK+'" stroke-width="2" opacity=".3"/>';
+    if(stage>=3){[[-1,.55,.32],[1,.4,.4]].forEach(function(a){var ax=100+a[0]*(w7+12*k7),ay=204-h7*a[1];o+='<path d="M'+(100+a[0]*w7)+' '+(ay+4)+'H'+ax+'V'+(ay-h7*a[2])+'" fill="none" stroke="'+INK+'" stroke-width="'+(w7*.9+4)+'" stroke-linecap="round" stroke-linejoin="round"/><path d="M'+(100+a[0]*w7)+' '+(ay+4)+'H'+ax+'V'+(ay-h7*a[2])+'" fill="none" stroke="'+S.c+'" stroke-width="'+(w7*.9-3)+'" stroke-linecap="round" stroke-linejoin="round"/>';});}
+    for(var i7=0;i7<6;i7++){var px=100+(i7%2?-1:1)*w7*.55,py=204-h7*(.2+i7*.13);o+='<path d="M'+(px-3)+' '+py+'l6 -3M'+(px-3)+' '+(py-3)+'l6 3" stroke="#FFFCF6" stroke-width="1.8"/>';}
+    if(stage===4)for(var f7=0;f7<6;f7++)o+='<ellipse cx="'+(100+Math.cos(f7*1.047)*7).toFixed(1)+'" cy="'+(204-h7-4+Math.sin(f7*1.047)*5).toFixed(1)+'" rx="6" ry="5" fill="'+S.dot+'" stroke="'+INK+'" stroke-width="2"/>';
+    return o;
+  }
   if(S.shape==='bamboo'){
     var n=stage-1,H=[0,0,124,84,56][stage];
     for(var i=0;i<n;i++){var bx=100+(i-(n-1)/2)*28,bt=H+(i%2)*16;o+='<path d="M'+(bx-7)+' 204V'+bt+'h14V204z" fill="'+S.c+'" stroke="'+INK+'" stroke-width="4" stroke-linejoin="round"/>';for(var y=192;y>bt+12;y-=26)o+='<path d="M'+(bx-7)+' '+y+'h14" stroke="'+INK+'" stroke-width="3"/>';o+=leaf(bx,bt+10,.8,i%2?1:-1)+leaf(bx,bt+34,.7,i%2?-1:1);}
@@ -606,14 +648,27 @@ function art(sp,stage){
   else if(S.kind==='flower'){
     if(sp==='lavender'){var h=stage===2?120:stage===3?96:80,col=stage===2?LEAF:S.c;[-20,0,20].forEach(function(dx,i){var tx=100+dx,ty=h+(i===1?-8:0);o+=stem(100+dx*.3,204,tx,ty,5);for(var k=0;k<5;k++)o+='<ellipse cx="'+(tx+(k%2?4:-4))+'" cy="'+(ty+k*9)+'" rx="6" ry="5" fill="'+col+'" stroke="'+INK+'" stroke-width="2.5"/>';});o+=leaf(100,190,1,1)+leaf(100,190,1,-1);}
     else if(sp==='succulent'){var k2=[.6,.8,1][stage-2];[[-34,-8,-50],[34,-8,50],[-20,-20,-22],[20,-20,22],[0,-26,0]].forEach(function(l){o+='<ellipse cx="'+(100+l[0]*k2)+'" cy="'+(196+l[1]*k2)+'" rx="'+12*k2+'" ry="'+26*k2+'" transform="rotate('+l[2]+' '+(100+l[0]*k2)+' '+(196+l[1]*k2)+')" fill="'+S.c+'" stroke="'+INK+'" stroke-width="4"/>';});if(stage===4)o+=stem(100,170,100,138,4)+'<circle cx="100" cy="134" r="9" fill="#F8C8D4" stroke="'+INK+'" stroke-width="3"/>';}
+    else if(sp==='strawberry'){var k3=[0,0,.75,.9,1][stage];
+      [[-34,-14,-40],[34,-14,40],[0,-30,0],[-18,-34,-18],[18,-34,18]].forEach(function(l){var cx=100+l[0]*k3,cy=200+l[1]*k3;o+=stem(100,206,cx,cy+6,3.5)+'<ellipse cx="'+cx+'" cy="'+cy+'" rx="'+15*k3+'" ry="'+11*k3+'" transform="rotate('+l[2]+' '+cx+' '+cy+')" fill="'+LEAF+'" stroke="'+INK+'" stroke-width="3.5"/><path d="M'+cx+' '+(cy+8*k3)+'L'+cx+' '+(cy-6*k3)+'" stroke="'+INK+'" stroke-width="2" opacity=".35" transform="rotate('+l[2]+' '+cx+' '+cy+')"/>';});
+      if(stage===3)[[-22,-62],[24,-66]].forEach(function(f){var fx=100+f[0],fy=200+f[1];o+=stem(100,196,fx,fy,2.5);for(var pp=0;pp<5;pp++)o+='<circle cx="'+(fx+Math.cos(pp*1.2566)*6).toFixed(1)+'" cy="'+(fy+Math.sin(pp*1.2566)*6).toFixed(1)+'" r="5" fill="#FFFFFF" stroke="'+INK+'" stroke-width="2"/>';o+='<circle cx="'+fx+'" cy="'+fy+'" r="3.5" fill="#F6D27A"/>';});
+      if(stage===4)[[-36,-6],[34,-8],[6,-18],[-14,-2]].forEach(function(b){var bx=100+b[0],by=200+b[1];o+='<path d="M'+(bx-11)+' '+(by-9)+'Q'+bx+' '+(by-14)+' '+(bx+11)+' '+(by-9)+'Q'+(bx+11)+' '+(by+6)+' '+bx+' '+(by+15)+'Q'+(bx-11)+' '+(by+6)+' '+(bx-11)+' '+(by-9)+'Z" fill="'+S.c+'" stroke="'+INK+'" stroke-width="3" stroke-linejoin="round"/><path d="M'+(bx-9)+' '+(by-10)+'l4 -6 5 5 5 -5 4 6" fill="#8DBB5E" stroke="'+INK+'" stroke-width="2" stroke-linejoin="round"/>';[[-4,-2],[4,-1],[0,6]].forEach(function(sd){o+='<ellipse cx="'+(bx+sd[0])+'" cy="'+(by+sd[1])+'" rx="1.4" ry="2" fill="#F6E06E"/>';});});}
+    else if(sp==='lilyvalley'){var k4=[0,0,.75,.9,1][stage],tp=204-100*k4;
+      o+='<path d="M96 204Q66 '+(204-60*k4)+' 84 '+tp+'Q104 '+(204-62*k4)+' 100 204Z" fill="'+LEAF+'" stroke="'+INK+'" stroke-width="3.5" stroke-linejoin="round"/><path d="M104 204Q132 '+(204-56*k4)+' 118 '+(tp+12)+'Q98 '+(204-60*k4)+' 100 204Z" fill="'+LEAF2+'" stroke="'+INK+'" stroke-width="3.5" stroke-linejoin="round"/>';
+      if(stage>=3){var ax=104,ay=tp-22;o+='<path d="M100 204Q'+ax+' '+ay+' '+(ax+44*k4)+' '+(ay+26*k4)+'" fill="none" stroke="'+LEAF2+'" stroke-width="3.5" stroke-linecap="round"/>';
+        [.3,.48,.64,.8,.95].forEach(function(t,i){var bx=(1-t)*(1-t)*100+2*(1-t)*t*ax+t*t*(ax+44*k4),by=(1-t)*(1-t)*204+2*(1-t)*t*ay+t*t*(ay+26*k4),r3=(stage===4?9.5:6.5)*(1-i*.07);o+='<path d="M'+bx.toFixed(1)+' '+by.toFixed(1)+'v4" stroke="'+LEAF2+'" stroke-width="2"/><path d="M'+(bx-r3).toFixed(1)+' '+(by+4+r3*1.2).toFixed(1)+'Q'+(bx-r3).toFixed(1)+' '+(by+3).toFixed(1)+' '+bx.toFixed(1)+' '+(by+3).toFixed(1)+'Q'+(bx+r3).toFixed(1)+' '+(by+3).toFixed(1)+' '+(bx+r3).toFixed(1)+' '+(by+4+r3*1.2).toFixed(1)+'L'+(bx+r3*1.2).toFixed(1)+' '+(by+6+r3*1.2).toFixed(1)+'H'+(bx-r3*1.2).toFixed(1)+'Z" fill="'+(stage===4?S.c:'#E9F3DE')+'" stroke="'+INK+'" stroke-width="2.5" stroke-linejoin="round"/>';});}}
+    else if(sp==='orchid'){var k5=[0,0,.7,.88,1][stage];
+      [[-30,-8,-14],[30,-8,14],[0,-14,0]].forEach(function(l){var cx=100+l[0]*k5,cy=200+l[1];o+='<ellipse cx="'+cx+'" cy="'+cy+'" rx="'+32*k5+'" ry="'+10*k5+'" transform="rotate('+l[2]+' '+cx+' '+cy+')" fill="'+LEAF2+'" stroke="'+INK+'" stroke-width="3.5"/>';});
+      if(stage>=3){var sy=200-118*k5;o+='<path d="M100 196Q94 '+sy+' 124 '+(sy-6)+'Q146 '+(sy-8)+' 152 '+(sy+22)+'" fill="none" stroke="#7FA86A" stroke-width="3.5" stroke-linecap="round"/>';
+        [[118,sy-4],[138,sy-2],[152,sy+24]].forEach(function(f,i){if(stage===3){o+='<ellipse cx="'+f[0]+'" cy="'+(f[1]+6)+'" rx="5" ry="7" fill="'+S.c+'" stroke="'+INK+'" stroke-width="2.5"/>';return;}var fx=f[0],fy=f[1]+12,q=i===2?.85:1;
+          o+='<g transform="translate('+fx+' '+fy+') scale('+q+')"><ellipse cx="0" cy="-11" rx="7" ry="9" fill="'+S.c+'" stroke="'+INK+'" stroke-width="2.5"/><ellipse cx="-12" cy="-1" rx="11" ry="10" fill="'+S.c+'" stroke="'+INK+'" stroke-width="2.5"/><ellipse cx="12" cy="-1" rx="11" ry="10" fill="'+S.c+'" stroke="'+INK+'" stroke-width="2.5"/><path d="M-6 3Q0 16 6 3Q0 -2 -6 3Z" fill="#C94A8A" stroke="'+INK+'" stroke-width="2.2" stroke-linejoin="round"/><circle cx="0" cy="-2" r="2.5" fill="#F6D27A"/></g>';});}}
     else{var top=[0,0,124,98,86][stage];o+=stem(100,204,100,top,7)+leaves(stage===2?[182,156]:[184,158,132],stage===2?.9:1);
       o+=stage===2?'<circle cx="100" cy="'+(top-6)+'" r="12" fill="'+(sp==='sunflower'||sp==='hydrangea'?LEAF:S.c)+'" stroke="'+INK+'" stroke-width="4"/>':head(sp,100,top-(sp==='tulip'?-4:sp==='rose'||sp==='hydrangea'?2:12),stage===3?.72:1);}
-  }else if(S.shape==='bamboo'||S.shape==='palm')o+=odd(sp,stage);
+  }else if(S.shape==='bamboo'||S.shape==='palm'||S.shape==='branch'||S.shape==='willow'||S.shape==='cactus')o+=odd(sp,stage);
   else{
     var tw=stage===2?7:stage===3?11:13,ty2=stage===2?150:124;
     o+='<path d="M'+(100-tw)+' 204L'+(100-tw*.7)+' '+ty2+'H'+(100+tw*.7)+'L'+(100+tw)+' 204Z" fill="'+TRUNK+'" stroke="'+INK+'" stroke-width="4.5" stroke-linejoin="round"/>';
     var sc=stage===2?.55:stage===3?.85:1,cy=stage===2?128:S.shape==='pine'?122:96;
-    o+=crown(S.shape,stage===4?S.c:(S.shape==='pine'?S.c:LEAF),100,cy,sc);
+    o+=crown(S.shape==='drape'?'round':S.shape,stage===4?S.c:(S.shape==='pine'?S.c:LEAF),100,cy,sc);
     if(stage===4)o+=dots(sp,100,cy,sc);
   }
   if(stage===4)o+=sparks();
@@ -649,7 +704,7 @@ function levelUp(a,b){
 }
 function openLevels(){
   var L=level(),rows='';
-  for(var i=1;i<=TOPLV;i++)rows+='<div class="lv-row'+(i===L?' on':i<L?' done':'')+'"><b>Lv.'+i+'</b><span>'+(i===1?'六塊土・向日葵、鬱金香、櫻花樹、橘子樹・裝飾 📮 小信箱':unlockText(i))+'</span></div>';
+  for(var i=1;i<=TOPLV;i++)rows+='<div class="lv-row'+(i===L?' on':i<L?' done':'')+'"><b>Lv.'+i+'</b><span>'+(i===1?'六塊土・'+newAt(1).join('、')+'・裝飾 📮 小信箱':unlockText(i))+'</span></div>';
   card('<h2>🌳 花園等級</h2><p class="g-small" style="margin-top:0">澆一滴 +1、回答一題 +3、抓走害蟲 +2<br>種進森林：花 +10、樹 +20（兩個人一起算）</p><div class="lv-list">'+rows+'</div>'+'<div class="g-btns"><button class="g-btn ghost" data-close>關閉</button></div>');
   sheet.ov.querySelector('[data-close]').onclick=closeSheet;
 }
@@ -724,7 +779,7 @@ function paintPlots(){
   $('plots').querySelectorAll('[data-id]').forEach(function(b){b.onclick=function(){SND.sfx('tap');openPlant(b.getAttribute('data-id'));};});
   $('plots').querySelectorAll('[data-to]').forEach(function(b){b.onclick=function(){movePlotTo(+b.getAttribute('data-to'));};});
 }
-/* ── 森林分類：全部／樹／花／誰種的／📖 圖鑑（十八種各種了幾棵），可以排最新或最早；
+/* ── 森林分類：全部／樹／花／📖 圖鑑（每一種各種了幾棵），可以排最新或最早；
    點圖鑑裡的一種就只看那一種，3D 花園裡那幾棵也會亮起來 ── */
 var fTab='all',fSort='new',fSp='';
 try{var fs0=JSON.parse(localStorage.getItem('gardenFTab')||'{}');fTab=['all','tree','flower','book'].indexOf(fs0.t)>=0?fs0.t:'all';fSort=fs0.s||'new';}catch(e){}
@@ -864,6 +919,18 @@ function xmasGift(){
   var day=today();if((holidayOf(day)||{}).h!=='xmas')return false;
   if(+((D.gift[me]||{})[day])){toast('🎄 今天的禮物拆過了，明天再來看看');return false;}
   write({gift:obj(me,obj(day,1))});SND.sfx('fanfare',2);toast('🎁 聖誕樹下的禮物：一滴水！+1 💧');paint();return true;
+}
+// 新品種（這次多的 12 種）：之前就在玩的，第一次打開跳一張卡片介紹（現在就能種的、升級才會解鎖的）
+var NEWSP=['strawberry','plum','lilyvalley','persimmon','bellflower','jacaranda','lily','willow','dandelion','goldshower','orchid','cactus'];
+function newSpCard(){
+  try{if(localStorage.getItem('gardenNewSp')==='1')return;}catch(e){return;}
+  if(!all().length){try{localStorage.setItem('gardenNewSp','1');}catch(e){}return;}
+  if(sheet||typing()||moving||!LD.done||$('ld')){setTimeout(newSpCard,1500);return;}
+  try{localStorage.setItem('gardenNewSp','1');}catch(e){}
+  var L=level(),now=NEWSP.filter(function(k){return SP[k].lv<=L;}),later=NEWSP.filter(function(k){return SP[k].lv>L;});
+  card('<h2>🌱 花園多了 '+NEWSP.length+' 種新的花和樹</h2>'+(now.length?'<p class="g-small" style="margin-top:0">現在就能種：</p><div class="seeds newsp">'+now.map(function(k){return '<div>'+art(k,4)+SP[k].name+'<small>'+(SP[k].kind==='flower'?'花':'樹')+'・要 '+SP[k].need+' 點</small></div>';}).join('')+'</div>':'')+
+    (later.length?'<p class="g-small">升級還會解鎖：'+later.map(function(k){return SP[k].name+'（Lv.'+SP[k].lv+'）';}).join('、')+'</p>':'')+'<div class="g-btns"><button class="g-btn" data-close>去種種看 🌱</button></div>');
+  sheet.ov.querySelector('[data-close]').onclick=closeSheet;
 }
 // 平面花園也有小鳥和蝴蝶飛過去（3D 的在 garden3d.js）
 function visit2d(){
@@ -1115,7 +1182,7 @@ function ambient(){
   SND.amb({birds:wt?0:ph==='day'?(se==='winter'?.45:1):ph==='eve'?.3:0,cicada:se==='summer'&&ph==='day'&&!wt?.8:0,crickets:ph==='night'&&se!=='winter'&&w!=='rain'?(se==='summer'||se==='autumn'?1:.6):0,fire:ph==='night'?.3+.7*near:0,rain:w==='rain'?1:0});
 }
 function ready(){
-  ldStep('data');loadYearly();setTimeout(partyCard,1200);setTimeout(mailEntry,300);setInterval(ambient,2500);ambient();
+  ldStep('data');loadYearly();setTimeout(partyCard,1200);setTimeout(mailEntry,300);setTimeout(newSpCard,2600);setInterval(ambient,2500);ambient();
   setTimeout(function(){var d=today();try{if(wet(d)&&d>=WX_START&&localStorage.getItem('gardenWx')!==d){localStorage.setItem('gardenWx',d);toast(weatherOf(d)==='snow'?'❄️ 今天下雪了，花園裡的植物都喝到水、自己長了一點；遊樂區搭起涼亭可以喝咖啡 ☕':'🌧️ 今天下雨，花園裡的植物都喝到水、自己長了一點；遊樂區搭起涼亭可以喝咖啡 ☕');}}catch(e){}},1600);
   started=true;
   $('gpets').innerHTML=['cat','pg','dg'].map(function(k){return '<img src="'+G.petImg(k,'happy')+'" alt="'+esc(G.petName(k))+'">';}).join('');
