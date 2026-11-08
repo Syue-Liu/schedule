@@ -239,7 +239,7 @@ body{min-height:100%;background:#F4F8EC;}
 <script src="sound.js?v=amb-20261105"></script>
 <script src="game.js?v=garden-20261102"></script>
 <script src="vs.js?v=plus-20261105"></script>
-<script src="garden3d.js?v=pick-20261107"></script>
+<script src="garden3d.js?v=tswing-20261108"></script>
 <script>
 /* 記憶小森林：兩個人一起種。每天回答一題問答拿水滴，一起澆水，把種子種成樹；長大的樹放進森林，留著那段時間的問答和兩個人的話。
    資料：班表同一個 Firebase 的 banbiao/<同步代碼>_garden（沒有同步代碼就存在這支手機）
@@ -680,7 +680,7 @@ function paintForest(){
   $('forest').querySelectorAll('[data-m]').forEach(function(b){b.onclick=function(){SND.sfx('tap');openMemory(b.getAttribute('data-m'),forestList().map(function(p){return p.id;}));};});
   }
   var L=level(),nt=L<TOPLV?unlockText(L+1):'';
-  $('gnote').innerHTML='每天 '+BASE+' 滴水，回答今日問題 +'+ANSWER+'；同一天兩個人都澆同一棵，那天多長 '+TOGETHER+' 點<br>小鳥來的時候點牠，會送一滴水（每天最多 '+BIRD+' 滴）；有害蟲記得抓走<br>長大的樹種進森林，兩個人各拿 1 包飼料（算在每天 '+G.CAP+' 包裡）<br>植物和森林的樹都可以「移植」，把花園排成你們喜歡的樣子<br>遊樂區：白天溜滑梯、盪鞦韆，傍晚長椅看夕陽，晚上營火烤棉花糖（點它們叫學和綾過去）<br>🎀 裝飾、📮 信箱、🎉 紀念日：3D 花園右上角、上面那幾顆按鈕'+(nt?'<br>升到 Lv.'+(L+1)+'：'+nt:'');
+  $('gnote').innerHTML='每天 '+BASE+' 滴水，回答今日問題 +'+ANSWER+'；同一天兩個人都澆同一棵，那天多長 '+TOGETHER+' 點<br>小鳥來的時候點牠，會送一滴水（每天最多 '+BIRD+' 滴）；有害蟲記得抓走<br>長大的樹種進森林，兩個人各拿 1 包飼料（算在每天 '+G.CAP+' 包裡）<br>植物和森林的樹都可以「移植」，把花園排成你們喜歡的樣子<br>遊樂區：白天溜滑梯、盪鞦韆（下雨、下雪天溜滑梯換成涼亭咖啡甜點），傍晚長椅看夕陽，晚上營火烤棉花糖（點它們叫學和綾過去）；樹屋旁的鞦韆隨時都能盪，兩個人的話一個坐、一個在後面推<br>🎀 裝飾、📮 信箱、🎉 紀念日：3D 花園右上角、上面那幾顆按鈕'+(nt?'<br>升到 Lv.'+(L+1)+'：'+nt:'');
 }
 function toast(t){var e=document.createElement('div');e.textContent=t;$('toasts').appendChild(e);setTimeout(function(){e.remove();},3300);}
 // 另一半做了什麼：雲端資料變了就看看差在哪
@@ -739,7 +739,7 @@ function start3d(){
     land:function(id,open){var l=LANDS.filter(function(x){return x.id===id;})[0];if(!l)return;SND.sfx('tap');toast(open?'🏡 '+l.name:'🔒 花園升到 Lv.'+l.lv+' 會開放新土地「'+l.name+'」');},
     decor:function(id){openDecorItem(id);},
     phase:function(ph){toast({day:'☀️ 天亮了！遊樂區有溜滑梯和盪鞦韆',eve:'🌇 傍晚了，長椅搬出來了，一起看夕陽吧',night:'🔥 晚上了，營火升起來，可以烤棉花糖了'}[ph]||'');},
-    act:function(k,who){var n=who.map(function(u){return NAMES[u];}).join('和');toast(!n?'他們現在在忙，等一下再叫他們':{slide:n+'去溜滑梯了 🛝',swing:n+'去盪鞦韆了',bench:n+'坐到長椅上看夕陽 🌇',fire:n+'去營火邊烤棉花糖 🔥'}[k]);},
+    act:function(k,who){var n=who.map(function(u){return NAMES[u];}).join('和');toast(!n?'他們現在在忙，等一下再叫他們':{slide:n+'去溜滑梯了 🛝',swing:n+'去盪鞦韆了',bench:n+'坐到長椅上看夕陽 🌇',fire:n+'去營火邊烤棉花糖 🔥',cafe:n+'到涼亭喝咖啡、吃甜點 ☕🍰',tswing:n+'去樹屋旁盪鞦韆 🌳',tswingPush:(NAMES[who[1]]||'')+'在後面推'+(NAMES[who[0]]||'')+'盪鞦韆 🌳'}[k]);},
     moveSel:function(sel){if(!moving)return;if(moving.kind==='plot'){movePlotTo(sel.slot);return;}moving.sel=sel;SND.sfx(sel.ok?'tap':'swish');paintMove();}})
     .then(function(){g3=true;document.body.classList.add('is3d');document.body.classList.remove('try3d');var l=box.querySelector('.g3-load');if(l)l.remove();paint();ldStep('pets');})
     .catch(function(e){console.warn('3D 花園載不到，用平面的',e);document.body.classList.remove('try3d');document.body.classList.add('no3d');paint();LD.no3d=1;$('ldTxt').textContent=ldTxt();if(LD.data)ldDone();});
@@ -1011,7 +1011,7 @@ function askWho(){
 }
 // 第一次來：說明怎麼玩
 function help(){
-  card('<h2>🌳 記憶小森林</h2><ol class="g-rules"><li>每天有一題「今日問題」，回答拿 '+ANSWER+' 滴水；二選一兩個人選一樣，再各多 '+MATCH+' 滴</li><li>每個人每天有 '+BASE+' 滴水，點植物就能澆</li><li>同一天兩個人都澆同一棵，那天多長 '+TOGETHER+' 點</li><li>長大的植物種進森林，會留下那段時間的問答和你們寫的話</li><li>種進森林兩個人各拿 1 包飼料</li><li>澆水、回答、抓害蟲都會加經驗；花園升級會多幾塊土、解鎖新的花和樹</li><li>小鳥來的時候點牠，會送一滴水；害蟲跑來要抓走才能澆水</li><li>升級會開放新土地；植物和森林的樹都可以移植，一起把花園排成喜歡的樣子</li><li>花園跟著季節和天氣變；下雨、下雪那天，所有植物都會自己長一點</li><li>🎉 紀念日（交往、結婚、生日、在一起每 100 天）花園會布置，每個人多 3 滴水</li><li>升級會解鎖裝飾品（3D 花園右上角 🎀）：路燈、花拱門、風車、稻草人、鳥屋、野餐墊；📮 信箱可以寫信給對方</li><li>花園左後方的遊樂區跟著時間變：白天溜滑梯、盪鞦韆，傍晚長椅看夕陽，晚上營火烤棉花糖；點它們，學和綾就會過去</li></ol><div class="g-btns"><button class="g-btn" data-close>開始種</button></div>');
+  card('<h2>🌳 記憶小森林</h2><ol class="g-rules"><li>每天有一題「今日問題」，回答拿 '+ANSWER+' 滴水；二選一兩個人選一樣，再各多 '+MATCH+' 滴</li><li>每個人每天有 '+BASE+' 滴水，點植物就能澆</li><li>同一天兩個人都澆同一棵，那天多長 '+TOGETHER+' 點</li><li>長大的植物種進森林，會留下那段時間的問答和你們寫的話</li><li>種進森林兩個人各拿 1 包飼料</li><li>澆水、回答、抓害蟲都會加經驗；花園升級會多幾塊土、解鎖新的花和樹</li><li>小鳥來的時候點牠，會送一滴水；害蟲跑來要抓走才能澆水</li><li>升級會開放新土地；植物和森林的樹都可以移植，一起把花園排成喜歡的樣子</li><li>花園跟著季節和天氣變；下雨、下雪那天，所有植物都會自己長一點</li><li>🎉 紀念日（交往、結婚、生日、在一起每 100 天）花園會布置，每個人多 3 滴水</li><li>升級會解鎖裝飾品（3D 花園右上角 🎀）：路燈、花拱門、風車、稻草人、鳥屋、野餐墊；📮 信箱可以寫信給對方</li><li>花園左後方的遊樂區跟著時間變：白天溜滑梯、盪鞦韆（下雨、下雪天溜滑梯換成涼亭咖啡甜點），傍晚長椅看夕陽，晚上營火烤棉花糖；點它們，學和綾就會過去</li><li>樹屋旁邊樹枝垂下來的鞦韆隨時都能點：一個人自己盪，兩個人的話一個坐、一個在後面推，盪得更高</li></ol><div class="g-btns"><button class="g-btn" data-close>開始種</button></div>');
   sheet.ov.querySelector('[data-close]').onclick=function(){closeSheet();try{localStorage.setItem('gardenHelp','1');}catch(e){}};
 }
 // 環境音：白天鳥叫（夏天加蟬）、傍晚鳥少一點、晚上蟋蟀＋營火（鏡頭越靠近營火越大聲）、下雨天雨聲
@@ -1021,7 +1021,7 @@ function ambient(){
 }
 function ready(){
   ldStep('data');loadYearly();setTimeout(partyCard,1200);setInterval(ambient,2500);ambient();
-  setTimeout(function(){var d=today();try{if(wet(d)&&d>=WX_START&&localStorage.getItem('gardenWx')!==d){localStorage.setItem('gardenWx',d);toast(weatherOf(d)==='snow'?'❄️ 今天下雪了，花園裡的植物都喝到水、自己長了一點':'🌧️ 今天下雨，花園裡的植物都喝到水、自己長了一點');}}catch(e){}},1600);
+  setTimeout(function(){var d=today();try{if(wet(d)&&d>=WX_START&&localStorage.getItem('gardenWx')!==d){localStorage.setItem('gardenWx',d);toast(weatherOf(d)==='snow'?'❄️ 今天下雪了，花園裡的植物都喝到水、自己長了一點；遊樂區搭起涼亭可以喝咖啡 ☕':'🌧️ 今天下雨，花園裡的植物都喝到水、自己長了一點；遊樂區搭起涼亭可以喝咖啡 ☕');}}catch(e){}},1600);
   started=true;
   $('gpets').innerHTML=['cat','pg','dg'].map(function(k){return '<img src="'+G.petImg(k,'happy')+'" alt="'+esc(G.petName(k))+'">';}).join('');
   paint();claim();SND.music('garden');pestSeen=pestsNow().map(function(x){return x.key;});setTimeout(visit2d,12000);
