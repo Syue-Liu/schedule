@@ -261,7 +261,7 @@ body{min-height:100%;background:#F4F8EC;}
 <script src="sound.js?v=amb-20261105"></script>
 <script src="game.js?v=garden-20261102"></script>
 <script src="vs.js?v=mail-20261108"></script>
-<script src="garden3d.js?v=mail-20261108"></script>
+<script src="garden3d.js?v=hol-20261108"></script>
 <script>
 /* 記憶小森林：兩個人一起種。每天回答一題問答拿水滴，一起澆水，把種子種成樹；長大的樹放進森林，留著那段時間的問答和兩個人的話。
    資料：班表同一個 Firebase 的 banbiao/<同步代碼>_garden（沒有同步代碼就存在這支手機）
@@ -283,13 +283,34 @@ function pestP(){return decorCount('scarecrow')?.14:PEST_P;}
 var DAYS0={date:'2014-01-05',wed:'2020-01-12',syue:'09-18',ling:'03-26'},SPECIAL=3,yearly=[];
 function days(){var d=D.days||{};return {date:d.date||DAYS0.date,wed:d.wed||DAYS0.wed,syue:d.syue||DAYS0.syue,ling:d.ling||DAYS0.ling};}
 function together(day){var s=days();return s.date?dnum(day)-dnum(s.date)+1:0;}
+/* ── 節日：聖誕節、跨年、過年（除夕～初三）、情人節、七夕、中秋、萬聖節；那天花園換上節日的布置，每個人多 SPECIAL 滴水
+   農曆的日期先查好放在這裡（正月初一、七月初七、八月十五） ── */
+var LUNAR={cny:{2026:'02-17',2027:'02-06',2028:'01-26',2029:'02-13',2030:'02-03',2031:'01-23',2032:'02-11',2033:'01-31',2034:'02-19',2035:'02-08'},
+  qixi:{2026:'08-19',2027:'08-08',2028:'08-26',2029:'08-16',2030:'08-05',2031:'08-24',2032:'08-12',2033:'08-01',2034:'08-20',2035:'08-10'},
+  moon:{2026:'09-25',2027:'09-15',2028:'10-03',2029:'09-22',2030:'09-12',2031:'10-01',2032:'09-19',2033:'09-08',2034:'09-27',2035:'09-16'}};
+var HOL_NOTE={xmas:'花園下雪了，聖誕樹下有禮物，點聖誕樹拆拆看 🎁',nye:'晚上一起坐在樹屋上倒數、看煙火 🎆',ny:'新的一年也要一起好好種花 🌱',cny:'樹屋掛上紅燈籠、貼好春聯，晚上放鞭炮和煙火 🧨<br>🧧 紅包：今天每個人多 '+SPECIAL+' 滴水',val:'花園飄著愛心和玫瑰花瓣 🌹',qixi:'晚上抬頭看銀河，喜鵲在花園上空搭好鵲橋了 🌌',moon:'今晚月亮特別圓，傍晚學和綾會坐在野餐墊上吃月餅、賞月 🥮',hween:'南瓜燈亮起來了，小心蝙蝠 🦇 寵物都戴上巫師帽'};
+function holidayOf(day){
+  var m0=String(day).slice(5),y=+String(day).slice(0,4),c;
+  if(m0==='12-24')return {h:'xmas',e:'🎄',t:'聖誕夜'};
+  if(m0==='12-25')return {h:'xmas',e:'🎄',t:'聖誕快樂'};
+  if(m0==='12-31')return {h:'nye',e:'🎆',t:'跨年夜'};
+  if(m0==='01-01')return {h:'nye',n:'ny',e:'🎉',t:'新年快樂'};
+  if((c=LUNAR.cny[y])){var i=dnum(day)-dnum(y+'-'+c);if(i>=-1&&i<=2)return {h:'cny',e:i<0?'🧨':'🧧',t:['除夕・圍爐','大年初一・新年快樂','初二・新年快樂','初三・新年快樂'][i+1]};}
+  if(m0==='02-14')return {h:'val',e:'💝',t:'情人節快樂'};
+  if(LUNAR.qixi[y]===m0)return {h:'qixi',e:'🌌',t:'七夕情人節'};
+  if(LUNAR.moon[y]===m0)return {h:'moon',e:'🥮',t:'中秋節快樂'};
+  if(m0==='10-31')return {h:'hween',e:'🎃',t:'萬聖節快樂'};
+  return null;
+}
+var HOL_RE=/聖誕|耶誕|跨年|元旦|新年|過年|春節|除夕|初一|初二|初三|情人|七夕|中秋|萬聖/;
 function special(day){
-  var m0=String(day).slice(5),y=+String(day).slice(0,4),s=days(),out=[];
+  var m0=String(day).slice(5),y=+String(day).slice(0,4),s=days(),out=[],hd=holidayOf(day);
+  if(hd)out.push({k:'hol',h:hd.h,n:hd.n||hd.h,e:hd.e,t:hd.t});
   if(s.date&&s.date.slice(5)===m0){var n=y-(+s.date.slice(0,4));out.push({k:'date',e:'💞',t:n>0?'交往 '+n+' 週年':'交往紀念日'});}
   if(s.wed&&s.wed.slice(5)===m0){var n2=y-(+s.wed.slice(0,4));out.push({k:'wed',e:'💍',t:n2>0?'結婚 '+n2+' 週年':'結婚紀念日'});}
   ['syue','ling'].forEach(function(u){if(s[u]===m0)out.push({k:'bday',who:u,e:'🎂',t:NAMES[u]+' 生日快樂'});});
   var dn=together(day);if(dn>0&&dn%100===0)out.push({k:'days',e:'✨',t:'在一起第 '+dn+' 天'});
-  yearly.forEach(function(e){if(e.md===m0&&!out.some(function(o){return o.k!=='event'&&(e.title.indexOf('生日')>=0&&o.k==='bday'||e.title.indexOf('紀念')>=0&&(o.k==='date'||o.k==='wed'));}))out.push({k:'event',e:e.emoji||'🎉',t:e.title});});
+  yearly.forEach(function(e){if(e.md===m0&&!(hd&&HOL_RE.test(e.title))&&!out.some(function(o){return o.k!=='event'&&(e.title.indexOf('生日')>=0&&o.k==='bday'||e.title.indexOf('紀念')>=0&&(o.k==='date'||o.k==='wed'));}))out.push({k:'event',e:e.emoji||'🎉',t:e.title});});
   return out;
 }
 // 接下來的紀念日（卡片上列出來）
@@ -301,7 +322,8 @@ function partyCard(){
   var d=today(),sp=special(d);if(!sp.length||sheet||typing())return;
   try{if(localStorage.getItem('gardenParty')===d)return;localStorage.setItem('gardenParty',d);}catch(e){}
   SND.sfx('fanfare',3);
-  var ov=card('<div class="dec-big">'+sp.map(function(o){return o.e;}).join('')+'</div><h2>'+esc(sp.map(function(o){return o.t;}).join('・'))+'</h2><p>'+(together(d)>0?'今天是在一起的第 '+together(d)+' 天 💗<br>':'')+'花園布置好了，今天每個人多 '+SPECIAL+' 滴水 🎁</p><div class="g-btns"><button class="g-btn" data-close>🎉 好開心</button></div>');
+  var hn=sp.filter(function(o){return o.k==='hol';}).map(function(o){return HOL_NOTE[o.n];})[0]||'',cnyRed=/紅包/.test(hn);
+  var ov=card('<div class="dec-big">'+sp.map(function(o){return o.e;}).join('')+'</div><h2>'+esc(sp.map(function(o){return o.t;}).join('・'))+'</h2><p>'+(together(d)>0?'今天是在一起的第 '+together(d)+' 天 💗<br>':'')+(hn?hn+'<br>':'')+(cnyRed?'':'花園布置好了，今天每個人多 '+SPECIAL+' 滴水 🎁')+'</p><div class="g-btns"><button class="g-btn" data-close>🎉 好開心</button></div>');
   ov.querySelector('[data-close]').onclick=closeSheet;
 }
 // 設定紀念日：兩個人一起看到
@@ -394,7 +416,7 @@ function ldToday(){
   var el=$('ldToday');if(!el||LD.done)return;
   var d=today(),q=d.split('-'),w=weatherOf(d),wt=w==='rain'||w==='snow',ph=phaseNow(),wd='日一二三四五六'.charAt(new Date(Date.UTC(+q[0],+q[1]-1,+q[2])).getUTCDay()),sp=special(d),n=LD.data?unread():0,b=n?newestMail():null;
   el.innerHTML='<div class="ld-date">'+md(d)+'（'+wd+'）・'+SEASONN[seasonOf(d)]+'</div><div class="ld-wx">'+WX[w]+'・'+{day:'白天',eve:'傍晚',night:'晚上'}[ph]+'</div>'+
-    '<div class="ld-play">'+{day:wt?'遊樂區搭起涼亭，可以喝咖啡、吃甜點 ☕':'遊樂區有溜滑梯和盪鞦韆 🛝',eve:'長椅搬出來了，一起看夕陽 🌇',night:'營火升起來了，可以烤棉花糖 🔥'}[ph]+(wt&&d>=WX_START?'<br>植物都喝到水，自己長了一點 🌱':'')+'</div>'+
+    '<div class="ld-play">'+(function(){var hh=(holidayOf(d)||{}).h,t=hh==='nye'&&ph==='night'?'一起坐在樹屋上看煙火 🎆':hh==='moon'&&ph!=='day'?'一起坐在野餐墊上吃月餅、賞月 🥮':hh==='xmas'?'下雪了，聖誕樹下有禮物 🎁':'';return t?t+'<br>':'';})()+({day:wt?'遊樂區搭起涼亭，可以喝咖啡、吃甜點 ☕':'遊樂區有溜滑梯和盪鞦韆 🛝',eve:'長椅搬出來了，一起看夕陽 🌇',night:'營火升起來了，可以烤棉花糖 🔥'}[ph])+(wt&&d>=WX_START?'<br>植物都喝到水，自己長了一點 🌱':'')+'</div>'+
     (sp.length?'<div class="ld-sp">'+esc(sp.map(function(o){return o.e+' '+o.t;}).join('・'))+'</div>':'')+
     (b?'<div class="ld-mail">💌 '+NAMES[b.from]+(n>1?'寄了 '+n+' 封信給你':'寄了一封信給你')+'</div>':'');
 }
@@ -433,7 +455,7 @@ function connect(){
   VS.connect().then(function(){cloud=true;VS.docWatch('garden',onSnap);beat();setInterval(beat,20000);}).catch(function(e){console.warn('garden',e);local();});
 }
 function local(){cloud=false;try{D=JSON.parse(localStorage.getItem('gardenLocal')||'{}')||{};}catch(e){D={};}norm();first=false;ready();}
-function norm(){D.plants=D.plants||{};D.qa=D.qa||{};D.here=D.here||{};D.pests=D.pests||{};D.bonus=D.bonus||{};D.decor=D.decor||{};D.mail=D.mail||{};}
+function norm(){D.plants=D.plants||{};D.qa=D.qa||{};D.here=D.here||{};D.pests=D.pests||{};D.bonus=D.bonus||{};D.gift=D.gift||{};D.decor=D.decor||{};D.mail=D.mail||{};}
 // 寫：先改畫面，再送出；剛寫的幾秒內，舊的雲端資料回來也不會蓋掉
 function write(o){
   recent.push({o:o,at:Date.now()});merge(D,o);
@@ -457,7 +479,7 @@ function ansText(Q,a){return Q.t==='pick'?(opts(Q)[+a]||''):String(a);}
 function matched(day){var Q=qOf(day),q=D.qa[day]||{};return Q.t==='pick'&&q.syue!=null&&q.ling!=null&&+q.syue===+q.ling;}
 // 今天可以澆幾滴：每天 3 滴，回答今日問題 +2，二選一兩個人選一樣再 +1，小鳥送的（每天最多 2 滴）
 function allow(u,day){var q=D.qa[day]||{};return BASE+(q[u]!=null?ANSWER:0)+(matched(day)?MATCH:0)+gifts(u,day)+(special(day).length?SPECIAL:0);}
-function gifts(u,day){return Math.min(BIRD,+((D.bonus[u]||{})[day])||0);}
+function gifts(u,day){return Math.min(BIRD,+((D.bonus[u]||{})[day])||0)+Math.min(1,+((D.gift[u]||{})[day])||0);}
 function usedBy(u,day){var n=0;all().forEach(function(p){n+=+(((p.w||{})[u]||{})[day])||0;});return n;}
 function left(){return Math.max(0,allow(me,today())-usedBy(me,today()));}
 function all(){return Object.keys(D.plants).map(function(id){var p=D.plants[id];if(p)p.id=id;return p;}).filter(function(p){return p&&SP[p.sp];});}
@@ -474,6 +496,7 @@ var RAIN=1,WX_START='2026-11-05',wxMemo={};
 function seasonOf(day){var m=+String(day).split('-')[1];return m>=3&&m<=5?'spring':m>=6&&m<=8?'summer':m>=9&&m<=11?'autumn':'winter';}
 function weatherOf(day){
   if(wxMemo[day])return wxMemo[day];
+  if(/-12-2[45]$/.test(day))return wxMemo[day]='snow';
   var s=seasonOf(day),h=hash('wx:'+day),pr=s==='summer'?.27:s==='spring'?.25:s==='autumn'?.18:.2;
   return wxMemo[day]=h<pr?(s==='winter'?'snow':'rain'):h<pr+.25?'cloudy':'sunny';
 }
@@ -757,6 +780,7 @@ function news(prev,next){
   Object.keys(next.decor||{}).forEach(function(id){var b=next.decor[id],a=(prev.decor||{})[id];if(!b||!DECOR[b.k])return;if(!a&&b.by===op)tell(NAMES[op]+'在花園擺了'+DECOR[b.k].name+' '+DECOR[b.k].e);else if(a&&b.mv&&b.mv.by===op&&(!a.mv||a.mv.at!==b.mv.at))tell(NAMES[op]+'把'+DECOR[b.k].name+'搬到新的地方 '+DECOR[b.k].e);});
   var newMail=Object.keys(next.mail||{}).filter(function(id){var m=next.mail[id];return m&&m.to===me&&!m.read&&!(prev.mail||{})[id];});
   if(newMail.length){if(sheet||typing()||moving)tell('💌 '+NAMES[op]+'寄了一封信給你，點上面粉紅色那條打開');else said++;setTimeout(mailCard,250);}
+  if(+(((next.gift||{})[op]||{})[day])&&!+(((prev.gift||{})[op]||{})[day]))tell(NAMES[op]+'拆了聖誕樹下的禮物 🎁');
   var qa=(next.qa||{})[day]||{},qb=(prev.qa||{})[day]||{};
   if(qa[op]!=null&&qb[op]==null)tell(NAMES[op]+'回答了今日問題 💬');
   // 另一半剛打開花園（超過一分鐘沒報到、現在又報到）
@@ -783,7 +807,7 @@ function state3d(){
     out.push({id:p.id,sp:p.sp,stage:g.stage,r:g.r,frac:hi>lo?Math.max(0,Math.min(1,(g.r-lo)/(hi-lo))):1,name:p.name||SP[p.sp].name,ready:g.stage===4,thirsty:g.stage<4&&thirsty(p),pest:pe?pe.kind:null,pkey:pe?pe.key:null});
   }
   var sp=special(today());
-  return {party:sp.length?{title:sp.map(function(o){return o.e+' '+o.t;}).join('  '),bday:sp.filter(function(o){return o.k==='bday';}).map(function(o){return o.who;})}:null,decor:decorList(),mail:unread()>0,weather:weatherOf(today()),season:seasonOf(today()),slots:out,open:open,lands:LANDS.map(function(l){return {id:l.id,name:l.name,lv:l.lv,open:L>=l.lv};}),forest:forest().slice().reverse().map(function(p){return {id:p.id,sp:p.sp,pos:p.pos||null};})};
+  return {party:sp.length?{title:sp.map(function(o){return o.e+' '+o.t;}).join('  '),bday:sp.filter(function(o){return o.k==='bday';}).map(function(o){return o.who;}),hol:(sp.filter(function(o){return o.k==='hol';})[0]||{}).h||'',plain:sp.some(function(o){return o.k!=='hol';})}:null,decor:decorList(),mail:unread()>0,weather:weatherOf(today()),season:seasonOf(today()),slots:out,open:open,lands:LANDS.map(function(l){return {id:l.id,name:l.name,lv:l.lv,open:L>=l.lv};}),forest:forest().slice().reverse().map(function(p){return {id:p.id,sp:p.sp,pos:p.pos||null};})};
 }
 function start3d(){
   var box=$('g3');
@@ -791,7 +815,7 @@ function start3d(){
   $('g3full').onclick=function(){setFull(!box.classList.contains('full'));SND.sfx('tap');};
   $('g3reset').onclick=function(){if(g3)Garden3D.resetView();};
   $('g3decor').onclick=function(){SND.sfx('tap');openDecor();};
-  Garden3D.init(box,{progress:function(s){ldStep(s);},plot:function(i){SND.sfx('tap');openSeeds(i);},plant:function(id){SND.sfx('tap');openPlant(id);},tree:function(id){SND.sfx('tap');openMemory(id);},pest:function(id){catchPest(id);},bird:function(){return birdGift();},
+  Garden3D.init(box,{progress:function(s){ldStep(s);},plot:function(i){SND.sfx('tap');openSeeds(i);},plant:function(id){SND.sfx('tap');openPlant(id);},tree:function(id){SND.sfx('tap');openMemory(id);},pest:function(id){catchPest(id);},bird:function(){return birdGift();},gift:function(){return xmasGift();},
     land:function(id,open){var l=LANDS.filter(function(x){return x.id===id;})[0];if(!l)return;SND.sfx('tap');toast(open?'🏡 '+l.name:'🔒 花園升到 Lv.'+l.lv+' 會開放新土地「'+l.name+'」');},
     decor:function(id){openDecorItem(id);},
     phase:function(ph){toast({day:'☀️ 天亮了！遊樂區有溜滑梯和盪鞦韆',eve:'🌇 傍晚了，長椅搬出來了，一起看夕陽吧',night:'🔥 晚上了，營火升起來，可以烤棉花糖了'}[ph]||'');},
@@ -834,6 +858,12 @@ function birdGift(){
   if(n>=BIRD){toast('🐦 啾啾～（今天的小鳥禮物拿完了）');return false;}
   write({bonus:obj(me,obj(day,n+1))});toast('🐦 小鳥帶來一滴水！+1 💧');paint();
   return true;
+}
+// 聖誕樹下的禮物：點聖誕樹，每個人每天一份（一滴水）
+function xmasGift(){
+  var day=today();if((holidayOf(day)||{}).h!=='xmas')return false;
+  if(+((D.gift[me]||{})[day])){toast('🎄 今天的禮物拆過了，明天再來看看');return false;}
+  write({gift:obj(me,obj(day,1))});SND.sfx('fanfare',2);toast('🎁 聖誕樹下的禮物：一滴水！+1 💧');paint();return true;
 }
 // 平面花園也有小鳥和蝴蝶飛過去（3D 的在 garden3d.js）
 function visit2d(){
@@ -1074,7 +1104,7 @@ function help(){
     '<h4>💧 水滴</h4><ul><li>每個人每天 '+BASE+' 滴水；回答今日問題 +'+ANSWER+' 滴，二選一兩個人選一樣再各多 '+MATCH+' 滴</li><li>同一天兩個人都澆同一棵，那天多長 '+TOGETHER+' 點</li><li>小鳥飛來的時候點牠，送一滴水（每天最多 '+BIRD+' 滴）；有害蟲要先抓走才能澆水</li><li>下雨、下雪那天，所有植物都會自己長一點</li></ul>'+
     '<h4>🌳 森林</h4><ul><li>長大的植物種進森林，會留下那段時間的問答和你們寫的話</li><li>種進森林兩個人各拿 1 包飼料（算在每天 '+G.CAP+' 包裡）</li><li>澆水、回答、抓害蟲都會加經驗；升級多幾塊土、開放新土地、解鎖新的花和樹</li></ul>'+
     '<h4>🛝 遊樂區（點它們叫學和綾過去）</h4><ul><li>白天溜滑梯、盪鞦韆；下雨、下雪天溜滑梯換成涼亭，喝咖啡吃甜點</li><li>傍晚長椅看夕陽，晚上營火烤棉花糖</li><li>樹屋旁的鞦韆隨時都能盪，兩個人的話一個坐、一個在後面推</li></ul>'+
-    '<h4>🎀 裝飾・📮 信箱・🎉 紀念日</h4><ul><li>升級解鎖裝飾（3D 花園右上角 🎀）：路燈、花拱門、風車、稻草人、鳥屋、野餐墊</li><li>📮 寫信給對方，對方一打開班表或花園就會看到</li><li>紀念日（交往、結婚、生日、在一起每 100 天）花園會布置，每個人多 '+SPECIAL+' 滴水</li></ul>'+
+    '<h4>🎀 裝飾・📮 信箱・🎉 紀念日</h4><ul><li>升級解鎖裝飾（3D 花園右上角 🎀）：路燈、花拱門、風車、稻草人、鳥屋、野餐墊</li><li>📮 寫信給對方，對方一打開班表或花園就會看到</li><li>紀念日（交往、結婚、生日、在一起每 100 天）花園會布置，每個人多 '+SPECIAL+' 滴水</li><li>節日也會布置：聖誕節（點聖誕樹拆禮物）、跨年、過年、情人節、七夕、中秋、萬聖節</li></ul>'+
     (nt?'<div class="next">⬆️ 升到 Lv.'+(L+1)+'：'+esc(nt)+'</div>':'')+
     '</div><div class="g-btns"><button class="g-btn" data-close>'+(first?'開始種':'知道了')+'</button></div>');
   sheet.ov.querySelector('[data-close]').onclick=function(){closeSheet();try{localStorage.setItem('gardenHelp','1');}catch(e){}};
