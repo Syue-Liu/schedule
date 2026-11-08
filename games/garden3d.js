@@ -596,7 +596,22 @@ var Garden3D=(function(){
     Object.keys(decors).forEach(function(id){if(!keep[id]){scene.remove(decors[id].g);delete decors[id];}});
   }
   function hasDecor(k){for(var id in decors)if(decors[id].k===k)return true;return false;}
+  var envS=null,envT=0;
+  function envSprite(){
+    var s0=label(160,120,.62,.47),c=s0.userData.c,x=c.getContext('2d');x.clearRect(0,0,160,120);x.lineJoin='round';x.lineWidth=7;x.strokeStyle='#3E3A39';
+    x.fillStyle='#FFF4EE';rr(x,10,14,140,94,12);x.fill();x.stroke();
+    x.beginPath();x.moveTo(13,18);x.lineTo(80,68);x.lineTo(147,18);x.closePath();x.fillStyle='#F8C8D4';x.fill();x.stroke();
+    x.beginPath();x.moveTo(80,86);x.bezierCurveTo(58,70,62,52,74,54);x.bezierCurveTo(78,54,80,58,80,60);x.bezierCurveTo(80,58,82,54,86,54);x.bezierCurveTo(98,52,102,70,80,86);x.closePath();x.fillStyle='#F2A497';x.fill();x.lineWidth=5;x.stroke();
+    s0.center.set(.5,.5);s0.material.depthTest=true;s0.renderOrder=0;s0.userData.t.needsUpdate=true;s0.visible=false;scene.add(s0);return s0;}
+  function tickEnv(dt){
+    var mb=null,mid='';for(var id in decors)if(decors[id].k==='mailbox'){mb=decors[id];mid=id;break;}
+    if(!mailUp||!mb||mv){if(envS)envS.visible=false;return;}
+    if(!envS)envS=envSprite();
+    envS.visible=true;envS.userData.id=mid;var b=Math.sin(now*2.4);envS.position.set(mb.x,1.78+b*.09,mb.z);envS.material.rotation=Math.sin(now*1.7)*.12;var sc=1+.06*Math.sin(now*4.8);envS.scale.set(.62*sc,.47*sc,1);
+    envT-=dt;if(envT<=0){envT=2.6;hearts(mb.x,2.05,mb.z,1);}
+  }
   function tickDecor(dt){
+    tickEnv(dt);
     for(var id in decors){var d=decors[id],P=d.parts;
       if(P.blades)P.blades.rotation.z-=dt*(wx.w==='rain'||wx.w==='snow'?3.2:1.4);
       if(P.flag){var want=mailUp?0:-Math.PI/2;P.flag.rotation.z+=(want-P.flag.rotation.z)*Math.min(1,dt*4);}
@@ -1286,6 +1301,8 @@ var Garden3D=(function(){
   }
   function targetAt(cx,cy){
     var ray=rayAt(cx,cy);
+    // 信箱上飄的信封最優先（有人、寵物走到前面也點得到）
+    if(envS&&envS.visible&&ray.intersectObject(envS)[0])return {kind:'decor',id:envS.userData.id};
     var lh=ray.intersectObjects(LAND_IDS.map(function(id){return LAND_GEO[id].sign.hb;}))[0];if(lh)return {kind:'sign',id:lh.object.userData.land};
     var vh=ray.intersectObjects(visitors.map(function(q){return q.hb;}))[0];if(vh)return {kind:'visitor',v:vh.object.userData.v};
     var lb=labelAt(cx,cy);if(lb)return {kind:'plot',p:lb};
@@ -1453,6 +1470,7 @@ var Garden3D=(function(){
     else if(o&&o.at)v=new T.Vector3(o.at[0],0,o.at[1]);
     else if(o&&o.decor&&decors[o.decor])v=decors[o.decor].g.position.clone().setY(.8);
     else if(o&&o.act){var hh=(ACTS.hits[phase]||[]).concat(ACTS.hits.all||[]).filter(function(m){return m.userData.act===o.act;})[0];if(hh){v=new T.Vector3();hh.getWorldPosition(v);}}
+    else if(o&&o.env&&envS&&envS.visible)v=envS.position.clone();
     else if(o&&o.person){var h=people.filter(function(q){return q.k===o.person;})[0];if(h)v=h.g.position.clone().setY(.9);}
     if(!v)return null;v.project(cam);var r=R.domElement.getBoundingClientRect();return {x:r.left+(v.x+1)/2*r.width,y:r.top+(1-v.y)/2*r.height};
   }
@@ -1462,7 +1480,7 @@ var Garden3D=(function(){
     // 測試用：每個人、每隻寵物在溪的哪一邊、離水多近、是不是在橋上；叫某個人／寵物走去某個地方
     // 營火有多近（看著遊樂區＝1、很遠＝0）：給環境音調營火聲大小
     fireNear:function(){if(!actG)return 0;var c=AWp(0,.3),d=Math.hypot(tgt.x-c.x,tgt.z-c.z)+Math.max(0,rad-14)*.5;return Math.max(0,Math.min(1,1-(d-3)/12));},
-    speed:function(n){tScale=n||1;},hold:function(v){holdAI=!!v;},flashTrees:flashTrees,
+    speed:function(n){tScale=n||1;},env:function(){return envS&&envS.visible?{on:true,id:envS.userData.id,y:+envS.position.y.toFixed(2)}:{on:false};},hold:function(v){holdAI=!!v;},flashTrees:flashTrees,
     // 卡片上換到別棵的時候，3D 裡也標出現在是哪一棵
     mark:function(kind,id){var t=null;if(kind==='plant'){var p=plots.filter(function(q){return q.on&&q.id===id;})[0];if(p)t={kind:'plot',p:p};}else if(trees[id])t={kind:'tree',id:id};if(t){setHL(t,true);hl.hold=1.6;}},
     // 測試用：螢幕上這一點會點到什麼

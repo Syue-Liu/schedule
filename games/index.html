@@ -57,6 +57,7 @@ body{min-height:100%;background:var(--paper);}
 .lb-inv{display:block;margin-top:14px;padding:11px 12px;border:2px solid #665347;border-radius:16px;background:linear-gradient(#FFE3DA,#F7B9A9);box-shadow:0 3px 0 #B5765F;color:#5A3A30;font-size:15px;text-align:center;text-decoration:none;animation:lbInv 1s ease-in-out infinite alternate;}
 .lb-inv[hidden]{display:none;}
 @keyframes lbInv{to{transform:scale(1.02);}}
+.lb-mail{background:linear-gradient(#FFEFF3,#FBCFDB);box-shadow:0 3px 0 #C47D90;color:#7A3348;}
 </style>
 <link rel="stylesheet" href="polish.css?v=snowlake-20261026">
 </head>
@@ -70,13 +71,14 @@ body{min-height:100%;background:var(--paper);}
     <div class="lb-who" id="lbWho"></div>
   </div>
   <a class="lb-inv" id="lbInv" href="climb.html?vs=1" hidden></a>
+  <a class="lb-inv lb-mail" id="lbMail" href="garden.html?mail=1" hidden></a>
   <div class="lb-h"><span>冒險地點 <small id="lbCap" style="font-size:12px;color:var(--t3)"></small></span><button class="lb-rankbtn" id="lbRank">🏆 排行榜</button></div>
   <div class="lb-list" id="lbList"></div>
   <div class="lb-note">比賽的遊戲都可以和另一半用手機連線對戰（開始卡片下面的「📱 連線對戰」）<br>記憶小森林是兩個人一起種，每天回來回答問題、澆水<br>所有遊戲合計，每天最多拿 3 包飼料（每局看星星給 1～3 包）<br>拿到的飼料回到班表就會放進你的背包</div>
 </div>
 <script src="sound.js?v=garden-20261102"></script>
 <script src="game.js?v=garden-20261102"></script>
-<script src="vs.js?v=garden-20261102"></script>
+<script src="vs.js?v=mail-20261108"></script>
 <script>
 // 冒險地點：有 href 的就是可以玩的
 var GAMES=[
@@ -133,7 +135,13 @@ function vsPaint(){
   var op=VS.other(),el=document.getElementById('lbInv'),g=VS.can()?VS.ORDER.filter(function(k){return VS.present((vsRoom[k]||{})[op]);})[0]:null;
   el.hidden=!g;if(g){el.textContent='💌 '+G.NAMES[op]+' 在'+VS.NAMES[g]+'等你連線對戰！點這裡加入 →';el.href=g+'.html?vs=1';}
 }
-if(VS.can())VS.connect().then(function(){VS.watchAll(function(r){vsRoom=r||{};vsPaint();});setInterval(vsPaint,5000);}).catch(function(e){console.warn('vs',e);});
+// 記憶小森林的信：另一半寄來還沒看的信（回到這頁、每 2 分鐘再看一次）
+function mailLine(){
+  if(!VS.can()||!VS.docGet||document.hidden)return;var me=VS.me();
+  VS.docGet('garden').then(function(d){var m=(d&&d.mail)||{},n=0,from='';Object.keys(m).forEach(function(id){var x=m[id];if(x&&x.to===me&&!x.read){n++;from=x.from;}});
+    var el=document.getElementById('lbMail');el.hidden=!n;if(n)el.textContent='💌 '+G.NAMES[from]+(n>1?'在記憶小森林寄了 '+n+' 封信給你':'在記憶小森林寄了一封信給你')+'，點這裡看 →';}).catch(function(e){console.warn('mail',e);});
+}
+if(VS.can())VS.connect().then(function(){VS.watchAll(function(r){vsRoom=r||{};vsPaint();});setInterval(vsPaint,5000);mailLine();setInterval(mailLine,120000);document.addEventListener('visibilitychange',mailLine);}).catch(function(e){console.warn('vs',e);});
 // 大廳的主題曲（第一次點畫面才會開始）
 SND.music('lobby');
 draw();

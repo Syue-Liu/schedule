@@ -182,6 +182,9 @@ button.sc{font-family:inherit;color:var(--t);}
 .vs-pill button{border:0;background:none;font-family:inherit;color:var(--t);cursor:pointer;}
 .vs-pill .vs-go{font-size:14px;padding:6px 6px 6px 12px;}
 .vs-pill .vs-x{width:28px;height:28px;border-radius:50%;background:var(--paper);font-size:12px;}
+.mail-pill{background:#FBCFDB;}.mail-pill.low{top:calc(env(safe-area-inset-top) + 104px);}
+.mail-pill .vs-go{animation:mailGo 1.2s ease-in-out infinite alternate;}
+@keyframes mailGo{to{transform:scale(1.05);}}
 .upd-pill{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 10px);transform:translateX(-50%);z-index:90;padding:8px 16px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--yellow);color:var(--t);font-family:inherit;font-size:13px;box-shadow:0 3px 0 var(--ink);cursor:pointer;animation:menuIn .3s var(--pop);}
 /* ── 底部彈出卡片 ── */
 .popup-ov{position:fixed;inset:0;background:rgba(255,252,246,0);z-index:60;display:none;align-items:flex-end;justify-content:center;padding:0 10px 14px;transition:background .28s ease;}
@@ -1275,6 +1278,7 @@ function startListener(code){
   },err=>{console.error('listener error',err);setDot('err');});
   startPhotoListener(code);
   startVsListener(code);
+  startMailCheck(code);
 }
 /* ── 連線對戰邀請：另一半在小遊戲的對戰房間等（banbiao/<代碼>_vs），上面跳出「加入」 ── */
 const VS_GAMES={climb:'爬樓梯',whack:'打地鼠',fish:'釣魚',tower:'蓋房子'};
@@ -1293,13 +1297,37 @@ function vsPaint(){
   var me=petWho(),op=me==='syue'?'ling':me==='ling'?'syue':'',game='',o=null;
   if(op)Object.keys(VS_GAMES).some(function(g){var x=(vsRoom[g]||{})[op],at=x?+x.at||0:0;if(x&&x.on&&Date.now()-(vsSeen[g+op+'T']||0)<25000&&Math.abs(Date.now()-at)<180000&&vsHide!==x.sid){game=g;o=x;return true;}return false;});
   var el=document.getElementById('vsPill');
-  if(!game){if(el)el.remove();return;}
+  if(!game){if(el)el.remove();var mp0=document.getElementById('mailPill');if(mp0)mp0.classList.remove('low');return;}
   if(!el){el=document.createElement('div');el.id='vsPill';el.className='vs-pill';document.body.appendChild(el);}
   el.innerHTML='<button class="vs-go">💌 '+USERS[op].label+' 在'+VS_GAMES[game]+'等你對戰！加入 →</button><button class="vs-x" aria-label="關閉">✕</button>';
   el.querySelector('.vs-go').onclick=function(){location.href='games/'+game+'.html?vs=1';};
   el.querySelector('.vs-x').onclick=function(){vsHide=o.sid;el.remove();};
+  var mp=document.getElementById('mailPill');if(mp)mp.classList.add('low');
 }
 setInterval(function(){if(unsubVs)vsPaint();},5000);
+/* ── 記憶小森林的信：另一半寄了還沒看的信，班表上面跳出「💌 去看看」（打開、回到 App、每 2 分鐘看一次；
+   只讀一次文件，不一直監聽，因為對方在花園裡每 20 秒會報到一次） ── */
+let mailCode='',mailN=0,mailFrom='',mailTop='',mailHide='';
+function startMailCheck(code){mailCode=db&&code&&code!=='LOCAL'?code:'';mailN=0;mailPaint();mailCheck();}
+function mailCheck(){
+  if(!mailCode||document.hidden)return;var me=petWho();if(me!=='syue'&&me!=='ling')return;
+  getDoc(doc(db,'banbiao',mailCode+'_garden')).then(function(snap){
+    var m=(snap.exists()&&snap.data().mail)||{},n=0,top=null;
+    Object.keys(m).forEach(function(id){var x=m[id];if(x&&x.to===me&&!x.read){n++;if(!top||(+x.at||0)>(+top.at||0))top={id:id,from:x.from,at:x.at};}});
+    mailN=n;mailFrom=top?top.from:'';mailTop=top?top.id:'';mailPaint();
+  }).catch(function(e){console.warn('mail',e);});
+}
+function mailPaint(){
+  var el=document.getElementById('mailPill');
+  if(!mailN||mailHide===mailTop||!USERS[mailFrom]){if(el)el.remove();return;}
+  if(!el){el=document.createElement('div');el.id='mailPill';el.className='vs-pill mail-pill';document.body.appendChild(el);}
+  el.classList.toggle('low',!!document.getElementById('vsPill'));
+  el.innerHTML='<button class="vs-go">💌 '+USERS[mailFrom].label+(mailN>1?' 寄了 '+mailN+' 封信給你':' 寄了一封信給你')+'，去看看 →</button><button class="vs-x" aria-label="關閉">✕</button>';
+  el.querySelector('.vs-go').onclick=function(){location.href='games/garden.html?mail=1';};
+  el.querySelector('.vs-x').onclick=function(){mailHide=mailTop;el.remove();};
+}
+setInterval(mailCheck,120000);
+document.addEventListener('visibilitychange',function(){if(!document.hidden)mailCheck();});
 function saveLocalOnly(){lsSet('scheduleDataV2',JSON.stringify(scheduleData));lsSet('shiftSetsV2',JSON.stringify(shiftSets));lsSet('profilePinsV2',JSON.stringify(profilePins));lsSet('eventsV1',JSON.stringify(calEvents));}
 function saveAll(uid){saveLocalOnly();if(!isRemoteUpdate)scheduleWrite(uid||currentUser);}
 function applySyncCode(code){code=normalizeCode(code);syncCode=code;lsSet('syncCode',code);startListener(code);}

@@ -51,6 +51,7 @@ var VS=(function(){
   function docWatch(name,cb){return fs.onSnapshot(docRef(name),function(s){cb(s.exists()?s.data():{});},function(e){console.warn('vs doc',e);});}
   function docPut(name,data){return fs.setDoc(docRef(name),data,{merge:true});}
   // 班表本身那份資料（讀一次）：小森林拿每年重複的行程（生日、紀念日）來慶祝
+  function docGet(name){return fs.getDoc(docRef(name)).then(function(s){return s.exists()?s.data():{};});}
   function mainGet(){return fs.getDoc(fs.doc(db,'banbiao',code())).then(function(s){return s.exists()?s.data():{};});}
   function listen(u,cb){return fs.onSnapshot(liveRef(u),function(s){cb(s.exists()?s.data():null);},function(e){console.warn('vs live',e);});}
 
@@ -227,7 +228,7 @@ var VS=(function(){
     ov.querySelector('[data-solo]').onclick=function(){ov.remove();M=null;hideBar();SND.music(cfg.game);cfg.solo();};
     ov.querySelector('[data-lobby]').onclick=function(){location.href='./';};
   }
-  return {NAMES:NAMES,ORDER:ORDER,can:can,me:me,other:other,connect:connect,now:now,ms:ms,seeded:seeded,watch:watch,watchAll:watchAll,present:present,docWatch:docWatch,docPut:docPut,mainGet:mainGet,
+  return {NAMES:NAMES,ORDER:ORDER,can:can,me:me,other:other,connect:connect,now:now,ms:ms,seeded:seeded,watch:watch,watchAll:watchAll,present:present,docWatch:docWatch,docGet:docGet,docPut:docPut,mainGet:mainGet,
     setup:setup,auto:auto,mount:mount,changed:changed,frame:frame,push:push,finish:finish,time:time,opName:opName,
     match:function(){return M;},cfg:function(){return cfg;},inRoom:function(){return inRoom;},sid:function(){return sid;}};
 })();
