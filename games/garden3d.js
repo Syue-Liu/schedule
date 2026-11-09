@@ -1462,6 +1462,14 @@ var Garden3D=(function(){
     hooks.moveSel(mv.sel);
   }
   // 鏡頭飛到某塊土地（或回花園中間）
+  // 轉方向的時候：鏡頭對準那一個、圈圈一直亮著，點別的東西不會打開卡片
+  var rotK=null;
+  function focusObj(kind,id){var x,z,t=null;
+    if(kind==='decor'&&decors[id]){x=decors[id].x;z=decors[id].z;t={kind:'decor',id:id};}
+    else if(kind==='tree'&&trees[id]){x=trees[id].x;z=trees[id].z;t={kind:'tree',id:id};}
+    else{var p=plots.filter(function(q){return q.on&&q.id===id;})[0];if(p){x=p.x;z=p.z;t={kind:'plot',p:p};}}
+    if(!t)return false;rotK=t;setHL(t,true);hl.hold=1e9;focus(x,z,11,null,.5);idleAt=Date.now()+1e9;return true;}
+  function unfocus(){rotK=null;hl.hold=null;setHL(null);idleAt=Date.now();}
   function focus(x,z,r,a,e){tgoal.set(x,.7,z);rgoal=r||0;agoal=a==null?null:a;egoal=e==null?null:e;}
   // 看某塊新土地：鏡頭站在花園這邊往外看，後面是草原和遠山
   function focusLand(id){var L=LAND_GEO[id];if(!L||!L.open){focus(0,0,fitR,.45,.62);return;}var f=L.a+Math.PI+(L.vo||0);focus(L.c.x,L.c.z,16,Math.atan2(Math.cos(f),Math.sin(f)),.78);}
@@ -1490,10 +1498,10 @@ var Garden3D=(function(){
   /* ── 鏡頭：拖曳轉、兩指拉近；沒人動的時候自己慢慢轉 ── */
   function place(){var x=Math.cos(el)*Math.sin(az),y=Math.sin(el),z=Math.cos(el)*Math.cos(az);cam.position.set(tgt.x+x*rad,tgt.y+y*rad,tgt.z+z*rad);cam.lookAt(tgt);}
   function bind(cv){
-    cv.addEventListener('pointerdown',function(e){ptrs[e.pointerId]={x:e.clientX,y:e.clientY};try{cv.setPointerCapture(e.pointerId);}catch(_){}idleAt=Date.now();var ids=Object.keys(ptrs);if(ids.length===1){down={x:e.clientX,y:e.clientY,t:Date.now(),moved:0};if(!mv){down.tg=targetAt(e.clientX,e.clientY);hl.hold=null;setHL(down.tg,true);}}else{down=null;pinch0=dist();rad0=rad;}});
+    cv.addEventListener('pointerdown',function(e){ptrs[e.pointerId]={x:e.clientX,y:e.clientY};try{cv.setPointerCapture(e.pointerId);}catch(_){}idleAt=Date.now();var ids=Object.keys(ptrs);if(ids.length===1){down={x:e.clientX,y:e.clientY,t:Date.now(),moved:0};if(!mv&&!rotK){down.tg=targetAt(e.clientX,e.clientY);hl.hold=null;setHL(down.tg,true);}}else{down=null;pinch0=dist();rad0=rad;}});
     var hoverT=0;
     cv.addEventListener('pointermove',function(e){var p=ptrs[e.pointerId];
-      if(!p){if(e.pointerType==='mouse'&&!mv&&Date.now()-hoverT>60){hoverT=Date.now();var ht=targetAt(e.clientX,e.clientY);if(hl.hold==null)setHL(ht,false);}return;}var dx=e.clientX-p.x,dy=e.clientY-p.y;p.x=e.clientX;p.y=e.clientY;idleAt=Date.now();
+      if(!p){if(e.pointerType==='mouse'&&!mv&&!rotK&&Date.now()-hoverT>60){hoverT=Date.now();var ht=targetAt(e.clientX,e.clientY);if(hl.hold==null)setHL(ht,false);}return;}var dx=e.clientX-p.x,dy=e.clientY-p.y;p.x=e.clientX;p.y=e.clientY;idleAt=Date.now();
       var ids=Object.keys(ptrs);if(ids.length>=2){var d=dist();if(pinch0){rad=Math.max(10,Math.min(40,rad0*pinch0/d));rgoal=0;}return;}
       agoal=egoal=null;az-=dx*.006;el=Math.max(.3,Math.min(1.12,el+dy*.0035));if(down){down.moved+=Math.abs(dx)+Math.abs(dy);if(down.moved>=10&&down.tg){down.tg=null;setHL(null);}}});
     cv.addEventListener('pointerleave',function(e){if(e.pointerType==='mouse'&&hl.hold==null)setHL(null);});
@@ -1582,6 +1590,7 @@ var Garden3D=(function(){
   }
   function pick(e,pre){
     if(mv){movePick(rayAt(e.clientX,e.clientY));return;}
+    if(rotK)return;
     var t=pre!==undefined?pre:targetAt(e.clientX,e.clientY);
     setHL(t,true);hl.hold=.7;act(t);
   }
@@ -1713,7 +1722,7 @@ var Garden3D=(function(){
   }
   return {resetView:function(){az=.45;el=.62;rad=fitR;rgoal=0;agoal=egoal=null;tgt.set(0,.7,0);tgoal.copy(tgt);idleAt=Date.now();place();},
     move:moveStart,moveEnd:moveEnd,moving:function(){return mv?{kind:mv.kind,id:mv.id,sel:mv.sel}:null;},freeSpot:freeSpot,forestPos:forestPos,canPlace:function(x,z,id){return canPlace(x,z,id);},
-    focusLand:focusLand,
+    focusLand:focusLand,focusObj:focusObj,unfocus:unfocus,
     // 測試用：每個人、每隻寵物在溪的哪一邊、離水多近、是不是在橋上；叫某個人／寵物走去某個地方
     // 營火有多近（看著遊樂區＝1、很遠＝0）：給環境音調營火聲大小
     fireNear:function(){if(!actG)return 0;var c=AWp(0,.3),d=Math.hypot(tgt.x-c.x,tgt.z-c.z)+Math.max(0,rad-14)*.5;return Math.max(0,Math.min(1,1-(d-3)/12));},
