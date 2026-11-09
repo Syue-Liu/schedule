@@ -1462,6 +1462,10 @@ var Garden3D=(function(){
     hooks.moveSel(mv.sel);
   }
   // 鏡頭飛到某塊土地（或回花園中間）
+  // 跟著看：鏡頭一直對著某個人或寵物（拖曳繞著他轉、兩指拉近拉遠）
+  var follow=null;
+  function followPos(){if(!follow)return null;var p=people.filter(function(o){return o.k===follow;})[0];if(p)return p.g.position.clone().setY(p.g.position.y+1.1);var q=pets.filter(function(o){return o.k===follow;})[0];if(q)return q.spr.position.clone().setY(q.spr.position.y+.55);return null;}
+  function setFollow(k){follow=k||null;if(follow){if(!followPos()){follow=null;return false;}rgoal=7;egoal=.38;agoal=null;idleAt=Date.now()+1e9;}else{rgoal=0;idleAt=Date.now();}return true;}
   // 轉方向的時候：鏡頭對準那一個、圈圈一直亮著，點別的東西不會打開卡片
   var rotK=null;
   function focusObj(kind,id){var x,z,t=null;
@@ -1502,12 +1506,12 @@ var Garden3D=(function(){
     var hoverT=0;
     cv.addEventListener('pointermove',function(e){var p=ptrs[e.pointerId];
       if(!p){if(e.pointerType==='mouse'&&!mv&&!rotK&&Date.now()-hoverT>60){hoverT=Date.now();var ht=targetAt(e.clientX,e.clientY);if(hl.hold==null)setHL(ht,false);}return;}var dx=e.clientX-p.x,dy=e.clientY-p.y;p.x=e.clientX;p.y=e.clientY;idleAt=Date.now();
-      var ids=Object.keys(ptrs);if(ids.length>=2){var d=dist();if(pinch0){rad=Math.max(10,Math.min(40,rad0*pinch0/d));rgoal=0;}return;}
+      var ids=Object.keys(ptrs);if(ids.length>=2){var d=dist();if(pinch0){rad=Math.max(follow?3.5:10,Math.min(40,rad0*pinch0/d));rgoal=0;}return;}
       agoal=egoal=null;az-=dx*.006;el=Math.max(.3,Math.min(1.12,el+dy*.0035));if(down){down.moved+=Math.abs(dx)+Math.abs(dy);if(down.moved>=10&&down.tg){down.tg=null;setHL(null);}}});
     cv.addEventListener('pointerleave',function(e){if(e.pointerType==='mouse'&&hl.hold==null)setHL(null);});
     function up(e){var d=down;delete ptrs[e.pointerId];if(Object.keys(ptrs).length<2)pinch0=0;if(d&&d.moved<10&&Date.now()-d.t<1500)pick(e,d.tg);else if(d&&e.pointerType!=='mouse')setHL(null);down=null;}
     cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',function(e){delete ptrs[e.pointerId];down=null;pinch0=0;setHL(null);});
-    cv.addEventListener('wheel',function(e){e.preventDefault();rad=Math.max(10,Math.min(40,rad*(1+e.deltaY*.001)));rgoal=0;idleAt=Date.now();},{passive:false});
+    cv.addEventListener('wheel',function(e){e.preventDefault();rad=Math.max(follow?3.5:10,Math.min(40,rad*(1+e.deltaY*.001)));rgoal=0;idleAt=Date.now();},{passive:false});
   }
   function dist(){var p=Object.keys(ptrs).map(function(k){return ptrs[k];});return p.length<2?1:Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y);}
   // 點到什麼：小鳥 → 送水、蝴蝶蜜蜂 → 飛走、害蟲 → 抓走、寵物 → 跳一下、人 → 揮手、土 → 種、植物 → 澆水卡片、森林的樹 → 回憶
@@ -1607,6 +1611,7 @@ var Garden3D=(function(){
   /* ── 每一格 ── */
   function tick(dt){
     now+=dt;
+    if(follow){var fp=followPos();if(fp)tgoal.copy(fp);else setFollow(null);}
     var kk=1-Math.exp(-dt*3.2);tgt.lerp(tgoal,kk);if(rgoal)rad+=(rgoal-rad)*kk;
     if(agoal!=null){var dA=angDiff(agoal,az);az+=dA*kk;if(Math.abs(dA)<.002)agoal=null;}if(egoal!=null){el+=(egoal-el)*kk;if(Math.abs(egoal-el)<.002)egoal=null;}
     place();
@@ -1628,7 +1633,7 @@ var Garden3D=(function(){
     for(var i=fx.length-1;i>=0;i--){var f=fx[i];f.t+=dt;f.up(f,dt);if(f.t>=f.dur){if(f.end)f.end();fx.splice(i,1);}}
   }
   var lastDraw=0,drawn=0,qTier=0,qLock=-1,qEval={t0:0,n:0,sum:0,last:0};
-  function busy(){for(var k in ptrs)return true;return Date.now()-idleAt<1500||agoal!=null||egoal!=null||(!!rgoal&&Math.abs(rgoal-rad)>.05)||tgt.distanceToSquared(tgoal)>1e-4||!!mv||performance.now()-qEval.t0<qEval.win;}
+  function busy(){for(var k in ptrs)return true;return !!follow||Date.now()-idleAt<1500||agoal!=null||egoal!=null||(!!rgoal&&Math.abs(rgoal-rad)>.05)||tgt.distanceToSquared(tgoal)>1e-4||!!mv||performance.now()-qEval.t0<qEval.win;}
   function setQuality(t){qTier=t;sun.castShadow=t<1;R.setPixelRatio(t>=2?1:Math.min(2,window.devicePixelRatio||1));size();}
   // 開始後先每一格都畫，量 4 秒：平均一格超過 40ms（不到 25 格）就降一級，最多降兩級
   function quality(t){if(qLock>=0||qTier>=2||qEval.done)return;qEval.n++;if(qEval.last)qEval.sum+=t-qEval.last;qEval.last=t;if(t-qEval.t0<qEval.win)return;var avg=qEval.n>1?qEval.sum/(qEval.n-1):0;if(avg>40){setQuality(qTier+1);qEval={t0:t,n:0,sum:0,last:0,win:4000};}else{qEval.done=true;qEval.win=0;}}
@@ -1720,7 +1725,7 @@ var Garden3D=(function(){
     else if(o&&o.person){var h=people.filter(function(q){return q.k===o.person;})[0];if(h)v=h.g.position.clone().setY(.9);}
     if(!v)return null;v.project(cam);var r=R.domElement.getBoundingClientRect();return {x:r.left+(v.x+1)/2*r.width,y:r.top+(1-v.y)/2*r.height};
   }
-  return {resetView:function(){az=.45;el=.62;rad=fitR;rgoal=0;agoal=egoal=null;tgt.set(0,.7,0);tgoal.copy(tgt);idleAt=Date.now();place();},
+  return {follow:function(k){return setFollow(k);},following:function(){return follow;},resetView:function(){follow=null;az=.45;el=.62;rad=fitR;rgoal=0;agoal=egoal=null;tgt.set(0,.7,0);tgoal.copy(tgt);idleAt=Date.now();place();},
     move:moveStart,moveEnd:moveEnd,moving:function(){return mv?{kind:mv.kind,id:mv.id,sel:mv.sel}:null;},freeSpot:freeSpot,forestPos:forestPos,canPlace:function(x,z,id){return canPlace(x,z,id);},
     focusLand:focusLand,focusObj:focusObj,unfocus:unfocus,
     // 測試用：每個人、每隻寵物在溪的哪一邊、離水多近、是不是在橋上；叫某個人／寵物走去某個地方

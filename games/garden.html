@@ -143,6 +143,13 @@ body{min-height:100%;background:#F4F8EC;}
 .g3.full .g3-btn.g3-reset{top:calc(env(safe-area-inset-top) + 62px);}
 .g3-decor{top:110px;}
 .g3.full .g3-btn.g3-decor{top:calc(env(safe-area-inset-top) + 112px);}
+.g3-follow{top:160px;}
+.g3.full .g3-btn.g3-follow{top:calc(env(safe-area-inset-top) + 162px);}
+.g3-btn.on{background:#FFE9A8;}
+.fbar{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 14px);transform:translateX(-50%);z-index:50;display:flex;align-items:center;gap:6px;padding:6px 8px 6px 14px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);box-shadow:0 3px 0 var(--ink);white-space:nowrap;}
+.fbar[hidden]{display:none;}.fbar b{font-weight:400;font-size:15px;margin-right:4px;}.fbar img{height:26px;width:auto;vertical-align:-6px;}
+.fbar button{min-width:38px;height:36px;padding:0 10px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);font-family:inherit;font-size:14px;color:var(--t);}
+.who-pick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px;}.who-pick button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border:var(--lw2) solid var(--ink);border-radius:14px;background:var(--paper);font-family:inherit;font-size:14px;color:var(--t);}.who-pick button img{height:52px;width:auto;}.who-pick .ppl{font-size:30px;line-height:52px;}
 .dec-e{display:block;font-size:30px;line-height:1.25;}
 .dec-big{font-size:56px;text-align:center;line-height:1.2;}
 .mailbtn{position:relative;padding:3px 10px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);font-size:13px;}
@@ -257,8 +264,9 @@ body{min-height:100%;background:#F4F8EC;}
   <button class="mail-bar" id="mailBar" hidden></button>
   <div class="wx" id="wx"></div>
   <section class="qcard" id="qcard"></section>
-  <section class="g3" id="g3"><div class="g3-load">🌱 花園長出來中…</div><div class="g3-drops" id="g3drops"></div><button class="g3-mail" id="g3mail" aria-label="有新信" hidden>💌</button><button class="g3-btn" id="g3full" aria-label="全螢幕">⤢</button><button class="g3-btn g3-reset" id="g3reset" aria-label="恢復視角">↺ 視角</button><button class="g3-btn g3-decor" id="g3decor" aria-label="裝飾花園">🎀</button><div class="g3-tip" id="g3tip">拖曳轉一圈・兩指拉近・點土種樹・點植物澆水</div></section>
+  <section class="g3" id="g3"><div class="g3-load">🌱 花園長出來中…</div><div class="g3-drops" id="g3drops"></div><button class="g3-mail" id="g3mail" aria-label="有新信" hidden>💌</button><button class="g3-btn" id="g3full" aria-label="全螢幕">⤢</button><button class="g3-btn g3-reset" id="g3reset" aria-label="恢復視角">↺ 視角</button><button class="g3-btn g3-decor" id="g3decor" aria-label="裝飾花園">🎀</button><button class="g3-btn g3-follow" id="g3follow" aria-label="跟著看">👀</button><div class="g3-tip" id="g3tip">拖曳轉一圈・兩指拉近・點土種樹・點植物澆水</div></section>
   <div class="mvbar" id="mvbar" hidden></div>
+  <div class="fbar" id="fbar" hidden></div>
   <section class="garden"><div class="fence"></div><div class="g-pets" id="gpets"></div><div class="plots" id="plots"></div></section>
   <section class="forest"><h3>🌳 我們的森林 <small id="fcount"></small></h3><div class="ftabs" id="ftabs"></div><div class="ftrees" id="forest"></div></section>
   <p class="gnote" id="gnote"></p>
@@ -267,7 +275,7 @@ body{min-height:100%;background:#F4F8EC;}
 <script src="sound.js?v=amb-20261105"></script>
 <script src="game.js?v=garden-20261102"></script>
 <script src="vs.js?v=mail-20261108"></script>
-<script src="garden3d.js?v=rot2-20261109"></script>
+<script src="garden3d.js?v=follow-20261109"></script>
 <script>
 /* 記憶小森林：兩個人一起種。每天回答一題問答拿水滴，一起澆水，把種子種成樹；長大的樹放進森林，留著那段時間的問答和兩個人的話。
    資料：班表同一個 Firebase 的 banbiao/<同步代碼>_garden（沒有同步代碼就存在這支手機）
@@ -928,8 +936,9 @@ function state3d(){
 function start3d(){
   var box=$('g3');
   box.addEventListener('pointerdown',function(){$('g3tip').style.opacity=0;},{once:true});
-  $('g3full').onclick=function(){if(rotating){SND.sfx('tap');endRotate();return;}setFull(!box.classList.contains('full'));SND.sfx('tap');};
-  $('g3reset').onclick=function(){if(g3)Garden3D.resetView();};
+  $('g3full').onclick=function(){if(rotating){SND.sfx('tap');endRotate();return;}if(following&&following.full){SND.sfx('tap');stopFollow();return;}setFull(!box.classList.contains('full'));SND.sfx('tap');};
+  $('g3reset').onclick=function(){if(following)stopFollow();if(g3)Garden3D.resetView();};
+  $('g3follow').onclick=function(){if(following){SND.sfx('tap');stopFollow();}else openFollow();};
   $('g3decor').onclick=function(){SND.sfx('tap');openDecor();};
   Garden3D.init(box,{progress:function(s){ldStep(s);},plot:function(i){SND.sfx('tap');openSeeds(i);},plant:function(id){SND.sfx('tap');openPlant(id);},tree:function(id){SND.sfx('tap');openMemory(id);},pest:function(id){catchPest(id);},bird:function(){return birdGift();},gift:function(){return xmasGift();},
     land:function(id,open){var l=LANDS.filter(function(x){return x.id===id;})[0];if(!l)return;SND.sfx('tap');toast(open?'🏡 '+l.name:'🔒 花園升到 Lv.'+l.lv+' 會開放新土地「'+l.name+'」');},
@@ -1032,7 +1041,7 @@ function startMove(kind,id){
   closeSheet();
   if(kind==='tree'&&!g3){toast('森林的樹要在 3D 花園裡移植');return;}
   if(g3&&!Garden3D.move(kind,id)){toast('找不到這棵，等一下再試');return;}
-  moving={kind:kind,id:id,sel:null,full:g3&&!$('g3').classList.contains('full')};
+  stopFollow();moving={kind:kind,id:id,sel:null,full:g3&&!$('g3').classList.contains('full')};
   if(moving.full)setFull(true);
   $('g3tip').style.opacity=0;SND.sfx('tap');paintMove();if(!g3)paintPlots();
 }
@@ -1094,6 +1103,32 @@ function openDecor(){
   ov.querySelectorAll('[data-k]').forEach(function(b){b.onclick=function(){startDecor('decorNew',b.getAttribute('data-k'));};});
   ov.querySelector('[data-close]').onclick=closeSheet;
 }
+/* ── 跟著看：3D 花園的 👀，選學、綾或一隻寵物，鏡頭就一直跟著他；下面一條可以換人（‹ ›）或停止 ── */
+var FOLLOW=['syue','ling','cat','pg','dg'],following=null;
+function whoName(k){return NAMES[k]||G.petName(k);}
+function whoPic(k){return NAMES[k]?'<span class="ppl">'+(k==='syue'?'🧑':'👩')+'</span>':'<img src="'+G.petImg(k,'happy')+'" alt="">';}
+function openFollow(){
+  if(!g3)return;SND.sfx('tap');
+  var ov=card('<h2>👀 要跟著看誰？</h2><div class="who-pick">'+FOLLOW.map(function(k){return '<button data-who="'+k+'">'+whoPic(k)+esc(whoName(k))+'</button>';}).join('')+'</div><p class="g-small">鏡頭會一直跟著他；拖曳可以繞著看，兩指拉近拉遠</p><div class="g-btns"><button class="g-btn ghost" data-close>取消</button></div>');
+  ov.querySelectorAll('[data-who]').forEach(function(b){b.onclick=function(){closeSheet();startFollow(b.getAttribute('data-who'));};});
+  ov.querySelector('[data-close]').onclick=closeSheet;
+}
+function startFollow(k){
+  if(!g3||moving||rotating)return;
+  if(!Garden3D.follow(k)){toast('找不到'+whoName(k)+'，等一下再試');return;}
+  if(!following){following={k:k,full:!$('g3').classList.contains('full')};if(following.full)setFull(true);}else following.k=k;
+  $('g3tip').style.opacity=0;SND.sfx('tap');paintFollow();
+}
+function stopFollow(){if(!following)return;var f=following;following=null;Garden3D.follow(null);if(f.full)setFull(false);paintFollow();}
+function paintFollow(){
+  var bar=$('fbar');$('g3follow').classList.toggle('on',!!following);
+  if(!following){bar.hidden=true;bar.innerHTML='';return;}
+  var i=FOLLOW.indexOf(following.k);
+  bar.innerHTML='<b>👀 '+whoPic(following.k).replace('class="ppl"','')+' '+esc(whoName(following.k))+'</b><button data-prev aria-label="上一個">‹</button><button data-next aria-label="下一個">›</button><button data-stop>停止</button>';bar.hidden=false;
+  bar.querySelector('[data-prev]').onclick=function(){startFollow(FOLLOW[(i+FOLLOW.length-1)%FOLLOW.length]);};
+  bar.querySelector('[data-next]').onclick=function(){startFollow(FOLLOW[(i+1)%FOLLOW.length]);};
+  bar.querySelector('[data-stop]').onclick=function(){SND.sfx('tap');stopFollow();};
+}
 /* ── 轉方向：裝飾、土裡的植物、森林的樹都可以，一次轉 45 度（兩支手機一起看到）
    按「🔄 轉方向」：卡片收起來、花園變全螢幕、鏡頭對準它，下面一條「↺ ↻ 好了」，邊轉邊看 ── */
 var rotating=null;
@@ -1101,7 +1136,7 @@ function rotBtns(){return g3?'<button class="g-btn ghost" data-rot>🔄 轉方�
 function wireRot(box,kind,id){var el=box.querySelector('[data-rot]');if(el)el.onclick=function(){startRotate(kind,id);};}
 function rotSrc(){if(!rotating)return null;return rotating.kind==='decor'?D.decor[rotating.id]:D.plants[rotating.id];}
 function startRotate(kind,id){
-  closeSheet();if(!g3||moving)return;
+  closeSheet();if(!g3||moving)return;stopFollow();
   var src=kind==='decor'?D.decor[id]:D.plants[id];if(!src)return;
   var full=!$('g3').classList.contains('full');if(full)setFull(true);
   if(!Garden3D.focusObj(kind==='decor'?'decor':src.done?'tree':'plant',id)){if(full)setFull(false);toast('找不到它，等一下再試');return;}
@@ -1130,7 +1165,7 @@ function openDecorItem(id){
   ov.querySelector('[data-close]').onclick=closeSheet;
 }
 function startDecor(kind,x){
-  closeSheet();
+  closeSheet();stopFollow();
   if(!g3){toast('裝飾要在 3D 花園裡擺');return;}
   var k=kind==='decor'?(D.decor[x]&&D.decor[x].k):x;if(!DECOR[k])return;
   if(!Garden3D.move(kind,x)){toast('等一下再試一次');return;}
@@ -1256,7 +1291,7 @@ function askWho(){
 function help(){
   var L=level(),nt=L<TOPLV?unlockText(L+1):'',first=false;try{first=!localStorage.getItem('gardenHelp');}catch(e){}
   card('<h2>🎮 遊戲操作</h2><div class="g-rules">'+
-    '<h4>🖐️ 怎麼操作</h4><ul><li>拖曳轉一圈、兩指拉近拉遠；⤢ 全螢幕、↺ 回到原本的視角</li><li>點土種樹、點植物澆水；滑鼠移過去（手指按著）會亮起來，比較不會點錯</li><li>植物和森林的樹都可以「移植」，把花園排成你們喜歡的樣子</li><li>裝飾、植物、森林的樹都可以轉方向：點它，按「🔄 轉方向」，在花園裡邊看邊按 ↺ ↻</li></ul>'+
+    '<h4>🖐️ 怎麼操作</h4><ul><li>拖曳轉一圈、兩指拉近拉遠；⤢ 全螢幕、↺ 回到原本的視角</li><li>點土種樹、點植物澆水；滑鼠移過去（手指按著）會亮起來，比較不會點錯</li><li>植物和森林的樹都可以「移植」，把花園排成你們喜歡的樣子</li><li>3D 花園右邊的 👀：選學、綾或一隻寵物，鏡頭就一直跟著他（拖曳繞著看、兩指拉近）</li><li>裝飾、植物、森林的樹都可以轉方向：點它，按「🔄 轉方向」，在花園裡邊看邊按 ↺ ↻</li></ul>'+
     '<h4>💧 水滴</h4><ul><li>每個人每天 '+BASE+' 滴水；回答今日問題 +'+ANSWER+' 滴，二選一兩個人選一樣再各多 '+MATCH+' 滴</li><li>同一天兩個人都澆同一棵，那天多長 '+TOGETHER+' 點</li><li>小鳥飛來的時候點牠，送一滴水（每天最多 '+BIRD+' 滴）；有害蟲要先抓走才能澆水</li><li>下雨、下雪那天，所有植物都會自己長一點</li></ul>'+
     '<h4>🌳 森林</h4><ul><li>長大的植物種進森林，會留下那段時間的問答和你們寫的話</li><li>種進森林兩個人各拿 1 包飼料（算在每天 '+G.CAP+' 包裡）</li><li>澆水、回答、抓害蟲都會加經驗；升級多幾塊土、開放新土地、解鎖新的花和樹</li></ul>'+
     '<h4>🛝 遊樂區（點它們叫學和綾過去）</h4><ul><li>白天溜滑梯、盪鞦韆；下雨、下雪天溜滑梯換成涼亭，喝咖啡吃甜點</li><li>傍晚長椅看夕陽，晚上營火烤棉花糖</li><li>樹屋旁的鞦韆隨時都能盪，兩個人的話一個坐、一個在後面推</li></ul>'+
