@@ -227,6 +227,9 @@ body{min-height:100%;background:#F4F8EC;}
 .visitor{position:absolute;z-index:3;top:30%;font-size:28px;border:0;background:none;padding:4px;animation:fly 10s linear forwards;}
 @keyframes fly{from{left:-14%;}to{left:108%;}}
 .toasts{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 66px);transform:translateX(-50%);z-index:60;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;width:max-content;max-width:92vw;}
+.toasts div.tap{pointer-events:auto;cursor:pointer;background:#FFF6DC;max-width:88vw;white-space:normal;text-align:center;line-height:1.5;}
+.feed{max-height:52vh;overflow:auto;text-align:left;margin-top:6px;}.feed div{display:flex;gap:10px;align-items:baseline;padding:7px 2px;border-bottom:1.5px dashed #E4D9CC;font-size:14px;}.feed small{flex:none;width:68px;color:var(--t3);font-size:11px;}
+.here b.feedbtn{cursor:pointer;}
 .toasts div{padding:6px 14px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);font-size:13px;box-shadow:0 3px 0 var(--ink);animation:tIn .3s var(--pop),tOut .4s ease-in 2.8s forwards;}
 @keyframes tIn{from{transform:translateY(-10px) scale(.9);opacity:0;}}
 @keyframes tOut{to{opacity:0;transform:translateY(-8px);}}
@@ -715,6 +718,7 @@ function paintHere(){
   var on=Date.now()-(+D.here[op]||0)<50000,n=usedBy(op,today()),u=unread();
   $('here').innerHTML=(on?'<b class="on">🌱 '+NAMES[op]+' 也在花園裡</b>':'<b class="'+op+'">'+NAMES[op]+(n?' 今天澆了 '+n+' 滴水 💧':' 今天還沒來澆水')+'</b>')+'<button class="mailbtn'+(u?' hot':'')+'" data-mail aria-label="信箱">📮'+(u?'<i>'+u+'</i>':'')+'</button>';
   $('here').querySelector('[data-mail]').onclick=function(){SND.sfx('tap');openMail();};
+  var hb=$('here').querySelector('b');hb.className+=' feedbtn';hb.textContent+=' ›';hb.onclick=openFeed;
 }
 /* ── 新信：另一半寄來還沒看的信，花園上面一條粉紅橫幅、3D 花園左上角 💌、進花園（或信剛寄到）跳一張信封卡片 ── */
 function newestMail(){var b=null;Object.keys(D.mail||{}).forEach(function(id){var m=D.mail[id];if(m&&m.to===me&&!m.read&&(!b||m.at>b.at))b={id:id,from:m.from,at:m.at};});return b;}
@@ -815,32 +819,71 @@ function paintForest(){
   var L=level(),nt=L<TOPLV?unlockText(L+1):'';
   $('gnote').innerHTML='<button data-help>🎮 遊戲操作</button>';$('gnote').querySelector('[data-help]').onclick=function(){SND.sfx('tap');help();};
 }
-function toast(t){var e=document.createElement('div');e.textContent=t;$('toasts').appendChild(e);setTimeout(function(){e.remove();},3300);}
+function toast(t,onTap,ms){
+  var box=$('toasts');while(box.children.length>=3)box.firstChild.remove();
+  var e=document.createElement('div');e.textContent=t;if(onTap){e.className='tap';e.onclick=function(){e.remove();onTap();};}
+  if(ms)e.style.animation='tIn .3s var(--pop),tOut .4s ease-in '+(ms-500)/1000+'s forwards';
+  box.appendChild(e);setTimeout(function(){e.remove();},ms||3300);
+}
 // 另一半做了什麼：雲端資料變了就看看差在哪
 function news(prev,next){
   if(!op)return;
-  var day=today(),said=0;
-  function tell(t){toast(t);if(!said++)SND.sfx('chime');}
+  var day=today();
+  function tell(t,k,x){feedAdd(k||'etc',t,x);}
   var mvSaid={};
   Object.keys(next.plants||{}).forEach(function(id){
     var a=(prev.plants||{})[id],b=next.plants[id];if(!b||!SP[b.sp])return;
-    if(!a){if(b.by===op)tell(NAMES[op]+'種下了'+SP[b.sp].name+' 🌱');return;}
-    if(b.mv&&b.mv.by===op&&(!a.mv||a.mv.at!==b.mv.at)&&!mvSaid[b.mv.at]){mvSaid[b.mv.at]=1;tell(NAMES[op]+'把'+label(b)+'移植到新的地方 '+(b.done?'🌳':'🪴'));}
+    if(!a){if(b.by===op)tell(NAMES[op]+'種下了'+SP[b.sp].name+' 🌱','plant',SP[b.sp].name);return;}
+    if(b.mv&&b.mv.by===op&&(!a.mv||a.mv.at!==b.mv.at)&&!mvSaid[b.mv.at]){mvSaid[b.mv.at]=1;tell(NAMES[op]+'把'+label(b)+'移植到新的地方 '+(b.done?'🌳':'🪴'),'move');}
     var wa=+(((a.w||{})[op]||{})[day])||0,wb=+(((b.w||{})[op]||{})[day])||0;
-    if(wb>wa){tell(NAMES[op]+'幫'+label(b)+'澆了 '+(wb-wa)+' 滴水 💧');splash(id);}
-    if(b.done&&!a.done)tell(NAMES[op]+'把'+label(b)+'種進森林了 🌳');
-    if(((b.note||{})[op]||'')!==((a.note||{})[op]||'')&&(b.note||{})[op])tell(NAMES[op]+'對'+label(b)+'說了一句話 ✏️');
+    if(wb>wa){tell(NAMES[op]+'幫'+label(b)+'澆了 '+(wb-wa)+' 滴水 💧','water',wb-wa);splash(id);}
+    if(b.done&&!a.done)tell(NAMES[op]+'把'+label(b)+'種進森林了 🌳','forest',label(b));
+    if(((b.note||{})[op]||'')!==((a.note||{})[op]||'')&&(b.note||{})[op])tell(NAMES[op]+'對'+label(b)+'說了一句話 ✏️','note');
   });
-  Object.keys(next.pests||{}).forEach(function(k){var x=next.pests[k];if(!x||x.by!==op||(prev.pests||{})[k])return;var pl=next.plants[k.split('_')[0]];tell(NAMES[op]+'抓走了'+(pl&&SP[pl.sp]?label(pl)+'上的':'')+'害蟲 🐛');if(g3&&pl)Garden3D.shoo(k.split('_')[0]);});
-  Object.keys(next.decor||{}).forEach(function(id){var b=next.decor[id],a=(prev.decor||{})[id];if(!b||!DECOR[b.k])return;if(!a&&b.by===op)tell(NAMES[op]+'在花園擺了'+DECOR[b.k].name+' '+DECOR[b.k].e);else if(a&&b.mv&&b.mv.by===op&&(!a.mv||a.mv.at!==b.mv.at))tell(NAMES[op]+'把'+DECOR[b.k].name+'搬到新的地方 '+DECOR[b.k].e);});
+  Object.keys(next.pests||{}).forEach(function(k){var x=next.pests[k];if(!x||x.by!==op||(prev.pests||{})[k])return;var pl=next.plants[k.split('_')[0]];tell(NAMES[op]+'抓走了'+(pl&&SP[pl.sp]?label(pl)+'上的':'')+'害蟲 🐛','pest');if(g3&&pl)Garden3D.shoo(k.split('_')[0]);});
+  Object.keys(next.decor||{}).forEach(function(id){var b=next.decor[id],a=(prev.decor||{})[id];if(!b||!DECOR[b.k])return;if(!a&&b.by===op)tell(NAMES[op]+'在花園擺了'+DECOR[b.k].name+' '+DECOR[b.k].e,'decor',DECOR[b.k].name);else if(a&&b.mv&&b.mv.by===op&&(!a.mv||a.mv.at!==b.mv.at))tell(NAMES[op]+'把'+DECOR[b.k].name+'搬到新的地方 '+DECOR[b.k].e,'dmove');});
   var newMail=Object.keys(next.mail||{}).filter(function(id){var m=next.mail[id];return m&&m.to===me&&!m.read&&!(prev.mail||{})[id];});
-  if(newMail.length){if(sheet||typing()||moving)tell('💌 '+NAMES[op]+'寄了一封信給你，點上面粉紅色那條打開');else said++;setTimeout(mailCard,250);}
-  if(+(((next.gift||{})[op]||{})[day])&&!+(((prev.gift||{})[op]||{})[day]))tell(NAMES[op]+'拆了聖誕樹下的禮物 🎁');
+  if(newMail.length){tell('💌 '+NAMES[op]+'寄了一封信給你'+(sheet||typing()||moving?'，點上面粉紅色那條打開':''),'mail');setTimeout(mailCard,250);}
+  if(+(((next.gift||{})[op]||{})[day])&&!+(((prev.gift||{})[op]||{})[day]))tell(NAMES[op]+'拆了聖誕樹下的禮物 🎁','gift');
   var qa=(next.qa||{})[day]||{},qb=(prev.qa||{})[day]||{};
-  if(qa[op]!=null&&qb[op]==null)tell(NAMES[op]+'回答了今日問題 💬');
+  if(qa[op]!=null&&qb[op]==null)tell(NAMES[op]+'回答了今日問題 💬','qa');
   // 另一半剛打開花園（超過一分鐘沒報到、現在又報到）
-  if(+next.here[op]-(+(prev.here||{})[op]||0)>60000)tell(NAMES[op]+'來花園了 🌱');
+  if(+next.here[op]-(+(prev.here||{})[op]||0)>60000)tell(NAMES[op]+'來花園了 🌱','here');
   claim();
+}
+/* ── 另一半的動態：一次來很多件（例如手機睡了一陣子才同步）就合成一則摘要，點了看完整清單；
+   每一件都記在「動態」裡（這支手機留最近 60 件），點上面「綾 今天…」那格也能看 ── */
+var FEED=[],feedBuf=[],feedT=0;
+try{FEED=JSON.parse(localStorage.getItem('gardenFeed')||'[]')||[];}catch(e){FEED=[];}
+function feedAdd(k,t,x){feedBuf.push({k:k,t:t,x:x});if(!feedT)feedT=setTimeout(feedFlush,1200);}
+function feedFlush(){
+  var evs=feedBuf;feedBuf=[];feedT=0;if(!evs.length)return;
+  var at=Date.now();evs.forEach(function(e){FEED.unshift({at:at,t:e.t});});FEED=FEED.slice(0,60);try{localStorage.setItem('gardenFeed',JSON.stringify(FEED));}catch(e){}
+  SND.sfx('chime');
+  if(evs.length<=2){evs.forEach(function(e){toast(e.t);});return;}
+  var g={},order=[];evs.forEach(function(e){if(!g[e.k]){g[e.k]=[];order.push(e.k);}g[e.k].push(e);});
+  var names=function(L){var u=[];L.forEach(function(e){if(e.x&&u.indexOf(e.x)<0)u.push(e.x);});return u.slice(0,3).join('、')+(u.length>3?'…':'');};
+  var parts=order.map(function(k){var L=g[k],n=L.length;
+    if(k==='plant')return n>1?'種下 '+n+' 株（'+names(L)+'）':'種下'+L[0].x;
+    if(k==='water')return '澆了 '+L.reduce(function(a,e){return a+(+e.x||0);},0)+' 滴水';
+    if(k==='forest')return n>1?'把 '+n+' 株種進森林':'把'+L[0].x+'種進森林';
+    if(k==='move')return '移植了 '+n+' 株';
+    if(k==='note')return '寫了 '+n+' 句話';
+    if(k==='pest')return '抓走 '+n+' 隻害蟲';
+    if(k==='decor')return '擺了'+names(L);
+    if(k==='dmove')return '搬了 '+n+' 個裝飾';
+    if(k==='mail')return '寄了一封信';
+    if(k==='gift')return '拆了聖誕禮物';
+    if(k==='qa')return '回答了今日問題';
+    if(k==='here')return '來花園了';
+    return n+' 件事';});
+  toast('✨ '+NAMES[op]+'剛剛：'+parts.join('・')+'　看全部 ›',openFeed,5200);
+}
+function feedTime(at){var d=new Date(at),t=pad(d.getHours())+':'+pad(d.getMinutes());return dayOf(at)===today()?t:md(dayOf(at))+' '+t;}
+function openFeed(){
+  SND.sfx('tap');
+  card('<h2>🌱 '+NAMES[op]+'的動態</h2><div class="feed">'+(FEED.length?FEED.map(function(f){return '<div><small>'+feedTime(f.at)+'</small><span>'+esc(f.t)+'</span></div>';}).join(''):'<p class="g-small">還沒有動態，'+NAMES[op]+'在花園做了什麼都會記在這裡</p>')+'</div><div class="g-btns"><button class="g-btn ghost" data-close>關閉</button></div>');
+  sheet.ov.querySelector('[data-close]').onclick=closeSheet;
 }
 // 水滴掉下來（自己澆、另一半澆都會）；旁邊一隻寵物跳一下
 function splash(id){
