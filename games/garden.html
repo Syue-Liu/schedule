@@ -894,12 +894,13 @@ function feedList(){
   Object.keys(D.qa||{}).forEach(function(d){if((D.qa[d]||{})[u]!=null)add(+(((D.qat||{})[d]||{})[u])||0,'回答了今日問題 💬',d);});
   Object.keys((D.gift||{})[u]||{}).forEach(function(d){var v=+D.gift[u][d];if(v)add(v>1?v:0,'拆了聖誕樹下的禮物 🎁',d);});
   if(+(D.here||{})[u])add(+D.here[u],(Date.now()-D.here[u]<50000?'現在在花園裡':'最近一次來花園')+' 🌱');
-  return ev.filter(function(e){return e.at>0;}).sort(function(a,b){return b.at-a.at;}).slice(0,60);
+  // 只看今天的
+  var td=today();return ev.filter(function(e){return e.at>0&&(e.day?e.day===td:dayOf(e.at)===td);}).sort(function(a,b){return b.at-a.at;});
 }
 function feedTime(f){if(f.day)return f.day===today()?'今天':md(f.day);var d=new Date(f.at),t=pad(d.getHours())+':'+pad(d.getMinutes());return dayOf(f.at)===today()?t:md(dayOf(f.at))+' '+t;}
 function openFeed(){
   SND.sfx('tap');var FEED=feedList();
-  card('<h2>🌱 '+NAMES[op]+'的動態</h2><div class="feed">'+(FEED.length?FEED.map(function(f){return '<div><small>'+feedTime(f)+'</small><span>'+esc(NAMES[op]+f.t)+'</span></div>';}).join(''):'<p class="g-small">還沒有動態，'+NAMES[op]+'在花園做了什麼都會記在這裡</p>')+'</div><div class="g-btns"><button class="g-btn ghost" data-close>關閉</button></div>');
+  card('<h2>🌱 '+NAMES[op]+'今天的動態</h2><div class="feed">'+(FEED.length?FEED.map(function(f){return '<div><small>'+feedTime(f)+'</small><span>'+esc(NAMES[op]+f.t)+'</span></div>';}).join(''):'<p class="g-small">今天還沒有動態，'+NAMES[op]+'在花園做了什麼都會記在這裡</p>')+'</div><div class="g-btns"><button class="g-btn ghost" data-close>關閉</button></div>');
   sheet.ov.querySelector('[data-close]').onclick=closeSheet;
 }
 // 水滴掉下來（自己澆、另一半澆都會）；旁邊一隻寵物跳一下
