@@ -591,7 +591,7 @@ var Garden3D=(function(){
       p.arms[0].rotation.z=-.12;p.arms[1].rotation.z=.12;
       if(hand){if(p.lead){if(!share){p.arms[1].rotation.x=-.25;p.arms[1].rotation.z=.6;}}else{p.arms[0].rotation.x=share?-2.1:-.25;p.arms[0].rotation.z=share?.5:-.6;}}
       p.can.visible=st==='water';if(st==='water'){var tip=Math.sin(now*3)*.15;p.arms[1].rotation.x=-1.25+tip;p.b.rotation.x=.08;if(Math.random()<dt*6){var cq=p.can.getWorldPosition(new T.Vector3());burst(cq.x+Math.sin(p.face)*.25,cq.y-.05,cq.z+Math.cos(p.face)*.25,1,'#A8D3E6');}}
-      var cur=p.g.rotation.y,df=angDiff(p.face,cur);p.g.rotation.y=cur+df*Math.min(1,dt*8);
+      var cur=p.g.rotation.y,df=angDiff(p.face,cur);p.g.rotation.y=st==='ride'?p.face:cur+df*Math.min(1,dt*8);
     });
   }
   /* ── 裝飾品：每一種一個小模型（不動的零件合起來）；信箱的小旗子、風車的葉片會動 ── */
@@ -979,12 +979,14 @@ var Garden3D=(function(){
   function bikeOf(k){return bikes.filter(function(b){return b.k===k;})[0];}
   function nearBike(x,z,r){for(var i=0;i<bikes.length;i++)if(Math.hypot(bikes[i].park.x-x,bikes[i].park.z-z)<r)return true;return false;}
   // 騎的路線：從停車的地方往外到外圈小路，逆時針繞一圈，再回來停好
-  function ridePath(b){var P=[],a0=b.park.a;P.push({x:b.park.x,z:b.park.z});for(var k=1;k<=6;k++){var r=7.55+(RINGW-7.55)*k/6,q=polar(r,a0+k*.02);P.push(q);}
-    for(var t=0;t<=1.0001;t+=1/90){var q2=polar(RINGW,a0+.12+t*Math.PI*2);P.push(q2);}
-    for(var k2=1;k2<=6;k2++){var r2=RINGW-(RINGW-7.55)*k2/6,q3=polar(r2,a0+.12+Math.PI*2+k2*.03);P.push(q3);}
-    var e=polar(7.55,a0);P.push({x:e.x,z:e.z});
-    var L=[0];for(var i=1;i<P.length;i++)L.push(L[i-1]+Math.hypot(P[i].x-P[i-1].x,P[i].z-P[i-1].z));return {P:P,L:L,len:L[L.length-1]};}
-  function pathAt(pa,s){s=Math.max(0,Math.min(pa.len-1e-4,s));var i=1;while(i<pa.L.length-1&&pa.L[i]<s)i++;var a=pa.P[i-1],b=pa.P[i],k=(s-pa.L[i-1])/Math.max(1e-6,pa.L[i]-pa.L[i-1]);return {x:a.x+(b.x-a.x)*k,z:a.z+(b.z-a.z)*k,face:Math.atan2(b.x-a.x,b.z-a.z)};}
+  // 兜風路線：從停車位順著車頭方向慢慢彎出去，沿外圈小路繞一圈，再慢慢彎回停車位；用平滑曲線，車頭和傾斜才不會一格一格跳
+  function ridePath(b){var a0=b.park.a,P=[],OUT=.42,sm=function(u){return u*u*(3-2*u);};
+    for(var k=0;k<=10;k++){var u=k/10,q=polar(7.55+(RINGW-7.55)*sm(u),a0+OUT*u);P.push(new T.Vector3(q.x,0,q.z));}
+    for(var k1=1;k1<60;k1++){var q1=polar(RINGW,a0+OUT+k1/60*(Math.PI*2-OUT*2));P.push(new T.Vector3(q1.x,0,q1.z));}
+    for(var k2=0;k2<=10;k2++){var u2=k2/10,q2=polar(RINGW-(RINGW-7.55)*sm(u2),a0+Math.PI*2-OUT+OUT*u2);P.push(new T.Vector3(q2.x,0,q2.z));}
+    var c=new T.CatmullRomCurve3(P,false,'centripetal');c.arcLengthDivisions=800;return {c:c,len:c.getLength()};}
+  var _tg=null,_pt=null;
+  function pathAt(pa,s){if(!_tg){_tg=new T.Vector3();_pt=new T.Vector3();}var u=Math.max(0,Math.min(1,s/pa.len));pa.c.getPointAt(u,_pt);pa.c.getTangentAt(u,_tg);return {x:_pt.x,z:_pt.z,face:Math.atan2(_tg.x,_tg.z)};}
   function rideOK(){return bikes.length&&wx.w!=='rain'&&wx.w!=='snow';}
   // 開始兜風：有空的人走到自己的車旁邊，到齊（或等太久）就出發
   // force：是按了「一起去兜風」，正在做別的事（拍照、澆水、玩遊樂設施）也先放下；自己想去的就只找有空的人
@@ -1002,16 +1004,19 @@ var Garden3D=(function(){
     if(!RIDE)return;RIDE.t+=dt;
     var rs=bikes.filter(function(b){return b.rider;});
     if(!RIDE.go){var ready=rs.filter(function(b){return b.rider.state==='mount';});
-      if(ready.length&&(ready.length===rs.length||RIDE.t>25)){rs.forEach(function(b,i){if(b.rider.state!=='mount'){var p=b.rider;p.goBike=null;b.rider=null;if(p.state==='walk'){p.state='idle';p.timer=1;}return;}b.path=ridePath(b);b.s=i===0?0:-1.6;b.rider.state='ride';});RIDE.go=true;SND.sfx('swish');}
+      if(ready.length&&(ready.length===rs.length||RIDE.t>25)){rs.forEach(function(b,i){if(b.rider.state!=='mount'){var p=b.rider;p.goBike=null;b.rider=null;if(p.state==='walk'){p.state='idle';p.timer=1;}return;}b.path=ridePath(b);b.s=i===0?0:-1.6;b.v=0;b.lean=0;b.rider.state='ride';});RIDE.go=true;SND.sfx('swish');}
       return;}
     var done=true;
-    bikes.forEach(function(b){if(!b.rider||!b.path)return;var acc=Math.min(1,(b.s+2)/4),left=b.path.len-b.s,v=2.8*Math.max(.25,Math.min(acc,left/3,1));b.spd=b.s<0?0:v;b.s+=v*dt;
-      if(b.s<b.path.len){done=false;if(b.s>=0){var q=pathAt(b.path,b.s);b.g.position.set(q.x,bridgeY(q.x,q.z),q.z);var df=angDiff(q.face,b.g.rotation.y);b.g.rotation.y+=df*Math.min(1,dt*8);b.g.rotation.z=-Math.max(-.25,Math.min(.25,df*1.5));}}
-      else{b.g.position.set(b.park.x,0,b.park.z);b.g.rotation.set(0,b.park.face,0);b.spd=0;}});
+    bikes.forEach(function(b){if(!b.rider||!b.path)return;var left=b.path.len-b.s,vt=2.8*Math.max(.3,Math.min(1,left/3.5)),v;if(b.s<0)v=2.8;else{b.v=b.v||0;b.v+=Math.max(-dt*1.6,Math.min(dt*1.3,vt-b.v));v=b.v;}b.spd=b.s<0?0:v;b.s+=v*dt;
+      if(b.s<b.path.len){done=false;if(b.s>=0){var q=pathAt(b.path,b.s);if(left<1)q.face=b.park.face+angDiff(q.face,b.park.face)*Math.max(0,left);var yaw=angDiff(q.face,b.g.rotation.y)/Math.max(dt,1e-3),tl=-Math.max(-.2,Math.min(.2,yaw*v*.12));
+          b.lean=(b.lean||0)+(tl-(b.lean||0))*Math.min(1,dt*3);b.g.position.set(q.x,bridgeY(q.x,q.z),q.z);b.g.rotation.set(0,q.face,b.lean);}}
+      else{b.g.position.set(b.park.x,0,b.park.z);b.g.rotation.set(0,b.park.face,0);b.spd=0;b.lean=0;}
+      // 車子這一格動完馬上把人放上座位，人才不會落後車子一格
+      if(b.rider&&b.rider.state==='ride')ridePose(b.rider);});
     if(done){var mid={x:0,z:0},n=0;bikes.forEach(function(b){var p=b.rider;if(!p)return;b.rider=null;b.path=null;p.goBike=null;var side=b.park.face+Math.PI/2,x=b.park.x+Math.sin(side)*.65,z=b.park.z+Math.cos(side)*.65;p.ang=Math.atan2(z,x);p.r=Math.hypot(x,z);p.state='idle';p.timer=2;p.face=b.park.face;mid.x+=x;mid.z+=z;n++;});
       if(n)hearts(mid.x/n,1.7,mid.z/n,3);RIDE=null;if(hooks.rideEnd)hooks.rideEnd();}
   }
-  function ridePose(p){var b=p.goBike;if(!b)return;var o=b.o,w=b.g.localToWorld(o.seat.clone());p.g.position.copy(w);p.face=b.g.rotation.y;
+  function ridePose(p){var b=p.goBike;if(!b)return;b.g.updateMatrixWorld(true);var o=b.o,w=b.g.localToWorld(o.seat.clone());p.g.position.copy(w);p.face=b.g.rotation.y;p.g.rotation.y=p.face;
     p.legs[0].rotation.x=p.legs[1].rotation.x=-1.05;p.arms[0].rotation.x=p.arms[1].rotation.x=-1.25;p.b.position.y=-.2;p.b.rotation.x=.18;p.b.rotation.z=b.g.rotation.z*.6;}
   function tickHol(dt){if(hol)hol.tick.forEach(function(f){f(dt);});}
   // 點聖誕樹：一份小禮物（每個人每天一份，garden.html 決定給不給）
@@ -1902,7 +1907,7 @@ var Garden3D=(function(){
     ring:function(id){ringBell(id);},say:function(k,t){var p=people.filter(function(o){return o.k===k;})[0];if(p)bubble(p,t||sayLine(p));},stroll:function(){var a=people[0],b=people[1];if(!a||!b)return false;[a,b].forEach(function(o){if(o.state==='act'||o.goAct)endAct(o);o.state='idle';o.with=null;o.goPic=null;});return strollStart(a,b);},
     poses:function(){return people.map(function(p){return {k:p.k,st:p.state,hand:p.hand?p.hand.k:null,lead:!!p.lead,umb:p.umb.visible,can:p.can.visible,bub:!!p.bub,pic:p.goPic?p.goPic.k:null};});},
     ride:function(){if(!rideOK())return {ok:false,why:wx.w==='snow'?'snow':'rain'};var w=startRide(true);return {ok:w.length>0,who:w,busy:!!RIDE&&!w.length};},riding:function(){return RIDE?{go:RIDE.go,bikes:bikes.map(function(b){return {k:b.k,s:+b.s.toFixed(1),len:b.path?+b.path.len.toFixed(1):0,x:+b.g.position.x.toFixed(2),z:+b.g.position.z.toFixed(2),rider:b.rider?b.rider.k+':'+b.rider.state:null};})}:null;},
-    bikePos:function(){return bikes.map(function(b){return {k:b.k,x:b.g.position.x,z:b.g.position.z,face:b.g.rotation.y};});},
+    bikePos:function(){return bikes.map(function(b){var r=b.rider&&b.rider.state==='ride'?b.rider:null,sw=r?b.g.localToWorld(b.o.seat.clone()):null;return {k:b.k,x:b.g.position.x,z:b.g.position.z,face:b.g.rotation.y,lean:b.g.rotation.z,off:r?r.g.position.distanceTo(sw):null,rf:r?r.g.rotation.y:null};});},
     follow:function(k){return setFollow(k);},following:function(){return follow;},resetView:function(){follow=null;az=.45;el=.62;rad=fitR;rgoal=0;agoal=egoal=null;tgt.set(0,.7,0);tgoal.copy(tgt);idleAt=Date.now();place();},
     move:moveStart,moveEnd:moveEnd,moving:function(){return mv?{kind:mv.kind,id:mv.id,sel:mv.sel}:null;},freeSpot:freeSpot,forestPos:forestPos,canPlace:function(x,z,id){return canPlace(x,z,id);},
     focusLand:focusLand,focusObj:focusObj,unfocus:unfocus,
