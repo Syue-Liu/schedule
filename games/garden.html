@@ -261,6 +261,7 @@ body.shooting .fbar,body.shooting .toasts{display:none;}
 @keyframes fly{from{left:-14%;}to{left:108%;}}
 .toasts{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 66px);transform:translateX(-50%);z-index:60;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;width:max-content;max-width:92vw;}
 .toasts div.tap{pointer-events:auto;cursor:pointer;background:#FFF6DC;max-width:88vw;white-space:normal;text-align:center;line-height:1.5;}
+.bikes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:4px 0 2px;}.bikes div{display:flex;flex-direction:column;align-items:center;padding:6px 4px;border:var(--lw2) solid var(--ink);border-radius:14px;background:var(--paper);}.bikes div.on{background:#FFF6DC;}.bikes img{width:100%;height:auto;}.bikes b{font-weight:400;font-size:14px;}.bikes small{font-size:11px;color:var(--t2);}
 .rotrow{display:flex;gap:8px;justify-content:center;margin-top:10px;}.rotrow .g-btn{flex:1;max-width:150px;margin:0;padding:8px 6px;font-size:14px;}
 .feed{max-height:52vh;overflow:auto;text-align:left;margin-top:6px;}.feed div{display:flex;gap:10px;align-items:baseline;padding:7px 2px;border-bottom:1.5px dashed #E4D9CC;font-size:14px;}.feed small{flex:none;width:68px;color:var(--t3);font-size:11px;}
 .here b.feedbtn{cursor:pointer;}
@@ -302,7 +303,7 @@ body.shooting .fbar,body.shooting .toasts{display:none;}
 <script src="sound.js?v=amb-20261105"></script>
 <script src="game.js?v=garden-20261102"></script>
 <script src="vs.js?v=mail-20261108"></script>
-<script src="garden3d.js?v=plus-20261110"></script>
+<script src="garden3d.js?v=bike-20261110"></script>
 <script>
 /* 記憶小森林：兩個人一起種。每天回答一題問答拿水滴，一起澆水，把種子種成樹；長大的樹放進森林，留著那段時間的問答和兩個人的話。
    資料：班表同一個 Firebase 的 banbiao/<同步代碼>_garden（沒有同步代碼就存在這支手機）
@@ -1173,7 +1174,7 @@ function start3d(){
   $('g3follow').onclick=function(){if(following){SND.sfx('tap');stopFollow();}else openFollow();};
   $('g3decor').onclick=function(){SND.sfx('tap');openDecor();};
   $('g3photo').onclick=function(){startPhoto();};
-  Garden3D.init(box,{progress:function(s){ldStep(s);},plot:function(i){SND.sfx('tap');openSeeds(i);},plant:function(id){SND.sfx('tap');openPlant(id);},tree:function(id){SND.sfx('tap');openMemory(id);},pest:function(id){catchPest(id);},bird:function(){return birdGift();},gift:function(){return xmasGift();},
+  Garden3D.init(box,{progress:function(s){ldStep(s);},plot:function(i){SND.sfx('tap');openSeeds(i);},plant:function(id){SND.sfx('tap');openPlant(id);},tree:function(id){SND.sfx('tap');openMemory(id);},pest:function(id){catchPest(id);},bird:function(){return birdGift();},gift:function(){return xmasGift();},bike:function(k){openBikes(k);},rideEnd:function(){toast('🏍️ 兜風回來了');},
     land:function(id,open){var l=LANDS.filter(function(x){return x.id===id;})[0];if(!l)return;SND.sfx('tap');toast(open?'🏡 '+l.name:'🔒 花園升到 Lv.'+l.lv+' 會開放新土地「'+l.name+'」');},
     decor:function(id){openDecorItem(id);},
     phase:function(ph){toast({day:'☀️ 天亮了！遊樂區有溜滑梯和盪鞦韆',eve:'🌇 傍晚了，長椅搬出來了，一起看夕陽吧',night:'🔥 晚上了，營火升起來，可以烤棉花糖了'}[ph]||'');},
@@ -1335,6 +1336,14 @@ function openDecor(){
   var ov=card('<h2>🎀 裝飾花園</h2><p class="g-small" style="margin-top:0">選一個，點草地擺上去；點花園裡的裝飾可以移動或收起來</p><div class="seeds">'+Object.keys(DECOR).map(function(k){var d=DECOR[k],lock=d.ach?!achDone(d.ach,V):L<d.lv,n=decorCount(k),full=n>=d.max;return '<button data-k="'+k+'"'+(lock||full?' disabled':'')+'><span class="dec-e">'+d.e+'</span>'+d.name+'<small>'+(lock?(d.ach?'成就「'+achOf(d.ach).t+'」解鎖':'Lv.'+d.lv+' 解鎖'):full?'擺了 '+n+' 個（最多 '+d.max+'）':(n?n+'/'+d.max+'・':'')+d.tip)+'</small></button>';}).join('')+'</div><div class="g-btns"><button class="g-btn ghost" data-close>關閉</button></div>');
   ov.querySelectorAll('[data-k]').forEach(function(b){b.onclick=function(){startDecor('decorNew',b.getAttribute('data-k'));};});
   ov.querySelector('[data-close]').onclick=closeSheet;
+}
+/* ── 機車：學的紅色街車、綾的牛仔女孩小電動車（停在樹屋旁），點了看兩台車，可以一起去兜風 ── */
+function openBikes(k){
+  var ov=card('<h2>🏍️ 我們的機車</h2><div class="bikes"><div class="'+(k==='syue'?'on':'')+'"><img src="../assets/games/garden/bike-cb350rs.svg" alt="紅色街車"><b>學的 CB350 RS</b><small>紅色・經典圓燈</small></div><div class="'+(k==='ling'?'on':'')+'"><img src="../assets/games/garden/bike-ezzy-cowgirl.svg" alt="牛仔女孩配色的小電動車"><b>綾的 EZZY 500</b><small>牛仔女孩配色</small></div></div><p class="g-small">一起騎上去，沿著外圈小路繞一圈再停回來</p><div class="g-btns"><button class="g-btn" data-ride>🏍️ 一起去兜風</button><button class="g-btn ghost" data-close>關閉</button></div>');
+  ov.querySelector('[data-close]').onclick=closeSheet;
+  ov.querySelector('[data-ride]').onclick=function(){var r=Garden3D.ride();closeSheet();
+    if(!r.ok){toast(r.why==='rain'?'🌧️ 下雨天不騎車，等天晴再去':r.why==='snow'?'❄️ 下雪路滑，今天不騎車':r.busy?'已經在兜風了 🏍️':'他們現在在忙，等一下再叫他們');return;}
+    SND.sfx('tap');toast('🏍️ '+r.who.map(function(u){return NAMES[u];}).join('和')+'去兜風了');};
 }
 /* ── 跟著看：3D 花園的 👀，選學、綾或一隻寵物，鏡頭就一直跟著他；下面一條可以換人（‹ ›）或停止 ── */
 var FOLLOW=['syue','ling','cat','pg','dg'],following=null;
@@ -1525,7 +1534,7 @@ function askWho(){
 function help(){
   var L=level(),nt=L<TOPLV?unlockText(L+1):'',first=false;try{first=!localStorage.getItem('gardenHelp');}catch(e){}
   card('<h2>🎮 遊戲操作</h2><div class="g-rules">'+
-    '<h4>🖐️ 怎麼操作</h4><ul><li>拖曳轉一圈、兩指拉近拉遠；⤢ 全螢幕、↺ 回到原本的視角</li><li>點土種樹、點植物澆水；滑鼠移過去（手指按著）會亮起來，比較不會點錯</li><li>植物和森林的樹都可以「移植」，把花園排成你們喜歡的樣子</li><li>3D 花園右邊的 👀：選學、綾或一隻寵物，鏡頭就一直跟著他（拖曳繞著看、兩指拉近）</li><li>裝飾、植物、森林的樹都可以轉方向：點它，按「🔄 轉方向」，在花園裡邊看邊按 ↺ ↻</li></ul>'+
+    '<h4>🖐️ 怎麼操作</h4><ul><li>拖曳轉一圈、兩指拉近拉遠；⤢ 全螢幕、↺ 回到原本的視角</li><li>點土種樹、點植物澆水；滑鼠移過去（手指按著）會亮起來，比較不會點錯</li><li>植物和森林的樹都可以「移植」，把花園排成你們喜歡的樣子</li><li>樹屋旁停著學的紅色街車和綾的小電動車：點它們可以叫兩個人一起去兜風（下雨、下雪不騎）</li><li>3D 花園右邊的 👀：選學、綾或一隻寵物，鏡頭就一直跟著他（拖曳繞著看、兩指拉近）</li><li>裝飾、植物、森林的樹都可以轉方向：點它，按「🔄 轉方向」，在花園裡邊看邊按 ↺ ↻</li></ul>'+
     '<h4>💧 水滴</h4><ul><li>每個人每天 '+BASE+' 滴水；回答今日問題 +'+ANSWER+' 滴，二選一兩個人選一樣再各多 '+MATCH+' 滴</li><li>同一天兩個人都澆同一棵，那天多長 '+TOGETHER+' 點</li><li>小鳥飛來的時候點牠，送一滴水（每天最多 '+BIRD+' 滴）；有害蟲要先抓走才能澆水</li><li>下雨、下雪那天，所有植物都會自己長一點</li></ul>'+
     '<h4>🌳 森林</h4><ul><li>長大的植物種進森林，會留下那段時間的問答和你們寫的話</li><li>種進森林兩個人各拿 1 包飼料（算在每天 '+G.CAP+' 包裡）</li><li>澆水、回答、抓害蟲都會加經驗；升級多幾塊土、開放新土地、解鎖新的花和樹</li></ul>'+
     '<h4>🛝 遊樂區（點它們叫學和綾過去）</h4><ul><li>白天溜滑梯、盪鞦韆；下雨、下雪天溜滑梯換成涼亭，喝咖啡吃甜點</li><li>傍晚長椅看夕陽，晚上營火烤棉花糖</li><li>樹屋旁的鞦韆隨時都能盪，兩個人的話一個坐、一個在後面推</li></ul>'+

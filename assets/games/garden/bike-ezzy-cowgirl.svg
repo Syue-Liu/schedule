@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 280" width="420" height="280">
+  <!-- 綾的機車：圓圓的小電動車，牛仔女孩配色（白底黑色乳牛斑、紅座墊、黃色線條、牛仔褲藍側板） -->
+  <defs>
+    <clipPath id="body"><path d="M66 172Q60 120 104 112H214Q236 114 238 140L240 182Q240 196 224 196H86Q68 194 66 172Z"/></clipPath>
+    <clipPath id="shield"><path d="M262 194Q252 150 270 108Q284 74 306 70Q322 70 324 86Q318 130 304 190Z"/></clipPath>
+  </defs>
+  <g stroke="#594C43" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+    <ellipse cx="214" cy="262" rx="160" ry="9" fill="#000" opacity=".08" stroke="none"/>
+    <!-- 小輪子 -->
+    <g transform="translate(118 216)"><circle r="40" fill="#3E3A39"/><circle r="26" fill="#FFFCF6"/><circle r="19" fill="#E2554A" stroke-width="3"/><g stroke="#FFFCF6" stroke-width="5"><path d="M0 0L0 -17M0 0L16 -5M0 0L10 14M0 0L-10 14M0 0L-16 -5"/></g><circle r="6" fill="#F6C343" stroke-width="3"/></g>
+    <g transform="translate(318 216)"><circle r="40" fill="#3E3A39"/><circle r="26" fill="#FFFCF6"/><circle r="19" fill="#E2554A" stroke-width="3"/><g stroke="#FFFCF6" stroke-width="5"><path d="M0 0L0 -17M0 0L16 -5M0 0L10 14M0 0L-10 14M0 0L-16 -5"/></g><circle r="6" fill="#F6C343" stroke-width="3"/></g>
+    <!-- 後擋泥板 -->
+    <path d="M80 196Q90 168 122 168Q150 168 160 196" fill="#FFFCF6"/>
+    <!-- 車身：白底、乳牛斑 -->
+    <path d="M66 172Q60 120 104 112H214Q236 114 238 140L240 182Q240 196 224 196H86Q68 194 66 172Z" fill="#FFFCF6"/>
+    <g clip-path="url(#body)" stroke="none" fill="#3E3A39">
+      <path d="M84 128Q98 118 108 130Q112 146 96 148Q80 146 84 128Z"/>
+      <path d="M150 150Q168 140 182 152Q186 168 168 172Q148 170 150 150Z"/>
+      <path d="M200 120Q216 112 228 126Q230 138 216 140Q200 136 200 120Z"/>
+      <path d="M112 176Q124 168 134 178Q132 190 120 190Q108 188 112 176Z"/>
+      <path d="M208 170Q222 166 228 178Q224 190 212 188Q204 182 208 170Z"/>
+    </g>
+    <!-- 牛仔褲藍的側板（有車線） -->
+    <path d="M120 150H204Q210 168 196 176H128Q114 168 120 150Z" fill="#5B7FB5"/>
+    <path d="M126 156H198M128 170H192" stroke="#F6C343" stroke-width="2.5" stroke-dasharray="5 5"/>
+    <!-- 黃色細線 -->
+    <path d="M74 160Q120 144 236 146" fill="none" stroke="#F6C343" stroke-width="4"/>
+    <!-- 紅座墊 -->
+    <path d="M96 112Q96 92 122 90H202Q222 92 224 110Z" fill="#D94B3B"/>
+    <path d="M110 100Q160 94 212 100" fill="none" stroke="#F3A398" stroke-width="2.5" stroke-dasharray="6 5"/>
+    <!-- 後貨架 -->
+    <path d="M70 106H100M74 106V116M96 106V114" fill="none" stroke="#9AA1AA" stroke-width="5"/>
+    <rect x="62" y="122" width="16" height="10" rx="4" fill="#E2554A" stroke-width="3"/>
+    <!-- 踏板 -->
+    <path d="M236 184H272L268 198H232Z" fill="#3E3A39"/>
+    <!-- 前面的大擋板：白底、紅邊、乳牛斑 -->
+    <path d="M262 194Q252 150 270 108Q284 74 306 70Q322 70 324 86Q318 130 304 190Z" fill="#FFFCF6"/>
+    <g clip-path="url(#shield)" stroke="none" fill="#3E3A39"><path d="M276 132Q290 124 298 136Q296 150 282 150Q272 146 276 132Z"/><path d="M290 168Q302 162 308 172Q304 184 292 182Q286 176 290 168Z"/></g>
+    <path d="M262 194Q252 150 270 108Q284 74 306 70" fill="none" stroke="#D94B3B" stroke-width="5"/>
+    <!-- 前叉、前擋泥板 -->
+    <path d="M312 140L318 216" stroke="#9AA1AA" stroke-width="9"/>
+    <path d="M290 194Q300 172 326 174Q342 176 348 192" fill="#FFFCF6"/><path d="M296 186Q318 176 342 186" fill="none" stroke="#F6C343" stroke-width="3.5"/>
+    <!-- 龍頭、圓鏡子、大燈 -->
+    <path d="M292 66H334" stroke="#3E3A39" stroke-width="8"/>
+    <path d="M300 64L292 38M326 64L334 38" stroke="#3E3A39" stroke-width="4"/>
+    <circle cx="290" cy="32" r="10" fill="#D6DADF" stroke-width="4"/><circle cx="336" cy="32" r="10" fill="#D6DADF" stroke-width="4"/>
+    <ellipse cx="318" cy="92" rx="11" ry="15" fill="#FFF3B8" stroke-width="4"/>
+    <!-- 小紅心、繩圈 -->
+    <path d="M286 112Q286 104 293 106Q296 107 296 110Q296 107 299 106Q306 104 306 112Q306 118 296 124Q286 118 286 112Z" fill="#E2554A" stroke-width="3"/>
+    <g fill="none" stroke="#C9A884" stroke-width="4"><ellipse cx="88" cy="96" rx="14" ry="9"/><ellipse cx="88" cy="96" rx="9" ry="5"/></g>
+  </g>
+</svg>

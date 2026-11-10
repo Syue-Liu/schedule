@@ -268,6 +268,7 @@ var Garden3D=(function(){
   function nearTree(x,z){return treeHome&&Math.hypot(x-treeHome.c.x,z-treeHome.c.z)<2.6;}
   // 散步的目的地：避開樹屋、移植進來的樹、溪水和泉水池
   function blocked(x,z){
+    if(bikes.length&&nearBike(x,z,1.0))return true;
     if(nearTree(x,z)||inArea(x,z,.2))return true;
     for(var id in trees){if(Math.hypot(trees[id].x-x,trees[id].z-z)<.8)return true;}
     for(var di in decors){if(Math.hypot(decors[di].x-x,decors[di].z-z)<(DECOR_R[decors[di].k]||.5)+.4)return true;}
@@ -540,9 +541,10 @@ var Garden3D=(function(){
         if(p.hand&&!p.lead){var hl0=p.hand;if(hl0.state!=='walk'||hl0.hand!==p){strollEnd(p);p.state='idle';p.timer=1;}else{var sd=sideOf(hl0);p.ta=Math.atan2(sd.z,sd.x);p.tr=Math.hypot(sd.x,sd.z);p.via=[];}}
         if(p.with){var w=p.with;var wa=w.ang!=null?w.ang:0,side=angDiff(p.ang,wa)>0?1:-1;p.ta=wa+side*(.85/Math.max(1,w.r));p.tr=w.r+(w.spr?.05:0);}
         needVia(p);
-        var lg=legTarget(p),da=angDiff(lg.a,p.ang),dr=lg.r-p.r,step=(p.toTree||p.goAct||p.goWater?1:p.hand&&!p.lead?1.05:p.hand?.6:.75)*dt,dist=Math.hypot(da*p.r,dr);
+        var lg=legTarget(p),da=angDiff(lg.a,p.ang),dr=lg.r-p.r,step=(p.goBike?1.4:p.toTree||p.goAct||p.goWater?1:p.hand&&!p.lead?1.05:p.hand?.6:.75)*dt,dist=Math.hypot(da*p.r,dr);
         if(dist<.08&&p.via&&p.via.length)p.via.shift();
         else if(dist<.08&&p.hand&&!p.lead){p.face=p.hand.face;}
+        else if(dist<.08&&p.goBike){p.state='mount';p.face=p.goBike.park.face;}
         else if(dist<.08){if(p.hand&&p.lead){var o9=p.hand;strollEnd(p);hearts((pos(p).x+pos(o9).x)/2,1.7,(pos(p).z+pos(o9).z)/2,3);if(o9){o9.state='idle';o9.timer=2;o9.face=p.face;}p.state='idle';p.timer=2;}else if(p.goWater){p.state='water';p.timer=2.6;var gw=p.goWater,q2=pos(p);p.face=Math.atan2(gw.x-q2.x,gw.z-q2.z);}else if(p.toTree){p.toTree=false;p.state='climb';p.t=0;}else if(p.goAct)startAct(p);else if(p.goPic){p.state='pic';p.picT=14+Math.random()*6;var po=partner(p);if(po&&po.state==='pic'){var tt=Math.max(p.picT,po.picT);p.picT=po.picT=tt;}}else if(p.with)play(p);else{p.state='idle';p.timer=1.5+Math.random()*3;}}
         else{var k=Math.min(1,step/dist);p.ang+=da*k;p.r+=dr*k;p.walkT+=dt;var nq=pos(p);p.face=Math.atan2(nq.x-q.x,nq.z-q.z);}
       }else if(p.state==='water'){p.timer-=dt;if(p.timer<=0){var pq2=partner(p);if(pq2&&pq2.state==='water'&&p.k==='syue')hearts((pos(p).x+pos(pq2).x)/2,1.6,(pos(p).z+pos(pq2).z)/2,3);p.state='idle';p.timer=1+Math.random();p.goWater=null;}
@@ -577,13 +579,15 @@ var Garden3D=(function(){
       p.hd.rotation.z=sit&&both?(p.seat===0?-.2:.2):0;
       if(st==='pic'&&p.goPic){var gp=p.goPic;p.legs[0].rotation.x=p.legs[1].rotation.x=-1.38;p.arms[0].rotation.x=-.35;p.arms[1].rotation.x=-.35;p.b.position.y=-.23;var sy=gp.y==null?-.27:gp.y,sx=0;if(gp.k==='hammock'){var sa=Math.sin(now*1.2)*.12;sy+=-.0;sx=Math.sin(sa)*.6;}p.g.position.set(gp.x+Math.sin(gp.face)*sx,sy,gp.z+Math.cos(gp.face)*sx);p.face=gp.face;if(hol&&hol.k==='moon')p.arms[1].rotation.x=-.35-Math.pow(Math.max(0,Math.sin(now*1.1+p.ph)),6)*1.5;var pq=partner(p);p.hd.rotation.z=pq&&pq.state==='pic'?(gp.i===0?-.18:.18):0;}
       else if(st==='act'&&p.A)actPose(p);
+      else if(st==='ride')ridePose(p);
       else if(climbing){var u=st==='climb'?p.t:1-p.t;_v.lerpVectors(treeHome.entry,treeHome.top,u);p.g.position.copy(_v);p.face=TH_ROT-Math.PI/2;}
       else if(onDeck){var u2=st==='toSeat'?p.t:1-p.t,sp=treeHome.seats[p.seat];_v.lerpVectors(treeHome.top,sp,u2);var dx=sp.x-treeHome.top.x,dz=sp.z-treeHome.top.z;p.face=st==='toSeat'?Math.atan2(dx,dz):Math.atan2(-dx,-dz);p.g.position.copy(_v);}
       else if(sit){p.g.position.copy(treeHome.seats[p.seat]);p.face=TH_ROT;}
       else{q=pos(p);p.g.position.set(q.x,bridgeY(q.x,q.z),q.z);}
       p.sh.visible=!(climbing||onDeck||sit||st==='act'||st==='pic');
       var hand=p.hand&&st==='walk'&&p.hand.state==='walk',share=hand&&wx.w==='rain';
-      var uv=wx.w==='rain'&&!(climbing||onDeck||sit||st==='act'||st==='pic')&&!(share&&!p.lead);p.umb.visible=uv;p.umb.scale.setScalar(share?1.45:1);p.umb.position.x=share?.12:0;p.tag.position.y=share?2.85:uv?2.2:1.94;if(uv&&!pl)p.arms[1].rotation.x=-1.05;
+      if(st!=='ride')p.b.rotation.z=0;
+      var uv=wx.w==='rain'&&!(climbing||onDeck||sit||st==='act'||st==='pic'||st==='ride')&&!(share&&!p.lead);p.umb.visible=uv;p.umb.scale.setScalar(share?1.45:1);p.umb.position.x=share?.12:0;p.tag.position.y=share?2.85:uv?2.2:1.94;if(uv&&!pl)p.arms[1].rotation.x=-1.05;
       p.arms[0].rotation.z=-.12;p.arms[1].rotation.z=.12;
       if(hand){if(p.lead){if(!share){p.arms[1].rotation.x=-.25;p.arms[1].rotation.z=.6;}}else{p.arms[0].rotation.x=share?-2.1:-.25;p.arms[0].rotation.z=share?.5:-.6;}}
       p.can.visible=st==='water';if(st==='water'){var tip=Math.sin(now*3)*.15;p.arms[1].rotation.x=-1.25+tip;p.b.rotation.x=.08;if(Math.random()<dt*6){var cq=p.can.getWorldPosition(new T.Vector3());burst(cq.x+Math.sin(p.face)*.25,cq.y-.05,cq.z+Math.cos(p.face)*.25,1,'#A8D3E6');}}
@@ -926,6 +930,89 @@ var Garden3D=(function(){
         face.color.set('#3B2A1A').lerp(new T.Color('#FFC24A'),Math.max(night,phase==='eve'?.6:0));});
     }
   };
+
+  /* ── 機車：學的紅色街車、綾的牛仔女孩配色小電動車，停在樹屋旁邊；點了（或天氣好的時候自己想去）兩個人騎上去沿外圈小路繞一圈再停回來 ── */
+  var bikes=[],RIDE=null;
+  function wheel(g,z,R,tire,rim,hub){var w=new T.Group();w.position.set(0,R,z);var t=mesh(new T.TorusGeometry(R-.06,.065,8,20),tire);t.rotation.y=Math.PI/2;w.add(t);var r=mesh(cyl(R-.11,R-.11,.06,16),rim);r.rotation.z=Math.PI/2;w.add(r);var h=mesh(cyl(.05,.05,.12,8),hub);h.rotation.z=Math.PI/2;w.add(h);for(var i=0;i<5;i++){var sp=mesh(new T.BoxGeometry(.03,R-.14,.035),hub,0,(R-.14)/2,0);var pv=new T.Group();pv.rotation.x=i*1.2566;pv.add(sp);w.add(pv);}w.userData.dyn=true;g.add(w);return w;}
+  function bikeCB(){
+    var g=new T.Group(),W=[];function bx(w,h,d,c,x,y,z){var m=mesh(new T.BoxGeometry(w,h,d),c,x,y,z);g.add(m);return m;}
+    W.push(wheel(g,-.66,.33,'#3E3A39','#B8BEC6','#D6DADF'));W.push(wheel(g,.7,.33,'#3E3A39','#B8BEC6','#D6DADF'));
+    var tk=mesh(ball(.3,2),'#D8392F',0,.98,.22);tk.scale.set(.62,.52,1.15);g.add(tk);var st=mesh(ball(.1,1),'#FFFCF6',0,1.11,.22);st.scale.set(.2,.12,2.2);g.add(st);
+    bx(.3,.08,.66,'#5B4636',0,.92,-.34);bx(.26,.24,.3,'#3E3A39',0,.72,-.24);
+    bx(.32,.32,.4,'#4A4643',0,.55,.12);for(var f=0;f<4;f++)bx(.36,.025,.42,'#C9CDD2',0,.44+f*.07,.12);
+    [-1,1].forEach(function(sd){var fk=mesh(cyl(.03,.03,.66,6),'#C9CDD2',sd*.09,.68,.62);fk.rotation.x=-.32;g.add(fk);});
+    var ex=mesh(cyl(.05,.05,.95,8),'#D6DADF',.17,.4,-.12);ex.rotation.x=Math.PI/2;g.add(ex);var mf=mesh(cyl(.07,.06,.42,10),'#D6DADF',.18,.5,-.68);mf.rotation.x=Math.PI/2-.35;g.add(mf);
+    var hl=mesh(cyl(.13,.13,.1,14),'#D6DADF',0,1.04,.78);hl.rotation.x=Math.PI/2;g.add(hl);var ln=new T.Mesh(cyl(.09,.09,.02,14),new T.MeshBasicMaterial({color:'#FFF3B8'}));ln.position.set(0,1.04,.84);ln.rotation.x=Math.PI/2;g.add(ln);
+    var hb=mesh(cyl(.025,.025,.62,6),'#3E3A39',0,1.18,.56);hb.rotation.z=Math.PI/2;g.add(hb);[-1,1].forEach(function(sd){g.add(mesh(cyl(.012,.012,.2,4),'#3E3A39',sd*.27,1.28,.54));var mr=mesh(cyl(.06,.06,.02,10),'#D6DADF',sd*.27,1.39,.54);mr.rotation.x=Math.PI/2;g.add(mr);});
+    var ff=mesh(new T.TorusGeometry(.38,.04,6,12,Math.PI*.7),'#D8392F',0,.33,.7);ff.rotation.y=Math.PI/2;ff.rotation.x=.25;g.add(ff);var rf=mesh(new T.TorusGeometry(.38,.04,6,12,Math.PI*.6),'#3E3A39',0,.33,-.66);rf.rotation.y=Math.PI/2;rf.rotation.x=-.9;g.add(rf);
+    bx(.16,.06,.06,'#E2554A',0,.9,-.72);
+    var hit0=new T.Mesh(new T.BoxGeometry(.7,1.4,1.9),hitMat);hit0.position.y=.7;hit0.visible=false;g.add(hit0);
+    bake(g);return {g:g,W:W,hit:hit0,seat:new T.Vector3(0,.68,-.28),R:.33};
+  }
+  function bikeEZ(){
+    var g=new T.Group(),W=[];function bx(w,h,d,c,x,y,z){var m=mesh(new T.BoxGeometry(w,h,d),c,x,y,z);g.add(m);return m;}
+    W.push(wheel(g,-.55,.25,'#3E3A39','#E2554A','#FFFCF6'));W.push(wheel(g,.62,.25,'#3E3A39','#E2554A','#FFFCF6'));
+    var bd=mesh(ball(.4,2),'#FFFCF6',0,.58,-.28);bd.scale.set(.62,.55,1.12);g.add(bd);
+    [[.24,.62,-.45,.07],[-.24,.52,-.18,.06],[.25,.5,-.08,.05],[-.24,.66,-.5,.05],[.21,.7,-.2,.04]].forEach(function(c){var sp=mesh(ball(c[3]*1.6,1),'#3E3A39',c[0],c[1],c[2]);sp.scale.set(.25,.8,1.1);g.add(sp);});
+    [-1,1].forEach(function(sd){var dn=mesh(ball(.13,1),'#5B7FB5',sd*.23,.46,-.3);dn.scale.set(.25,.6,1.4);g.add(dn);var ys=mesh(new T.BoxGeometry(.02,.03,.8),'#F6C343',sd*.25,.62,-.3);ys.rotation.x=-.08;g.add(ys);});
+    var se=mesh(ball(.25,2),'#D94B3B',0,.82,-.32);se.scale.set(.85,.28,1.45);g.add(se);
+    bx(.3,.05,.5,'#3E3A39',0,.3,.22);
+    var sh=mesh(ball(.3,2),'#FFFCF6',0,.72,.55);sh.scale.set(.75,1.25,.32);sh.rotation.x=-.25;g.add(sh);var tr=mesh(new T.TorusGeometry(.22,.025,5,14,Math.PI),'#D94B3B',0,.92,.58);tr.rotation.x=-.25;g.add(tr);
+    [[.08,.82,.66],[-.1,.6,.64]].forEach(function(c){var sp=mesh(ball(.05,1),'#3E3A39',c[0],c[1],c[2]);sp.scale.set(1.2,1,.3);g.add(sp);});
+    var fk=mesh(cyl(.03,.03,.5,6),'#9AA1AA',0,.45,.62);fk.rotation.x=-.25;g.add(fk);
+    var ln=new T.Mesh(ball(.08,1),new T.MeshBasicMaterial({color:'#FFF3B8'}));ln.scale.set(1,1.3,.4);ln.position.set(0,.9,.68);g.add(ln);
+    var hb=mesh(cyl(.025,.025,.5,6),'#3E3A39',0,1.08,.5);hb.rotation.z=Math.PI/2;g.add(hb);[-1,1].forEach(function(sd){g.add(mesh(cyl(.012,.012,.2,4),'#3E3A39',sd*.2,1.18,.48));var mr=mesh(cyl(.06,.06,.02,10),'#D6DADF',sd*.22,1.29,.48);mr.rotation.x=Math.PI/2;g.add(mr);});
+    var hrt=mesh(ball(.04,1),'#E2554A',.11,.98,.62);g.add(hrt);var ff=mesh(new T.TorusGeometry(.29,.035,6,12,Math.PI*.7),'#FFFCF6',0,.25,.62);ff.rotation.y=Math.PI/2;ff.rotation.x=.25;g.add(ff);
+    var rope=mesh(new T.TorusGeometry(.09,.02,5,12),'#C9A884',0,.92,-.72);rope.rotation.x=Math.PI/2;g.add(rope);
+    var hit0=new T.Mesh(new T.BoxGeometry(.7,1.3,1.6),hitMat);hit0.position.y=.65;hit0.visible=false;g.add(hit0);
+    bake(g);return {g:g,W:W,hit:hit0,seat:new T.Vector3(0,.6,-.32),R:.25};
+  }
+  function addBikes(){
+    var best=null;for(var i=0;i<30&&best==null;i++){var ok=true,a=TH_A-.42-(i%2?1:-1)*Math.ceil(i/2)*.07;
+      [[7.55,0],[7.55,-.16]].forEach(function(o){var q=polar(o[0],a+o[1]);if(canPlace(q.x,q.z,null,.6)!==''||(treeHome&&Math.hypot(q.x-treeHome.c.x,q.z-treeHome.c.z)<2.8))ok=false;});
+      if(ok)best=a;}
+    if(best==null)best=TH_A-.42;
+    [['syue',bikeCB(),0],['ling',bikeEZ(),-.16]].forEach(function(b){var q=polar(7.55,best+b[2]),face=Math.atan2(-Math.sin(best+b[2]),Math.cos(best+b[2]));
+      b[1].g.position.set(q.x,0,q.z);b[1].g.rotation.y=face;b[1].g.userData.dyn=true;scene.add(b[1].g);b[1].hit.userData={bike:b[0]};
+      bikes.push({k:b[0],o:b[1],g:b[1].g,park:{x:q.x,z:q.z,a:best+b[2],face:face},rider:null,s:0,path:null});});
+  }
+  function bikeOf(k){return bikes.filter(function(b){return b.k===k;})[0];}
+  function nearBike(x,z,r){for(var i=0;i<bikes.length;i++)if(Math.hypot(bikes[i].park.x-x,bikes[i].park.z-z)<r)return true;return false;}
+  // 騎的路線：從停車的地方往外到外圈小路，逆時針繞一圈，再回來停好
+  function ridePath(b){var P=[],a0=b.park.a;P.push({x:b.park.x,z:b.park.z});for(var k=1;k<=6;k++){var r=7.55+(RINGW-7.55)*k/6,q=polar(r,a0+k*.02);P.push(q);}
+    for(var t=0;t<=1.0001;t+=1/90){var q2=polar(RINGW,a0+.12+t*Math.PI*2);P.push(q2);}
+    for(var k2=1;k2<=6;k2++){var r2=RINGW-(RINGW-7.55)*k2/6,q3=polar(r2,a0+.12+Math.PI*2+k2*.03);P.push(q3);}
+    var e=polar(7.55,a0);P.push({x:e.x,z:e.z});
+    var L=[0];for(var i=1;i<P.length;i++)L.push(L[i-1]+Math.hypot(P[i].x-P[i-1].x,P[i].z-P[i-1].z));return {P:P,L:L,len:L[L.length-1]};}
+  function pathAt(pa,s){s=Math.max(0,Math.min(pa.len-1e-4,s));var i=1;while(i<pa.L.length-1&&pa.L[i]<s)i++;var a=pa.P[i-1],b=pa.P[i],k=(s-pa.L[i-1])/Math.max(1e-6,pa.L[i]-pa.L[i-1]);return {x:a.x+(b.x-a.x)*k,z:a.z+(b.z-a.z)*k,face:Math.atan2(b.x-a.x,b.z-a.z)};}
+  function rideOK(){return bikes.length&&wx.w!=='rain'&&wx.w!=='snow';}
+  // 開始兜風：有空的人走到自己的車旁邊，到齊（或等太久）就出發
+  // force：是按了「一起去兜風」，正在做別的事（拍照、澆水、玩遊樂設施）也先放下；自己想去的就只找有空的人
+  function startRide(force){
+    if(!bikes.length||RIDE)return [];var who=[];
+    people.forEach(function(p){if(p.land||p.toTree||TREE_STATES[p.state])return;
+      if(force&&!freeP(p)){if(p.state==='act'||p.goAct)endAct(p);strollEnd(p);p.goPic=null;p.goWater=null;if(p.state==='pic'||p.state==='water'){p.state='idle';p.timer=1;}}
+      if(!freeP(p)||!force&&p.state==='walk'&&p.via&&p.via.length>3)return;var b=bikeOf(p.k);if(!b)return;strollEnd(p);
+      var side=b.park.face+Math.PI/2,x=b.park.x+Math.sin(side)*.65,z=b.park.z+Math.cos(side)*.65,a=Math.atan2(z,x),r=Math.hypot(x,z);
+      p.with=null;p.goPic=null;p.via=[];p.ta=a;p.tr=r;p.goBike=b;p.state='walk';b.rider=p;who.push(p.k);});
+    if(who.length)RIDE={t:0,go:false};return who;
+  }
+  function tickRides(dt){
+    bikes.forEach(function(b){b.o.W.forEach(function(w){w.rotation.x+=(b.spd||0)*dt/b.o.R;});});
+    if(!RIDE)return;RIDE.t+=dt;
+    var rs=bikes.filter(function(b){return b.rider;});
+    if(!RIDE.go){var ready=rs.filter(function(b){return b.rider.state==='mount';});
+      if(ready.length&&(ready.length===rs.length||RIDE.t>25)){rs.forEach(function(b,i){if(b.rider.state!=='mount'){var p=b.rider;p.goBike=null;b.rider=null;if(p.state==='walk'){p.state='idle';p.timer=1;}return;}b.path=ridePath(b);b.s=i===0?0:-1.6;b.rider.state='ride';});RIDE.go=true;SND.sfx('swish');}
+      return;}
+    var done=true;
+    bikes.forEach(function(b){if(!b.rider||!b.path)return;var acc=Math.min(1,(b.s+2)/4),left=b.path.len-b.s,v=2.8*Math.max(.25,Math.min(acc,left/3,1));b.spd=b.s<0?0:v;b.s+=v*dt;
+      if(b.s<b.path.len){done=false;if(b.s>=0){var q=pathAt(b.path,b.s);b.g.position.set(q.x,bridgeY(q.x,q.z),q.z);var df=angDiff(q.face,b.g.rotation.y);b.g.rotation.y+=df*Math.min(1,dt*8);b.g.rotation.z=-Math.max(-.25,Math.min(.25,df*1.5));}}
+      else{b.g.position.set(b.park.x,0,b.park.z);b.g.rotation.set(0,b.park.face,0);b.spd=0;}});
+    if(done){var mid={x:0,z:0},n=0;bikes.forEach(function(b){var p=b.rider;if(!p)return;b.rider=null;b.path=null;p.goBike=null;var side=b.park.face+Math.PI/2,x=b.park.x+Math.sin(side)*.65,z=b.park.z+Math.cos(side)*.65;p.ang=Math.atan2(z,x);p.r=Math.hypot(x,z);p.state='idle';p.timer=2;p.face=b.park.face;mid.x+=x;mid.z+=z;n++;});
+      if(n)hearts(mid.x/n,1.7,mid.z/n,3);RIDE=null;if(hooks.rideEnd)hooks.rideEnd();}
+  }
+  function ridePose(p){var b=p.goBike;if(!b)return;var o=b.o,w=b.g.localToWorld(o.seat.clone());p.g.position.copy(w);p.face=b.g.rotation.y;
+    p.legs[0].rotation.x=p.legs[1].rotation.x=-1.05;p.arms[0].rotation.x=p.arms[1].rotation.x=-1.25;p.b.position.y=-.2;p.b.rotation.x=.18;p.b.rotation.z=b.g.rotation.z*.6;}
   function tickHol(dt){if(hol)hol.tick.forEach(function(f){f(dt);});}
   // 點聖誕樹：一份小禮物（每個人每天一份，garden.html 決定給不給）
   function giftPop(){
@@ -1071,7 +1158,7 @@ var Garden3D=(function(){
     if(old&&!quiet&&hooks.phase)hooks.phase(ph);
   }
   function sunAt(h){var k=Math.max(0,Math.min(1,(h-16.5)/2.5)),q=polar(150,AREA_A);sunDisc.position.set(q.x,20-22*k,q.z);sunDisc.material.color.set('#FFFFFF').lerp(new T.Color('#FF9C70'),k);}
-  function freeP(p){return p.state!=='act'&&p.state!=='pic'&&!p.goPic&&!p.goAct&&!p.toTree&&!TREE_STATES[p.state]&&!p.land&&p.state!=='play'&&p.state!=='water'&&!p.goWater&&!(p.hand&&!p.lead);}
+  function freeP(p){return p.state!=='act'&&p.state!=='pic'&&!p.goPic&&!p.goAct&&!p.toTree&&!TREE_STATES[p.state]&&!p.land&&p.state!=='play'&&p.state!=='water'&&!p.goWater&&!(p.hand&&!p.lead)&&!p.goBike&&p.state!=='mount'&&p.state!=='ride';}
   function partner(p){return people.filter(function(o){return o!==p;})[0];}
   // 走去玩：從現在的位置（溪對面先過橋）走到遊樂區旁邊，再走到那個東西前面；不好走就繞花園內圈
   function goAct(p,k,i,n){
@@ -1330,7 +1417,8 @@ var Garden3D=(function(){
     if(hol&&hol.k==='moon'&&holPic&&(phase==='eve'||phase==='night')&&Math.random()<.7&&goPic(p))return;
     if(hol&&hol.k==='nye'&&night>.3&&free>=0&&Math.random()<.8){goTree(p,free);return;}
     if(pics&&Math.random()<.09&&goPic(p))return;
-    var op1=partner(p);if(op1&&op1.state==='idle'&&!op1.with&&!op1.toTree&&!op1.land&&Math.random()<(wx.w==='rain'?.3:.12)&&strollStart(p,op1))return;
+    var op1=partner(p);if(!RIDE&&rideOK()&&(phase==='day'||phase==='eve')&&op1&&op1.state==='idle'&&!op1.land&&Math.random()<.025&&startRide().length)return;
+    if(op1&&op1.state==='idle'&&!op1.with&&!op1.toTree&&!op1.land&&Math.random()<(wx.w==='rain'?.3:.12)&&strollStart(p,op1))return;
     if(phase&&tryAct(p))return;
     if(ls.length&&other&&other.land&&Math.random()<.5){goLand(p,other.land);return;}
     if(ls.length&&Math.random()<.14){goLand(p,ls[Math.floor(Math.random()*ls.length)]);return;}
@@ -1478,6 +1566,7 @@ var Garden3D=(function(){
     if(pondP&&Math.hypot(x-pondP.x,z-pondP.z)<1)return '這裡是泉水池';
     if(inArea(x,z,.3))return '這裡是遊樂區';
     if(treeHome&&Math.hypot(x-treeHome.c.x,z-treeHome.c.z)<3)return '這裡是樹屋';
+    if(bikes.length&&nearBike(x,z,(arguments[3]||.45)+.7))return '這裡停了機車';
     if(treeHome){var s0=THw(TSW.x,0,-2.4),s1=THw(TSW.x,0,1.1);if(segDist(x,z,s0,s1)<.95)return '這裡是樹屋的鞦韆';}
     var rr=arguments[3]||.45;
     for(var id in trees)if(id!==self&&Math.hypot(trees[id].x-x,trees[id].z-z)<rr+.4)return '太靠近別的樹了';
@@ -1631,6 +1720,7 @@ var Garden3D=(function(){
     var ph=ray.intersectObjects(pets.map(function(p){return p.spr;}))[0];if(ph){var pp=pets.filter(function(p){return p.spr===ph.object;})[0];if(pp)return {kind:'pet',p:pp};}
     var hu=ray.intersectObjects(people.map(function(p){return p.g.children[3];}))[0];if(hu){var who=people.filter(function(p){return p.k===hu.object.userData.person;})[0];if(who)return {kind:'person',p:who};}
     if(hol&&hol.hits.length&&ray.intersectObjects(hol.hits)[0])return {kind:'xtree'};
+    var bh=bikes.length?ray.intersectObjects(bikes.map(function(b){return b.o.hit;}))[0]:null;if(bh)return {kind:'bike',k:bh.object.userData.bike};
     var ah=ray.intersectObjects((ACTS.hits[phase]||[]).concat(ACTS.hits.all||[]).filter(function(m){return m.parent.visible;}))[0];if(ah)return {kind:'act',k:ah.object.userData.act,o:ah.object};
     var dh=ray.intersectObjects(Object.keys(decors).map(function(id){return decors[id].g.children[decors[id].g.children.length-1];}))[0];if(dh)return {kind:'decor',id:dh.object.userData.decor};
     return plantAt(ray);
@@ -1646,6 +1736,7 @@ var Garden3D=(function(){
     if(t.kind==='person'){var g=t.p.g.position;return {x:g.x,z:g.z,r:.5};}
     if(t.kind==='act'){var w=new T.Vector3();t.o.getWorldPosition(w);return {x:w.x,z:w.z,r:t.o.userData.hr||1.3};}
     if(t.kind==='xtree'&&hol&&hol.tree)return {x:hol.tree.x,z:hol.tree.z,r:1.3};
+    if(t.kind==='bike'){var bb=bikeOf(t.k);if(bb)return {x:bb.g.position.x,z:bb.g.position.z,r:.9};}
     return null;
   }
   function setHL(t,strong){
@@ -1666,6 +1757,7 @@ var Garden3D=(function(){
     if(t.kind==='person'){bubble(t.p,sayLine(t.p));var who=t.p;if(TREE_STATES[who.state]||who.toTree)who.waveT=1.6;else if(who.state!=='play'){who.state='play';who.with=null;who.timer=1.6;who.act=1.2;who.face=Math.atan2(cam.position.x-who.g.position.x,cam.position.z-who.g.position.z);}SND.sfx('tap');return;}
     if(t.kind==='act'){callAct(t.k);return;}
     if(t.kind==='xtree'){giftPop();return;}
+    if(t.kind==='bike'){SND.sfx('tap');if(hooks.bike)hooks.bike(t.k);else startRide(true);return;}
     if(t.kind==='decor'){if(hooks.decor){SND.sfx('tap');hooks.decor(t.id);}return;}
     if(t.kind==='tree'){hooks.tree(t.id);return;}
     if(t.kind==='plot'){var p=t.p;if(p.id)hooks.plant(p.id);else hooks.plot(p.i);}
@@ -1696,7 +1788,7 @@ var Garden3D=(function(){
     if(mv){var pu=1+Math.sin(now*5)*.08;mv.mark.scale.set(pu,pu,pu);if(mv.kind==='plot'){var sp0=mv.src;mv.mark.position.set(sp0.x,.2,sp0.z);}}
     if(Date.now()-skyAt>20000){skyAt=Date.now();sky();}
     clouds.rotation.y+=dt*.012;
-    movePets(dt);movePeople(dt);moveVisitors(dt);tickActs(dt);tickWeather(dt);tickDecor(dt);tickParty(dt);tickHol(dt);tickBubbles(dt);tickHL(dt);
+    movePets(dt);movePeople(dt);moveVisitors(dt);tickActs(dt);tickWeather(dt);tickDecor(dt);tickParty(dt);tickHol(dt);tickBubbles(dt);tickRides(dt);tickHL(dt);
     // 溪水往下流、湖上的小鴨子游來游去
     flecks.forEach(function(f){f.userData.t=(f.userData.t+dt*.045)%1;var p=along(f.userData.t),p2=along(Math.min(.999,f.userData.t+.01));f.position.set(p.x,.05,p.z);f.rotation.y=-Math.atan2(p2.z-p.z,p2.x-p.x);});
     ducks.forEach(function(d){var u=d.userData;u.a+=dt*u.s;d.position.set(lake.x+Math.cos(u.a)*u.r,.05+Math.sin(now*2.4+u.r)*.02,lake.z+Math.sin(u.a)*u.r);d.rotation.y=-u.a+(u.s>0?-Math.PI/2:Math.PI/2);});
@@ -1739,7 +1831,7 @@ var Garden3D=(function(){
       R=new T.WebGLRenderer({canvas:cv,antialias:true,powerPreference:'low-power'});
       if(!R.getContext())throw new Error('no webgl');
       R.setPixelRatio(Math.min(2,window.devicePixelRatio||1));R.shadowMap.enabled=true;R.shadowMap.type=T.PCFSoftShadowMap;
-      build();addTreehouse();addActs();sky();bakeScene();addPeople();bind(cv);size();
+      build();addTreehouse();addActs();sky();bakeScene();addPeople();addBikes();bind(cv);size();
       if(window.ResizeObserver)new ResizeObserver(size).observe(box);else addEventListener('resize',size);
       if(window.IntersectionObserver)new IntersectionObserver(function(es){vis=es[0].isIntersecting;}).observe(box);
       try{var lq=localStorage.getItem('gardenQ');if(lq!=null&&lq!==''){qLock=+lq;setQuality(qLock);}}catch(e){}
@@ -1809,6 +1901,8 @@ var Garden3D=(function(){
     shot:function(){var wasHL=hl.ring&&hl.ring.visible;if(hl.ring)hl.ring.visible=false;var l1=cam.layers.isEnabled(1);cam.layers.disable(1);R.render(scene,cam);var u='';try{u=R.domElement.toDataURL('image/jpeg',.92);}catch(e){}if(l1)cam.layers.enable(1);if(hl.ring&&wasHL)hl.ring.visible=true;return u;},
     ring:function(id){ringBell(id);},say:function(k,t){var p=people.filter(function(o){return o.k===k;})[0];if(p)bubble(p,t||sayLine(p));},stroll:function(){var a=people[0],b=people[1];if(!a||!b)return false;[a,b].forEach(function(o){if(o.state==='act'||o.goAct)endAct(o);o.state='idle';o.with=null;o.goPic=null;});return strollStart(a,b);},
     poses:function(){return people.map(function(p){return {k:p.k,st:p.state,hand:p.hand?p.hand.k:null,lead:!!p.lead,umb:p.umb.visible,can:p.can.visible,bub:!!p.bub,pic:p.goPic?p.goPic.k:null};});},
+    ride:function(){if(!rideOK())return {ok:false,why:wx.w==='snow'?'snow':'rain'};var w=startRide(true);return {ok:w.length>0,who:w,busy:!!RIDE&&!w.length};},riding:function(){return RIDE?{go:RIDE.go,bikes:bikes.map(function(b){return {k:b.k,s:+b.s.toFixed(1),len:b.path?+b.path.len.toFixed(1):0,x:+b.g.position.x.toFixed(2),z:+b.g.position.z.toFixed(2),rider:b.rider?b.rider.k+':'+b.rider.state:null};})}:null;},
+    bikePos:function(){return bikes.map(function(b){return {k:b.k,x:b.g.position.x,z:b.g.position.z,face:b.g.rotation.y};});},
     follow:function(k){return setFollow(k);},following:function(){return follow;},resetView:function(){follow=null;az=.45;el=.62;rad=fitR;rgoal=0;agoal=egoal=null;tgt.set(0,.7,0);tgoal.copy(tgt);idleAt=Date.now();place();},
     move:moveStart,moveEnd:moveEnd,moving:function(){return mv?{kind:mv.kind,id:mv.id,sel:mv.sel}:null;},freeSpot:freeSpot,forestPos:forestPos,canPlace:function(x,z,id){return canPlace(x,z,id);},
     focusLand:focusLand,focusObj:focusObj,unfocus:unfocus,

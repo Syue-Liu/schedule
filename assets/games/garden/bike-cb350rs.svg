@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 280" width="420" height="280">
+  <!-- 學的機車：紅色經典街車（圓燈、紅油箱、黑引擎、上揚排氣管、塊狀胎） -->
+  <g stroke="#594C43" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+    <ellipse cx="214" cy="262" rx="170" ry="9" fill="#000" opacity=".08" stroke="none"/>
+    <!-- 後輪 -->
+    <g transform="translate(108 206)">
+      <circle r="54" fill="#3E3A39"/>
+      <g fill="#3E3A39"><rect x="-6" y="-60" width="12" height="9" rx="2"/><rect x="-6" y="51" width="12" height="9" rx="2"/><rect x="-60" y="-6" width="9" height="12" rx="2"/><rect x="51" y="-6" width="9" height="12" rx="2"/><rect x="34" y="-46" width="11" height="9" rx="2" transform="rotate(45 39 -41)"/><rect x="-45" y="34" width="11" height="9" rx="2" transform="rotate(45 -39 39)"/><rect x="34" y="37" width="11" height="9" rx="2" transform="rotate(-45 39 41)"/><rect x="-45" y="-46" width="11" height="9" rx="2" transform="rotate(-45 -39 -41)"/></g>
+      <circle r="36" fill="#B8BEC6"/><circle r="30" fill="#3E3A39" stroke-width="3"/>
+      <g stroke="#B8BEC6" stroke-width="6"><path d="M0 0L0 -28M0 0L27 -9M0 0L17 23M0 0L-17 23M0 0L-27 -9"/></g>
+      <circle r="9" fill="#D6DADF"/>
+      <circle r="18" fill="none" stroke="#9AA1AA" stroke-width="3"/>
+    </g>
+    <!-- 前輪 -->
+    <g transform="translate(322 206)">
+      <circle r="54" fill="#3E3A39"/>
+      <g fill="#3E3A39"><rect x="-6" y="-60" width="12" height="9" rx="2"/><rect x="-6" y="51" width="12" height="9" rx="2"/><rect x="-60" y="-6" width="9" height="12" rx="2"/><rect x="51" y="-6" width="9" height="12" rx="2"/><rect x="34" y="-46" width="11" height="9" rx="2" transform="rotate(45 39 -41)"/><rect x="-45" y="34" width="11" height="9" rx="2" transform="rotate(45 -39 39)"/><rect x="34" y="37" width="11" height="9" rx="2" transform="rotate(-45 39 41)"/><rect x="-45" y="-46" width="11" height="9" rx="2" transform="rotate(-45 -39 -41)"/></g>
+      <circle r="36" fill="#B8BEC6"/><circle r="30" fill="#3E3A39" stroke-width="3"/>
+      <g stroke="#B8BEC6" stroke-width="6"><path d="M0 0L0 -28M0 0L27 -9M0 0L17 23M0 0L-17 23M0 0L-27 -9"/></g>
+      <circle r="9" fill="#D6DADF"/>
+      <circle r="22" fill="none" stroke="#9AA1AA" stroke-width="3"/>
+    </g>
+    <!-- 後擋泥板、尾燈、牌照架 -->
+    <path d="M58 168Q74 132 118 134" fill="none" stroke-width="9"/>
+    <path d="M58 168Q74 132 118 134" fill="none" stroke="#3E3A39" stroke-width="4"/>
+    <rect x="70" y="118" width="22" height="12" rx="5" fill="#E2554A"/>
+    <!-- 車架、後避震 -->
+    <path d="M108 206L196 150L250 152" fill="none" stroke="#3E3A39" stroke-width="10"/>
+    <path d="M108 206L196 150L250 152" fill="none" stroke="#594C43" stroke-width="3" opacity=".0"/>
+    <path d="M132 192L150 128" stroke="#3E3A39" stroke-width="9"/><path d="M134 186L148 134" stroke="#E2554A" stroke-width="3"/>
+    <!-- 引擎：黑色、銀色散熱片 -->
+    <path d="M196 162H262L270 196Q266 214 244 214H206Q190 214 188 196Z" fill="#4A4643"/>
+    <g stroke="#C9CDD2" stroke-width="3.5"><path d="M200 172H258M199 182H262M200 192H264M204 202H258"/></g>
+    <circle cx="236" cy="203" r="10" fill="#C9CDD2" stroke-width="4"/>
+    <!-- 排氣管：從引擎前面彎下來，往後上揚到後輪旁 -->
+    <path d="M262 186Q282 222 236 228H150Q132 226 118 214" fill="none" stroke="#594C43" stroke-width="15"/>
+    <path d="M262 186Q282 222 236 228H150Q132 226 118 214" fill="none" stroke="#D6DADF" stroke-width="8"/>
+    <path d="M150 214L96 194L92 208L146 230Z" fill="#D6DADF"/>
+    <path d="M100 198L104 210" stroke="#9AA1AA" stroke-width="3"/>
+    <!-- 側蓋 -->
+    <path d="M152 136H196L198 168Q176 176 156 166Z" fill="#3E3A39"/>
+    <!-- 座墊 -->
+    <path d="M96 126Q100 112 124 112H196Q206 112 208 124L206 132H104Q96 132 96 126Z" fill="#5B4636"/>
+    <g stroke="#7A604C" stroke-width="2.5"><path d="M120 116V128M140 116V128M160 116V128M180 116V128"/></g>
+    <!-- 油箱：紅色，白色細線 -->
+    <path d="M194 128Q196 96 232 92Q266 90 276 112Q280 128 268 136Q236 142 198 138Z" fill="#D8392F"/>
+    <path d="M206 118Q232 104 266 108" fill="none" stroke="#FFFCF6" stroke-width="4"/>
+    <ellipse cx="232" cy="102" rx="14" ry="5" fill="#F08C80" stroke="none" opacity=".8"/>
+    <rect x="214" y="122" width="34" height="10" rx="4" fill="#3E3A39" stroke-width="3"/>
+    <!-- 前叉 -->
+    <path d="M290 96L322 206" stroke="#3E3A39" stroke-width="11"/><path d="M296 120L316 186" stroke="#C9CDD2" stroke-width="4"/>
+    <!-- 前擋泥板 -->
+    <path d="M280 168Q300 140 344 146" fill="none" stroke-width="9"/>
+    <path d="M280 168Q300 140 344 146" fill="none" stroke="#D8392F" stroke-width="4"/>
+    <!-- 龍頭、儀表、後照鏡 -->
+    <path d="M262 74Q282 68 292 82L300 84" fill="none" stroke="#3E3A39" stroke-width="7"/>
+    <circle cx="284" cy="80" r="9" fill="#FFFCF6" stroke-width="4"/>
+    <path d="M270 70L262 44" stroke="#3E3A39" stroke-width="4"/><circle cx="260" cy="38" r="10" fill="#D6DADF" stroke-width="4"/>
+    <!-- 大圓燈 -->
+    <circle cx="306" cy="98" r="22" fill="#D6DADF"/>
+    <circle cx="309" cy="98" r="14" fill="#FFF3B8" stroke-width="3"/>
+    <circle cx="313" cy="94" r="4" fill="#FFFFFF" stroke="none"/>
+    <!-- 腳踏、側柱 -->
+    <path d="M178 214H198" stroke="#3E3A39" stroke-width="7"/>
+  </g>
+</svg>
