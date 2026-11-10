@@ -580,6 +580,7 @@ var Garden3D=(function(){
       if(st==='pic'&&p.goPic){var gp=p.goPic;p.legs[0].rotation.x=p.legs[1].rotation.x=-1.38;p.arms[0].rotation.x=-.35;p.arms[1].rotation.x=-.35;p.b.position.y=-.23;var sy=gp.y==null?-.27:gp.y,sx=0;if(gp.k==='hammock'){var sa=Math.sin(now*1.2)*.12;sy+=-.0;sx=Math.sin(sa)*.6;}p.g.position.set(gp.x+Math.sin(gp.face)*sx,sy,gp.z+Math.cos(gp.face)*sx);p.face=gp.face;if(hol&&hol.k==='moon')p.arms[1].rotation.x=-.35-Math.pow(Math.max(0,Math.sin(now*1.1+p.ph)),6)*1.5;var pq=partner(p);p.hd.rotation.z=pq&&pq.state==='pic'?(gp.i===0?-.18:.18):0;}
       else if(st==='act'&&p.A)actPose(p);
       else if(st==='ride')ridePose(p);
+      else if(st==='push')pushPose(p);
       else if(climbing){var u=st==='climb'?p.t:1-p.t;_v.lerpVectors(treeHome.entry,treeHome.top,u);p.g.position.copy(_v);p.face=TH_ROT-Math.PI/2;}
       else if(onDeck){var u2=st==='toSeat'?p.t:1-p.t,sp=treeHome.seats[p.seat];_v.lerpVectors(treeHome.top,sp,u2);var dx=sp.x-treeHome.top.x,dz=sp.z-treeHome.top.z;p.face=st==='toSeat'?Math.atan2(dx,dz):Math.atan2(-dx,-dz);p.g.position.copy(_v);}
       else if(sit){p.g.position.copy(treeHome.seats[p.seat]);p.face=TH_ROT;}
@@ -591,7 +592,7 @@ var Garden3D=(function(){
       p.arms[0].rotation.z=-.12;p.arms[1].rotation.z=.12;
       if(hand){if(p.lead){if(!share){p.arms[1].rotation.x=-.25;p.arms[1].rotation.z=.6;}}else{p.arms[0].rotation.x=share?-2.1:-.25;p.arms[0].rotation.z=share?.5:-.6;}}
       p.can.visible=st==='water';if(st==='water'){var tip=Math.sin(now*3)*.15;p.arms[1].rotation.x=-1.25+tip;p.b.rotation.x=.08;if(Math.random()<dt*6){var cq=p.can.getWorldPosition(new T.Vector3());burst(cq.x+Math.sin(p.face)*.25,cq.y-.05,cq.z+Math.cos(p.face)*.25,1,'#A8D3E6');}}
-      var cur=p.g.rotation.y,df=angDiff(p.face,cur);p.g.rotation.y=st==='ride'?p.face:cur+df*Math.min(1,dt*8);
+      var cur=p.g.rotation.y,df=angDiff(p.face,cur);p.g.rotation.y=st==='ride'||st==='push'?p.face:cur+df*Math.min(1,dt*8);
     });
   }
   /* ── 裝飾品：每一種一個小模型（不動的零件合起來）；信箱的小旗子、風車的葉片會動 ── */
@@ -967,57 +968,84 @@ var Garden3D=(function(){
     var hit0=new T.Mesh(new T.BoxGeometry(.7,1.3,1.6),hitMat);hit0.position.y=.65;hit0.visible=false;g.add(hit0);
     bake(g);return {g:g,W:W,hit:hit0,seat:new T.Vector3(0,.6,-.32),R:.25};
   }
+  /* 車庫：兩台車並排停在樹屋平台底下，車頭朝前（陽台那邊）。座位上的人頭會碰到平台，所以先牽出來再騎、回來在門口下車再牽進去 */
+  var GZ=.6,EZ=5.2,LM=4.2,LANE={syue:{x:-.75,sd:-1,fz:3.1},ling:{x:.75,sd:1,fz:3.6}};
+  function L2W(x,z){var c=treeHome.c,cs=Math.cos(TH_ROT),sn=Math.sin(TH_ROT);return {x:c.x+x*cs+z*sn,z:c.z-x*sn+z*cs};}
+  function W2L(x,z){var c=treeHome.c,cs=Math.cos(TH_ROT),sn=Math.sin(TH_ROT),dx=x-c.x,dz=z-c.z;return {x:dx*cs-dz*sn,z:dx*sn+dz*cs};}
   function addBikes(){
-    var best=null;for(var i=0;i<30&&best==null;i++){var ok=true,a=TH_A-.42-(i%2?1:-1)*Math.ceil(i/2)*.07;
-      [[7.55,0],[7.55,-.16]].forEach(function(o){var q=polar(o[0],a+o[1]);if(canPlace(q.x,q.z,null,.6)!==''||(treeHome&&Math.hypot(q.x-treeHome.c.x,q.z-treeHome.c.z)<2.8))ok=false;});
-      if(ok)best=a;}
-    if(best==null)best=TH_A-.42;
-    [['syue',bikeCB(),0],['ling',bikeEZ(),-.16]].forEach(function(b){var q=polar(7.55,best+b[2]),face=Math.atan2(-Math.sin(best+b[2]),Math.cos(best+b[2]));
+    if(!treeHome)return;
+    // 地上就是草皮，平台底下吊一顆小燈
+    var pad=new T.Group(),c0=L2W(0,.65);pad.position.set(c0.x,0,c0.z);pad.rotation.y=TH_ROT;scene.add(pad);
+    pad.add(mesh(cyl(.01,.01,.3,4),'#594C43',0,2.14,.55));var bulb=new T.Mesh(ball(.07,1),new T.MeshBasicMaterial({color:'#FFE7A2'}));bulb.position.set(0,1.96,.55);pad.add(bulb);pad.add(mesh(cone(.12,.1,8),'#594C43',0,2.03,.55));
+    bake(pad);
+    [['syue',bikeCB()],['ling',bikeEZ()]].forEach(function(b){var L=LANE[b[0]],q=L2W(L.x,GZ),face=TH_ROT;
       b[1].g.position.set(q.x,0,q.z);b[1].g.rotation.y=face;b[1].g.userData.dyn=true;scene.add(b[1].g);b[1].hit.userData={bike:b[0]};
-      bikes.push({k:b[0],o:b[1],g:b[1].g,park:{x:q.x,z:q.z,a:best+b[2],face:face},rider:null,s:0,path:null});});
+      bikes.push({k:b[0],o:b[1],g:b[1].g,L:L,park:{x:q.x,z:q.z,face:face},rider:null,s:0,path:null,ph:null});});
   }
   function bikeOf(k){return bikes.filter(function(b){return b.k===k;})[0];}
   function nearBike(x,z,r){for(var i=0;i<bikes.length;i++)if(Math.hypot(bikes[i].park.x-x,bikes[i].park.z-z)<r)return true;return false;}
-  // 騎的路線：從停車的地方往外到外圈小路，逆時針繞一圈，再回來停好
-  // 兜風路線：從停車位順著車頭方向慢慢彎出去，沿外圈小路繞一圈，再慢慢彎回停車位；用平滑曲線，車頭和傾斜才不會一格一格跳
-  function ridePath(b){var a0=b.park.a,P=[],OUT=.42,sm=function(u){return u*u*(3-2*u);};
-    for(var k=0;k<=10;k++){var u=k/10,q=polar(7.55+(RINGW-7.55)*sm(u),a0+OUT*u);P.push(new T.Vector3(q.x,0,q.z));}
-    for(var k1=1;k1<60;k1++){var q1=polar(RINGW,a0+OUT+k1/60*(Math.PI*2-OUT*2));P.push(new T.Vector3(q1.x,0,q1.z));}
-    for(var k2=0;k2<=10;k2++){var u2=k2/10,q2=polar(RINGW-(RINGW-7.55)*sm(u2),a0+Math.PI*2-OUT+OUT*u2);P.push(new T.Vector3(q2.x,0,q2.z));}
-    var c=new T.CatmullRomCurve3(P,false,'centripetal');c.arcLengthDivisions=800;return {c:c,len:c.getLength()};}
+  // 車道：車庫門口往前那一段，不能擺裝飾
+  function nearDrive(x,z,r){if(!bikes.length)return false;for(var i=0;i<bikes.length;i++){var L=bikes[i].L;if(segDist(x,z,L2W(L.x,GZ),L2W(L.x,EZ+1.4))<r)return true;}return false;}
+  // 站在車子旁邊（牽車、等出發）的位置
+  function bikeSide(b,z){return L2W(b.L.x+b.L.sd*.55,z+.25);}
+  // 外圈小路經過樹屋後面（盪鞦韆）和遊樂區後面那兩段，騎車往外繞一點：[方向, 平的那段半寬, 到哪裡收回來, 往外多少]
+  var RIDE_BUMP=[[TH_A,.16,.5,.45],[AREA_A,.3,.56,.45]];
+  function ringR(a){var h=0;RIDE_BUMP.forEach(function(B){var d=Math.abs(angDiff(a,B[0]));h=Math.max(h,d<=B[1]?B[3]:d<B[2]?B[3]*Math.pow(Math.cos(Math.PI/2*(d-B[1])/(B[2]-B[1])),2):0);});return RINGW+h;}
+  // 外圈小路（往外讓過的）上面、樹屋座標 z 剛好等於 z 的那個方向
+  function ringAtZb(z){var a=ringAtZ(z);for(var k=0;k<4;k++){var w=polar(ringR(a),a),l=W2L(w.x,w.z);a+=(l.z-z)/ringR(a);}return a;}
+  function ringAtZ(z){var l=TH_R-Math.sqrt(RINGW*RINGW-z*z),w=L2W(l,z);return Math.atan2(w.z,w.x);}
+  // 兜風路線：牽出來的地方順著車頭往前，慢慢併進外圈小路，順時針繞一圈，從樹屋後面繞回來，再慢慢彎回自己的車道停在門口
+  function ridePath(b){var L=b.L,sm=function(u){return u*u*u*(u*(u*6-15)+10);},a0=ringAtZb(L.fz),a1=ringAtZb(EZ)-Math.PI*2,tot=a0-a1,N=Math.ceil(tot/.02),P=[];
+    for(var i=0;i<=N;i++){var a=a0-tot*i/N,w=polar(ringR(a),a),l=W2L(w.x,w.z);
+      if(a0-a<1.2&&l.x<TH_R&&l.z<L.fz+LM){var u=Math.max(0,Math.min(1,(l.z-L.fz)/LM));l.x=L.x+(l.x-L.x)*sm(u);}
+      else if(a-a1<1.4&&l.x<TH_R&&l.z>1.7){var u2=Math.max(0,Math.min(1,(l.z-1.7)/(EZ-1.7)));l.x=l.x+(L.x-l.x)*sm(u2);}
+      if(i===0)l={x:L.x,z:L.fz};if(i===N)l={x:L.x,z:EZ};var q=L2W(l.x,l.z);P.push(new T.Vector3(q.x,0,q.z));}
+    var c=new T.CatmullRomCurve3(P,false,'centripetal');c.arcLengthDivisions=1200;return {c:c,len:c.getLength()};}
   var _tg=null,_pt=null;
   function pathAt(pa,s){if(!_tg){_tg=new T.Vector3();_pt=new T.Vector3();}var u=Math.max(0,Math.min(1,s/pa.len));pa.c.getPointAt(u,_pt);pa.c.getTangentAt(u,_tg);return {x:_pt.x,z:_pt.z,face:Math.atan2(_tg.x,_tg.z)};}
   function rideOK(){return bikes.length&&wx.w!=='rain'&&wx.w!=='snow';}
-  // 開始兜風：有空的人走到自己的車旁邊，到齊（或等太久）就出發
+  // 開始兜風：有空的人走到車庫裡自己的車旁邊，到齊（或等太久）就出發
   // force：是按了「一起去兜風」，正在做別的事（拍照、澆水、玩遊樂設施）也先放下；自己想去的就只找有空的人
   function startRide(force){
     if(!bikes.length||RIDE)return [];var who=[];
     people.forEach(function(p){if(p.land||p.toTree||TREE_STATES[p.state])return;
-      if(force&&!freeP(p)){if(p.state==='act'||p.goAct)endAct(p);strollEnd(p);p.goPic=null;p.goWater=null;if(p.state==='pic'||p.state==='water'){p.state='idle';p.timer=1;}}
+      if(force&&!freeP(p)){if(p.state==='act'||p.goAct)endAct(p);if(p.state==='play'){p.state='idle';p.timer=1;p.with=null;}strollEnd(p);p.goPic=null;p.goWater=null;if(p.state==='pic'||p.state==='water'){p.state='idle';p.timer=1;}}
       if(!freeP(p)||!force&&p.state==='walk'&&p.via&&p.via.length>3)return;var b=bikeOf(p.k);if(!b)return;strollEnd(p);
-      var side=b.park.face+Math.PI/2,x=b.park.x+Math.sin(side)*.65,z=b.park.z+Math.cos(side)*.65,a=Math.atan2(z,x),r=Math.hypot(x,z);
-      p.with=null;p.goPic=null;p.via=[];p.ta=a;p.tr=r;p.goBike=b;p.state='walk';b.rider=p;who.push(p.k);});
+      var q=bikeSide(b,GZ);p.with=null;p.goPic=null;p.via=[];p.ta=Math.atan2(q.z,q.x);p.tr=Math.hypot(q.x,q.z);p.goBike=b;p.state='walk';b.rider=p;who.push(p.k);});
     if(who.length)RIDE={t:0,go:false};return who;
   }
+  // 牽車：沿自己的車道直直往前（出車庫）或往後（進車庫）
+  function laneAt(b,z){var q=L2W(b.L.x,z);b.g.position.set(q.x,0,q.z);b.g.rotation.set(0,b.park.face,0);}
   function tickRides(dt){
     bikes.forEach(function(b){b.o.W.forEach(function(w){w.rotation.x+=(b.spd||0)*dt/b.o.R;});});
     if(!RIDE)return;RIDE.t+=dt;
     var rs=bikes.filter(function(b){return b.rider;});
     if(!RIDE.go){var ready=rs.filter(function(b){return b.rider.state==='mount';});
-      if(ready.length&&(ready.length===rs.length||RIDE.t>25)){rs.forEach(function(b,i){if(b.rider.state!=='mount'){var p=b.rider;p.goBike=null;b.rider=null;if(p.state==='walk'){p.state='idle';p.timer=1;}return;}b.path=ridePath(b);b.s=i===0?0:-1.6;b.v=0;b.lean=0;b.rider.state='ride';});RIDE.go=true;SND.sfx('swish');}
+      if(ready.length&&(ready.length===rs.length||RIDE.t>25)){rs.forEach(function(b){if(b.rider.state!=='mount'){var p=b.rider;p.goBike=null;b.rider=null;if(p.state==='walk'){p.state='idle';p.timer=1;}return;}b.ph='out';b.s=0;b.v=0;b.lean=0;b.rider.state='push';});RIDE.go=true;SND.sfx('swish');}
       return;}
-    var done=true;
-    bikes.forEach(function(b){if(!b.rider||!b.path)return;var left=b.path.len-b.s,vt=2.8*Math.max(.3,Math.min(1,left/3.5)),v;if(b.s<0)v=2.8;else{b.v=b.v||0;b.v+=Math.max(-dt*1.6,Math.min(dt*1.3,vt-b.v));v=b.v;}b.spd=b.s<0?0:v;b.s+=v*dt;
-      if(b.s<b.path.len){done=false;if(b.s>=0){var q=pathAt(b.path,b.s);if(left<1)q.face=b.park.face+angDiff(q.face,b.park.face)*Math.max(0,left);var yaw=angDiff(q.face,b.g.rotation.y)/Math.max(dt,1e-3),tl=-Math.max(-.2,Math.min(.2,yaw*v*.12));
-          b.lean=(b.lean||0)+(tl-(b.lean||0))*Math.min(1,dt*3);b.g.position.set(q.x,bridgeY(q.x,q.z),q.z);b.g.rotation.set(0,q.face,b.lean);}}
-      else{b.g.position.set(b.park.x,0,b.park.z);b.g.rotation.set(0,b.park.face,0);b.spd=0;b.lean=0;}
-      // 車子這一格動完馬上把人放上座位，人才不會落後車子一格
-      if(b.rider&&b.rider.state==='ride')ridePose(b.rider);});
-    if(done){var mid={x:0,z:0},n=0;bikes.forEach(function(b){var p=b.rider;if(!p)return;b.rider=null;b.path=null;p.goBike=null;var side=b.park.face+Math.PI/2,x=b.park.x+Math.sin(side)*.65,z=b.park.z+Math.cos(side)*.65;p.ang=Math.atan2(z,x);p.r=Math.hypot(x,z);p.state='idle';p.timer=2;p.face=b.park.face;mid.x+=x;mid.z+=z;n++;});
+    // 前面那台（綾，靠裡面的車道）先走，學等她騎出去一段再跟上
+    var lead=bikes.filter(function(b){return b.rider&&b.k==='ling';})[0],done=true;
+    bikes.forEach(function(b){var p=b.rider;if(!p)return;
+      if(b.ph==='out'){var D=b.L.fz-GZ,v=.85*Math.max(.3,Math.min(1,(b.s+.25)/.6,(D-b.s)/.7+.2));b.spd=v;b.s+=v*dt;done=false;
+        if(b.s>=D){laneAt(b,b.L.fz);b.spd=0;b.ph='ride';b.path=ridePath(b);b.s=0;b.v=0;b.hold=b!==lead&&!!lead;p.state='ride';}else laneAt(b,GZ+b.s);}
+      else if(b.ph==='ride'){done=false;if(b.hold){if(!lead.rider||lead.ph==='ride'&&lead.s>2.8||lead.ph==='in'||lead.ph==='done')b.hold=false;else{b.spd=0;ridePose(p);return;}}
+        var left=b.path.len-b.s,ah=pathAt(b.path,b.s+1.2).face,tn=Math.abs(angDiff(ah,pathAt(b.path,b.s).face)),vt=2.8*Math.max(.3,Math.min(1,left/3.5,1.25-tn*1.1));b.v=b.v||0;b.v+=Math.max(-dt*1.6,Math.min(dt*1.3,vt-b.v));var v2=b.v;b.spd=v2;b.s+=v2*dt;
+        if(b.s<b.path.len){var q=pathAt(b.path,b.s);if(left<1)q.face=b.park.face+angDiff(q.face,b.park.face)*Math.max(0,left);else if(b.s<1)q.face=b.park.face+angDiff(q.face,b.park.face)*b.s;var yaw=angDiff(q.face,b.g.rotation.y)/Math.max(dt,1e-3),tl=-Math.max(-.2,Math.min(.2,yaw*v2*.12));
+          b.lean=(b.lean||0)+(tl-(b.lean||0))*Math.min(1,dt*3);b.g.position.set(q.x,bridgeY(q.x,q.z),q.z);b.g.rotation.set(0,q.face,b.lean);}
+        else{laneAt(b,EZ);b.spd=0;b.lean=0;b.path=null;b.ph='in';b.s=0;p.state='push';}}
+      else if(b.ph==='in'){var D2=EZ-GZ,v3=.8*Math.max(.3,Math.min(1,(b.s+.25)/.6,(D2-b.s)/.7+.2));b.spd=-v3;b.s+=v3*dt;
+        if(b.s>=D2){laneAt(b,GZ);b.spd=0;b.ph='done';}else{laneAt(b,EZ-b.s);done=false;}}
+      // 車子這一格動完馬上把人放好，人才不會落後車子一格
+      if(p.state==='ride')ridePose(p);else if(p.state==='push')pushPose(p);});
+    if(done){var mid={x:0,z:0},n=0;bikes.forEach(function(b){var p=b.rider;if(!p)return;b.rider=null;b.path=null;b.ph=null;p.goBike=null;var q=bikeSide(b,GZ);p.ang=Math.atan2(q.z,q.x);p.r=Math.hypot(q.x,q.z);p.state='idle';p.timer=2;p.face=b.park.face+b.L.sd*Math.PI/2;mid.x+=q.x;mid.z+=q.z;n++;});
       if(n)hearts(mid.x/n,1.7,mid.z/n,3);RIDE=null;if(hooks.rideEnd)hooks.rideEnd();}
   }
   function ridePose(p){var b=p.goBike;if(!b)return;b.g.updateMatrixWorld(true);var o=b.o,w=b.g.localToWorld(o.seat.clone());p.g.position.copy(w);p.face=b.g.rotation.y;p.g.rotation.y=p.face;
     p.legs[0].rotation.x=p.legs[1].rotation.x=-1.05;p.arms[0].rotation.x=p.arms[1].rotation.x=-1.25;p.b.position.y=-.2;p.b.rotation.x=.18;p.b.rotation.z=b.g.rotation.z*.6;}
+  // 牽車：站在車子外側，一手扶著把手，跟著車子走（往後牽的時候腳步反過來）
+  function pushPose(p){var b=p.goBike;if(!b)return;b.g.updateMatrixWorld(true);var w=b.g.localToWorld(new T.Vector3(b.L.sd*.55,0,.25));p.g.position.copy(w);p.face=b.g.rotation.y;p.g.rotation.y=p.face;
+    var ph=b.s*7*(b.ph==='in'?-1:1);p.legs[0].rotation.x=Math.sin(ph)*.45;p.legs[1].rotation.x=-Math.sin(ph)*.45;var ai=b.L.sd<0?1:0;p.arms[ai].rotation.x=-1.05;p.arms[1-ai].rotation.x=Math.sin(ph)*.3;
+    p.b.position.y=Math.abs(Math.sin(ph))*.03;p.b.rotation.x=.06;p.b.rotation.z=0;}
   function tickHol(dt){if(hol)hol.tick.forEach(function(f){f(dt);});}
   // 點聖誕樹：一份小禮物（每個人每天一份，garden.html 決定給不給）
   function giftPop(){
@@ -1163,7 +1191,7 @@ var Garden3D=(function(){
     if(old&&!quiet&&hooks.phase)hooks.phase(ph);
   }
   function sunAt(h){var k=Math.max(0,Math.min(1,(h-16.5)/2.5)),q=polar(150,AREA_A);sunDisc.position.set(q.x,20-22*k,q.z);sunDisc.material.color.set('#FFFFFF').lerp(new T.Color('#FF9C70'),k);}
-  function freeP(p){return p.state!=='act'&&p.state!=='pic'&&!p.goPic&&!p.goAct&&!p.toTree&&!TREE_STATES[p.state]&&!p.land&&p.state!=='play'&&p.state!=='water'&&!p.goWater&&!(p.hand&&!p.lead)&&!p.goBike&&p.state!=='mount'&&p.state!=='ride';}
+  function freeP(p){return p.state!=='act'&&p.state!=='pic'&&!p.goPic&&!p.goAct&&!p.toTree&&!TREE_STATES[p.state]&&!p.land&&p.state!=='play'&&p.state!=='water'&&!p.goWater&&!(p.hand&&!p.lead)&&!p.goBike&&p.state!=='mount'&&p.state!=='ride'&&p.state!=='push';}
   function partner(p){return people.filter(function(o){return o!==p;})[0];}
   // 走去玩：從現在的位置（溪對面先過橋）走到遊樂區旁邊，再走到那個東西前面；不好走就繞花園內圈
   function goAct(p,k,i,n){
@@ -1572,6 +1600,7 @@ var Garden3D=(function(){
     if(inArea(x,z,.3))return '這裡是遊樂區';
     if(treeHome&&Math.hypot(x-treeHome.c.x,z-treeHome.c.z)<3)return '這裡是樹屋';
     if(bikes.length&&nearBike(x,z,(arguments[3]||.45)+.7))return '這裡停了機車';
+    if(nearDrive(x,z,(arguments[3]||.45)+.55))return '這裡是機車道';
     if(treeHome){var s0=THw(TSW.x,0,-2.4),s1=THw(TSW.x,0,1.1);if(segDist(x,z,s0,s1)<.95)return '這裡是樹屋的鞦韆';}
     var rr=arguments[3]||.45;
     for(var id in trees)if(id!==self&&Math.hypot(trees[id].x-x,trees[id].z-z)<rr+.4)return '太靠近別的樹了';
@@ -1907,6 +1936,14 @@ var Garden3D=(function(){
     ring:function(id){ringBell(id);},say:function(k,t){var p=people.filter(function(o){return o.k===k;})[0];if(p)bubble(p,t||sayLine(p));},stroll:function(){var a=people[0],b=people[1];if(!a||!b)return false;[a,b].forEach(function(o){if(o.state==='act'||o.goAct)endAct(o);o.state='idle';o.with=null;o.goPic=null;});return strollStart(a,b);},
     poses:function(){return people.map(function(p){return {k:p.k,st:p.state,hand:p.hand?p.hand.k:null,lead:!!p.lead,umb:p.umb.visible,can:p.can.visible,bub:!!p.bub,pic:p.goPic?p.goPic.k:null};});},
     ride:function(){if(!rideOK())return {ok:false,why:wx.w==='snow'?'snow':'rain'};var w=startRide(true);return {ok:w.length>0,who:w,busy:!!RIDE&&!w.length};},riding:function(){return RIDE?{go:RIDE.go,bikes:bikes.map(function(b){return {k:b.k,s:+b.s.toFixed(1),len:b.path?+b.path.len.toFixed(1):0,x:+b.g.position.x.toFixed(2),z:+b.g.position.z.toFixed(2),rider:b.rider?b.rider.k+':'+b.rider.state:null};})}:null;},
+    rideTurns:function(){return bikes.map(function(b){var pa=ridePath(b),mx=0,at=0,prev=pathAt(pa,0).face;for(var s0=.1;s0<=pa.len;s0+=.1){var f=pathAt(pa,s0).face,d=Math.abs(angDiff(f,prev));if(d>mx){mx=d;at=s0;}prev=f;}var l=W2L(pathAt(pa,at).x,pathAt(pa,at).z);return b.k+' max '+(mx*10).toFixed(2)+' rad/unit at s='+at.toFixed(1)+' L('+l.x.toFixed(2)+','+l.z.toFixed(2)+') len '+pa.len.toFixed(1)+' start '+angDiff(pathAt(pa,0).face,b.park.face).toFixed(3);});},
+    rideCheck:function(){var out=[];bikes.forEach(function(b){var pa=ridePath(b);for(var s0=0;s0<=pa.len;s0+=.25){var q=pathAt(pa,s0),l=W2L(q.x,q.z),why=[];
+        for(var j=0;j<flow.length-1;j++)if(segDist(q.x,q.z,flow[j],flow[j+1])<.55&&!bridges.some(function(B){return Math.abs((q.x-B.x)*B.uz-(q.z-B.z)*B.ux)<.5&&Math.abs((q.x-B.x)*B.ux+(q.z-B.z)*B.uz)<.8*B.s;})){why.push('water');break;}
+        if(inArea(q.x,q.z,.1))why.push('play');for(var i=0;i<PLOT.length;i++){var lo=landOf(i);if((!lo||lo.open)&&Math.hypot(PLOT[i][0]-q.x,PLOT[i][1]-q.z)<.95)why.push('plot'+i);}
+        if(pondP&&Math.hypot(q.x-pondP.x,q.z-pondP.z)<1.1)why.push('pond');for(var di in decors)if(Math.hypot(decors[di].x-q.x,decors[di].z-q.z)<(DECOR_R[decors[di].k]||.5)+.3)why.push('decor:'+decors[di].k);
+        for(var id in trees)if(Math.hypot(trees[id].x-q.x,trees[id].z-q.z)<.8)why.push('tree');
+        if(Math.abs(l.x)<2.15&&l.z>-1.65&&l.z<1.75)why.push('deck');if(l.x<-1.75&&l.x>-2.8&&l.z>-2.1&&l.z<1.3)why.push('swing');
+        if(why.length)out.push(b.k+'@'+s0.toFixed(1)+' L('+l.x.toFixed(2)+','+l.z.toFixed(2)+') '+why.join(','));}});return out;},
     bikePos:function(){return bikes.map(function(b){var r=b.rider&&b.rider.state==='ride'?b.rider:null,sw=r?b.g.localToWorld(b.o.seat.clone()):null;return {k:b.k,x:b.g.position.x,z:b.g.position.z,face:b.g.rotation.y,lean:b.g.rotation.z,off:r?r.g.position.distanceTo(sw):null,rf:r?r.g.rotation.y:null};});},
     follow:function(k){return setFollow(k);},following:function(){return follow;},resetView:function(){follow=null;az=.45;el=.62;rad=fitR;rgoal=0;agoal=egoal=null;tgt.set(0,.7,0);tgoal.copy(tgt);idleAt=Date.now();place();},
     move:moveStart,moveEnd:moveEnd,moving:function(){return mv?{kind:mv.kind,id:mv.id,sel:mv.sel}:null;},freeSpot:freeSpot,forestPos:forestPos,canPlace:function(x,z,id){return canPlace(x,z,id);},
