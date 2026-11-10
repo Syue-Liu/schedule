@@ -296,7 +296,13 @@ var Garden3D=(function(){
   function wetPath(a0,r0,a1,r1){var da=angDiff(a1,a0);for(var i=0;i<=14;i++){var k=i/14,a=a0+da*k,r=r0+(r1-r0)*k,x=Math.cos(a)*r,z=Math.sin(a)*r;for(var j=0;j<flow.length-1;j++)if(segDist(x,z,flow[j],flow[j+1])<.45)return true;}return false;}
   function legOk(a0,r0,a1,r1){return !crosses(a0,r0,a1,r1)&&!wetPath(a0,r0,a1,r1);}
   function pathOk(a0,r0,a1,r1){if(hitsPond(a0,r0,a1,r1))return false;var s0=far(a0,r0);if(s0===far(a1,r1))return legOk(a0,r0,a1,r1);var v=bridgeVia(s0);return legOk(a0,r0,v[0].a,v[0].r)&&legOk(v[1].a,v[1].r,a1,r1);}
-  function needVia(p){if((!p.via||!p.via.length)&&far(p.ang,p.r)!==far(p.ta,p.tr))p.via=bridgeVia(far(p.ang,p.r));}
+  // 換新的目的地時排一次路線：要過溪就先走橋；每一段如果會斜斜地踩到溪對岸（走路是沿著弧線走），先往花園裡面繞，
+  // 不然走到一半跑到對岸，又會被叫回去過橋，一直繞圈圈
+  function needVia(p){if(p.via&&p.via.length)return;var key=p.ta.toFixed(3)+','+p.tr.toFixed(3),sd=far(p.ang,p.r)!==far(p.ta,p.tr);if(!sd&&p.vk===key)return;p.vk=key;
+    var pts=[{a:p.ang,r:p.r}].concat(sd?bridgeVia(far(p.ang,p.r)):[],[{a:p.ta,r:p.tr}]),out=[];
+    for(var i=0;i<pts.length-1;i++){var A=pts[i],B=pts[i+1];if(i>0)out.push(A);if(sd&&i===1)continue;
+      if(!far(A.a,A.r)&&!legOk(A.a,A.r,B.a,B.r)){var ri=Math.min(4.6,A.r,B.r);if(ri<A.r-.05)out.push({a:A.a,r:ri});out.push({a:B.a,r:ri});}}
+    p.via=out;}
   function legTarget(p){return p.via&&p.via.length?p.via[0]:{a:p.ta,r:p.tr};}
   // 走在橋上：跟著拱起來的橋面高一點（橋頭有個小斜坡）
   function bridgeY(x,z){for(var i=0;i<bridges.length;i++){var B=bridges[i],dx=x-B.x,dz=z-B.z,u=Math.abs(dx*B.ux+dz*B.uz)/B.s,w=Math.abs(-dx*B.uz+dz*B.ux);if(w>.5||u>.8)continue;var top=function(t){return .19+.09*Math.cos(Math.min(1,t/.51)*1.3);};return u<=.51?top(u):top(.51)*(.8-u)/.29;}return 0;}
@@ -1944,6 +1950,7 @@ var Garden3D=(function(){
         for(var id in trees)if(Math.hypot(trees[id].x-q.x,trees[id].z-q.z)<.8)why.push('tree');
         if(Math.abs(l.x)<2.15&&l.z>-1.65&&l.z<1.75)why.push('deck');if(l.x<-1.75&&l.x>-2.8&&l.z>-2.1&&l.z<1.3)why.push('swing');
         if(why.length)out.push(b.k+'@'+s0.toFixed(1)+' L('+l.x.toFixed(2)+','+l.z.toFixed(2)+') '+why.join(','));}});return out;},
+    _put:function(k,a,r){var p=people.filter(function(o){return o.k===k;})[0];if(a==='farBridge'){var e=bridgeVia(false)[1];a=e.a+.05;r=e.r+.6;}p.ang=a;p.r=r;p.ta=a;p.tr=r;p.via=[];p.state='idle';p.timer=30;return {a:a,r:r,far:far(a,r)};},
     bikePos:function(){return bikes.map(function(b){var r=b.rider&&b.rider.state==='ride'?b.rider:null,sw=r?b.g.localToWorld(b.o.seat.clone()):null;return {k:b.k,x:b.g.position.x,z:b.g.position.z,face:b.g.rotation.y,lean:b.g.rotation.z,off:r?r.g.position.distanceTo(sw):null,rf:r?r.g.rotation.y:null};});},
     follow:function(k){return setFollow(k);},following:function(){return follow;},resetView:function(){follow=null;az=.45;el=.62;rad=fitR;rgoal=0;agoal=egoal=null;tgt.set(0,.7,0);tgoal.copy(tgt);idleAt=Date.now();place();},
     move:moveStart,moveEnd:moveEnd,moving:function(){return mv?{kind:mv.kind,id:mv.id,sel:mv.sel}:null;},freeSpot:freeSpot,forestPos:forestPos,canPlace:function(x,z,id){return canPlace(x,z,id);},
