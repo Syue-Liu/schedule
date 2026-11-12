@@ -15,7 +15,7 @@
 var Garden3D=(function(){
   var SRC='https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js';
   var T=null,R,scene,cam,box,hooks,clock,GM,mats={},geos={},cloudMat,dropMat,waterMat,heartTex,hitMat;
-  var plots=[],trees={},pets=[],people=[],visitors=[],fx=[],flecks=[],ducks=[],lake=null,stars,flies=[],clouds,sun,hemi,skyAt=0,night=0,nextVisit=0,spots=[],flow=[],bridges=[],lands={},pondP=null,mv=null,lastSt=null,tgoal=null,rgoal=0,agoal=null,egoal=null;
+  var plots=[],trees={},pets=[],people=[],visitors=[],fx=[],flecks=[],ducks=[],lake=null,stars,flies=[],clouds,sun,hemi,skyAt=0,night=0,nextVisit=0,spots=[],flow=[],bridges=[],lands={},pondP=null,mv=null,lastSt=null,showPlantNames=false,tgoal=null,rgoal=0,agoal=null,egoal=null;
   var tScale=1,az=.45,el=.62,rad=0,fitR=-1,tgt,ptrs={},pinch0=0,rad0=0,down=null,idleAt=0,running=false,vis=true,now=0;
   // 小島半徑、散步的那一圈、泉水池（溪的源頭）在哪個方向、溪水往小湖流出去的方向
   var ISL=8.6,RING=[4.65,7.1],MT=-2.2,WF=-.15;
@@ -1986,6 +1986,7 @@ var Garden3D=(function(){
       while(p.spk.length>want){scene.remove(p.spk.pop());}
       var PN={bug:'🐛',snail:'🐌',beetle:'🪲'};
       var mp=mv&&mv.kind==='plot';
+      p.lab.visible=open&&(!s||showPlantNames||!!mp);
       drawLabel(p.lab,s?{text:(mp&&s.id===mv.id?'🪴 ':s.pest?PN[s.pest]+' ':s.ready?'✨ ':'')+s.name,frac:s.r,ready:s.ready||(mp&&s.id===mv.id),pest:!!s.pest,thirsty:s.thirsty,sub:mp&&s.id!==mv.id?'點這裡交換':s.thirsty&&!s.pest?'口渴了…':''}:{text:mp?'移到這裡':'＋',empty:true});
       p.lab.position.y=(s?p.top+.3:.45);
     });
@@ -2010,7 +2011,8 @@ var Garden3D=(function(){
     else if(o&&o.person){var h=people.filter(function(q){return q.k===o.person;})[0];if(h)v=h.g.position.clone().setY(.9);}
     if(!v)return null;v.project(cam);var r=R.domElement.getBoundingClientRect();return {x:r.left+(v.x+1)/2*r.width,y:r.top+(1-v.y)/2*r.height};
   }
-  return {labels:function(on){if(on)cam.layers.enable(1);else cam.layers.disable(1);if(hl.ring)hl.ring.visible=on&&hl.ring.visible;},
+  return {plantLabels:function(on){showPlantNames=!!on;plots.forEach(function(p){p.lab.visible=p.on&&(!p.id||showPlantNames||!!(mv&&mv.kind==='plot'));});},
+    labels:function(on){if(on)cam.layers.enable(1);else cam.layers.disable(1);if(hl.ring)hl.ring.visible=on&&hl.ring.visible;},
     shot:function(){var wasHL=hl.ring&&hl.ring.visible;if(hl.ring)hl.ring.visible=false;var l1=cam.layers.isEnabled(1);cam.layers.disable(1);R.render(scene,cam);var u='';try{u=R.domElement.toDataURL('image/jpeg',.92);}catch(e){}if(l1)cam.layers.enable(1);if(hl.ring&&wasHL)hl.ring.visible=true;return u;},
     ring:function(id){ringBell(id);},say:function(k,t){var p=people.filter(function(o){return o.k===k;})[0];if(p)bubble(p,t||sayLine(p));},stroll:function(){var a=people[0],b=people[1];if(!a||!b)return false;[a,b].forEach(function(o){if(o.state==='act'||o.goAct)endAct(o);o.state='idle';o.with=null;o.goPic=null;});return strollStart(a,b);},
     poses:function(){return people.map(function(p){return {k:p.k,st:p.state,hand:p.hand?p.hand.k:null,lead:!!p.lead,umb:p.umb.visible,can:p.can.visible,bub:!!p.bub,pic:p.goPic?p.goPic.k:null};});},

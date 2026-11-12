@@ -166,9 +166,17 @@ body.shooting .fbar,body.shooting .toasts{display:none;}
 .g3-tools{position:absolute;right:10px;top:10px;z-index:3;display:flex;flex-direction:column;padding:5px;border:var(--lw2) solid var(--ink);border-radius:18px;background:rgba(255,252,246,.88);box-shadow:0 3px 0 var(--ink);}
 .g3.full .g3-tools{top:calc(env(safe-area-inset-top) + 12px);right:calc(env(safe-area-inset-right) + 12px);}
 .g3-tool{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;width:50px;height:50px;padding:0;border:0;border-radius:13px;background:transparent;font-family:inherit;color:var(--t);cursor:pointer;-webkit-tap-highlight-color:transparent;}
-.g3-tool+.g3-tool{margin-top:5px;}
-.g3-tool+.g3-tool::before{content:'';position:absolute;left:10px;right:10px;top:-3px;border-top:1.5px dashed #DCCFBF;}
-.g3-tool i{font-style:normal;font-size:20px;line-height:24px;}
+.g3-tool-list{max-height:calc(min(62vh, 560px) - 82px);overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;scrollbar-width:thin;}
+.g3.full .g3-tool-list{max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 95px);}
+.g3-tool-list[hidden]{display:none;}
+.g3-tool-list .g3-tool{margin-top:5px;}
+.g3-tool-list .g3-tool::before{content:'';position:absolute;left:10px;right:10px;top:-3px;border-top:1.5px dashed #DCCFBF;}
+.g3-tool svg{display:block;width:24px;height:24px;flex:none;fill:none;stroke:#665347;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+.g3-tool svg[hidden]{display:none;}
+.g3-tool svg .accent{fill:#DDEBCF;stroke:#799268;}
+.g3-tool svg .warm{fill:#F6DDA4;stroke:#A18455;}
+.garden-action-icon{display:inline-block;width:1.2em;height:1.2em;vertical-align:-.22em;fill:none;stroke:#665347;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+.garden-action-icon .fill-green{fill:#DDEBCF;}.garden-action-icon .fill-yellow{fill:#F6DDA4;}.garden-action-icon .fill-pink{fill:#F6D7D3;}.garden-action-icon .fill-blue{fill:#D4EAF1;}
 .g3-tool span{margin-top:1px;font-size:10px;line-height:12px;letter-spacing:.5px;color:var(--t2);white-space:nowrap;}
 .g3-tool:active{background:#F1E7D6;}
 .g3-tool.on{background:#FFE9A8;}.g3-tool.on span{color:var(--t);}
@@ -291,7 +299,17 @@ body.shooting .fbar,body.shooting .toasts{display:none;}
   <button class="mail-bar" id="mailBar" hidden></button>
   <div class="wx" id="wx"></div>
   <section class="qcard" id="qcard"></section>
-  <section class="g3" id="g3"><div class="g3-load">🌱 花園長出來中…</div><div class="g3-drops" id="g3drops"></div><button class="g3-mail" id="g3mail" aria-label="有新信" hidden>💌</button><div class="g3-tools"><button class="g3-tool" id="g3full" aria-label="全螢幕"><i>⤢</i><span>全螢幕</span></button><button class="g3-tool" id="g3reset" aria-label="恢復視角"><i>↺</i><span>視角</span></button><button class="g3-tool" id="g3decor" aria-label="裝飾花園"><i>🎀</i><span>裝飾</span></button><button class="g3-tool" id="g3follow" aria-label="跟著看"><i>👀</i><span>跟著看</span></button><button class="g3-tool" id="g3photo" aria-label="拍照"><i>📸</i><span>拍照</span></button></div><div class="g3-tip" id="g3tip">拖曳轉一圈・兩指拉近・點土種樹・點植物澆水</div></section>
+  <section class="g3" id="g3"><div class="g3-load">🌱 花園長出來中…</div><div class="g3-drops" id="g3drops"></div><button class="g3-mail" id="g3mail" aria-label="有新信" hidden>💌</button><div class="g3-tools">
+    <button class="g3-tool" id="g3toolsToggle" aria-label="收合工具列" aria-expanded="true" aria-controls="g3toolList"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 14 5-5 5 5"/><path d="M5 19h14"/></svg><span>收合</span></button>
+    <div class="g3-tool-list" id="g3toolList">
+    <button class="g3-tool" id="g3full" aria-label="全螢幕"><svg class="icon-expand" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4v5M15 4h5v5M20 15v5h-5M4 15v5h5"/><path d="m4 9 5-5m6 0 5 5m0 6-5 5M9 20l-5-5"/></svg><svg class="icon-close" viewBox="0 0 24 24" aria-hidden="true" hidden><path d="M6 6l12 12M18 6 6 18"/></svg><span>全螢幕</span></button>
+    <button class="g3-tool" id="g3reset" aria-label="恢復視角"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 10a8 8 0 1 1 .8 5.5"/><path d="M4.5 5.5V10H9"/><circle class="accent" cx="12" cy="12" r="2.1"/></svg><span>視角</span></button>
+    <button class="g3-tool" id="g3decor" aria-label="裝飾花園"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="accent" d="M12 12c-1.5-3.8-5.5-5.3-6.8-3.2C3.8 11 7.4 13 11 12.5M12 12c1.5-3.8 5.5-5.3 6.8-3.2 1.4 2.2-2.2 4.2-5.8 3.7"/><circle class="warm" cx="12" cy="12" r="1.7"/><path d="m11 13.5-2.8 5 2.8-.8 1 2.3 1.1-6.5m.8 0 2.9 5-2.8-.8-1 2.3"/></svg><span>裝飾</span></button>
+    <button class="g3-tool" id="g3follow" aria-label="跟著看"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.4-5 9.5-5 9.5 5 9.5 5-3.4 5-9.5 5-9.5-5-9.5-5Z"/><circle class="accent" cx="12" cy="12" r="2.7"/><circle cx="12" cy="12" r=".6" fill="#665347" stroke="none"/></svg><span>跟著看</span></button>
+    <button class="g3-tool" id="g3names" aria-label="顯示植物名稱" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19v-7"/><path class="accent" d="M12 15c-4.4 0-6.5-2.3-6.5-5.5C9.3 9.5 12 11 12 15ZM12 12c0-4 2.5-6.5 6.5-6.5 0 3.9-2.4 6.5-6.5 6.5Z"/><path d="M6 20h12"/></svg><span>植物名稱</span></button>
+    <button class="g3-tool" id="g3photo" aria-label="拍照"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l1.4-2h7.2L17 8h3a1.5 1.5 0 0 1 1.5 1.5v8A1.5 1.5 0 0 1 20 19H4a1.5 1.5 0 0 1-1.5-1.5v-8A1.5 1.5 0 0 1 4 8Z"/><circle class="accent" cx="12" cy="13" r="3.2"/><path d="M18 10.5h.1"/></svg><span>拍照</span></button>
+    </div>
+  </div><div class="g3-tip" id="g3tip">拖曳轉一圈・兩指拉近・點土種樹・點植物澆水</div></section>
   <div class="mvbar" id="mvbar" hidden></div>
   <div class="fbar" id="fbar" hidden></div>
   <div class="pbar" id="pbar" hidden></div><div class="ptip" id="ptip" hidden>拖曳選角度・兩指拉近</div>
@@ -303,7 +321,7 @@ body.shooting .fbar,body.shooting .toasts{display:none;}
 <script src="sound.js?v=amb-20261105"></script>
 <script src="game.js?v=garden-20261102"></script>
 <script src="vs.js?v=mail-20261108"></script>
-<script src="garden3d.js?v=decor2-20261111"></script>
+<script src="garden3d.js?v=plant-labels-20261112"></script>
 <script>
 /* 記憶小森林：兩個人一起種。每天回答一題問答拿水滴，一起澆水，把種子種成樹；長大的樹放進森林，留著那段時間的問答和兩個人的話。
    資料：班表同一個 Firebase 的 banbiao/<同步代碼>_garden（沒有同步代碼就存在這支手機）
@@ -1018,7 +1036,7 @@ function streakWarn(){
   try{if(localStorage.getItem('gardenStrk')===d)return;localStorage.setItem('gardenStrk',d);}catch(e){return;}
   toast('🔥 連續 '+s.cur+' 天了！今天你還沒澆水或回答問題，別讓它斷掉',null,6000);
 }
-/* ── 拍照：3D 花園的 📸——按鈕和名字標籤都收起來，拖曳選角度，按快門；拍好可以存到手機或放進兩個人的相簿
+/* ── 拍照：3D 花園的拍照按鈕——按鈕和名字標籤都收起來，拖曳選角度，按快門；拍好可以存到手機或放進兩個人的相簿
    相簿另外存一份（banbiao/<代碼>_album），照片縮小成 600 寬，最多留 8 張（放新的進去，最舊的會拿掉） ── */
 var ALB={},albReady=false,shooting=null,ALB_MAX=8;
 function albumList(){return Object.keys(ALB).map(function(id){var p=ALB[id];return p&&p.img?{id:id,by:p.by,at:+p.at||0,img:p.img}:null;}).filter(Boolean).sort(function(a,b){return b.at-a.at;});}
@@ -1197,6 +1215,8 @@ function state3d(){
 function start3d(){
   var box=$('g3');
   box.addEventListener('pointerdown',function(){$('g3tip').style.opacity=0;},{once:true});
+  $('g3toolsToggle').onclick=function(){var list=$('g3toolList'),closed=!list.hidden;list.hidden=closed;this.setAttribute('aria-expanded',String(!closed));this.setAttribute('aria-label',closed?'展開工具列':'收合工具列');this.querySelector('span').textContent=closed?'展開':'收合';this.querySelector('svg').style.transform=closed?'rotate(180deg)':'';SND.sfx('tap');};
+  $('g3names').onclick=function(){var on=this.getAttribute('aria-pressed')!=='true';this.setAttribute('aria-pressed',String(on));this.setAttribute('aria-label',on?'隱藏植物名稱':'顯示植物名稱');this.classList.toggle('on',on);if(g3)Garden3D.plantLabels(on);SND.sfx('tap');};
   $('g3full').onclick=function(){if(shooting){endPhoto();return;}if(rotating){SND.sfx('tap');endRotate();return;}if(following&&following.full){SND.sfx('tap');stopFollow();return;}setFull(!box.classList.contains('full'));SND.sfx('tap');};
   $('g3reset').onclick=function(){if(following)stopFollow();if(g3)Garden3D.resetView();};
   $('g3follow').onclick=function(){if(following){SND.sfx('tap');stopFollow();}else openFollow();};
@@ -1297,7 +1317,7 @@ function claim(){
 }
 
 /* ── 移植：森林的樹搬到新位置（3D）；長大中的植物搬到別塊土（點有植物的土就交換） ── */
-function setFull(on){var box=$('g3');box.classList.toggle('full',on);$('g3full').innerHTML=on?'<i>✕</i><span>關閉</span>':'<i>⤢</i><span>全螢幕</span>';document.body.style.overflow=on?'hidden':'';}
+function setFull(on){var box=$('g3'),btn=$('g3full');box.classList.toggle('full',on);btn.querySelector('.icon-expand').toggleAttribute('hidden',on);btn.querySelector('.icon-close').toggleAttribute('hidden',!on);btn.querySelector('span').textContent=on?'關閉':'全螢幕';btn.setAttribute('aria-label',on?'關閉全螢幕':'全螢幕');document.body.style.overflow=on?'hidden':'';}
 function startMove(kind,id){
   var p=D.plants[id];if(!p)return;
   closeSheet();
@@ -1563,12 +1583,12 @@ function askWho(){
 function help(){
   var L=level(),nt=L<TOPLV?unlockText(L+1):'',first=false;try{first=!localStorage.getItem('gardenHelp');}catch(e){}
   card('<h2>🎮 遊戲操作</h2><div class="g-rules">'+
-    '<h4>🖐️ 怎麼操作</h4><ul><li>拖曳轉一圈、兩指拉近拉遠；⤢ 全螢幕、↺ 回到原本的視角</li><li>點土種樹、點植物澆水；滑鼠移過去（手指按著）會亮起來，比較不會點錯</li><li>植物和森林的樹都可以「移植」，把花園排成你們喜歡的樣子</li><li>樹屋旁停著學的紅色街車和綾的小電動車：點它們可以叫兩個人一起去兜風（下雨、下雪不騎）</li><li>3D 花園右邊的 👀：選學、綾或一隻寵物，鏡頭就一直跟著他（拖曳繞著看、兩指拉近）</li><li>裝飾、植物、森林的樹都可以轉方向：點它，按「🔄 轉方向」，在花園裡邊看邊按 ↺ ↻</li></ul>'+
+    '<h4>🖐️ 怎麼操作</h4><ul><li>拖曳轉一圈、兩指拉近拉遠；用「全螢幕」放大，用「視角」回到原本的角度</li><li>點土種樹、點植物澆水；需要時按「植物名稱」顯示名稱和成長進度，再按一次隱藏</li><li>植物和森林的樹都可以「移植」，把花園排成你們喜歡的樣子</li><li>右側工具列可以收合，按「展開」再打開</li><li>樹屋旁停著學的紅色街車和綾的小電動車：點它們可以叫兩個人一起去兜風（下雨、下雪不騎）</li><li>3D 花園右邊的「跟著看」：選學、綾或一隻寵物，鏡頭就一直跟著他（拖曳繞著看、兩指拉近）</li><li>裝飾、植物、森林的樹都可以轉方向：點它，按「🔄 轉方向」，在花園裡邊看邊按 ↺ ↻</li></ul>'+
     '<h4>💧 水滴</h4><ul><li>每個人每天 '+BASE+' 滴水；回答今日問題 +'+ANSWER+' 滴，二選一兩個人選一樣再各多 '+MATCH+' 滴</li><li>同一天兩個人都澆同一棵，那天多長 '+TOGETHER+' 點</li><li>小鳥飛來的時候點牠，送一滴水（每天最多 '+BIRD+' 滴）；有害蟲要先抓走才能澆水</li><li>下雨、下雪那天，所有植物都會自己長一點</li></ul>'+
     '<h4>🌳 森林</h4><ul><li>長大的植物種進森林，會留下那段時間的問答和你們寫的話</li><li>種進森林兩個人各拿 1 包飼料（算在每天 '+G.CAP+' 包裡）</li><li>澆水、回答、抓害蟲都會加經驗；升級多幾塊土、開放新土地、解鎖新的花和樹</li></ul>'+
     '<h4>🛝 遊樂區（點它們叫學和綾過去）</h4><ul><li>白天溜滑梯、盪鞦韆；下雨、下雪天溜滑梯換成涼亭，喝咖啡吃甜點</li><li>傍晚長椅看夕陽，晚上營火烤棉花糖</li><li>樹屋旁的鞦韆隨時都能盪，兩個人的話一個坐、一個在後面推</li></ul>'+
-    '<h4>🔥 連續紀錄・🏅 成就・📸 拍照</h4><ul><li>兩個人同一天都有澆水或回答問題，連續紀錄就多一天（最上面的 🔥）</li><li>下面的 🏅 成就：達成後每個人各領一次獎勵水滴，有的還會解鎖限定裝飾</li><li>3D 花園右邊的 📸：按鈕和名字會收起來，選好角度按快門，可以存到手機或放進兩個人的相簿</li><li>今日問題下面的「✍️ 我來出題」：自己寫題目排進之後的今日問題</li></ul>'+
-    '<h4>🎀 裝飾・📮 信箱・🎉 紀念日</h4><ul><li>升級解鎖裝飾（3D 花園右上角 🎀）：盆栽、路燈、柵欄、蘑菇燈、花拱門、花圃、名字木牌、風車、長椅、小花車、稻草人、石板路、愛心氣球、鳥屋、南瓜燈、野餐墊、燈串、噴水池、風鈴、吊床；學和綾會去坐長椅、躺吊床</li><li>成就限定裝飾：幸福鐘、許願井、望遠鏡（晚上點它看流星）、熱氣球、雪人</li><li>📮 寫信給對方，對方一打開班表或花園就會看到</li><li>紀念日（交往、結婚、生日、在一起每 100 天）花園會布置，每個人多 '+SPECIAL+' 滴水</li><li>節日也會布置：聖誕節（點聖誕樹拆禮物）、跨年、過年、情人節、七夕、中秋、萬聖節</li></ul>'+
+    '<h4>🔥 連續紀錄・🏅 成就・📸 拍照</h4><ul><li>兩個人同一天都有澆水或回答問題，連續紀錄就多一天（最上面的 🔥）</li><li>下面的 🏅 成就：達成後每個人各領一次獎勵水滴，有的還會解鎖限定裝飾</li><li>3D 花園右邊的「拍照」：按鈕和名字會收起來，選好角度按快門，可以存到手機或放進兩個人的相簿</li><li>今日問題下面的「✍️ 我來出題」：自己寫題目排進之後的今日問題</li></ul>'+
+    '<h4>🎀 裝飾・📮 信箱・🎉 紀念日</h4><ul><li>升級解鎖裝飾（3D 花園右上角「裝飾」）：盆栽、路燈、柵欄、蘑菇燈、花拱門、花圃、名字木牌、風車、長椅、小花車、稻草人、石板路、愛心氣球、鳥屋、南瓜燈、野餐墊、燈串、噴水池、風鈴、吊床；學和綾會去坐長椅、躺吊床</li><li>成就限定裝飾：幸福鐘、許願井、望遠鏡（晚上點它看流星）、熱氣球、雪人</li><li>📮 寫信給對方，對方一打開班表或花園就會看到</li><li>紀念日（交往、結婚、生日、在一起每 100 天）花園會布置，每個人多 '+SPECIAL+' 滴水</li><li>節日也會布置：聖誕節（點聖誕樹拆禮物）、跨年、過年、情人節、七夕、中秋、萬聖節</li></ul>'+
     (nt?'<div class="next">⬆️ 升到 Lv.'+(L+1)+'：'+esc(nt)+'</div>':'')+
     '</div><div class="g-btns"><button class="g-btn" data-close>'+(first?'開始種':'知道了')+'</button></div>');
   sheet.ov.querySelector('[data-close]').onclick=function(){closeSheet();try{localStorage.setItem('gardenHelp','1');}catch(e){}};
@@ -1602,6 +1622,7 @@ addEventListener('pagehide',function(){clearTimeout(wT);flush();});
 start3d();
 connect();
 </script>
+<script src="garden-icons.js?v=20261112"></script>
 </body>
 </html>
 
