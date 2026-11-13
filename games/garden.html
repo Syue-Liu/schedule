@@ -348,7 +348,7 @@ body.shooting .fbar,body.shooting .toasts{display:none;}
 <script src="sound.js?v=amb-20261105"></script>
 <script src="game.js?v=garden-20261102"></script>
 <script src="vs.js?v=mail-20261108"></script>
-<script src="garden3d.js?v=water-status-20261113"></script>
+<script src="garden3d.js?v=rain-canopy-20261114"></script>
 <script>
 /* 記憶小森林：兩個人一起種。每天回答一題問答拿水滴，一起澆水，把種子種成樹；長大的樹放進森林，留著那段時間的問答和兩個人的話。
    資料：班表同一個 Firebase 的 banbiao/<同步代碼>_garden（沒有同步代碼就存在這支手機）
@@ -522,7 +522,7 @@ function ldToday(){
   var el=$('ldToday');if(!el||LD.done)return;
   var d=today(),q=d.split('-'),w=weatherOf(d),wt=w==='rain'||w==='snow',ph=phaseNow(),wd='日一二三四五六'.charAt(new Date(Date.UTC(+q[0],+q[1]-1,+q[2])).getUTCDay()),sp=special(d),n=LD.data?unread():0,b=n?newestMail():null;
   el.innerHTML='<div class="ld-date">'+md(d)+'（'+wd+'）・'+SEASONN[seasonOf(d)]+'</div><div class="ld-wx">'+WX[w]+'・'+{day:'白天',eve:'傍晚',night:'晚上'}[ph]+'</div>'+
-    '<div class="ld-play">'+(function(){var hh=(holidayOf(d)||{}).h,t=hh==='nye'&&ph==='night'?'一起坐在樹屋上看煙火 🎆':hh==='moon'&&ph!=='day'?'一起坐在野餐墊上吃月餅、賞月 🥮':hh==='xmas'?'下雪了，聖誕樹下有禮物 🎁':'';return t?t+'<br>':'';})()+({day:wt?'遊樂區搭起涼亭，可以喝咖啡、吃甜點 ☕':'遊樂區有溜滑梯和盪鞦韆 🛝',eve:'長椅搬出來了，一起看夕陽 🌇',night:'營火升起來了，可以烤棉花糖 🔥'}[ph])+(wt&&d>=WX_START?'<br>植物都喝到水，自己長了一點 🌱':'')+'</div>'+
+    '<div class="ld-play">'+(function(){var hh=(holidayOf(d)||{}).h,t=hh==='nye'&&ph==='night'?'一起坐在樹屋上看煙火 🎆':hh==='moon'&&ph!=='day'?'一起坐在野餐墊上吃月餅、賞月 🥮':hh==='xmas'?'下雪了，聖誕樹下有禮物 🎁':'';return t?t+'<br>':'';})()+({day:wt?'遊樂區搭起涼亭，可以喝咖啡、吃甜點 ☕':'遊樂區有溜滑梯和盪鞦韆 🛝',eve:'長椅搬出來了，一起看夕陽 🌇',night:w==='rain'?'營火上搭起天幕，一起烤棉花糖 🔥':'營火升起來了，可以烤棉花糖 🔥'}[ph])+(wt&&d>=WX_START?'<br>植物都喝到水，自己長了一點 🌱':'')+'</div>'+
     (sp.length?'<div class="ld-sp">'+esc(sp.map(function(o){return o.e+' '+o.t;}).join('・'))+'</div>':'')+
     (b?'<div class="ld-mail">💌 '+NAMES[b.from]+(n>1?'寄了 '+n+' 封信給你':'寄了一封信給你')+'</div>':'');
 }
@@ -1617,7 +1617,7 @@ function help(){
     '<h4>🖐️ 怎麼操作</h4><ul><li>拖曳轉一圈、兩指拉近拉遠；用「全螢幕」放大，用「視角」回到原本的角度</li><li>點土種樹、點植物澆水；需要時按「澆澆水」顯示植物名稱、成長進度和今天的澆水狀態，再按一次隱藏</li><li>植物和森林的樹都可以「移植」，把花園排成你們喜歡的樣子</li><li>右側工具列可以收合，按「展開」再打開；「更多」裡有裝飾和跟著看</li><li>樹屋旁停著學的紅色街車和綾的小電動車：點它們可以叫兩個人一起去兜風（下雨、下雪不騎）</li><li>3D 花園右邊的「跟著看」：選學、綾或一隻寵物，鏡頭就一直跟著他（拖曳繞著看、兩指拉近）</li><li>裝飾、植物、森林的樹都可以轉方向：點它，按「🔄 轉方向」，在花園裡邊看邊按 ↺ ↻</li></ul>'+
     '<h4>💧 水滴</h4><ul><li>每個人每天 '+BASE+' 滴水；回答今日問題 +'+ANSWER+' 滴，二選一兩個人選一樣再各多 '+MATCH+' 滴</li><li>同一天兩個人都澆同一棵，那天多長 '+TOGETHER+' 點</li><li>小鳥飛來的時候點牠，送一滴水（每天最多 '+BIRD+' 滴）；有害蟲要先抓走才能澆水</li><li>下雨、下雪那天，所有植物都會自己長一點</li></ul>'+
     '<h4>🌳 森林</h4><ul><li>長大的植物種進森林，會留下那段時間的問答和你們寫的話</li><li>種進森林兩個人各拿 1 包飼料（算在每天 '+G.CAP+' 包裡）</li><li>澆水、回答、抓害蟲都會加經驗；升級多幾塊土、開放新土地、解鎖新的花和樹</li></ul>'+
-    '<h4>🛝 遊樂區（點它們叫學和綾過去）</h4><ul><li>白天溜滑梯、盪鞦韆；下雨、下雪天溜滑梯換成涼亭，喝咖啡吃甜點</li><li>傍晚長椅看夕陽，晚上營火烤棉花糖</li><li>樹屋旁的鞦韆隨時都能盪，兩個人的話一個坐、一個在後面推</li></ul>'+
+    '<h4>🛝 遊樂區（點它們叫學和綾過去）</h4><ul><li>白天溜滑梯、盪鞦韆；下雨、下雪天溜滑梯換成涼亭，喝咖啡吃甜點</li><li>傍晚長椅看夕陽，晚上營火烤棉花糖；下雨的晚上會搭起天幕</li><li>樹屋旁的鞦韆隨時都能盪，兩個人的話一個坐、一個在後面推</li></ul>'+
     '<h4>🔥 連續紀錄・🏅 成就・📸 拍照</h4><ul><li>兩個人同一天都有澆水或回答問題，連續紀錄就多一天（最上面的 🔥）</li><li>下面的 🏅 成就：達成後每個人各領一次獎勵水滴，有的還會解鎖限定裝飾</li><li>3D 花園右邊的「拍照」：按鈕和名字會收起來，選好角度按快門，可以存到手機或放進兩個人的相簿</li><li>今日問題下面的「✍️ 我來出題」：自己寫題目排進之後的今日問題</li></ul>'+
     '<h4>🎀 裝飾・📮 信箱・🎉 紀念日</h4><ul><li>升級解鎖裝飾（3D 花園右上角「裝飾」）：盆栽、路燈、柵欄、蘑菇燈、花拱門、花圃、名字木牌、風車、長椅、小花車、稻草人、石板路、愛心氣球、鳥屋、南瓜燈、野餐墊、燈串、噴水池、風鈴、吊床；學和綾會去坐長椅、躺吊床</li><li>成就限定裝飾：幸福鐘、許願井、望遠鏡（晚上點它看流星）、熱氣球、雪人</li><li>📮 寫信給對方，對方一打開班表或花園就會看到</li><li>紀念日（交往、結婚、生日、在一起每 100 天）花園會布置，每個人多 '+SPECIAL+' 滴水</li><li>節日也會布置：聖誕節（點聖誕樹拆禮物）、跨年、過年、情人節、七夕、中秋、萬聖節</li></ul>'+
     (nt?'<div class="next">⬆️ 升到 Lv.'+(L+1)+'：'+esc(nt)+'</div>':'')+
@@ -1631,7 +1631,7 @@ function ambient(){
 }
 function ready(){
   ldStep('data');loadYearly();albumLoad();setTimeout(streakWarn,5000);setInterval(streakWarn,60000);setTimeout(partyCard,1200);setTimeout(mailEntry,300);setTimeout(newSpCard,2600);setInterval(ambient,2500);ambient();
-  setTimeout(function(){var d=today();try{if(wet(d)&&d>=WX_START&&localStorage.getItem('gardenWx')!==d){localStorage.setItem('gardenWx',d);toast(weatherOf(d)==='snow'?'❄️ 今天下雪了，花園裡的植物都喝到水、自己長了一點；遊樂區搭起涼亭可以喝咖啡 ☕':'🌧️ 今天下雨，花園裡的植物都喝到水、自己長了一點；遊樂區搭起涼亭可以喝咖啡 ☕');}}catch(e){}},1600);
+  setTimeout(function(){var d=today();try{if(wet(d)&&d>=WX_START&&localStorage.getItem('gardenWx')!==d){localStorage.setItem('gardenWx',d);toast((weatherOf(d)==='snow'?'❄️ 今天下雪了':'🌧️ 今天下雨')+'，花園裡的植物都喝到水、自己長了一點'+(phaseNow()==='day'?'；遊樂區搭起涼亭可以喝咖啡 ☕':phaseNow()==='night'&&weatherOf(d)==='rain'?'；營火上搭起天幕，一起烤棉花糖 🔥':''));}}catch(e){}},1600);
   started=true;
   $('gpets').innerHTML=['cat','pg','dg'].map(function(k){return '<img src="'+G.petImg(k,'happy')+'" alt="'+esc(G.petName(k))+'">';}).join('');
   paint();claim();SND.music('garden');pestSeen=pestsNow().map(function(x){return x.key;});setTimeout(visit2d,12000);

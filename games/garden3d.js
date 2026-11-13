@@ -1151,6 +1151,7 @@ var Garden3D=(function(){
     ['#86B67C','#9AC58C','#77AA74'].forEach(function(c){tintMat(c,S.c,S.ck,sn,.3);});
     if(crI0){for(var i=0;i<crN;i++){var t=Math.floor(i/2);col.copy(crBase[i]);if(S.tr&&(!S.every||t%S.every===0))col.lerp(new T.Color(Array.isArray(S.tr)?S.tr[t%S.tr.length]:S.tr),S.trk);if(sn)col.lerp(new T.Color('#F2F6F7'),.45);crI0.setColorAt(i,col);}crI0.instanceColor.needsUpdate=true;}
     makePrecip(w);makeDrift(w==='rain'||sn?null:S.drift);
+    if(ACTS.fireCanopy)ACTS.fireCanopy.visible=w==='rain';
     if(ACTS.slideG){var wt=w==='rain'||sn;ACTS.slideG.visible=!wt;ACTS.gazebo.visible=wt;people.forEach(function(p){var k=(p.A&&p.A.k)||(p.goAct&&p.goAct.k);if((wt&&k==='slide')||(!wt&&k==='cafe'))endAct(p);});}
     flies.forEach(function(f,i){f.visible=i<14||s==='summer';});
     sky();
@@ -1177,9 +1178,12 @@ var Garden3D=(function(){
     var o=new T.Points(geo,new T.PointsMaterial({size:.26,map:petalT,vertexColors:true,transparent:true,depthWrite:false,alphaTest:.1}));o.frustumCulled=false;o.userData.dyn=true;scene.add(o);drift={o:o,D:D,N:N};
   }
   function tickWeather(dt){
-    if(precip){var P=precip,a=P.o.geometry.attributes.position.array,cx=tgt.x,cz=tgt.z;
+    if(precip){var P=precip,a=P.o.geometry.attributes.position.array,cx=tgt.x,cz=tgt.z,canopyActive=P.rain&&phase==='night'&&ACTS.fireCanopy&&ACTS.fireCanopy.visible,canopyCenter=canopyActive?AWp(0,.45):null;
       for(var i=0;i<P.N;i++){var d=P.D[i];d.y-=(P.rain?13:1.1)*d.s*dt;if(!P.rain)d.x+=Math.sin(now*1.3+d.ph)*.3*dt;if(d.y<0){d.y+=16;d.x=(Math.random()-.5)*32;d.z=(Math.random()-.5)*32;}
-        var x=cx+d.x,z=cz+d.z;if(P.rain){var j=i*6;a[j]=x;a[j+1]=d.y;a[j+2]=z;a[j+3]=x+.05;a[j+4]=d.y+.6;a[j+5]=z+.02;}else{var j2=i*3;a[j2]=x;a[j2+1]=d.y;a[j2+2]=z;}}
+        var x=cx+d.x,z=cz+d.z;
+        // 雨落到天幕時從上方重新開始，不穿過遮住營火和座位的布面。
+        if(canopyActive){if(Math.abs(x-canopyCenter.x)<2.4&&Math.abs(z-canopyCenter.z)<2.4){var al=toArea(x,z);if(Math.abs(al.x)<1.55&&al.z>-.95&&al.z<1.85){var roofY=2.95-Math.abs(al.z-.45)*(.53/1.4);if(d.y<roofY){d.y=16;d.x=(Math.random()-.5)*32;d.z=(Math.random()-.5)*32;x=cx+d.x;z=cz+d.z;}}}}
+        if(P.rain){var j=i*6;a[j]=x;a[j+1]=d.y;a[j+2]=z;a[j+3]=x+.05;a[j+4]=d.y+.6;a[j+5]=z+.02;}else{var j2=i*3;a[j2]=x;a[j2+1]=d.y;a[j2+2]=z;}}
       P.o.geometry.attributes.position.needsUpdate=true;}
     if(drift){var Q=drift,b=Q.o.geometry.attributes.position.array;
       for(var k=0;k<Q.N;k++){var e=Q.D[k];e.y-=e.s*dt;e.x+=Math.sin(now*.9+e.ph)*.4*dt;e.z+=Math.cos(now*.7+e.ph)*.3*dt;if(e.y<0){e.y+=7;e.x=(Math.random()-.5)*24;e.z=(Math.random()-.5)*24;}b[k*3]=e.x;b[k*3+1]=e.y;b[k*3+2]=e.z;}
@@ -1251,6 +1255,19 @@ var Garden3D=(function(){
     var lg=mesh(cyl(.16,.16,1.9,8),'#8E6A55',0,.16,1.15);lg.rotation.z=Math.PI/2;night.add(lg);
     [-.95,.95].forEach(function(x){var ec=mesh(cyl(.13,.13,.02,8),'#D9B48A',x,.16,1.15);ec.rotation.z=Math.PI/2;night.add(ec);});
     box(night,.26,.14,.18,'#F6E7D8',1.25,.07,1.05);for(var mm=0;mm<3;mm++)night.add(mesh(cyl(.04,.04,.06,8),'#FFFFFF',1.17+mm*.08,.17,1.05));
+    // 雨夜營火天幕：四角木柱、雙坡帆布與暖色燈串；乾燥的晚上保持原來的營火。
+    var tarp=new T.Group();tarp.userData.dyn=true;tarp.visible=wx.w==='rain';night.add(tarp);ACTS.fireCanopy=tarp;
+    var edgeY=2.42,ridgeY=2.95,z0=-.95,zm=.45,z1=1.85;
+    [-1.48,1.48].forEach(function(x){[z0,z1].forEach(function(z){tarp.add(mesh(cyl(.045,.055,edgeY,7),'#8E6A55',x,edgeY/2,z));});});
+    rod(tarp,V(-1.6,ridgeY,zm),V(1.6,ridgeY,zm),.035,'#8E6A55');
+    [z0,z1].forEach(function(z){rod(tarp,V(-1.6,edgeY,z),V(1.6,edgeY,z),.027,'#B98B6B');});
+    var cloth=[new T.MeshToonMaterial({color:'#F5E9CB',gradientMap:GM,side:T.DoubleSide}),new T.MeshToonMaterial({color:'#D9E6C8',gradientMap:GM,side:T.DoubleSide})];
+    function tarpPanel(x0,x1,za,ya,zb,yb,col){var geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32BufferAttribute([x0,ya,za,x1,ya,za,x1,yb,zb,x0,ya,za,x1,yb,zb,x0,yb,zb],3));geo.computeVertexNormals();tarp.add(mesh(geo,col));}
+    for(var tp=0;tp<6;tp++){var x0=-1.6+tp*3.2/6,x1=-1.6+(tp+1)*3.2/6;tarpPanel(x0,x1,z0,edgeY,zm,ridgeY,cloth[tp%2]);tarpPanel(x0,x1,zm,ridgeY,z1,edgeY,cloth[tp%2]);}
+    // 前簷掛小燈，照亮下雨的夜晚；營火和人物的點擊範圍不受影響。
+    rod(tarp,V(-1.4,2.34,z1-.08),V(1.4,2.34,z1-.08),.012,'#8E6A55');
+    for(var tl=0;tl<7;tl++){var lx=-1.26+tl*.42;rod(tarp,V(lx,2.34,z1-.08),V(lx,2.27,z1-.08),.009,'#8E6A55');var bulb=new T.Mesh(ball(.045,1),new T.MeshBasicMaterial({color:tl%2?'#FFE5A9':'#FFF1C9'}));bulb.position.set(lx,2.24,z1-.08);tarp.add(bulb);}
+    bake(tarp);
     ACTS.fire={occ:[null,null],x:[-.42,.42],c:AW(0,.5,.3)};
     ACTS.hits.night=[hitBox(night,'fire',0,.55,1.2,1.4)];
     bake(sl);bake(gz);bake(day);bake(eve);bake(night);ACTS.swing.seat.forEach(function(g){bake(g);});
@@ -2050,7 +2067,7 @@ var Garden3D=(function(){
     fxCount:function(){return fx.length;},visitors:function(){return visitors.map(function(v){return v.kind+':'+v.state;});},
     spawn:function(k){var v=makeVisitor(k);return visitors.indexOf(v);},goPic:function(k){var p=people.filter(function(o){return o.k===k;})[0];if(!p||p.land||TREE_STATES[p.state]||p.toTree)return false;if(p.state==='act'||p.goAct)endAct(p);return goPic(p);},people:function(){return people.map(function(p){return p.k+':'+p.state+(p.with?'>'+(p.with.k||'?'):'')+(p.land?'@'+p.land.id:'')+(p.A?'#'+p.A.k+'.'+p.A.step:p.goAct?'~'+p.goAct.k:'')+(p.goPic?'~pic':'');});},
     phase:function(){return phase;},setPhase:function(ph){setPhase(ph);},act:function(k){return callAct(k);},
-    acts:function(){var TS=ACTS.tswing;return {tswing:TS.occ.map(function(o){return o&&o.k;}),tphi:+TS.phi.toFixed(2),tamp:+TS.amp.toFixed(2),tpush:people.map(function(p){return p.A&&p.A.k==='tswing'&&p.A.i===1?+(p.A.push||0).toFixed(2):null;}),cafe:ACTS.cafe.occ.map(function(o){return o&&o.k;}),cafeSt:people.map(function(p){var A=p.A;return A&&A.k==='cafe'&&A.step==='use'?(A.sip>0?'sip':A.bite>0?(p.feed?'feed':'bite'):'sit'):'';}),gazebo:ACTS.gazebo.visible,slideShown:ACTS.slideG.visible,slide:ACTS.slide.occ&&ACTS.slide.occ.k,swing:ACTS.swing.occ.map(function(o){return o&&o.k;}),phi:ACTS.swing.phi.map(function(v){return +v.toFixed(2);}),bench:ACTS.bench.occ.map(function(o){return o&&o.k;}),fire:ACTS.fire.occ.map(function(o){return o&&o.k;}),light:+fireLight.intensity.toFixed(2),marsh:people.map(function(p){return p.marsh?'#'+p.marsh.material.color.getHexString():'';})};},
+    acts:function(){var TS=ACTS.tswing;return {tswing:TS.occ.map(function(o){return o&&o.k;}),tphi:+TS.phi.toFixed(2),tamp:+TS.amp.toFixed(2),tpush:people.map(function(p){return p.A&&p.A.k==='tswing'&&p.A.i===1?+(p.A.push||0).toFixed(2):null;}),cafe:ACTS.cafe.occ.map(function(o){return o&&o.k;}),cafeSt:people.map(function(p){var A=p.A;return A&&A.k==='cafe'&&A.step==='use'?(A.sip>0?'sip':A.bite>0?(p.feed?'feed':'bite'):'sit'):'';}),gazebo:ACTS.gazebo.visible,fireCanopy:!!(phase==='night'&&ACTS.fireCanopy&&ACTS.fireCanopy.visible),slideShown:ACTS.slideG.visible,slide:ACTS.slide.occ&&ACTS.slide.occ.k,swing:ACTS.swing.occ.map(function(o){return o&&o.k;}),phi:ACTS.swing.phi.map(function(v){return +v.toFixed(2);}),bench:ACTS.bench.occ.map(function(o){return o&&o.k;}),fire:ACTS.fire.occ.map(function(o){return o&&o.k;}),light:+fireLight.intensity.toFixed(2),marsh:people.map(function(p){return p.marsh?'#'+p.marsh.material.color.getHexString():'';})};},
     area:function(){return {c:AWp(0,.2),rot:AREA_ROT};},
     goLand:function(k,id){var p=people.filter(function(o){return o.k===k;})[0],L=LAND_GEO[id];if(!p||!L||!L.open||TREE_STATES[p.state]||p.toTree)return false;if(p.land)leaveLand(p);else goLand(p,L);return true;},
     look:function(a,e2,r2,tx,ty,tz){az=a;el=e2;agoal=egoal=null;if(r2){rad=r2;rgoal=0;}if(tx!=null){tgt.set(tx,ty,tz);tgoal.copy(tgt);}idleAt=Date.now()+1e9;},
