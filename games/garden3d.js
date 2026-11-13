@@ -181,11 +181,12 @@ var Garden3D=(function(){
   function drawLabel(s,o){
     var key=JSON.stringify(o);if(s.userData.key===key)return;s.userData.key=key;
     var c=s.userData.c,x=c.getContext('2d');x.clearRect(0,0,c.width,c.height);
-    x.font='30px Huninn, "PingFang TC", sans-serif';var tw=Math.min(296,Math.max(o.empty?60:150,x.measureText(o.text).width+44)),l=(320-tw)/2;
+    x.font='30px Huninn, "PingFang TC", sans-serif';var tw=Math.min(296,Math.max(o.empty?60:150,x.measureText(o.text).width+(o.waterStatus?78:44))),l=(320-tw)/2;
     x.globalAlpha=o.empty?.82:1;rr(x,l,6,tw,52,26);x.fillStyle=o.pest?'#FCE6E1':o.ready?'#FDF2D2':'#FFFCF6';x.fill();x.lineWidth=5;x.strokeStyle='#594C43';x.stroke();
-    x.fillStyle=o.empty?'#8C6A55':'#3E3A39';x.textAlign='center';x.textBaseline='middle';x.fillText(o.text,160,33);
+    if(o.waterStatus){var dx=l+23;x.beginPath();x.moveTo(dx,16);x.bezierCurveTo(dx-4,23,dx-10,29,dx-10,34);x.arc(dx,34,10,Math.PI,0,true);x.bezierCurveTo(dx+10,29,dx+4,23,dx,16);x.closePath();x.fillStyle=o.waterStatus==='watered'?'#C6D9DC':'#79BDDA';x.fill();x.lineWidth=2;x.strokeStyle=o.waterStatus==='watered'?'#96AAAD':'#397D9E';x.stroke();}
+    x.fillStyle=o.empty?'#8C6A55':'#3E3A39';x.textAlign='center';x.textBaseline='middle';x.fillText(o.text,160+(o.waterStatus?12:0),33,o.waterStatus?tw-55:tw-20);
     if(o.frac!=null){rr(x,70,68,180,22,11);x.fillStyle='#FFFCF6';x.fill();x.lineWidth=4;x.stroke();if(o.frac>0){rr(x,72,70,Math.max(18,176*o.frac),18,9);x.fillStyle=o.thirsty?'#A8D3E6':'#7FB36E';x.fill();}}
-    if(o.sub){x.font='22px Huninn, sans-serif';x.fillStyle='#3E7FA0';x.fillText(o.sub,160,108);}
+    if(o.sub){rr(x,56,92,208,27,13);x.fillStyle='#F5FBF9';x.fill();x.font='24px Huninn, sans-serif';x.fillStyle='#385F71';x.fillText(o.sub,160,106,196);}
     s.userData.t.needsUpdate=true;
   }
   // 人物頭上的名字
@@ -1987,7 +1988,7 @@ var Garden3D=(function(){
       var PN={bug:'🐛',snail:'🐌',beetle:'🪲'};
       var mp=mv&&mv.kind==='plot';
       p.lab.visible=open&&(!s||showPlantNames||!!mp);
-      drawLabel(p.lab,s?{text:(mp&&s.id===mv.id?'🪴 ':s.pest?PN[s.pest]+' ':s.ready?'✨ ':'')+s.name,frac:s.r,ready:s.ready||(mp&&s.id===mv.id),pest:!!s.pest,thirsty:s.thirsty,sub:mp&&s.id!==mv.id?'點這裡交換':s.thirsty&&!s.pest?'口渴了…':''}:{text:mp?'移到這裡':'＋',empty:true});
+      drawLabel(p.lab,s?{text:(mp&&s.id===mv.id?'🪴 ':s.pest?PN[s.pest]+' ':s.ready?'✨ ':'')+s.name,frac:s.r,ready:s.ready||(mp&&s.id===mv.id),pest:!!s.pest,thirsty:s.thirsty,waterStatus:!mp&&!s.ready&&!s.pest?(s.watered?'watered':'unwatered'):'',sub:mp&&s.id!==mv.id?'點這裡交換':s.pest?'先抓走害蟲':s.ready?'可以種進森林':s.thirsty?'口渴了':s.watered?'你今天已澆水':'你今天還沒澆水'}:{text:mp?'移到這裡':'＋',empty:true});
       p.lab.position.y=(s?p.top+.3:.45);
     });
     setForest(st.forest||[]);
