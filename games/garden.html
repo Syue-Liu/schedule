@@ -63,7 +63,7 @@ body{min-height:100%;background:#F4F8EC;}
 .ach button{flex:none;padding:6px 10px;border:var(--lw2) solid var(--ink);border-radius:999px;background:#FFE08A;font-family:inherit;font-size:13px;color:var(--t);box-shadow:0 2px 0 var(--ink);}.ach em{flex:none;font-style:normal;font-size:12px;color:var(--t3);}
 .gnote button i{font-style:normal;margin-left:4px;padding:0 6px;border:1.5px solid var(--ink);border-radius:999px;background:#F2A497;font-size:11px;}
 .gnote{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;}
-.g3.shoot .g3-tools,.g3.shoot .g3-drops,.g3.shoot .g3-tip,.g3.shoot .g3-mail{display:none;}
+.g3.shoot .g3-tools,.g3.shoot .g3-full-control,.g3.shoot .g3-drops,.g3.shoot .g3-tip,.g3.shoot .g3-mail{display:none;}
 body.shooting .fbar,body.shooting .toasts{display:none;}
 .pbar{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 18px);transform:translateX(-50%);z-index:50;display:flex;align-items:center;gap:20px;}.pbar[hidden]{display:none;}
 .pbar button{min-width:64px;height:40px;padding:0 12px;white-space:nowrap;border:var(--lw2) solid var(--ink);border-radius:999px;background:rgba(255,252,246,.92);font-family:inherit;font-size:14px;color:var(--t);box-shadow:0 2px 0 var(--ink);}
@@ -128,6 +128,24 @@ body.shooting .fbar,body.shooting .toasts{display:none;}
 .g-rules h4{margin:12px 0 4px;font-size:14px;font-weight:400;color:var(--t);}.g-rules h4:first-child{margin-top:0;}
 .g-rules ul{margin:0;padding-left:18px;}.g-rules li{margin:3px 0;}
 .g-rules .next{margin-top:12px;padding:8px 10px;border-radius:12px;background:#F4F8EC;font-size:13px;}
+/* 花園狀態：把動態、信箱、連續紀錄和天氣排成一致的輕巧按鈕。 */
+.here{flex-wrap:wrap;gap:7px;margin:0 0 9px;line-height:1.35;}
+.here b,.here .feedbtn,.strk,.wx b,.wx .mailbtn,.here .mailbtn{min-height:36px;border:1.5px solid #C6B8A3;box-shadow:0 2px 5px #59452E0D;color:#5F594F;}
+.here b,.here .feedbtn{display:inline-flex;align-items:center;justify-content:center;gap:5px;max-width:100%;padding:7px 13px;border-radius:999px;background:#FFFDF8;font:inherit;}
+.here .feedbtn{cursor:pointer;background:#FBF0ED;color:#735A52;}
+.here .feedbtn.on{background:#EAF3E5;color:#4D6A4D;}
+.here .feedbtn.syue{background:#EDF5E9;}
+.here .feedbtn span{font-size:18px;line-height:12px;color:#A18570;}
+.here>span{flex-basis:100%;text-align:center;font-size:12px;color:#8D857B;}
+.here .mailbtn,.wx .mailbtn{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;padding:0;border-radius:50%;background:#FFFDF8;}
+.here .mailbtn.hot{background:#FDE3EA;}
+.strk{display:inline-flex;align-items:center;gap:3px;margin:0;padding:7px 12px;border-radius:999px;background:#FFF2D8;}
+.strk.warn{border-style:dashed;background:#FFFDF8;}
+.wx{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:7px;margin:0 0 12px;line-height:1.35;}
+.wx b{display:inline-flex;align-items:center;padding:7px 13px;border-radius:999px;background:#F3F7ED;color:#65715D;}
+.wx .party{flex-basis:100%;}
+.here .feedbtn:active,.here .mailbtn:active,.wx .mailbtn:active,.strk:active{transform:translateY(1px);}
+@media(max-width:340px){.here{gap:5px;}.here .feedbtn,.strk{font-size:12px;padding-inline:9px;}.here .mailbtn,.wx .mailbtn{width:34px;height:34px;min-height:34px;}}
 /* 卡片（澆水、種子、回憶） */
 .sh-art{height:170px;display:flex;justify-content:center;}
 .sh-art svg{height:100%;width:auto;}
@@ -163,11 +181,14 @@ body.shooting .fbar,body.shooting .toasts{display:none;}
 .g3 canvas{display:block;width:100%;height:100%;}
 .g3.full{position:fixed;inset:0;height:auto;margin:0;border:0;border-radius:0;z-index:40;}
 /* 3D 花園右上角的工具列：四顆一樣大的方形按鈕，圖示下面一行小字，放在同一塊底板上 */
-.g3-tools{position:absolute;right:10px;top:10px;z-index:3;display:flex;flex-direction:column;padding:5px;border:var(--lw2) solid var(--ink);border-radius:18px;background:rgba(255,252,246,.88);box-shadow:0 3px 0 var(--ink);}
-.g3.full .g3-tools{top:calc(env(safe-area-inset-top) + 12px);right:calc(env(safe-area-inset-right) + 12px);}
+.g3-tools,.g3-full-control{position:absolute;right:10px;z-index:3;display:flex;flex-direction:column;padding:5px;border:var(--lw2) solid var(--ink);border-radius:18px;background:rgba(255,252,246,.92);box-shadow:0 3px 0 var(--ink);}
+.g3-full-control{top:10px;}
+.g3-tools{top:80px;}
+.g3.full .g3-full-control{top:calc(env(safe-area-inset-top) + 12px);right:calc(env(safe-area-inset-right) + 12px);}
+.g3.full .g3-tools{top:calc(env(safe-area-inset-top) + 82px);right:calc(env(safe-area-inset-right) + 12px);}
 .g3-tool{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;width:50px;height:50px;padding:0;border:0;border-radius:13px;background:transparent;font-family:inherit;color:var(--t);cursor:pointer;-webkit-tap-highlight-color:transparent;}
-.g3-tool-list{max-height:calc(min(62vh, 560px) - 82px);overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;scrollbar-width:thin;}
-.g3.full .g3-tool-list{max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 95px);}
+.g3-tool-list{max-height:calc(min(62vh, 560px) - 152px);overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;scrollbar-width:thin;}
+.g3.full .g3-tool-list{max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 165px);}
 .g3-tool-list[hidden]{display:none;}
 .g3-tool-list .g3-tool{margin-top:5px;}
 .g3-tool-list .g3-tool::before{content:'';position:absolute;left:10px;right:10px;top:-3px;border-top:1.5px dashed #DCCFBF;}
@@ -299,14 +320,15 @@ body.shooting .fbar,body.shooting .toasts{display:none;}
   <button class="mail-bar" id="mailBar" hidden></button>
   <div class="wx" id="wx"></div>
   <section class="qcard" id="qcard"></section>
-  <section class="g3" id="g3"><div class="g3-load">🌱 花園長出來中…</div><div class="g3-drops" id="g3drops"></div><button class="g3-mail" id="g3mail" aria-label="有新信" hidden>💌</button><div class="g3-tools">
+  <section class="g3" id="g3"><div class="g3-load">🌱 花園長出來中…</div><div class="g3-drops" id="g3drops"></div><button class="g3-mail" id="g3mail" aria-label="有新信" hidden>💌</button><div class="g3-full-control">
+    <button class="g3-tool" id="g3full" aria-label="全螢幕"><svg class="icon-expand" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4v5M15 4h5v5M20 15v5h-5M4 15v5h5"/><path d="m4 9 5-5m6 0 5 5m0 6-5 5M9 20l-5-5"/></svg><svg class="icon-close" viewBox="0 0 24 24" aria-hidden="true" hidden><path d="M6 6l12 12M18 6 6 18"/></svg><span>全螢幕</span></button>
+  </div><div class="g3-tools">
     <button class="g3-tool" id="g3toolsToggle" aria-label="收合工具列" aria-expanded="true" aria-controls="g3toolList"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 14 5-5 5 5"/><path d="M5 19h14"/></svg><span>收合</span></button>
     <div class="g3-tool-list" id="g3toolList">
-    <button class="g3-tool" id="g3full" aria-label="全螢幕"><svg class="icon-expand" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4v5M15 4h5v5M20 15v5h-5M4 15v5h5"/><path d="m4 9 5-5m6 0 5 5m0 6-5 5M9 20l-5-5"/></svg><svg class="icon-close" viewBox="0 0 24 24" aria-hidden="true" hidden><path d="M6 6l12 12M18 6 6 18"/></svg><span>全螢幕</span></button>
     <button class="g3-tool" id="g3reset" aria-label="恢復視角"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 10a8 8 0 1 1 .8 5.5"/><path d="M4.5 5.5V10H9"/><circle class="accent" cx="12" cy="12" r="2.1"/></svg><span>視角</span></button>
     <button class="g3-tool" id="g3decor" aria-label="裝飾花園"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="accent" d="M12 12c-1.5-3.8-5.5-5.3-6.8-3.2C3.8 11 7.4 13 11 12.5M12 12c1.5-3.8 5.5-5.3 6.8-3.2 1.4 2.2-2.2 4.2-5.8 3.7"/><circle class="warm" cx="12" cy="12" r="1.7"/><path d="m11 13.5-2.8 5 2.8-.8 1 2.3 1.1-6.5m.8 0 2.9 5-2.8-.8-1 2.3"/></svg><span>裝飾</span></button>
     <button class="g3-tool" id="g3follow" aria-label="跟著看"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.4-5 9.5-5 9.5 5 9.5 5-3.4 5-9.5 5-9.5-5-9.5-5Z"/><circle class="accent" cx="12" cy="12" r="2.7"/><circle cx="12" cy="12" r=".6" fill="#665347" stroke="none"/></svg><span>跟著看</span></button>
-    <button class="g3-tool" id="g3names" aria-label="顯示植物名稱" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19v-7"/><path class="accent" d="M12 15c-4.4 0-6.5-2.3-6.5-5.5C9.3 9.5 12 11 12 15ZM12 12c0-4 2.5-6.5 6.5-6.5 0 3.9-2.4 6.5-6.5 6.5Z"/><path d="M6 20h12"/></svg><span>植物名稱</span></button>
+    <button class="g3-tool" id="g3names" aria-label="顯示植物名稱" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19v-7"/><path class="accent" d="M12 15c-4.4 0-6.5-2.3-6.5-5.5C9.3 9.5 12 11 12 15ZM12 12c0-4 2.5-6.5 6.5-6.5 0 3.9-2.4 6.5-6.5 6.5Z"/><path d="M6 20h12"/></svg><span>澆澆水</span></button>
     <button class="g3-tool" id="g3photo" aria-label="拍照"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l1.4-2h7.2L17 8h3a1.5 1.5 0 0 1 1.5 1.5v8A1.5 1.5 0 0 1 20 19H4a1.5 1.5 0 0 1-1.5-1.5v-8A1.5 1.5 0 0 1 4 8Z"/><circle class="accent" cx="12" cy="13" r="3.2"/><path d="M18 10.5h.1"/></svg><span>拍照</span></button>
     </div>
   </div><div class="g3-tip" id="g3tip">拖曳轉一圈・兩指拉近・點土種樹・點植物澆水</div></section>
@@ -860,9 +882,9 @@ function paintHere(){
   paintMailBar();
   if(!cloud||!op){$('here').innerHTML='<b>🌱 一個人的花園</b><span>在班表設定同步代碼，就能和另一半一起種</span>'+streakChip();wireStreak();return;}
   var on=Date.now()-(+D.here[op]||0)<50000,n=usedBy(op,today()),u=unread();
-  $('here').innerHTML=(on?'<b class="on">🌱 '+NAMES[op]+' 也在花園裡</b>':'<b class="'+op+'">'+NAMES[op]+(n?' 今天澆了 '+n+' 滴水 💧':' 今天還沒來澆水')+'</b>')+'<button class="mailbtn'+(u?' hot':'')+'" data-mail aria-label="信箱">📮'+(u?'<i>'+u+'</i>':'')+'</button>'+streakChip();wireStreak();
+  $('here').innerHTML='<button class="feedbtn '+(on?'on':op)+'" data-feed>'+ (on?'🌱 '+NAMES[op]+' 也在花園裡':NAMES[op]+(n?' 今天澆了 '+n+' 滴水 💧':' 今天還沒來澆水'))+' <span aria-hidden="true">›</span></button><button class="mailbtn'+(u?' hot':'')+'" data-mail aria-label="信箱">📮'+(u?'<i>'+u+'</i>':'')+'</button>'+streakChip();wireStreak();
   $('here').querySelector('[data-mail]').onclick=function(){SND.sfx('tap');openMail();};
-  var hb=$('here').querySelector('b');hb.className+=' feedbtn';hb.textContent+=' ›';hb.onclick=openFeed;
+  $('here').querySelector('[data-feed]').onclick=openFeed;
 }
 /* ── 新信：另一半寄來還沒看的信，花園上面一條粉紅橫幅、3D 花園左上角 💌、進花園（或信剛寄到）跳一張信封卡片 ── */
 function newestMail(){var b=null;Object.keys(D.mail||{}).forEach(function(id){var m=D.mail[id];if(m&&m.to===me&&!m.read&&(!b||m.at>b.at))b={id:id,from:m.from,at:m.at};});return b;}
@@ -1583,7 +1605,7 @@ function askWho(){
 function help(){
   var L=level(),nt=L<TOPLV?unlockText(L+1):'',first=false;try{first=!localStorage.getItem('gardenHelp');}catch(e){}
   card('<h2>🎮 遊戲操作</h2><div class="g-rules">'+
-    '<h4>🖐️ 怎麼操作</h4><ul><li>拖曳轉一圈、兩指拉近拉遠；用「全螢幕」放大，用「視角」回到原本的角度</li><li>點土種樹、點植物澆水；需要時按「植物名稱」顯示名稱和成長進度，再按一次隱藏</li><li>植物和森林的樹都可以「移植」，把花園排成你們喜歡的樣子</li><li>右側工具列可以收合，按「展開」再打開</li><li>樹屋旁停著學的紅色街車和綾的小電動車：點它們可以叫兩個人一起去兜風（下雨、下雪不騎）</li><li>3D 花園右邊的「跟著看」：選學、綾或一隻寵物，鏡頭就一直跟著他（拖曳繞著看、兩指拉近）</li><li>裝飾、植物、森林的樹都可以轉方向：點它，按「🔄 轉方向」，在花園裡邊看邊按 ↺ ↻</li></ul>'+
+    '<h4>🖐️ 怎麼操作</h4><ul><li>拖曳轉一圈、兩指拉近拉遠；用「全螢幕」放大，用「視角」回到原本的角度</li><li>點土種樹、點植物澆水；需要時按「澆澆水」顯示植物名稱和成長進度，再按一次隱藏</li><li>植物和森林的樹都可以「移植」，把花園排成你們喜歡的樣子</li><li>右側工具列可以收合，按「展開」再打開</li><li>樹屋旁停著學的紅色街車和綾的小電動車：點它們可以叫兩個人一起去兜風（下雨、下雪不騎）</li><li>3D 花園右邊的「跟著看」：選學、綾或一隻寵物，鏡頭就一直跟著他（拖曳繞著看、兩指拉近）</li><li>裝飾、植物、森林的樹都可以轉方向：點它，按「🔄 轉方向」，在花園裡邊看邊按 ↺ ↻</li></ul>'+
     '<h4>💧 水滴</h4><ul><li>每個人每天 '+BASE+' 滴水；回答今日問題 +'+ANSWER+' 滴，二選一兩個人選一樣再各多 '+MATCH+' 滴</li><li>同一天兩個人都澆同一棵，那天多長 '+TOGETHER+' 點</li><li>小鳥飛來的時候點牠，送一滴水（每天最多 '+BIRD+' 滴）；有害蟲要先抓走才能澆水</li><li>下雨、下雪那天，所有植物都會自己長一點</li></ul>'+
     '<h4>🌳 森林</h4><ul><li>長大的植物種進森林，會留下那段時間的問答和你們寫的話</li><li>種進森林兩個人各拿 1 包飼料（算在每天 '+G.CAP+' 包裡）</li><li>澆水、回答、抓害蟲都會加經驗；升級多幾塊土、開放新土地、解鎖新的花和樹</li></ul>'+
     '<h4>🛝 遊樂區（點它們叫學和綾過去）</h4><ul><li>白天溜滑梯、盪鞦韆；下雨、下雪天溜滑梯換成涼亭，喝咖啡吃甜點</li><li>傍晚長椅看夕陽，晚上營火烤棉花糖</li><li>樹屋旁的鞦韆隨時都能盪，兩個人的話一個坐、一個在後面推</li></ul>'+
