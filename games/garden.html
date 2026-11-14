@@ -208,7 +208,18 @@ body.shooting .fbar,body.shooting .toasts{display:none;}
 .fbar button{min-width:38px;height:36px;padding:0 10px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);font-family:inherit;font-size:14px;color:var(--t);}
 .who-pick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px;}.who-pick button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border:var(--lw2) solid var(--ink);border-radius:14px;background:var(--paper);font-family:inherit;font-size:14px;color:var(--t);}.who-pick button img{height:52px;width:auto;}.who-pick .ppl{font-size:30px;line-height:52px;}
 .dec-e{display:block;font-size:30px;line-height:1.25;}
+/* 裝飾選單的圖片由實際 3D 模型製作，鎖住的項目也能看清楚外觀。 */
+.decor-options{max-height:min(58vh,530px);overflow-y:auto;overscroll-behavior:contain;padding:2px 3px 8px;}
+.decor-options button{padding:7px 5px 9px;gap:3px;line-height:1.35;}
+.decor-options button[disabled]{opacity:1;color:#8E877D;background:#F7F3EB;border-color:#BEB3A2;}
+.decor-options .dec-preview{display:flex;align-items:center;justify-content:center;width:100%;height:82px;border-radius:10px;background:#F0F5E9;}
+.decor-options button[disabled] .dec-preview{background:#EFEFE9;}
+.decor-options .dec-preview img{display:block;width:80px;height:80px;object-fit:contain;}
+.decor-options .dec-name{font-size:13px;}
+.decor-options button small{line-height:1.4;font-size:10px;}
+
 .dec-big{font-size:56px;text-align:center;line-height:1.2;}
+.dec-big img{display:block;width:112px;height:112px;object-fit:contain;margin:0 auto;}
 .mailbtn{position:relative;padding:3px 10px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);font-size:13px;}
 .mailbtn.hot{background:#FDE3EA;animation:mailWig 1.1s ease-in-out infinite;}
 @keyframes mailWig{0%,60%,100%{transform:rotate(0);}70%{transform:rotate(-12deg);}80%{transform:rotate(10deg);}90%{transform:rotate(-6deg);}}
@@ -1412,7 +1423,7 @@ function moveTreeTo(){
 /* ── 裝飾：選一個擺上去、點裝飾移動或收起來 ── */
 function openDecor(){
   var L=level(),V=achVals();
-  var ov=card('<h2>🎀 裝飾花園</h2><p class="g-small" style="margin-top:0">選一個，點草地擺上去；點花園裡的裝飾可以移動或收起來</p><div class="seeds">'+Object.keys(DECOR).sort(function(a,b){return (DECOR[a].ach?99:DECOR[a].lv)-(DECOR[b].ach?99:DECOR[b].lv);}).map(function(k){var d=DECOR[k],lock=d.ach?!achDone(d.ach,V):L<d.lv,n=decorCount(k),full=n>=d.max;return '<button data-k="'+k+'"'+(lock||full?' disabled':'')+'><span class="dec-e">'+d.e+'</span>'+d.name+'<small>'+(lock?(d.ach?'成就「'+achOf(d.ach).t+'」解鎖':'Lv.'+d.lv+' 解鎖'):full?'擺了 '+n+' 個（最多 '+d.max+'）':(n?n+'/'+d.max+'・':'')+d.tip)+'</small></button>';}).join('')+'</div><div class="g-btns"><button class="g-btn ghost" data-close>關閉</button></div>');
+  var ov=card('<h2>🎀 裝飾花園</h2><p class="g-small" style="margin-top:0">選一個，點草地擺上去；點花園裡的裝飾可以移動或收起來</p><div class="seeds decor-options">'+Object.keys(DECOR).sort(function(a,b){return (DECOR[a].ach?99:DECOR[a].lv)-(DECOR[b].ach?99:DECOR[b].lv);}).map(function(k){var d=DECOR[k],lock=d.ach?!achDone(d.ach,V):L<d.lv,n=decorCount(k),full=n>=d.max;return '<button data-k="'+k+'"'+(lock||full?' disabled':'')+'><span class="dec-preview"><img src="../assets/games/garden/decor/'+k+'.png" alt="" loading="lazy" decoding="async"></span><span class="dec-name">'+d.name+'</span><small>'+(lock?(d.ach?'成就「'+achOf(d.ach).t+'」解鎖':'Lv.'+d.lv+' 解鎖'):full?'擺了 '+n+' 個（最多 '+d.max+'）':(n?n+'/'+d.max+'・':'')+d.tip)+'</small></button>';}).join('')+'</div><div class="g-btns"><button class="g-btn ghost" data-close>關閉</button></div>');
   ov.querySelectorAll('[data-k]').forEach(function(b){b.onclick=function(){startDecor('decorNew',b.getAttribute('data-k'));};});
   ov.querySelector('[data-close]').onclick=closeSheet;
 }
@@ -1480,7 +1491,7 @@ function openDecorItem(id){
   if(d.k==='mailbox'&&u&&!moving){openMail();return;}
   if(d.k==='bell'||d.k==='chime'){SND.sfx('chime');if(g3&&Garden3D.ring)Garden3D.ring(id);}
   else if(/^(telescope|hotair|balloons|sign|snowman)$/.test(d.k)){SND.sfx('tap');if(g3&&Garden3D.ring)Garden3D.ring(id);}
-  var ov=card('<div class="dec-big">'+dk.e+'</div><h2>'+dk.name+'</h2><div class="sh-sp">'+md(dayOf(d.at||Date.now()))+' '+(NAMES[d.by]||'')+'擺的</div><p class="g-small">'+dk.tip+'</p><div class="g-btns">'+(d.k==='mailbox'?'<button class="g-btn" data-mail>📬 打開信箱'+(u?'（'+u+' 封新信）':'')+'</button>':'')+'<button class="g-btn ghost" data-mv>↔️ 移動</button>'+rotBtns()+'<button class="g-btn ghost" data-rm>收起來</button><button class="g-btn ghost" data-close>關閉</button></div>');
+  var ov=card('<div class="dec-big"><img src="../assets/games/garden/decor/'+d.k+'.png" alt=""></div><h2>'+dk.name+'</h2><div class="sh-sp">'+md(dayOf(d.at||Date.now()))+' '+(NAMES[d.by]||'')+'擺的</div><p class="g-small">'+dk.tip+'</p><div class="g-btns">'+(d.k==='mailbox'?'<button class="g-btn" data-mail>📬 打開信箱'+(u?'（'+u+' 封新信）':'')+'</button>':'')+'<button class="g-btn ghost" data-mv>↔️ 移動</button>'+rotBtns()+'<button class="g-btn ghost" data-rm>收起來</button><button class="g-btn ghost" data-close>關閉</button></div>');
   var ml=ov.querySelector('[data-mail]');if(ml)ml.onclick=openMail;
   ov.querySelector('[data-mv]').onclick=function(){startDecor('decor',id);};
   wireRot(ov,'decor',id);
