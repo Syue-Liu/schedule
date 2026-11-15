@@ -1723,6 +1723,8 @@ var Garden3D=(function(){
 
   /* ── 森林：長大的植物排在小島外圍；移植過的（pos）種在存下來的位置 ── */
   function forestSpot(i){var s=spots[i%spots.length],extra=Math.floor(i/spots.length);return {x:Math.cos(s.a+extra*.09)*(s.r-extra*.35),z:Math.sin(s.a+extra*.09)*(s.r-extra*.35)};}
+  // 每一棵的大小：照編號算（同一棵每次都一樣大、兩支手機也一樣），0.8～1.22 倍
+  function sizeOf(id){return id?.8+rnd(idNum(String(id))+31)*.42:1;}
   function idNum(id){var n=0;for(var i=0;i<id.length;i++)n=(n*31+id.charCodeAt(i))%9973;return n;}
   // 每棵樹在哪：有存位置的先放；其他的照順序排在外圈，碰到別的樹就往後找空位（兩支手機算出來一樣）
   function layoutForest(list){
@@ -1737,7 +1739,7 @@ var Garden3D=(function(){
       var p=at[f.id],t=trees[f.id];keep[f.id]=1;
       if(t){if(Math.hypot(t.x-p.x,t.z-p.z)>.05)moveTree(t,p.x,p.z);if((t.rot||0)!==(f.rot||0)){t.rot=f.rot||0;spinTo(t.g,t.base+t.rot*ROT);}return;}
       var g=new T.Group(),pl=plant(f.sp,4),fw=window.SP[f.sp].kind==='flower';
-      pl.scale.setScalar(fw?.85:.72);g.add(pl);g.position.set(p.x,0,p.z);var base=rnd(idNum(f.id))*6.28;g.rotation.y=base+(f.rot||0)*ROT;
+      pl.scale.setScalar((fw?.85:.72)*sizeOf(f.id));g.add(pl);g.position.set(p.x,0,p.z);var base=rnd(idNum(f.id))*6.28;g.rotation.y=base+(f.rot||0)*ROT;
       var coll=new T.Mesh(cyl(.7,.7,3,8),hitMat);coll.position.y=1.4;coll.visible=false;coll.userData={tree:f.id};g.add(coll);
       scene.add(g);trees[f.id]={g:g,x:p.x,z:p.z,sp:f.sp,base:base,rot:f.rot||0};
       if(!first)growIn(g,p.x,p.z);
@@ -1794,7 +1796,7 @@ var Garden3D=(function(){
     mv={kind:kind,id:id,sel:null,src:src,mark:ring('#F6D27A',.85)};
     mv.mark.position.set(src.x,.035,src.z);
     if(kind==='tree'){
-      var gh=plant(src.sp,4),fw=window.SP[src.sp].kind==='flower';gh.scale.setScalar(fw?.85:.72);mv.mats=[];
+      var gh=plant(src.sp,4),fw=window.SP[src.sp].kind==='flower';gh.scale.setScalar((fw?.85:.72)*sizeOf(id));mv.mats=[];
       gh.traverse(function(o){if(o.isMesh){o.material=o.material.clone();o.material.transparent=true;o.material.opacity=.5;o.material.depthWrite=false;o.castShadow=false;mv.mats.push(o.material);}});
       gh.visible=false;scene.add(gh);mv.ghost=gh;mv.ok=ring('#7BC67E',.75);mv.bad=ring('#E2675A',.75);mv.ok.visible=mv.bad.visible=false;
       if(el<.95)egoal=.95;
@@ -2061,11 +2063,12 @@ var Garden3D=(function(){
         var grew=s&&(p.id===s.id?s.stage>p.stage:p.key==='');
         p.key=key;p.id=s?s.id:null;p.stage=s?s.stage:-1;
         while(p.holder.children.length)p.holder.remove(p.holder.children[0]);
-        if(s){p.holder.add(plant(s.sp,s.stage));p.holder.scale.setScalar(1);p.top=height(p.holder);if(grew)pop(p);}else p.top=.3;
+        p.sz=s&&s.stage>0?sizeOf(s.id):1;
+        if(s){p.holder.add(plant(s.sp,s.stage));p.holder.scale.setScalar(1);p.top=height(p.holder)*p.sz;if(grew)pop(p);}else p.top=.3;
         p.rot=s?s.rot||0:0;p.holder.rotation.y=p.rot*ROT;
         p.coll.userData=s?{plant:s.id}:{slot:i};
       }
-      p.sc=s&&s.stage>0?.9+.1*(s.frac||0):1;
+      p.sc=s&&s.stage>0?(.9+.1*(s.frac||0))*(p.sz||1):1;
       if(s&&(s.rot||0)!==(p.rot||0)){p.rot=s.rot||0;spinTo(p.holder,p.rot*ROT);}
       p.holder.rotation.z=s&&s.thirsty?.17:0;
       setPest(p,s&&s.pest,s&&s.pkey);
