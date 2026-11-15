@@ -36,7 +36,7 @@ var Garden3D=(function(){
   function landOf(i){for(var j=0;j<LAND_IDS.length;j++){var L=LAND_GEO[LAND_IDS[j]];if(i>=L.p0&&i<L.p0+3)return L;}return null;}
   // 這個點在不在新土地上（m 多留一點邊）；草原上的樹和灌木要讓開
   function onLand(x,z,m){for(var j=0;j<LAND_IDS.length;j++){var L=LAND_GEO[LAND_IDS[j]];if(Math.hypot(x-L.c.x,z-L.c.z)<L.R+m)return true;var u=x*Math.cos(L.a)+z*Math.sin(L.a),v=-x*Math.sin(L.a)+z*Math.cos(L.a);if(u>ISL&&u<L.r&&Math.abs(v)<.8+m)return true;}return false;}
-  var LEAF='#9CCB85',LEAF2='#7FB36E',TRUNK='#B98B6B',SOIL='#9C7258',GRASS='#A7CF8E',WATER='#7FC4E4',PS=1.45;
+  var DRYC=null,WETC=null,LEAF='#9CCB85',LEAF2='#7FB36E',TRUNK='#B98B6B',SOIL='#9C7258',GRASS='#A7CF8E',WATER='#7FC4E4',PS=1.45;
 
   /* ── 小工具：卡通材質（三階明暗）、共用的形狀 ── */
   function M(c){if(!mats[c])mats[c]=new T.MeshToonMaterial({color:new T.Color(c),gradientMap:GM});return mats[c];}
@@ -399,12 +399,12 @@ var Garden3D=(function(){
     // 土：中間十二塊＋每塊新土地三塊（點的範圍做大一點、看不到）；還沒開放的先藏起來
     PLOT.forEach(function(p,i){
       var base=new T.Group();base.position.set(p[0],0,p[1]);scene.add(base);
-      base.add(mesh(cyl(.62,.76,.18,16),SOIL,0,.07,0));
+      var soil=mesh(cyl(.62,.76,.18,16),SOIL,0,.07,0);soil.material=soil.material.clone();base.add(soil);
       var coll=new T.Mesh(cyl(.95,.95,3.4,8),hitMat);coll.position.y=1.6;coll.visible=false;coll.userData={slot:i};base.add(coll);
       var lab=label(320,120,2.35,.885);lab.position.set(p[0],.6,p[1]);lab.layers.set(1);scene.add(lab);
       var pg=new T.Group();pg.position.y=.15;base.add(pg);
       base.visible=lab.visible=false;
-      plots.push({i:i,x:p[0],z:p[1],base:base,holder:pg,coll:coll,lab:lab,key:'',id:null,stage:-1,top:.3,pop:1,sc:1,spk:[],on:false,grow:1,pest:null});
+      plots.push({i:i,x:p[0],z:p[1],base:base,holder:pg,coll:coll,lab:lab,key:'',id:null,stage:-1,top:.3,pop:1,sc:1,spk:[],on:false,grow:1,pest:null,soil:soil.material,wet:0,wetT:0});
     });
     // 雲：高高的、遠遠的，繞著天空慢慢飄（拉遠鏡頭也碰不到）
     cloudMat=new T.MeshToonMaterial({color:'#FFFFFF',gradientMap:GM,transparent:true,opacity:.95});
@@ -2004,7 +2004,9 @@ var Garden3D=(function(){
     // 溪水往下流、湖上的小鴨子游來游去
     flecks.forEach(function(f){f.userData.t=(f.userData.t+dt*.045)%1;var p=along(f.userData.t),p2=along(Math.min(.999,f.userData.t+.01));f.position.set(p.x,.05,p.z);f.rotation.y=-Math.atan2(p2.z-p.z,p2.x-p.x);});
     ducks.forEach(function(d){var u=d.userData;u.a+=dt*u.s;d.position.set(lake.x+Math.cos(u.a)*u.r,.05+Math.sin(now*2.4+u.r)*.02,lake.z+Math.sin(u.a)*u.r);d.rotation.y=-u.a+(u.s>0?-Math.PI/2:Math.PI/2);});
+    if(!WETC){DRYC=new T.Color(SOIL);WETC=new T.Color('#634634');}
     plots.forEach(function(p){
+      if(p.soil&&Math.abs(p.wet-p.wetT)>.003){p.wet+=(p.wetT-p.wet)*Math.min(1,dt*2.2);if(Math.abs(p.wet-p.wetT)<=.003)p.wet=p.wetT;p.soil.color.copy(DRYC).lerp(WETC,p.wet);}
       if(p.pop<1){p.pop=Math.min(1,p.pop+dt/.5);}
       if(p.grow<1){p.grow=Math.min(1,p.grow+dt/.6);p.base.scale.setScalar(.01+.99*(1-Math.pow(1-p.grow,3)));}
       var b=p.pop<1?1+.28*Math.sin(p.pop*Math.PI)*(1-p.pop*.4):1;p.holder.scale.setScalar(p.sc*b);
@@ -2077,6 +2079,8 @@ var Garden3D=(function(){
         p.coll.userData=s?{plant:s.id}:{slot:i};
       }
       p.sc=s&&s.stage>0?(.9+.1*(s.frac||0))*(p.sz||1):1;
+      // 今天有人澆過水（或正在下雨）：土是濕的，顏色深一點
+      p.wetT=p.on&&(wx.w==='rain'||!!(s&&(s.ws||s.wl||s.watered)))?1:0;
       if(s&&(s.rot||0)!==(p.rot||0)){p.rot=s.rot||0;spinTo(p.holder,p.rot*ROT);}
       p.holder.rotation.z=s&&s.thirsty?.17:0;
       setPest(p,s&&s.pest,s&&s.pkey);
@@ -2139,6 +2143,7 @@ var Garden3D=(function(){
     // 卡片上換到別棵的時候，3D 裡也標出現在是哪一棵
     mark:function(kind,id){var t=null;if(kind==='plant'){var p=plots.filter(function(q){return q.on&&q.id===id;})[0];if(p)t={kind:'plot',p:p};}else if(trees[id])t={kind:'tree',id:id};if(t){setHL(t,true);hl.hold=1.6;}},
     // 測試用：螢幕上這一點會點到什麼
+    soil:function(){return plots.filter(function(p){return p.on;}).map(function(p){return {i:p.i,wet:+p.wet.toFixed(2),c:'#'+p.soil.color.getHexString()};});},
     labelPng:function(i){var p=plots[i];return p&&p.lab.userData.c.toDataURL();},
     labelScreen:function(i){var p=plots[i];if(!p)return null;var up=new T.Vector3().setFromMatrixColumn(cam.matrixWorld,1);return toScreen(p.lab.position.clone().addScaledVector(up,p.lab.scale.y*.68),R.domElement.getBoundingClientRect());},
     plantScreen:function(i){var p=plots[i];if(!p||!p.id)return null;return toScreen(new T.Vector3(p.x,Math.max(.25,p.top*.55),p.z),R.domElement.getBoundingClientRect());},
