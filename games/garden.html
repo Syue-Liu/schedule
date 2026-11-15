@@ -476,10 +476,10 @@ body.placing-decor .g3-tools,body.placing-decor .g3-full-control,body.placing-de
   <p class="gnote" id="gnote"></p>
 </main>
 <div class="toasts" id="toasts"></div>
-<script src="sound.js?v=amb-20261105"></script>
+<script src="sound.js?v=piano-20261116"></script>
 <script src="game.js?v=garden-20261102"></script>
 <script src="vs.js?v=mail-20261108"></script>
-<script src="garden3d.js?v=forest-space2-20261116"></script>
+<script src="garden3d.js?v=decor3-20261116"></script>
 <script>
 /* 記憶小森林：兩個人一起種。每天回答一題問答拿水滴，一起澆水，把種子種成樹；長大的樹放進森林，留著那段時間的問答和兩個人的話。
    資料：班表同一個 Firebase 的 banbiao/<同步代碼>_garden（沒有同步代碼就存在這支手機）
@@ -498,7 +498,14 @@ var DECOR={mailbox:{name:'小信箱',e:'📮',lv:1,max:1,tip:'寫信給對方，
   cart:{name:'小花車',e:'🛒',lv:4,max:2,tip:'裝滿花的木頭推車'},balloons:{name:'愛心氣球',e:'💕',lv:5,max:3,tip:'三顆愛心氣球，會輕輕飄'},pumpkin:{name:'南瓜燈',e:'🎃',lv:6,max:4,tip:'晚上眼睛和嘴巴會亮'},
   lights:{name:'燈串',e:'💡',lv:7,max:2,tip:'兩根柱子中間掛一串小燈泡'},chime:{name:'風鈴',e:'🎐',lv:8,max:2,tip:'會隨風晃，點它會叮叮響'},
   bell:{name:'幸福鐘',e:'🔔',lv:0,ach:'streak7',max:1,tip:'連續 7 天的獎勵，點它會噹噹響'},well:{name:'許願井',e:'🪣',lv:0,ach:'book15',max:1,tip:'圖鑑種到 15 種的獎勵'},
-  telescope:{name:'望遠鏡',e:'🔭',lv:0,ach:'streak14',max:1,tip:'連續 14 天的獎勵，晚上點它看流星'},hotair:{name:'熱氣球',e:'🎈',lv:0,ach:'ride10',max:1,tip:'兜風 10 次的獎勵，綁在地上慢慢飄'},snowman:{name:'雪人',e:'⛄',lv:0,ach:'season4',max:2,tip:'春夏秋冬都有樹長大的獎勵'}};
+  swingchair:{name:'雙人鞦韆椅',e:'🎠',lv:10,max:1,tip:'學和綾會一起坐上去慢慢晃'},pond:{name:'小池塘',e:'🦆',lv:11,max:2,tip:'有荷葉、荷花，還有一隻小鴨子在游'},
+  beehive:{name:'蜂箱',e:'🐝',lv:12,max:2,tip:'蜜蜂繞著飛，點它蜜蜂會飛得更快'},tent:{name:'帳篷',e:'⛺',lv:13,max:1,tip:'露營的小帳篷，晚上門口會亮'},
+  doghouse:{name:'狗屋',e:'🐶',lv:14,max:1,tip:'紅屋頂的小狗屋，門口有狗碗'},birdbath:{name:'鳥浴盆',e:'🪶',lv:15,max:2,tip:'小藍鳥站在邊上，點它會跳一跳'},
+  stonelantern:{name:'石燈籠',e:'🕯️',lv:16,max:4,tip:'日式的石燈籠，晚上小窗會亮'},sundial:{name:'日晷',e:'🕰️',lv:17,max:1,tip:'古時候看影子知道時間的石頭鐘'},
+  picnictable:{name:'陽傘野餐桌',e:'⛱️',lv:18,max:1,tip:'學和綾會坐在桌邊的長凳上'},piano:{name:'小鋼琴',e:'🎹',lv:19,max:1,tip:'點它會彈一首小星星'},
+  telescope:{name:'望遠鏡',e:'🔭',lv:0,ach:'streak14',max:1,tip:'連續 14 天的獎勵，晚上點它看流星'},hotair:{name:'熱氣球',e:'🎈',lv:0,ach:'ride10',max:1,tip:'兜風 10 次的獎勵，綁在地上慢慢飄'},snowman:{name:'雪人',e:'⛄',lv:0,ach:'season4',max:2,tip:'春夏秋冬都有樹長大的獎勵'},
+  photoframe:{name:'愛心拍照框',e:'💗',lv:0,ach:'album8',max:1,tip:'相簿放滿的獎勵，兩個人站後面拍照'},skylantern:{name:'天燈',e:'✨',lv:0,ach:'hol6',max:3,tip:'6 個節日都來的獎勵，晚上會亮'},
+  rainbow:{name:'彩虹拱門',e:'🌈',lv:0,ach:'both30',max:1,tip:'一起澆水 30 天的獎勵'}};
 function decorList(){var o=[];Object.keys(D.decor||{}).forEach(function(id){var d=D.decor[id];if(d&&DECOR[d.k]&&isFinite(d.x))o.push({id:id,k:d.k,x:+d.x,z:+d.z,rot:+d.rot||0});});return o;}
 function decorCount(k){return decorList().filter(function(d){return d.k===k;}).length;}
 // 稻草人：害蟲少一點（兩支手機看到的一樣）
@@ -840,10 +847,10 @@ var ACH=[
   {id:'water500',e:'💧',t:'灌溉達人',d:'兩個人一共澆了 500 滴水',v:'water',n:500,r:4},
   {id:'water1000',e:'💧',t:'小雨神',d:'兩個人一共澆了 1000 滴水',v:'water',n:1000,r:6},
   {id:'water3000',e:'🌧️',t:'及時雨',d:'兩個人一共澆了 3000 滴水',v:'water',n:3000,r:10},
-  {id:'both30',e:'💑',t:'一起澆水 30 天',d:'兩個人在同一天都有澆水，累積 30 天',v:'both',n:30,r:4},
+  {id:'both30',e:'💑',t:'一起澆水 30 天',d:'兩個人在同一天都有澆水，累積 30 天',v:'both',n:30,r:4,decor:'rainbow'},
   {id:'both100',e:'💑',t:'一起澆水 100 天',d:'兩個人在同一天都有澆水，累積 100 天',v:'both',n:100,r:8},
   {id:'hol3',e:'🎉',t:'一起過節',d:'在 3 個不同的節日來澆水',v:'hol',n:3,r:3},
-  {id:'hol6',e:'🎊',t:'節日都在一起',d:'在 6 個不同的節日來澆水',v:'hol',n:6,r:6},
+  {id:'hol6',e:'🎊',t:'節日都在一起',d:'在 6 個不同的節日來澆水',v:'hol',n:6,r:6,decor:'skylantern'},
   {id:'qa10',e:'💬',t:'聊聊天',d:'兩個人都回答的今日問題 10 題',v:'qa',n:10,r:2},
   {id:'qa30',e:'💬',t:'越聊越多',d:'兩個人都回答的今日問題 30 題',v:'qa',n:30,r:3},
   {id:'qa50',e:'💬',t:'無話不談',d:'兩個人都回答的今日問題 50 題',v:'qa',n:50,r:4},
@@ -870,7 +877,7 @@ var ACH=[
   {id:'decor25',e:'🎀',t:'佈置設計師',d:'花園裡擺了 25 個裝飾',v:'decor',n:25,r:4},
   {id:'decorK20',e:'🏡',t:'裝飾收藏家',d:'擺過 20 種不同的裝飾',v:'decorK',n:20,r:6},
   {id:'album3',e:'📸',t:'小小攝影師',d:'相簿裡有 3 張照片',v:'album',n:3,r:2},
-  {id:'album8',e:'📸',t:'相簿滿滿',d:'相簿 8 格都放滿照片',v:'album',n:8,r:3},
+  {id:'album8',e:'📸',t:'相簿滿滿',d:'相簿 8 格都放滿照片',v:'album',n:8,r:3,decor:'photoframe'},
   {id:'lv5',e:'⭐',t:'花園 Lv.5',d:'花園升到 Lv.5',v:'lv',n:5,r:3},
   {id:'lv10',e:'⭐',t:'花園 Lv.10',d:'花園升到 Lv.10',v:'lv',n:10,r:5},
   {id:'lv15',e:'⭐',t:'花園 Lv.15',d:'花園升到 Lv.15',v:'lv',n:15,r:6},
@@ -1718,7 +1725,8 @@ function openDecorItem(id){
   var d=D.decor[id];if(!d||!DECOR[d.k])return;var dk=DECOR[d.k],u=unread();
   if(d.k==='mailbox'&&u&&!moving){openMail();return;}
   if(d.k==='bell'||d.k==='chime'){SND.sfx('chime');if(g3&&Garden3D.ring)Garden3D.ring(id);}
-  else if(/^(telescope|hotair|balloons|sign|snowman)$/.test(d.k)){SND.sfx('tap');if(g3&&Garden3D.ring)Garden3D.ring(id);}
+  else if(d.k==='piano'){SND.sfx('piano');if(g3&&Garden3D.ring)Garden3D.ring(id);}
+  else if(/^(telescope|hotair|balloons|sign|snowman|pond|beehive|birdbath|photoframe|skylantern|rainbow|swingchair|doghouse|tent)$/.test(d.k)){SND.sfx(d.k==='pond'?'plop':'tap');if(g3&&Garden3D.ring)Garden3D.ring(id);}
   var ov=card('<div class="dec-big"><img src="../assets/games/garden/decor/'+d.k+'.png" alt=""></div><h2>'+dk.name+'</h2><div class="sh-sp">'+md(dayOf(d.at||Date.now()))+' '+(NAMES[d.by]||'')+'擺的</div><p class="g-small">'+dk.tip+'</p><div class="g-btns">'+(d.k==='mailbox'?'<button class="g-btn" data-mail>📬 打開信箱'+(u?'（'+u+' 封新信）':'')+'</button>':'')+'<button class="g-btn ghost" data-mv>↔️ 移動</button>'+rotBtns()+'<button class="g-btn ghost" data-rm>收起來</button><button class="g-btn ghost" data-close>關閉</button></div>');
   var ml=ov.querySelector('[data-mail]');if(ml)ml.onclick=openMail;
   ov.querySelector('[data-mv]').onclick=function(){startDecor('decor',id);};
@@ -1858,7 +1866,7 @@ function help(){
     '<h4>🌳 森林</h4><ul><li>長大的植物種進森林，會留下那段時間的問答和你們寫的話</li><li>種進森林兩個人各拿 1 包飼料（算在每天 '+G.CAP+' 包裡）</li><li>澆水、回答、抓害蟲都會加經驗；升級多幾塊土、開放新土地、解鎖新的花和樹</li></ul>'+
     '<h4>🛝 遊樂區（點它們叫學和綾過去）</h4><ul><li>白天溜滑梯、盪鞦韆；下雨、下雪天溜滑梯換成涼亭，喝咖啡吃甜點</li><li>傍晚長椅看夕陽，晚上營火烤棉花糖；下雨的晚上會搭起天幕</li><li>樹屋旁的鞦韆隨時都能盪，兩個人的話一個坐、一個在後面推</li></ul>'+
     '<h4>🔥 連續紀錄・🏅 成就・📸 拍照</h4><ul><li>兩個人同一天都有澆水或回答問題，連續紀錄就多一天（最上面的 🔥）</li><li>下面的 🏅 成就：達成後每個人各領一次獎勵水滴，有的還會解鎖限定裝飾</li><li>3D 花園右邊的「拍照」：按鈕和名字會收起來，選好角度按快門，可以存到手機或放進兩個人的相簿</li><li>今日問題下面的「✍️ 我來出題」：自己寫題目排進之後的今日問題</li></ul>'+
-    '<h4>🎀 裝飾・📮 信箱・🎉 紀念日</h4><ul><li>升級解鎖裝飾（3D 花園工具列的「裝飾」）：盆栽、路燈、柵欄、蘑菇燈、花拱門、花圃、名字木牌、風車、長椅、小花車、稻草人、石板路、愛心氣球、鳥屋、南瓜燈、野餐墊、燈串、噴水池、風鈴、吊床；學和綾會去坐長椅、躺吊床</li><li>成就限定裝飾：幸福鐘、許願井、望遠鏡（晚上點它看流星）、熱氣球、雪人</li><li>📮 寫信給對方，對方一打開班表或花園就會看到</li><li>紀念日（交往、結婚、生日、在一起每 100 天）花園會布置，每個人多 '+SPECIAL+' 滴水</li><li>節日也會布置：聖誕節（點聖誕樹拆禮物）、跨年、過年、情人節、七夕、中秋、萬聖節</li></ul>'+
+    '<h4>🎀 裝飾・📮 信箱・🎉 紀念日</h4><ul><li>升級解鎖裝飾（3D 花園工具列的「裝飾」）：盆栽、路燈、柵欄、蘑菇燈、花拱門、花圃、名字木牌、風車、長椅、小花車、稻草人、石板路、愛心氣球、鳥屋、南瓜燈、野餐墊、燈串、噴水池、風鈴、吊床、雙人鞦韆椅、小池塘、蜂箱、帳篷、狗屋、鳥浴盆、石燈籠、日晷、陽傘野餐桌、小鋼琴；學和綾會去坐長椅、躺吊床、坐鞦韆椅和野餐桌</li><li>成就限定裝飾：幸福鐘、許願井、望遠鏡（晚上點它看流星）、熱氣球、雪人、愛心拍照框、天燈、彩虹拱門</li><li>📮 寫信給對方，對方一打開班表或花園就會看到</li><li>紀念日（交往、結婚、生日、在一起每 100 天）花園會布置，每個人多 '+SPECIAL+' 滴水</li><li>節日也會布置：聖誕節（點聖誕樹拆禮物）、跨年、過年、情人節、七夕、中秋、萬聖節</li></ul>'+
     (nt?'<div class="next">⬆️ 升到 Lv.'+(L+1)+'：'+esc(nt)+'</div>':'')+
     '</div><div class="g-btns"><button class="g-btn" data-close>'+(first?'開始種':'知道了')+'</button></div>');
   sheet.ov.querySelector('[data-close]').onclick=function(){closeSheet();try{localStorage.setItem('gardenHelp','1');}catch(e){}};

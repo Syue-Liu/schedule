@@ -170,6 +170,8 @@ var SND=(function(){
     tick:function(o,d,t){INST.xylo(o,d,t,hz('A5'),.1,.5);},
     go:function(o,d,t){arp(o,d,t,['A5','E6'],.07,'xylo',.5);INST.box(o,d,t+.14,hz('A6'),.3,.3);},
     star:function(o,d,t,i){INST.box(o,d,t,hz(['E6','G6','C7'][i||0]),.3,.45);},
+    // 花園的小鋼琴：一小段小星星
+    piano:function(o,d,t){arp(o,d,t,['C5','C5','G5','G5','A5','A5','G5'],.28,'box',.42);},
     fanfare:function(o,d,t,s){
       if(!s)return arp(o,d,t,['E5','C5','G4'],.16,'xylo',.45);
       arp(o,d,t,s>=2?['C5','E5','G5','C6']:['C5','E5','G5'],.09,'xylo',.45);
