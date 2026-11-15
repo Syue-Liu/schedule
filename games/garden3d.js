@@ -79,25 +79,25 @@ var Garden3D=(function(){
   function petals(g,y,k,c,n,len,disk,dr){var h=new T.Group();h.add(mesh(cyl(dr,dr,.07,12),disk));for(var i=0;i<n;i++){var a=i*Math.PI*2/n,p=mesh(ball(.1),c);p.scale.set(len,.22,.45);p.position.set(Math.cos(a)*(dr+.085*len),0,Math.sin(a)*(dr+.085*len));p.rotation.y=-a;h.add(p);}h.rotation.x=1.05;h.position.y=y;h.scale.setScalar(k);g.add(h);}
   function tulip(g,y,k,c){var h=new T.Group();for(var i=0;i<3;i++){var a=i*Math.PI*2/3,p=mesh(ball(.13),c);p.scale.set(.75,1.35,.75);p.position.set(Math.cos(a)*.07,0,Math.sin(a)*.07);p.rotation.set(Math.sin(a)*.25,0,-Math.cos(a)*.25);h.add(p);}h.position.y=y;h.scale.setScalar(k);g.add(h);}
   function rose(g,y,k,c){var h=new T.Group();h.add(mesh(ball(.09),c));for(var i=0;i<5;i++){var a=i*1.2566,p=mesh(ball(.09),c);p.scale.set(1,.9,.55);p.position.set(Math.cos(a)*.08,-.02,Math.sin(a)*.08);p.rotation.y=-a+Math.PI/2;h.add(p);}for(var j=0;j<5;j++){var b=j*1.2566+.6,q=mesh(ball(.1),c);q.scale.set(1.1,.8,.5);q.position.set(Math.cos(b)*.14,-.05,Math.sin(b)*.14);q.rotation.y=-b+Math.PI/2;q.rotateX(.4);h.add(q);}h.position.y=y;h.scale.setScalar(k);g.add(h);}
-  function hydra(g,y,k,c){var h=new T.Group();for(var i=0;i<14;i++){var u=i*2.39996,v=Math.acos(1-(i+.5)/14);h.add(mesh(ball(.075,0),i%3?c:'#C9B8F0',Math.sin(v)*Math.cos(u)*.2,Math.cos(v)*.16,Math.sin(v)*Math.sin(u)*.2));}h.position.y=y;h.scale.setScalar(k);g.add(h);}
+  function hydra(g,y,k,c,c2){var h=new T.Group();for(var i=0;i<14;i++){var u=i*2.39996,v=Math.acos(1-(i+.5)/14);h.add(mesh(ball(.075,0),i%3?c:(c2||'#C9B8F0'),Math.sin(v)*Math.cos(u)*.2,Math.cos(v)*.16,Math.sin(v)*Math.sin(u)*.2));}h.position.y=y;h.scale.setScalar(k);g.add(h);}
   function lilyH(g,y,k,c){var h=new T.Group();for(var i=0;i<6;i++){var a=i*Math.PI/3,p=mesh(ball(.1),c);p.scale.set(1.5,.2,.45);p.position.set(Math.cos(a)*.13,.06,Math.sin(a)*.13);p.rotation.set(0,-a,.6);h.add(p);h.add(mesh(ball(.028,0),'#F2A0B5',Math.cos(a)*.1,.07,Math.sin(a)*.1));}for(var j=0;j<3;j++){var b=j*2.1;h.add(mesh(ball(.022,0),'#E8913A',Math.cos(b)*.04,.17,Math.sin(b)*.04));}h.rotation.x=.45;h.position.y=y;h.scale.setScalar(k);g.add(h);}
   function puff(g,y,k){var h=new T.Group();h.add(mesh(ball(.2,1),'#FFFFFF'));for(var i=0;i<18;i++){var u=i*2.39996,v=Math.acos(1-(i+.5)/9);h.add(mesh(ball(.03,0),'#E9E2D6',Math.sin(v)*Math.cos(u)*.21,Math.cos(v)*.21,Math.sin(v)*Math.sin(u)*.21));}h.position.y=y+.12;h.scale.setScalar(k);g.add(h);}
-  function head(sp,g,y,k,c){if(sp==='bellflower')petals(g,y,k,c,5,1.15,'#F4F1FF',.05);else if(sp==='lily')lilyH(g,y,k,c);else if(sp==='dandelion'){if(k<1)petals(g,y,k,c,16,.7,'#F2B83A',.07);else puff(g,y,k);}else if(sp==='sunflower')petals(g,y,k,c,12,1.1,'#8C6A55',.19);else if(sp==='daisy')petals(g,y,k,c,12,.9,'#F6D27A',.1);else if(sp==='cosmos')petals(g,y,k,c,8,1.2,'#F6D27A',.08);else if(sp==='rose')rose(g,y,k,c);else if(sp==='hydrangea')hydra(g,y,k,c);else tulip(g,y+.05,k,c);}
+  function head(sp,g,y,k,c,c2){if(sp==='bellflower')petals(g,y,k,c,5,1.15,'#F4F1FF',.05);else if(sp==='lily')lilyH(g,y,k,c);else if(sp==='dandelion'){if(k<1)petals(g,y,k,c,16,.7,'#F2B83A',.07);else puff(g,y,k);}else if(sp==='sunflower')petals(g,y,k,c,12,1.1,'#8C6A55',.19);else if(sp==='daisy')petals(g,y,k,c,12,.9,'#F6D27A',.1);else if(sp==='cosmos')petals(g,y,k,c,8,1.2,'#F6D27A',.08);else if(sp==='rose')rose(g,y,k,c);else if(sp==='hydrangea')hydra(g,y,k,c,c2);else tulip(g,y+.05,k,c);}
   function plant(sp,stage){var w=new T.Group(),g=model(sp,stage);g.scale.setScalar(PS);w.add(g);return bake(w);}
   function model(sp,stage){
-    var S=window.SP[sp],g=new T.Group();
+    var S=window.SP[sp],R=S.like||sp,g=new T.Group();
     if(stage===0){var sd=mesh(ball(.12),'#E2B88E',0,.06,0);sd.scale.y=.7;g.add(sd);return g;}
     if(stage===1){stem(g,.38,.035);leaf(g,.36,0,.9);leaf(g,.34,Math.PI,.9);return g;}
     if(S.kind==='flower'){
-      if(sp==='lavender'){var H=[0,0,.75,1,1.15][stage],col=stage===2?LEAF:S.c;[-.12,0,.12].forEach(function(dx,i){var hh=H-(i===1?0:.12),st=new T.Group();stem(st,hh,.025);for(var j=0;j<6;j++)st.add(mesh(ball(.055,0),col,(j%2?.03:-.03),hh-.04-j*.07,0));st.position.x=dx;st.rotation.z=-dx*1.4;g.add(st);});leaf(g,.15,0,.8);leaf(g,.13,Math.PI,.8);return g;}
-      if(sp==='succulent'){var k2=[0,0,.6,.8,1][stage];for(var i=0;i<8;i++){var a=i*Math.PI/4,l=mesh(ball(.14),S.c);l.scale.set(.5,.32,1.2);l.position.set(Math.cos(a)*.18*k2,.08,Math.sin(a)*.18*k2);l.rotation.set(0,-a+Math.PI/2,0);l.rotateX(-.55);l.scale.multiplyScalar(k2);g.add(l);}for(var j=0;j<5;j++){var b2=j*Math.PI*2/5+.3,m2=mesh(ball(.1),S.c);m2.scale.set(.5,.4,1);m2.position.set(Math.cos(b2)*.07*k2,.16*k2,Math.sin(b2)*.07*k2);m2.rotation.set(0,-b2+Math.PI/2,0);m2.rotateX(-1);m2.scale.multiplyScalar(k2);g.add(m2);}if(stage===4){stem(g,.5,.02);g.add(mesh(ball(.07),'#F8C8D4',0,.52,0));}return g;}
-      if(sp==='strawberry'){var k3=[0,0,.75,.9,1][stage];
+      if(R==='lavender'){var H=[0,0,.75,1,1.15][stage],col=stage===2?LEAF:S.c;[-.12,0,.12].forEach(function(dx,i){var hh=H-(i===1?0:.12),st=new T.Group();stem(st,hh,.025);for(var j=0;j<6;j++)st.add(mesh(ball(.055,0),col,(j%2?.03:-.03),hh-.04-j*.07,0));st.position.x=dx;st.rotation.z=-dx*1.4;g.add(st);});leaf(g,.15,0,.8);leaf(g,.13,Math.PI,.8);return g;}
+      if(R==='succulent'){var k2=[0,0,.6,.8,1][stage];for(var i=0;i<8;i++){var a=i*Math.PI/4,l=mesh(ball(.14),S.c);l.scale.set(.5,.32,1.2);l.position.set(Math.cos(a)*.18*k2,.08,Math.sin(a)*.18*k2);l.rotation.set(0,-a+Math.PI/2,0);l.rotateX(-.55);l.scale.multiplyScalar(k2);g.add(l);}for(var j=0;j<5;j++){var b2=j*Math.PI*2/5+.3,m2=mesh(ball(.1),S.c);m2.scale.set(.5,.4,1);m2.position.set(Math.cos(b2)*.07*k2,.16*k2,Math.sin(b2)*.07*k2);m2.rotation.set(0,-b2+Math.PI/2,0);m2.rotateX(-1);m2.scale.multiplyScalar(k2);g.add(m2);}if(stage===4){stem(g,.5,.02);g.add(mesh(ball(.07),'#F8C8D4',0,.52,0));}return g;}
+      if(R==='strawberry'){var k3=[0,0,.75,.9,1][stage];
         for(var i3=0;i3<5;i3++){var a3=i3*1.2566+.3,lg=new T.Group();lg.position.set(Math.cos(a3)*.15*k3,0,Math.sin(a3)*.15*k3);lg.rotation.y=-a3;lg.add(mesh(cyl(.012,.015,.16*k3,4),LEAF2,0,.08*k3,0));
           for(var j3=0;j3<3;j3++){var b3=(j3-1)*.75,l3=mesh(ball(.07),LEAF);l3.scale.set(1.2,.3,.9);l3.position.set(Math.cos(b3)*.06*k3+.05*k3,.16*k3,Math.sin(b3)*.06*k3);l3.rotation.y=-b3;lg.add(l3);}g.add(lg);}
         if(stage===3)[[.12,.08],[-.1,-.1]].forEach(function(c){var f=new T.Group();petals(f,0,.35,'#FFFFFF',5,.9,'#F6D27A',.05);f.children[0].rotation.x=0;f.position.set(c[0],.3,c[1]);g.add(f);});
         if(stage===4)[[.21,.06],[-.19,.09],[.03,-.21],[-.07,.22]].forEach(function(c){var br=mesh(cone(.07,.15,8),S.c,c[0],.1,c[1]);br.rotation.x=Math.PI;g.add(br);var cx=mesh(ball(.045,0),LEAF2,c[0],.18,c[1]);cx.scale.y=.4;g.add(cx);for(var sd=0;sd<3;sd++)g.add(mesh(ball(.01,0),'#F6E06E',c[0]+Math.cos(sd*2.1)*.05,.11,c[1]+Math.sin(sd*2.1)*.05));});
         return g;}
-      if(sp==='lilyvalley'||sp==='orchid'){var k4=[0,0,.75,.9,1][stage],orc=sp==='orchid';
+      if(R==='lilyvalley'||R==='orchid'){var k4=[0,0,.75,.9,1][stage],orc=R==='orchid';
         if(orc)for(var i4=0;i4<3;i4++){var a4=i4*2.1+.4,l4=mesh(ball(.16),LEAF2);l4.scale.set(1.5*k4,.18,.55*k4);l4.position.set(Math.cos(a4)*.17*k4,.06,Math.sin(a4)*.17*k4);l4.rotation.y=-a4;l4.rotateZ(-.15);g.add(l4);}
         else[-1,1].forEach(function(sd){var l5=mesh(ball(.12),sd<0?LEAF:LEAF2);l5.scale.set(1.05,2.3*k4,.16);l5.position.set(sd*.08,.27*k4,-.02);l5.rotation.set(-.12,sd*.35,sd*-.32);g.add(l5);});
         if(stage>=3){var P0=new T.Vector3(0,orc?.05:0,.03),P1=new T.Vector3(orc?-.05:.02,(orc?1.25:1.3)*k4,.05),P2=new T.Vector3((orc?.42:.36)*k4,(orc?.92:.82)*k4,.12),Q=function(t){return new T.Vector3().addScaledVector(P0,(1-t)*(1-t)).addScaledVector(P1,2*(1-t)*t).addScaledVector(P2,t*t);};
@@ -109,8 +109,8 @@ var Garden3D=(function(){
             var lip=mesh(ball(.035),'#C94A8A',0,-.035,.025);lip.scale.set(1,.8,.5);f.add(lip);f.add(mesh(ball(.012,0),'#F6D27A',0,0,.035));f.scale.setScalar(i===2?.85:1);g.add(f);});}
         return g;}
       var h2=[0,0,.75,1,1.2][stage];stem(g,h2,.04);leaves(g,stage===2?[.3,.5]:[.3,.55,.8],stage===2?.9:1);
-      if(stage===2)g.add(mesh(ball(.1),sp==='sunflower'||sp==='hydrangea'?LEAF:S.c,0,h2+.04,0));
-      else head(sp,g,h2+.05,stage===3?.72:1,S.c);
+      if(stage===2)g.add(mesh(ball(.1),R==='sunflower'||R==='hydrangea'?LEAF:S.c,0,h2+.04,0));
+      else head(R,g,h2+.05,stage===3?.72:1,S.c,S.c2);
       return g;
     }
     // 竹子：一根一根、一節一節
@@ -140,13 +140,13 @@ var Garden3D=(function(){
     g.add(mesh(cyl(.09*k+.02,.15*k+.02,Ht,7),TRUNK,0,Ht/2,0));
     var spots2=[];
     if(S.shape==='pine'){[[.75,.85,.25],[.58,.75,.75],[.4,.62,1.18]].forEach(function(c){g.add(mesh(cone(c[0]*k,c[1]*k,8),col2,0,Ht+c[2]*k,0));});
-      if(stage===4){[[.25,.62],[.7,.45],[1.12,.3]].forEach(function(c){g.add(mesh(cone(c[1]*.55,.18,8),'#FFFFFF',0,Ht+c[0]+.42,0));});g.add(mesh(new T.OctahedronGeometry(.13),'#F6D27A',0,Ht+1.62,0));}
+      if(stage===4&&!S.plain){[[.25,.62],[.7,.45],[1.12,.3]].forEach(function(c){g.add(mesh(cone(c[1]*.55,.18,8),'#FFFFFF',0,Ht+c[0]+.42,0));});g.add(mesh(new T.OctahedronGeometry(.13),'#F6D27A',0,Ht+1.62,0));}
       return g;}
     if(S.shape==='fan'){var fn=mesh(cone(.8*k,1.05*k,7),col2,0,Ht+.48*k,0);fn.rotation.x=Math.PI;fn.scale.z=.45;g.add(fn);spots2=[[-.35,.75,.15],[.3,.8,.15],[0,.95,.18],[-.15,.55,.2],[.2,.6,-.2]];}
     else{[[0,.5,0,.62],[-.4,.25,.12,.46],[.4,.27,-.08,.46],[0,.3,-.36,.44],[.05,.28,.38,.42]].forEach(function(c){g.add(mesh(ball(c[3]*k),col2,c[0]*k,Ht+c[1]*k,c[2]*k));});
       for(var i2=0;i2<10;i2++){var a2=i2*2.39996,yy=.15+rnd(i2+3)*.75;spots2.push([Math.cos(a2)*.55*(1-yy*.3),yy+.08,Math.sin(a2)*.55*(1-yy*.3)]);}}
     if(stage===4&&S.shape==='drape'){for(var c9=0;c9<11;c9++){var a9=c9*.571+.2,n9=4+(c9%2),r9=.62+(c9%3)*.05;g.add(mesh(cyl(.006,.006,.12,3),'#8C9A55',Math.cos(a9)*r9,Ht-.02,Math.sin(a9)*r9));for(var j9=0;j9<n9;j9++)g.add(mesh(ball(.05-j9*.004,0),S.dot,Math.cos(a9)*r9+(j9%2?.012:-.012),Ht-.1-j9*.085,Math.sin(a9)*r9));}return g;}
-    if(stage===4&&S.dot){var r=sp==='cherry'||sp==='maple'||sp==='ginkgo'||sp==='jacaranda'?.06:.085;var out=sp==='persimmon'?.17:.08;spots2.forEach(function(p){var o=new T.Vector3(p[0],0,p[2]).normalize();g.add(mesh(ball(r,0),S.dot,p[0]+o.x*out,Ht+p[1]*k,p[2]+o.z*out));});}
+    if(stage===4&&S.dot){var r=S.sd||R==='cherry'||R==='maple'||R==='ginkgo'||R==='jacaranda'?.06:.085;var out=R==='persimmon'?.17:.08;spots2.forEach(function(p){var o=new T.Vector3(p[0],0,p[2]).normalize();g.add(mesh(ball(r,0),S.dot,p[0]+o.x*out,Ht+p[1]*k,p[2]+o.z*out));});}
     return g;
   }
   // 植物最高點（世界座標）：標籤放在上面
