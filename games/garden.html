@@ -336,6 +336,54 @@ body.placing-decor .g3-tools,body.placing-decor .g3-full-control,body.placing-de
 .toasts div{padding:6px 14px;border:var(--lw2) solid var(--ink);border-radius:999px;background:var(--paper);font-size:13px;box-shadow:0 3px 0 var(--ink);animation:tIn .3s var(--pop),tOut .4s ease-in 2.8s forwards;}
 @keyframes tIn{from{transform:translateY(-10px) scale(.9);opacity:0;}}
 @keyframes tOut{to{opacity:0;transform:translateY(-8px);}}
+
+/* ── 整理過的上半部：等級卡兩行、狀態卡（另一半一行＋一排一樣大的小格子）、上星期的今天收起來、森林先放 8 個 ── */
+.lvl{flex-wrap:wrap;row-gap:8px;padding:10px 14px 12px;}
+.lvl b{font-size:14px;}
+.lvl .xpb{order:9;flex-basis:100%;height:9px;}
+.lvl small{margin-left:auto;}
+.garden-status{display:flex;flex-direction:column;gap:10px;padding:10px;}
+.garden-status .wx{display:block;margin:0;}
+.garden-status .wx[hidden]{display:none;}
+.garden-status .wx .party{display:flex;flex-direction:column;align-items:center;gap:2px;max-width:none;margin:0;padding:8px 12px;border:1.5px solid #E6C9B8;border-radius:14px;box-shadow:none;text-align:center;}
+.garden-status .wx .party b{display:block;min-height:0;padding:0;border:0;border-radius:0;background:none;box-shadow:none;font-weight:400;font-size:14px;color:#5F594F;}
+.garden-status .wx .party small{font-size:12px;color:#8D6E5E;}
+.garden-status .here{display:flex;flex-direction:column;align-items:stretch;gap:10px;margin:0;padding:0;border:0;}
+.garden-status .here .feedbtn{display:flex;align-items:center;justify-content:flex-start;gap:8px;width:100%;min-width:0;max-width:none;min-height:44px;padding:6px 10px 6px 7px;border-radius:14px;text-align:left;white-space:nowrap;font-size:14px;}
+.garden-status .here .feedbtn .who{flex:none;padding:2px 10px;border:1.5px solid #C6B8A3;border-radius:999px;background:#FFFDF8;font-size:13px;line-height:1.5;color:#5F594F;}
+.garden-status .here .feedbtn .ft{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:14px;line-height:1.4;color:#6B5248;}
+.feedbtn .ft .garden-action-icon{width:17px;height:17px;vertical-align:-3px;}
+.garden-status .here .feedbtn .arr{flex:none;font-size:20px;line-height:1;color:#A18570;}
+.garden-status .solo{display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;font-size:12px;color:#8D857B;}
+.garden-status .solo b{min-height:0;padding:0;border:0;background:none;box-shadow:none;font-weight:400;font-size:14px;color:#5F594F;}
+.qts{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;}
+.qts.four{grid-template-columns:repeat(4,minmax(0,1fr));}
+.qt{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:0;height:60px;padding:4px 2px;border:1.5px solid #D8CCB9;border-radius:14px;background:#FFFDF8;box-shadow:0 2px 5px #59452E0D;font:inherit;font-size:12px;line-height:1.2;color:#5F594F;cursor:pointer;}
+.qt:active{transform:translateY(1px);}
+.qt-i{display:flex;align-items:center;justify-content:center;height:22px;}
+.qt-i svg,.garden-status .qt .garden-action-icon,.garden-status .qt .wx-icon{width:22px;height:22px;}
+.qt-l{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.qt-b{position:absolute;top:-7px;right:-5px;min-width:19px;height:19px;padding:0 5px;box-sizing:border-box;border:2px solid #FFFCF6;border-radius:999px;background:#E9897A;color:#fff;font-style:normal;font-size:11px;line-height:15px;text-align:center;}
+.qt.wxt{background:#F3F7ED;color:#65715D;}
+.qt.wxt.rain,.qt.wxt.snow,.qt.wxt.cloudy{background:#EEF3F8;color:#5D6B78;}
+.garden-status .qt.wxt.rain .wx-icon,.garden-status .qt.wxt.snow .wx-icon,.garden-status .qt.wxt.cloudy .wx-icon{fill:#DCE6EE;stroke:#6E8296;}
+.qt.wxt .qt-b{background:#7FA8CB;}
+.qt[data-strk]{background:#FFF6E3;}
+.qt.warn{border-style:dashed;background:#FFFDF8;}
+.qt.hot[data-mail]{background:#FDE9EE;}
+.qt.hot[data-achq]{background:#FFF4DA;}
+@media(max-width:340px){.qts{gap:4px;}.qt{font-size:11px;}}
+.q-back .qb-a{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;margin-top:3px;}
+.q-back .qb-a b{font-weight:400;margin-right:6px;color:#96714D;}
+.q-back.open .qb-a{display:block;}
+.q-back .qb-more{display:none;margin-top:4px;font-size:12px;color:#A18570;}
+.q-back.long{cursor:pointer;}.q-back.long .qb-more{display:block;}
+.q-back .qb-more::before{content:'看完整 ⌄';}.q-back.open .qb-more::before{content:'收起 ⌃';}
+.ftrees.cut>.ftree:nth-child(n+9){display:none;}
+.fmore{display:flex;justify-content:center;margin-top:10px;}
+.fmore:empty{display:none;}
+.fmore button{padding:8px 20px;border:1.5px solid #C6B8A3;border-radius:999px;background:#FFFDF8;box-shadow:0 2px 5px #59452E0D;font:inherit;font-size:13px;color:#6B5944;cursor:pointer;}
+.g3:not(.full) .g3-drops{display:none;}
 </style>
 <link rel="stylesheet" href="polish.css?v=snowlake-20261026">
 </head>
@@ -355,7 +403,7 @@ body.placing-decor .g3-tools,body.placing-decor .g3-full-control,body.placing-de
 <div class="g-bar"><button class="g-back" onclick="location.href='./'">‹ 大廳</button><div class="g-title">記憶小森林</div><div class="g-pill hot" id="drops">💧 …</div></div>
 <main class="gd">
   <button class="lvl" id="lvl" aria-label="花園等級"></button>
-  <div class="garden-status"><div class="here" id="here"></div><div class="wx" id="wx"></div></div>
+  <div class="garden-status"><div class="wx" id="wx" hidden></div><div class="here" id="here"></div></div>
   <button class="mail-bar" id="mailBar" hidden></button>
   <section class="qcard" id="qcard"></section>
   <section class="g3" id="g3"><div class="g3-load">🌱 花園長出來中…</div><div class="g3-drops" id="g3drops"></div><button class="g3-mail" id="g3mail" aria-label="有新信" hidden>💌</button><div class="g3-full-control">
@@ -377,7 +425,7 @@ body.placing-decor .g3-tools,body.placing-decor .g3-full-control,body.placing-de
   <div class="fbar" id="fbar" hidden></div>
   <div class="pbar" id="pbar" hidden></div><div class="ptip" id="ptip" hidden>拖曳選角度・兩指拉近</div>
   <section class="garden"><div class="fence"></div><div class="g-pets" id="gpets"></div><div class="plots" id="plots"></div></section>
-  <section class="forest"><h3>🌳 我們的森林 <small id="fcount"></small></h3><div class="ftabs" id="ftabs"></div><div class="ftrees" id="forest"></div></section>
+  <section class="forest"><h3>🌳 我們的森林 <small id="fcount"></small></h3><div class="ftabs" id="ftabs"></div><div class="ftrees" id="forest"></div><div class="fmore" id="fmore"></div></section>
   <p class="gnote" id="gnote"></p>
 </main>
 <div class="toasts" id="toasts"></div>
@@ -895,6 +943,7 @@ function paint(){
 // 花園等級：經驗條；升級的時候跳出卡片（這支手機記得上次看到幾級）
 var lvPending=null;
 try{var lp=JSON.parse(localStorage.getItem('gardenLvPending')||'null');if(lp&&lp.length===2&&lp[1]>lp[0])lvPending=lp;}catch(e){}
+var qbOpen=false;
 function paintLvl(){
   var x=xp(),L=level(),lo=L>1?lvNeed(L-1):0,hi=lvNeed(L),f=L>=20?1:(x-lo)/(hi-lo),seen=0;
   try{seen=+localStorage.getItem('gardenLv')||0;if(seen&&L>seen){lvPending=[lvPending?Math.min(lvPending[0],seen):seen,L];localStorage.setItem('gardenLvPending',JSON.stringify(lvPending));}if(L!==seen)localStorage.setItem('gardenLv',L);}catch(e){}
@@ -914,16 +963,23 @@ function openLevels(){
   sheet.ov.querySelector('[data-close]').onclick=closeSheet;
 }
 function weatherIcon(w){var icon=w==='sunny'?'<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M19 5l-1.5 1.5m-11 11L5 19"/>':w==='cloudy'?'<path d="M6 18h12a4 4 0 0 0 .1-8 6.5 6.5 0 0 0-12.5-1A4.5 4.5 0 0 0 6 18Z"/>':w==='rain'?'<path d="M6 14h12a4 4 0 0 0 0-8 6 6 0 0 0-11.5 0A4 4 0 0 0 6 14Z"/><path d="m8 17-1 3m5-3-1 3m5-3-1 3"/>':'<path d="M6 14h12a4 4 0 0 0 0-8 6 6 0 0 0-11.5 0A4 4 0 0 0 6 14Z"/><path d="M8 19h.01m4-2h.01m4 2h.01"/>';return '<svg class="wx-icon" viewBox="0 0 24 24" aria-hidden="true">'+icon+'</svg>';}
-function paintWx(){var d=today(),w=weatherOf(d),pt=partyText(),n=achOpen(achVals());$('wx').innerHTML=(pt?'<div class="party">'+esc(pt)+'　今天每個人多 '+SPECIAL+' 滴水 🎁</div>':'')+'<b>'+weatherIcon(w)+SEASONN[seasonOf(d)]+'・'+{sunny:'晴天',cloudy:'多雲',rain:'下雨',snow:'下雪'}[w]+(wet(d)&&d>=WX_START?'・植物成長 +'+RAIN:'')+'</b><button class="mailbtn" data-days aria-label="紀念日">🎉 <span>紀念日</span></button>'+(n?'<button class="achquick" data-achquick>🏅 待領 '+n+'</button>':'');$('wx').querySelector('[data-days]').onclick=function(){SND.sfx('tap');openDays();};var a=$('wx').querySelector('[data-achquick]');if(a)a.onclick=function(){SND.sfx('tap');openAch();};}
-function streakChip(){var s=streak();if(!s.cur)return '';return '<button class="strk'+(s.today?'':' warn')+'" data-strk title="'+(s.today?'今天'+(s.two?'兩個人都':'')+'來過了':'今天還沒澆水或回答問題')+'">🔥 連續 '+s.cur+' 天</button>';}
-function wireStreak(){var b=$('here').querySelector('[data-strk]');if(b)b.onclick=function(){SND.sfx('tap');openAch();};}
+function paintWx(){var pt=partyText();$('wx').innerHTML=pt?'<div class="party"><b>'+esc(pt)+'</b><small>今天每個人多 '+SPECIAL+' 滴水 🎁</small></div>':'';$('wx').hidden=!pt;}
+// 狀態卡：上面一行是另一半今天的狀況（點了看動態），下面一排一樣大的小格子：天氣、連續、信箱、紀念日、成就
+function qtile(attr,icon,label,cls,badge,title){return '<button class="qt'+(cls?' '+cls:'')+'" '+attr+' aria-label="'+esc(title)+'" title="'+esc(title)+'"><span class="qt-i">'+icon+'</span><span class="qt-l">'+label+'</span>'+(badge?'<i class="qt-b">'+badge+'</i>':'')+'</button>';}
 function paintHere(){
   paintMailBar();
-  if(!cloud||!op){$('here').innerHTML='<b>🌱 一個人的花園</b><span>在班表設定同步代碼，就能和另一半一起種</span>'+streakChip();wireStreak();return;}
-  var on=Date.now()-(+D.here[op]||0)<50000,n=usedBy(op,today()),u=unread();
-  $('here').innerHTML='<button class="feedbtn '+(on?'on':op)+'" data-feed>'+ (on?'🌱 '+NAMES[op]+' 也在花園裡':NAMES[op]+(n?' 今天澆了 '+n+' 滴水 💧':' 今天還沒來澆水'))+' <span aria-hidden="true">›</span></button><button class="mailbtn'+(u?' hot':'')+'" data-mail aria-label="信箱">📮 <span>信箱</span>'+(u?'<i>'+u+'</i>':'')+'</button>'+streakChip();wireStreak();
-  $('here').querySelector('[data-mail]').onclick=function(){SND.sfx('tap');openMail();};
-  $('here').querySelector('[data-feed]').onclick=openFeed;
+  var d=today(),w=weatherOf(d),wl={sunny:'晴天',cloudy:'多雲',rain:'下雨',snow:'下雪'}[w],sn=SEASONN[seasonOf(d)],wb=wet(d)&&d>=WX_START,s=streak(),n=achOpen(achVals()),two=!!(cloud&&op),u=two?unread():0,top;
+  if(!two)top='<div class="solo"><b>🌱 一個人的花園</b><span>在班表設定同步代碼，就能和另一半一起種</span></div>';
+  else{var on=Date.now()-(+D.here[op]||0)<50000,k=usedBy(op,d);top='<button class="feedbtn '+(on?'on':op)+'" data-feed><span class="who '+op+'">'+NAMES[op]+'</span><span class="ft">'+(on?'也在花園裡 🌱':k?'今天澆了 '+k+' 滴水 💧':'今天還沒來澆水')+'</span><span class="arr" aria-hidden="true">›</span></button>';}
+  var tiles=qtile('data-wxt',weatherIcon(w),sn.charAt(0)+'・'+wl,'wxt '+w,wb?'+'+RAIN:'',sn+'・'+wl+(wb?'・植物成長 +'+RAIN:''))+
+    qtile('data-strk','🔥',s.cur+' 天',s.today?'':'warn','',(s.cur?'連續 '+s.cur+' 天':'連續紀錄')+(s.today?'・今天來過了':'・今天還沒澆水或回答問題'))+
+    (two?qtile('data-mail','📮','信箱',u?'hot':'',u||'',u?'信箱・'+u+' 封新信':'信箱'):'')+
+    qtile('data-days','🎉','紀念日','','','紀念日')+
+    qtile('data-achq','🏅','成就',n?'hot':'',n||'',n?'成就・待領 '+n:'成就');
+  var h=$('here');h.innerHTML=top+'<div class="qts'+(two?'':' four')+'">'+tiles+'</div>';
+  var on1=function(sel,fn){var b=h.querySelector(sel);if(b)b.onclick=function(){SND.sfx('tap');fn();};};
+  on1('[data-feed]',openFeed);on1('[data-mail]',openMail);on1('[data-days]',openDays);on1('[data-strk]',openAch);on1('[data-achq]',openAch);
+  on1('[data-wxt]',function(){toast(sn+'・'+wl+(wb?'：下雨天植物自己多長 '+RAIN+' 點 🌧️':w==='snow'?'':'・兩個人一起來澆水吧'));});
 }
 /* ── 新信：另一半寄來還沒看的信，花園上面一條粉紅橫幅、3D 花園左上角 💌、進花園（或信剛寄到）跳一張信封卡片 ── */
 function newestMail(){var b=null;Object.keys(D.mail||{}).forEach(function(id){var m=D.mail[id];if(m&&m.to===me&&!m.read&&(!b||m.at>b.at))b={id:id,from:m.from,at:m.at};});return b;}
@@ -962,10 +1018,12 @@ function paintQ(){
     h+='<div class="q-a '+me+'"><b>'+NAMES[me]+'</b>'+esc(ansText(Q,mine))+'</div>';
     if(cloud&&op)h+=his!=null?'<div class="q-a '+op+'"><b>'+NAMES[op]+'</b>'+esc(ansText(Q,his))+'</div>'+(matched(day)?'<div class="q-match">💞 心有靈犀！兩個人各多 '+MATCH+' 滴水</div>':''):'<div class="q-a wait">'+NAMES[op]+' 還沒回答，回答之後就能看到彼此的答案</div>';
   }
-  var lb=lookBack();if(lb){var bQ=qOf(lb.day),bq=D.qa[lb.day];h+='<div class="q-back"><i>📅 '+lb.label+'・'+esc(bQ.q)+'</i>'+['syue','ling'].map(function(u){return bq[u]==null?'':'<br>'+NAMES[u]+'：'+esc(ansText(bQ,bq[u]));}).join('')+(matched(lb.day)?' 💞':'')+'</div>';}
+  var lb=lookBack();if(lb){var bQ=qOf(lb.day),bq=D.qa[lb.day];h+='<div class="q-back" data-qb><i>📅 '+lb.label+'・'+esc(bQ.q)+(matched(lb.day)?' 💞':'')+'</i>'+['syue','ling'].map(function(u){return bq[u]==null?'':'<div class="qb-a"><b>'+NAMES[u]+'</b>'+esc(ansText(bQ,bq[u]))+'</div>';}).join('')+'<span class="qb-more"></span></div>';}
   h+='<div class="q-foot"><button class="q-more" data-ask>✍️ 我來出題</button><button class="q-more" data-hist>以前的問答 ›</button></div>';
   var box=$('qcard'),keep=box.querySelector('#qIn'),val=keep?keep.value:'',focus=keep&&document.activeElement===keep;
   box.innerHTML=h;
+  var qb=box.querySelector('[data-qb]');if(qb){var lg=[].some.call(qb.querySelectorAll('.qb-a'),function(e){return e.scrollHeight>e.clientHeight+2;});qb.classList.toggle('long',lg||qbOpen);qb.classList.toggle('open',qbOpen);
+    qb.onclick=function(){if(!qb.classList.contains('long'))return;qbOpen=!qbOpen;qb.classList.toggle('open',qbOpen);SND.sfx('tap');};}
   var ta=box.querySelector('#qIn');if(ta){ta.value=val;if(focus)ta.focus();}
   box.querySelectorAll('[data-a]').forEach(function(b){b.onclick=function(){answer(+b.getAttribute('data-a'));};});
   var sb=box.querySelector('[data-send]');if(sb)sb.onclick=function(){var v=($('qIn').value||'').trim().slice(0,60);if(!v){toast('先寫一點點再送出');return;}answer(v);};
@@ -1027,7 +1085,8 @@ function forestList(){
   else if(fTab==='tree'||fTab==='flower')f=f.filter(function(p){return SP[p.sp].kind===fTab;});
   return fSort==='old'?f.slice().reverse():f;
 }
-function setForestTab(t,sp){fTab=t;fSp=sp||'';try{localStorage.setItem('gardenFTab',JSON.stringify({t:fTab,s:fSort}));}catch(e){}SND.sfx('tap');paintForest();}
+var fOpen=false,FCUT=8;
+function setForestTab(t,sp){fOpen=false;fTab=t;fSp=sp||'';try{localStorage.setItem('gardenFTab',JSON.stringify({t:fTab,s:fSort}));}catch(e){}SND.sfx('tap');paintForest();}
 function paintForest(){
   var all=forest(),n=all.length,cnt=function(fn){return all.filter(fn).length;},seen={};all.forEach(function(p){seen[p.sp]=(seen[p.sp]||0)+1;});
   var nSp=Object.keys(seen).length,nAll=Object.keys(SP).length;
@@ -1050,6 +1109,9 @@ function paintForest(){
   $('forest').innerHTML=f.length?f.map(function(p){return '<button class="ftree" data-m="'+p.id+'">'+art(p.sp,4)+'<b>'+esc(p.name||SP[p.sp].name)+'</b><span>'+md(dayOf(p.done))+'</span></button>';}).join(''):n?'<div class="fempty">這一類還沒有長大的</div>':'<div class="fempty">還沒有長大的樹。<br>種下第一顆種子，兩個人一起澆水吧！</div>';
   $('forest').querySelectorAll('[data-m]').forEach(function(b){b.onclick=function(){SND.sfx('tap');openMemory(b.getAttribute('data-m'),forestList().map(function(p){return p.id;}));};});
   }
+  var tot=$('forest').querySelectorAll('.ftree').length,cut=tot>FCUT;$('forest').classList.toggle('cut',cut&&!fOpen);
+  $('fmore').innerHTML=cut?'<button data-fmore>'+(fOpen?'收起 ⌃':'看全部 '+tot+(book?' 種':' 棵')+' ⌄')+'</button>':'';
+  var fm=$('fmore').querySelector('[data-fmore]');if(fm)fm.onclick=function(){SND.sfx('tap');fOpen=!fOpen;paintForest();if(!fOpen)document.querySelector('.forest').scrollIntoView({behavior:'smooth',block:'start'});};
   var L=level(),nt=L<TOPLV?unlockText(L+1):'';
   paintNote();
 }
@@ -1061,9 +1123,9 @@ function toast(t,onTap,ms){
 }
 function paintNote(){
   var n=achOpen(achVals()),a=albumList().length;
-  $('gnote').innerHTML='<button data-help>🎮 遊戲操作</button><button data-ach>🏅 成就'+(n?'<i>'+n+'</i>':'')+'</button><button data-alb>🖼 相簿'+(a?' '+a:'')+'</button>';
+  $('gnote').innerHTML='<button data-help>🎮 遊戲操作</button><button data-alb>🖼 相簿'+(a?' '+a:'')+'</button>';
   $('gnote').querySelector('[data-help]').onclick=function(){SND.sfx('tap');help();};
-  $('gnote').querySelector('[data-ach]').onclick=function(){SND.sfx('tap');openAch();};
+  if(started)paintHere();
   $('gnote').querySelector('[data-alb]').onclick=function(){SND.sfx('tap');openAlbum();};
 }
 // 成就卡：最上面是連續紀錄，下面每個成就的進度；達成了就能領（每個人各領一次，當天多幾滴水）
