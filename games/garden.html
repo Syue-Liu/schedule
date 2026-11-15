@@ -215,7 +215,7 @@ body.placing-decor .g3-tools,body.placing-decor .g3-full-control,body.placing-de
 .g3-tool{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;width:50px;height:50px;padding:0;border:0;border-radius:13px;background:transparent;font-family:inherit;color:var(--t);cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .g3-tool-list{max-height:calc(min(62vh, 560px) - 152px);overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;scrollbar-width:thin;}
 .g3.full .g3-tool-list{max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 165px);}
-.g3-tool-list[hidden],#g3extra[hidden],.g3-tool-state[hidden]{display:none;}
+.g3-tool-list[hidden],.g3-tool-state[hidden]{display:none;}
 .g3-tool-state{font-size:9px;line-height:10px;color:#806734;}
 #g3names.on{height:60px;}
 .g3-tool-list .g3-tool{margin-top:5px;}
@@ -432,6 +432,8 @@ body.placing-decor .g3-tools,body.placing-decor .g3-full-control,body.placing-de
 .finfo .finfo-t{display:block;margin:0 4px 4px;font-weight:400;font-size:15px;}
 .finfo .sp-info{margin:0;}
 .ftidy{padding:4px 12px;border:1.5px solid #9FC48C;border-radius:999px;background:#EEF6E8;font:inherit;font-size:13px;color:#4D6A4D;cursor:pointer;}
+.g3:not(.full) .g3-tool-list .g3-tool{height:44px;margin-top:4px;}
+@media (orientation:landscape) and (max-height:520px){.g3.full .g3-tool{height:39px;}.g3.full .g3-tool-list .g3-tool{margin-top:3px;}}
 </style>
 <link rel="stylesheet" href="polish.css?v=snowlake-20261026">
 </head>
@@ -462,11 +464,8 @@ body.placing-decor .g3-tools,body.placing-decor .g3-full-control,body.placing-de
     <button class="g3-tool" id="g3reset" aria-label="恢復視角"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 10a8 8 0 1 1 .8 5.5"/><path d="M4.5 5.5V10H9"/><circle class="accent" cx="12" cy="12" r="2.1"/></svg><span>視角</span></button>
     <button class="g3-tool" id="g3names" aria-label="顯示植物名稱" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19v-7"/><path class="accent" d="M12 15c-4.4 0-6.5-2.3-6.5-5.5C9.3 9.5 12 11 12 15ZM12 12c0-4 2.5-6.5 6.5-6.5 0 3.9-2.4 6.5-6.5 6.5Z"/><path d="M6 20h12"/></svg><span>澆澆水</span><small class="g3-tool-state" hidden>顯示中</small></button>
     <button class="g3-tool" id="g3decor" aria-label="裝飾花園"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="accent" d="M12 12c-1.5-3.8-5.5-5.3-6.8-3.2C3.8 11 7.4 13 11 12.5M12 12c1.5-3.8 5.5-5.3 6.8-3.2 1.4 2.2-2.2 4.2-5.8 3.7"/><circle class="warm" cx="12" cy="12" r="1.7"/><path d="m11 13.5-2.8 5 2.8-.8 1 2.3 1.1-6.5m.8 0 2.9 5-2.8-.8-1 2.3"/></svg><span>裝飾</span></button>
-    <button class="g3-tool" id="g3more" aria-label="展開更多工具" aria-expanded="false" aria-controls="g3extra"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></svg><span>更多</span></button>
-    <div id="g3extra" hidden>
     <button class="g3-tool" id="g3photo" aria-label="拍照"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l1.4-2h7.2L17 8h3a1.5 1.5 0 0 1 1.5 1.5v8A1.5 1.5 0 0 1 20 19H4a1.5 1.5 0 0 1-1.5-1.5v-8A1.5 1.5 0 0 1 4 8Z"/><circle class="accent" cx="12" cy="13" r="3.2"/><path d="M18 10.5h.1"/></svg><span>拍照</span></button>
     <button class="g3-tool" id="g3follow" aria-label="跟著看"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.4-5 9.5-5 9.5 5 9.5 5-3.4 5-9.5 5-9.5-5-9.5-5Z"/><circle class="accent" cx="12" cy="12" r="2.7"/><circle cx="12" cy="12" r=".6" fill="#665347" stroke="none"/></svg><span>跟著看</span></button>
-    </div>
     </div>
   </div><div class="g3-tip" id="g3tip">拖曳轉一圈・兩指拉近・點土種樹・點植物澆水</div></section>
   <div class="mvbar" id="mvbar" hidden></div>
@@ -1484,7 +1483,6 @@ function start3d(){
   function toolsCollapsed(closed){var btn=$('g3toolsToggle');$('g3toolList').hidden=closed;btn.setAttribute('aria-expanded',String(!closed));btn.setAttribute('aria-label',closed?'展開工具列':'收合工具列');btn.querySelector('span').textContent=closed?'展開':'收合';btn.querySelector('svg').style.transform=closed?'rotate(180deg)':'';}
   try{toolsCollapsed(localStorage.getItem('gardenToolsCollapsed')==='1');}catch(e){toolsCollapsed(false);}
   $('g3toolsToggle').onclick=function(){var closed=!$('g3toolList').hidden;toolsCollapsed(closed);try{localStorage.setItem('gardenToolsCollapsed',closed?'1':'0');}catch(e){}SND.sfx('tap');};
-  $('g3more').onclick=function(){var extra=$('g3extra'),on=extra.hidden;extra.hidden=!on;this.setAttribute('aria-expanded',String(on));this.setAttribute('aria-label',on?'收起更多工具':'展開更多工具');this.querySelector('span').textContent=on?'收起':'更多';if(on)$('g3toolList').scrollTop=$('g3toolList').scrollHeight;SND.sfx('tap');};
   $('g3names').onclick=function(){var on=this.getAttribute('aria-pressed')!=='true';this.setAttribute('aria-pressed',String(on));this.setAttribute('aria-label',on?'隱藏植物名稱和澆水狀態':'顯示植物名稱和澆水狀態');this.querySelector('.g3-tool-state').hidden=!on;this.classList.toggle('on',on);if(g3)Garden3D.plantLabels(on);if(on)toast('點植物即可澆水；水滴標示今天的澆水狀態');SND.sfx('tap');};
   $('g3full').onclick=function(){if(shooting){endPhoto();return;}if(rotating){SND.sfx('tap');endRotate();return;}if(following&&following.full){SND.sfx('tap');stopFollow();return;}setFull(!box.classList.contains('full'));SND.sfx('tap');};
   $('g3reset').onclick=function(){if(following)stopFollow();if(g3)Garden3D.resetView();};
@@ -1855,7 +1853,7 @@ function askWho(){
 function help(){
   var L=level(),nt=L<TOPLV?unlockText(L+1):'',first=false;try{first=!localStorage.getItem('gardenHelp');}catch(e){}
   card('<h2>🎮 遊戲操作</h2><div class="g-rules">'+
-    '<h4>🖐️ 怎麼操作</h4><ul><li>拖曳轉一圈、兩指拉近拉遠；用「全螢幕」放大，用「視角」回到原本的角度</li><li>點土種樹、點植物澆水；需要時按「澆澆水」顯示植物名稱、成長進度和今天的澆水狀態，再按一次隱藏</li><li>植物和森林的樹都可以「移植」，把花園排成你們喜歡的樣子</li><li>右側工具列可以收合，按「展開」再打開；「更多」裡有拍照和跟著看</li><li>樹屋旁停著學的紅色街車和綾的小電動車：點它們可以叫兩個人一起去兜風（下雨、下雪不騎）</li><li>3D 花園右邊的「跟著看」：選學、綾或一隻寵物，鏡頭就一直跟著他（拖曳繞著看、兩指拉近）</li><li>裝飾、植物、森林的樹都可以轉方向：點它，按「🔄 轉方向」，在花園裡邊看邊按 ↺ ↻</li></ul>'+
+    '<h4>🖐️ 怎麼操作</h4><ul><li>拖曳轉一圈、兩指拉近拉遠；用「全螢幕」放大，用「視角」回到原本的角度</li><li>點土種樹、點植物澆水；需要時按「澆澆水」顯示植物名稱、成長進度和今天的澆水狀態，再按一次隱藏</li><li>植物和森林的樹都可以「移植」，把花園排成你們喜歡的樣子</li><li>右側工具列可以收合，按「展開」再打開；工具列裡有視角、澆澆水、裝飾、拍照、跟著看</li><li>樹屋旁停著學的紅色街車和綾的小電動車：點它們可以叫兩個人一起去兜風（下雨、下雪不騎）</li><li>3D 花園右邊的「跟著看」：選學、綾或一隻寵物，鏡頭就一直跟著他（拖曳繞著看、兩指拉近）</li><li>裝飾、植物、森林的樹都可以轉方向：點它，按「🔄 轉方向」，在花園裡邊看邊按 ↺ ↻</li></ul>'+
     '<h4>💧 水滴</h4><ul><li>每個人每天 '+BASE+' 滴水；回答今日問題 +'+ANSWER+' 滴，二選一兩個人選一樣再各多 '+MATCH+' 滴</li><li>同一天兩個人都澆同一棵，那天多長 '+TOGETHER+' 點</li><li>小鳥飛來的時候點牠，送一滴水（每天最多 '+BIRD+' 滴）；有害蟲要先抓走才能澆水</li><li>下雨、下雪那天，所有植物都會自己長一點</li></ul>'+
     '<h4>🌳 森林</h4><ul><li>長大的植物種進森林，會留下那段時間的問答和你們寫的話</li><li>種進森林兩個人各拿 1 包飼料（算在每天 '+G.CAP+' 包裡）</li><li>澆水、回答、抓害蟲都會加經驗；升級多幾塊土、開放新土地、解鎖新的花和樹</li></ul>'+
     '<h4>🛝 遊樂區（點它們叫學和綾過去）</h4><ul><li>白天溜滑梯、盪鞦韆；下雨、下雪天溜滑梯換成涼亭，喝咖啡吃甜點</li><li>傍晚長椅看夕陽，晚上營火烤棉花糖；下雨的晚上會搭起天幕</li><li>樹屋旁的鞦韆隨時都能盪，兩個人的話一個坐、一個在後面推</li></ul>'+
