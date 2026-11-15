@@ -431,6 +431,7 @@ body.placing-decor .g3-tools,body.placing-decor .g3-full-control,body.placing-de
 .finfo{margin:0 0 10px;}
 .finfo .finfo-t{display:block;margin:0 4px 4px;font-weight:400;font-size:15px;}
 .finfo .sp-info{margin:0;}
+.ftidy{padding:4px 12px;border:1.5px solid #9FC48C;border-radius:999px;background:#EEF6E8;font:inherit;font-size:13px;color:#4D6A4D;cursor:pointer;}
 </style>
 <link rel="stylesheet" href="polish.css?v=snowlake-20261026">
 </head>
@@ -479,7 +480,7 @@ body.placing-decor .g3-tools,body.placing-decor .g3-full-control,body.placing-de
 <script src="sound.js?v=amb-20261105"></script>
 <script src="game.js?v=garden-20261102"></script>
 <script src="vs.js?v=mail-20261108"></script>
-<script src="garden3d.js?v=plants50-20261116"></script>
+<script src="garden3d.js?v=forest-space2-20261116"></script>
 <script>
 /* 記憶小森林：兩個人一起種。每天回答一題問答拿水滴，一起澆水，把種子種成樹；長大的樹放進森林，留著那段時間的問答和兩個人的話。
    資料：班表同一個 Firebase 的 banbiao/<同步代碼>_garden（沒有同步代碼就存在這支手機）
@@ -1235,6 +1236,17 @@ function forestList(){
   return fSort==='old'?f.slice().reverse():f;
 }
 var fOpen=false,FCUT=8;
+// 整理森林：自己移植過的不動，其他擠在一起的搬到比較空的地方（3D 那邊算位置）
+function tidyMoves(){var f=forest().slice().sort(function(a,b){return a.done-b.done;}),fixed={};f.forEach(function(p){if(p.mv)fixed[p.id]=1;});return Garden3D.tidyPlan?Garden3D.tidyPlan(f.map(function(p){return p.id;}),fixed):[];}
+function openTidy(){
+  var mv=tidyMoves();if(!mv.length){toast('森林已經很整齊了 🌿');return;}
+  var ov=card('<h2>🌿 整理森林</h2><p>有 '+mv.length+' 棵花和樹擠在一起，要把它們搬到比較空的地方嗎？</p><p class="g-small">你們自己移植過的不會動；搬過去以後也可以再自己移植</p><div class="g-btns"><button class="g-btn" data-ok>整理</button><button class="g-btn ghost" data-close>先不要</button></div>');
+  ov.querySelector('[data-close]').onclick=closeSheet;
+  ov.querySelector('[data-ok]').onclick=function(){var o={},fp=Garden3D.forestPos();
+    // 沒存過位置的（舊的森林）把現在的位置存起來，之後就不會跟著別的樹變來變去
+    forest().forEach(function(p){if(!p.pos&&fp[p.id])o[p.id]={pos:fp[p.id]};});mv.forEach(function(m){o[m.id]={pos:{x:m.x,z:m.z}};});write({plants:o});closeSheet();SND.sfx('plant');toast('🌿 森林整理好了，搬了 '+mv.length+' 棵');paint();
+    setTimeout(function(){if(g3){Garden3D.flashTrees(mv.map(function(m){return m.id;}));$('g3').scrollIntoView({behavior:'smooth',block:'center'});}},500);};
+}
 function setForestTab(t,sp){fOpen=false;fTab=t;fSp=sp||'';try{localStorage.setItem('gardenFTab',JSON.stringify({t:fTab,s:fSort}));}catch(e){}SND.sfx('tap');paintForest();}
 function paintForest(){
   var all=forest(),n=all.length,cnt=function(fn){return all.filter(fn).length;},seen={};all.forEach(function(p){seen[p.sp]=(seen[p.sp]||0)+1;});
@@ -1245,7 +1257,9 @@ function paintForest(){
   if(fSp)th='<button class="fx" data-ft="book">📖 '+esc(SP[fSp].name)+' ×'+(seen[fSp]||0)+'　✕</button>';
   var list=forestList(),book=fTab==='book'&&!fSp;
   if(n&&!book)th+=(g3&&(fSp||fTab!=='all')&&list.length?'<button class="ffind" data-find>✨ 在花園裡標出來</button>':'')+'<button class="fsort" data-fs>'+(fSort==='new'?'最新的在前 ↓':'最早的在前 ↑')+'</button>';
-  $('ftabs').innerHTML=th;$('finfo').innerHTML=fSp?'<b class="finfo-t">'+esc(SP[fSp].name)+'</b>'+spInfo(fSp,true):'';
+  var tidy=g3&&n&&!book&&!fSp?tidyMoves():[];if(tidy.length)th+='<button class="ftidy" data-tidy>🌿 整理擠在一起的 '+tidy.length+' 棵</button>';
+  $('ftabs').innerHTML=th;
+  var tdb=$('ftabs').querySelector('[data-tidy]');if(tdb)tdb.onclick=function(){SND.sfx('tap');openTidy();};$('finfo').innerHTML=fSp?'<b class="finfo-t">'+esc(SP[fSp].name)+'</b>'+spInfo(fSp,true):'';
   $('ftabs').querySelectorAll('[data-ft]').forEach(function(b){b.onclick=function(){setForestTab(b.getAttribute('data-ft'));};});
   var fsb=$('ftabs').querySelector('[data-fs]');if(fsb)fsb.onclick=function(){fSort=fSort==='new'?'old':'new';setForestTab(fTab,fSp);};
   var ffb=$('ftabs').querySelector('[data-find]');if(ffb)ffb.onclick=function(){SND.sfx('tap');Garden3D.flashTrees(forestList().map(function(p){return p.id;}));$('g3').scrollIntoView({behavior:'smooth',block:'center'});};
@@ -1557,7 +1571,7 @@ function plantSeed(slot,sp){
 }
 function harvest(id){
   var p=D.plants[id];if(!p||p.done||grow(p).stage<4)return;
-  var o={done:Date.now(),doneBy:me};if(g3){var fp=Garden3D.freeSpot();if(fp)o.pos=fp;}
+  var o={done:Date.now(),doneBy:me};if(g3){var fp=Garden3D.freeSpot(p.sp);if(fp)o.pos=fp;}
   write({plants:obj(id,o)});SND.sfx('fanfare',3);closeSheet();paint();
   claim();setTimeout(function(){openMemory(id);},400);
 }

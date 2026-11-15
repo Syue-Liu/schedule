@@ -1775,16 +1775,54 @@ var Garden3D=(function(){
     if(nearDrive(x,z,(arguments[3]||.45)+.55))return '這裡是機車道';
     if(treeHome){var s0=THw(TSW.x,0,-2.4),s1=THw(TSW.x,0,1.1);if(segDist(x,z,s0,s1)<.95)return '這裡是樹屋的鞦韆';}
     var rr=arguments[3]||.45;
-    for(var id in trees)if(id!==self&&Math.hypot(trees[id].x-x,trees[id].z-z)<rr+.4)return '太靠近別的樹了';
+    if(!arguments[4])for(var id in trees)if(id!==self&&Math.hypot(trees[id].x-x,trees[id].z-z)<rr+.4)return '太靠近別的樹了';
     for(var di in decors)if(di!==self&&Math.hypot(decors[di].x-x,decors[di].z-z)<rr+(DECOR_R[decors[di].k]||.5)+.15)return '太靠近別的裝飾了';
     return '';
   }
-  // 新長大的樹放哪：花園外圈先、再來是新土地外圈，找第一個空位
-  function freeSpot(){
-    var c=[];for(var k=0;k<spots.length*2;k++)c.push(forestSpot(k));
-    LAND_IDS.forEach(function(id){var L=LAND_GEO[id];if(L.open)c=c.concat(L.spots);});
-    for(var i=0;i<c.length;i++){var p=c[i],free=true;for(var t in trees)if(Math.hypot(trees[t].x-p.x,trees[t].z-p.z)<.8){free=false;break;}if(free)return {x:Math.round(p.x*10)/10,z:Math.round(p.z*10)/10};}
-    return null;
+  /* ── 森林的位置：新長大的放到「離別的植物最遠」的空地，先放花園外圈、再一塊一塊新土地；
+     花和花至少隔 1，有樹的話隔 1.35。「整理森林」：自己移植過的不動，其他擠在一起的搬到比較空的地方 ── */
+  var GAP_F=1.0,GAP_T=1.35,candC=null,candK='',planC=null,planK='';
+  function isTreeSp(sp){var S=window.SP[sp];return !!S&&S.kind==='tree';}
+  function gapOf(a,b){return isTreeSp(a)||isTreeSp(b)?GAP_T:GAP_F;}
+  // 可以種的地方：花園外圈三圈、每塊開放的新土地四圈（避開土、溪、池、遊樂區、樹屋、車道、裝飾、去新土地的路口）
+  function forestCands(){
+    var k=LAND_IDS.map(function(id){return LAND_GEO[id].open?1:0;}).join('')+'|'+Object.keys(decors).map(function(id){var d=decors[id];return Math.round(d.x*10)+','+Math.round(d.z*10);}).join(';');
+    if(candC&&candK===k)return candC;
+    var ok=function(x,z){return canPlace(x,z,null,.45,true)==='';},G=[],main=[];
+    [7.0,7.5,8.0].forEach(function(r,ri){var n=Math.round(Math.PI*2*r/1.05);for(var i=0;i<n;i++){var a=(i+(ri%2)*.5)/n*Math.PI*2;if(LAND_IDS.some(function(id){return Math.abs(angDiff(a,LAND_GEO[id].a))<.2;}))continue;var q=polar(r,a);if(ok(q.x,q.z))main.push({x:q.x,z:q.z});}});
+    G.push(main);
+    LANDS_ORDER.forEach(function(id){var L=LAND_GEO[id];if(!L.open)return;var c=[];
+      [1.1,1.9,2.7,3.5].forEach(function(d,ri){var n=Math.max(6,Math.round(Math.PI*2*d/1.05));for(var i=0;i<n;i++){var a=(i+(ri%2)*.5)/n*Math.PI*2;if(Math.abs(angDiff(a,L.a+Math.PI))<.45)continue;var x=L.c.x+Math.cos(a)*d,z=L.c.z+Math.sin(a)*d;if(ok(x,z))c.push({x:x,z:z});}});
+      G.push(c);});
+    candC=G;candK=k;return G;
+  }
+  var LANDS_ORDER=['orchard','west','hill','lake'];
+  // placed：已經在的（{x,z,sp}）；回傳最空的位置和它有多空（≥1 表示夠空）
+  function forestPick(sp,placed){
+    var G=forestCands(),best=null,bs=-1;
+    for(var g=0;g<G.length;g++){var gb=null,gs=-1;
+      G[g].forEach(function(c){var m=9;for(var i=0;i<placed.length;i++){var q=placed[i],d=Math.hypot(q.x-c.x,q.z-c.z)/gapOf(sp,q.sp);if(d<m){m=d;if(m<=gs)break;}}if(m>gs){gs=m;gb=c;}});
+      if(gs>=1)return {x:gb.x,z:gb.z,s:gs};if(gb&&gs>bs){bs=gs;best={x:gb.x,z:gb.z,s:gs};}}
+    return best;
+  }
+  function treeList(){return Object.keys(trees).map(function(id){var t=trees[id];return {id:id,x:t.x,z:t.z,sp:t.sp};});}
+  function freeSpot(sp){
+    var p=forestPick(sp||'',treeList());
+    return p?{x:Math.round(p.x*10)/10,z:Math.round(p.z*10)/10}:null;
+  }
+  // 整理森林：order＝種進森林的順序（早的先留），fixed＝自己移植過的（不動）；回傳要搬的 [{id,x,z}]
+  function tidyPlan(order,fixed){
+    fixed=fixed||{};var all=treeList(),by={};all.forEach(function(t){by[t.id]=t;});
+    var key=JSON.stringify([candK,all.map(function(t){return t.id+':'+Math.round(t.x*10)+','+Math.round(t.z*10);}),fixed]);
+    forestCands();key=candK+key;if(planC&&planK===key)return planC;
+    // 先決定誰留在原地（早種的先留），擠到的才搬；搬的時候要避開所有留下來的
+    var placed=all.filter(function(t){return fixed[t.id];}),moves=[],todo=[],seen={};
+    (order||[]).concat(all.map(function(t){return t.id;})).forEach(function(id){var t=by[id];if(!t||fixed[id]||seen[id])return;seen[id]=1;
+      var m=9;placed.forEach(function(q){var d=Math.hypot(q.x-t.x,q.z-t.z)/gapOf(t.sp,q.sp);if(d<m)m=d;});
+      if(m>=.88&&canPlace(t.x,t.z,id,.45,true)==='')placed.push(t);else todo.push(t);});
+    todo.forEach(function(t){var c=forestPick(t.sp,placed);
+      if(c){var nx=Math.round(c.x*10)/10,nz=Math.round(c.z*10)/10;moves.push({id:t.id,x:nx,z:nz});placed.push({id:t.id,x:nx,z:nz,sp:t.sp});}else placed.push(t);});
+    planC=moves;planK=key;return moves;
   }
   function forestPos(){var o={};Object.keys(trees).forEach(function(id){o[id]={x:Math.round(trees[id].x*10)/10,z:Math.round(trees[id].z*10)/10};});return o;}
 
@@ -2134,7 +2172,7 @@ var Garden3D=(function(){
     _put:function(k,a,r){var p=people.filter(function(o){return o.k===k;})[0];if(a==='farBridge'){var e=bridgeVia(false)[1];a=e.a+.05;r=e.r+.6;}p.ang=a;p.r=r;p.ta=a;p.tr=r;p.via=[];p.state='idle';p.timer=30;return {a:a,r:r,far:far(a,r)};},
     bikePos:function(){return bikes.map(function(b){var r=b.rider&&b.rider.state==='ride'?b.rider:null,sw=r?b.g.localToWorld(b.o.seat.clone()):null;return {k:b.k,x:b.g.position.x,z:b.g.position.z,face:b.g.rotation.y,lean:b.g.rotation.z,off:r?r.g.position.distanceTo(sw):null,rf:r?r.g.rotation.y:null};});},
     follow:function(k){return setFollow(k);},following:function(){return follow;},resetView:function(){follow=null;az=.45;el=.62;rad=fitR;rgoal=0;agoal=egoal=null;tgt.set(0,.7,0);tgoal.copy(tgt);idleAt=Date.now();place();},
-    move:moveStart,previewDecor:previewDecor,moveEnd:moveEnd,moving:function(){return mv?{kind:mv.kind,id:mv.id,sel:mv.sel}:null;},freeSpot:freeSpot,forestPos:forestPos,canPlace:function(x,z,id){return canPlace(x,z,id);},
+    move:moveStart,previewDecor:previewDecor,moveEnd:moveEnd,moving:function(){return mv?{kind:mv.kind,id:mv.id,sel:mv.sel}:null;},freeSpot:freeSpot,tidyPlan:tidyPlan,fcands:function(){return forestCands().map(function(g){return g.length;});},forestPos:forestPos,canPlace:function(x,z,id){return canPlace(x,z,id);},
     focusLand:focusLand,focusObj:focusObj,unfocus:unfocus,
     // 測試用：每個人、每隻寵物在溪的哪一邊、離水多近、是不是在橋上；叫某個人／寵物走去某個地方
     // 營火有多近（看著遊樂區＝1、很遠＝0）：給環境音調營火聲大小
