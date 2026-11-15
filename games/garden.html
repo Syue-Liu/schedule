@@ -384,6 +384,37 @@ body.placing-decor .g3-tools,body.placing-decor .g3-full-control,body.placing-de
 .fmore:empty{display:none;}
 .fmore button{padding:8px 20px;border:1.5px solid #C6B8A3;border-radius:999px;background:#FFFDF8;box-shadow:0 2px 5px #59452E0D;font:inherit;font-size:13px;color:#6B5944;cursor:pointer;}
 .g3:not(.full) .g3-drops{display:none;}
+/* ── 卡片的最下面一排按鈕（關閉、確定）固定在卡片底部：卡片太長要捲的時候也一直看得到，不會被切掉一半 ── */
+.g-card>.g-btns:last-child{position:sticky;bottom:-18px;z-index:2;margin-bottom:-18px;padding:10px 0 18px;background:linear-gradient(rgba(255,252,246,0),var(--paper) 10px);}
+/* 裝飾選單：標題和關閉固定，只有中間的裝飾捲動 */
+.g-card.decorcard{display:flex;flex-direction:column;overflow:hidden;}
+.decorcard .decor-options{flex:1 1 auto;min-height:0;}
+.decorcard>.g-btns:last-child{position:static;margin:0;padding:12px 0 0;background:none;}
+/* ── 手機橫拿（畫面矮）：卡片變寬、工具列變小、擺放的提示條移到左下角，不擋住中間 ── */
+@media (orientation:landscape) and (max-height:520px){
+  .g-ov{padding:10px;}
+  .g-card{max-height:calc(100dvh - 20px);padding-top:14px;}
+  .g-card h2{margin-bottom:4px;font-size:19px;}
+  .g-card.decorcard{max-width:min(720px,calc(100vw - 150px));}
+  .decorcard>.g-small{margin:0 0 4px;font-size:12px;}
+  .decorcard .decor-options{max-height:none;grid-template-columns:repeat(4,1fr);}
+  .decorcard>.g-btns:last-child{padding-top:8px;}
+  .decorcard>.g-btns .g-btn{height:42px;}
+  .g3.full .g3-full-control{top:calc(env(safe-area-inset-top) + 8px);}
+  .g3.full .g3-tools{top:calc(env(safe-area-inset-top) + 66px);}
+  .g3.full .g3-tools,.g3.full .g3-full-control{padding:4px;border-radius:16px;}
+  .g3.full .g3-tool{width:46px;height:42px;}
+  .g3.full .g3-tool svg{width:21px;height:21px;}
+  .g3.full .g3-tool span{font-size:9px;line-height:11px;}
+  .g3.full .g3-tool-list .g3-tool{margin-top:4px;}
+  .g3.full .g3-tool-list{max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 128px);}
+  .mvbar,.mvbar.decor-mode{left:calc(env(safe-area-inset-left) + 10px);right:auto;bottom:calc(env(safe-area-inset-bottom) + 10px);transform:none;width:min(300px,42vw);padding:8px 9px;}
+  .mvbar.decor-mode .mv-head img{width:32px;height:32px;}
+  .mvbar.decor-mode .mv-lands{margin-top:4px;}
+  .mvbar.decor-mode .mv-lands button{padding:2px 8px;font-size:11px;}
+  .mvbar.decor-mode .g-btn,.mvbar .g-btn{height:34px;font-size:13px;}
+  .mvbar .g-btns{margin-top:6px;}
+}
 </style>
 <link rel="stylesheet" href="polish.css?v=snowlake-20261026">
 </head>
@@ -1489,7 +1520,7 @@ function moveTreeTo(){
 /* ── 裝飾：選一個擺上去、點裝飾移動或收起來 ── */
 function openDecor(){
   var L=level(),V=achVals();
-  var ov=card('<h2>🎀 裝飾花園</h2><p class="g-small" style="margin-top:0">選一個，點草地擺上去；點花園裡的裝飾可以移動或收起來</p><div class="seeds decor-options">'+Object.keys(DECOR).sort(function(a,b){return (DECOR[a].ach?99:DECOR[a].lv)-(DECOR[b].ach?99:DECOR[b].lv);}).map(function(k){var d=DECOR[k],lock=d.ach?!achDone(d.ach,V):L<d.lv,n=decorCount(k),full=n>=d.max;return '<button data-k="'+k+'"'+(lock||full?' disabled':'')+'><span class="dec-preview"><img src="../assets/games/garden/decor/'+k+'.png" alt="" loading="lazy" decoding="async"></span><span class="dec-name">'+d.name+'</span><small>'+(lock?(d.ach?'成就「'+achOf(d.ach).t+'」解鎖':'Lv.'+d.lv+' 解鎖'):full?'擺了 '+n+' 個（最多 '+d.max+'）':(n?n+'/'+d.max+'・':'')+d.tip)+'</small></button>';}).join('')+'</div><div class="g-btns"><button class="g-btn ghost" data-close>關閉</button></div>');
+  var ov=card('<h2>🎀 裝飾花園</h2><p class="g-small" style="margin-top:0">選一個，點草地擺上去；點花園裡的裝飾可以移動或收起來</p><div class="seeds decor-options">'+Object.keys(DECOR).sort(function(a,b){return (DECOR[a].ach?99:DECOR[a].lv)-(DECOR[b].ach?99:DECOR[b].lv);}).map(function(k){var d=DECOR[k],lock=d.ach?!achDone(d.ach,V):L<d.lv,n=decorCount(k),full=n>=d.max;return '<button data-k="'+k+'"'+(lock||full?' disabled':'')+'><span class="dec-preview"><img src="../assets/games/garden/decor/'+k+'.png" alt="" loading="lazy" decoding="async"></span><span class="dec-name">'+d.name+'</span><small>'+(lock?(d.ach?'成就「'+achOf(d.ach).t+'」解鎖':'Lv.'+d.lv+' 解鎖'):full?'擺了 '+n+' 個（最多 '+d.max+'）':(n?n+'/'+d.max+'・':'')+d.tip)+'</small></button>';}).join('')+'</div><div class="g-btns"><button class="g-btn ghost" data-close>關閉</button></div>','decorcard');
   ov.querySelectorAll('[data-k]').forEach(function(b){b.onclick=function(){startDecor('decorNew',b.getAttribute('data-k'));};});
   ov.querySelector('[data-close]').onclick=closeSheet;
 }
