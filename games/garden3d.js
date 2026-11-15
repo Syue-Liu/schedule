@@ -28,7 +28,8 @@ var Garden3D=(function(){
   // 溪流最後往外流進小湖的幾個點（半徑、方向）
   var FLOW_OUT=[[6.6,WF-.24],[7.25,WF-.13],[7.95,WF-.05],[ISL+.1,WF],[9.5,WF+.03]];
   // 十二塊土：中間六塊先開，升級再開前後、左右
-  var PLOT=[[-2.2,-1.1],[0,-1.1],[2.2,-1.1],[-2.2,1.1],[0,1.1],[2.2,1.1],[-1.1,-3],[1.1,-3],[-1.1,3],[1.1,3],[-4.1,0],[4.1,0]];
+  // 中間 12 塊土（比一開始拉開 12%，土和花比較不擠）
+  var PLOT=[[-2.46,-1.23],[0,-1.23],[2.46,-1.23],[-2.46,1.23],[0,1.23],[2.46,1.23],[-1.23,-3.36],[1.23,-3.36],[-1.23,3.36],[1.23,3.36],[-4.5,0],[4.5,0]];
   // 新土地：四塊，從花園外圈的小路接出去（a 方向、r 中心離島中間多遠、R 半徑、vo 看它的時候鏡頭偏一點，避開樹屋）；每塊三塊土排一排
   var LAND_IDS=['orchard','west','hill','lake'],LAND_GEO={orchard:{a:-.95,r:14.6,R:4.6},west:{a:3.0,r:14.6,R:4.6,vo:.9},hill:{a:-1.95,r:14.8,R:4.4},lake:{a:.75,r:14.6,R:4.4}};
   LAND_IDS.forEach(function(id){var L=LAND_GEO[id];L.id=id;var cx=Math.cos(L.a)*L.r,cz=Math.sin(L.a)*L.r,vx=-Math.sin(L.a),vz=Math.cos(L.a);L.c={x:cx,z:cz};L.p0=PLOT.length;[-1.7,0,1.7].forEach(function(k){PLOT.push([+(cx+vx*k).toFixed(2),+(cz+vz*k).toFixed(2)]);});});
@@ -178,15 +179,22 @@ var Garden3D=(function(){
   /* ── 標籤：名字＋長大進度（畫在小畫布上，永遠看得到） ── */
   function label(w,h,sx,sy){var c=document.createElement('canvas');c.width=w||320;c.height=h||120;var t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;var s=new T.Sprite(new T.SpriteMaterial({map:t,transparent:true,depthTest:false}));s.renderOrder=10;s.center.set(.5,0);s.scale.set(sx||2.6,sy||.98,1);s.userData={c:c,t:t,key:''};return s;}
   function rr(x,a,b,w,h,r){x.beginPath();x.moveTo(a+r,b);x.arcTo(a+w,b,a+w,b+h,r);x.arcTo(a+w,b+h,a,b+h,r);x.arcTo(a,b+h,a,b,r);x.arcTo(a,b,a+w,b,r);x.closePath();}
+  function dropPath(x,cx,cy,k){x.beginPath();x.moveTo(cx,cy-15*k);x.bezierCurveTo(cx-4*k,cy-8*k,cx-10*k,cy-3*k,cx-10*k,cy+3*k);x.arc(cx,cy+3*k,10*k,Math.PI,0,true);x.bezierCurveTo(cx+10*k,cy-3*k,cx+4*k,cy-8*k,cx,cy-15*k);x.closePath();}
+  function heartPath(x,cx,cy,k){x.beginPath();x.moveTo(cx,cy+7*k);x.bezierCurveTo(cx-9*k,cy+1*k,cx-8*k,cy-7*k,cx-3.5*k,cy-6*k);x.bezierCurveTo(cx-1.5*k,cy-6*k,cx,cy-4.5*k,cx,cy-3*k);x.bezierCurveTo(cx,cy-4.5*k,cx+1.5*k,cy-6*k,cx+3.5*k,cy-6*k);x.bezierCurveTo(cx+8*k,cy-7*k,cx+9*k,cy+1*k,cx,cy+7*k);x.closePath();}
   function drawLabel(s,o){
     var key=JSON.stringify(o);if(s.userData.key===key)return;s.userData.key=key;
-    var c=s.userData.c,x=c.getContext('2d');x.clearRect(0,0,c.width,c.height);
-    x.font='30px Huninn, "PingFang TC", sans-serif';var tw=Math.min(296,Math.max(o.empty?60:150,x.measureText(o.text).width+(o.waterStatus?78:44))),l=(320-tw)/2;
+    var c=s.userData.c,x=c.getContext('2d');x.setTransform(1,0,0,1,0,0);x.clearRect(0,0,c.width,c.height);
+    // 沒有第三行的時候整個往下挪，標籤底部貼著植物
+    if(o.frac!=null&&!o.sub)x.translate(0,28);
+    var wd=o.wd||[],dw=wd.length?wd.length*30+4:0;
+    x.font='30px Huninn, "PingFang TC", sans-serif';var tw=Math.min(296,Math.max(o.empty?60:150,x.measureText(o.text).width+44+dw)),l=(320-tw)/2;
     x.globalAlpha=o.empty?.82:1;rr(x,l,6,tw,52,26);x.fillStyle=o.pest?'#FCE6E1':o.ready?'#FDF2D2':'#FFFCF6';x.fill();x.lineWidth=5;x.strokeStyle='#594C43';x.stroke();
-    if(o.waterStatus){var dx=l+23;x.beginPath();x.moveTo(dx,16);x.bezierCurveTo(dx-4,23,dx-10,29,dx-10,34);x.arc(dx,34,10,Math.PI,0,true);x.bezierCurveTo(dx+10,29,dx+4,23,dx,16);x.closePath();x.fillStyle=o.waterStatus==='watered'?'#C6D9DC':'#79BDDA';x.fill();x.lineWidth=2;x.strokeStyle=o.waterStatus==='watered'?'#96AAAD':'#397D9E';x.stroke();}
-    x.fillStyle=o.empty?'#8C6A55':'#3E3A39';x.textAlign='center';x.textBaseline='middle';x.fillText(o.text,160+(o.waterStatus?12:0),33,o.waterStatus?tw-55:tw-20);
-    if(o.frac!=null){rr(x,70,68,180,22,11);x.fillStyle='#FFFCF6';x.fill();x.lineWidth=4;x.stroke();if(o.frac>0){rr(x,72,70,Math.max(18,176*o.frac),18,9);x.fillStyle=o.thirsty?'#A8D3E6':'#7FB36E';x.fill();}}
-    if(o.sub){rr(x,56,92,208,27,13);x.fillStyle='#F5FBF9';x.fill();x.font='24px Huninn, sans-serif';x.fillStyle='#385F71';x.fillText(o.sub,160,106,196);}
+    wd.forEach(function(d,i){var cx=l+28+i*30,cy=31;dropPath(x,cx,cy,1);x.fillStyle=d.on?'#79BDDA':'#EEF3F4';x.fill();x.lineWidth=2.5;x.strokeStyle=d.on?'#397D9E':'#B4C3C8';x.stroke();
+      if(d.c){x.font='bold 15px Huninn, "PingFang TC", sans-serif';x.fillStyle=d.on?'#FFFFFF':'#A3B1B6';x.textAlign='center';x.textBaseline='middle';x.fillText(d.c,cx,cy+4);}});
+    if(wd.length===2&&wd[0].on&&wd[1].on){heartPath(x,l+43,15,1.15);x.fillStyle='#F2A497';x.fill();x.lineWidth=2;x.strokeStyle='#594C43';x.stroke();}
+    x.font='30px Huninn, "PingFang TC", sans-serif';x.fillStyle=o.empty?'#8C6A55':'#3E3A39';x.textAlign='center';x.textBaseline='middle';x.fillText(o.text,160+dw/2,33,tw-20-dw);
+    if(o.frac!=null){rr(x,70,68,180,22,11);x.fillStyle='#FFFCF6';x.fill();x.lineWidth=4;x.strokeStyle='#594C43';x.stroke();if(o.frac>0){rr(x,72,70,Math.max(18,176*o.frac),18,9);x.fillStyle=o.thirsty?'#A8D3E6':'#7FB36E';x.fill();}}
+    if(o.sub){rr(x,56,92,208,27,13);x.fillStyle=o.pest?'#FCE6E1':o.ready?'#FDF2D2':o.thirsty?'#EAF4F8':'#F5FBF9';x.fill();x.font='24px Huninn, sans-serif';x.fillStyle=o.pest?'#9A4A3E':o.ready?'#7A5A1E':'#385F71';x.fillText(o.sub,160,106,196);}
     s.userData.t.needsUpdate=true;
   }
   // 人物頭上的名字
@@ -393,7 +401,7 @@ var Garden3D=(function(){
       var base=new T.Group();base.position.set(p[0],0,p[1]);scene.add(base);
       base.add(mesh(cyl(.62,.76,.18,16),SOIL,0,.07,0));
       var coll=new T.Mesh(cyl(.95,.95,3.4,8),hitMat);coll.position.y=1.6;coll.visible=false;coll.userData={slot:i};base.add(coll);
-      var lab=label();lab.position.set(p[0],.6,p[1]);lab.layers.set(1);scene.add(lab);
+      var lab=label(320,120,2.35,.885);lab.position.set(p[0],.6,p[1]);lab.layers.set(1);scene.add(lab);
       var pg=new T.Group();pg.position.y=.15;base.add(pg);
       base.visible=lab.visible=false;
       plots.push({i:i,x:p[0],z:p[1],base:base,holder:pg,coll:coll,lab:lab,key:'',id:null,stage:-1,top:.3,pop:1,sc:1,spk:[],on:false,grow:1,pest:null});
@@ -1723,8 +1731,8 @@ var Garden3D=(function(){
 
   /* ── 森林：長大的植物排在小島外圍；移植過的（pos）種在存下來的位置 ── */
   function forestSpot(i){var s=spots[i%spots.length],extra=Math.floor(i/spots.length);return {x:Math.cos(s.a+extra*.09)*(s.r-extra*.35),z:Math.sin(s.a+extra*.09)*(s.r-extra*.35)};}
-  // 每一棵的大小：照編號算（同一棵每次都一樣大、兩支手機也一樣），0.8～1.22 倍
-  function sizeOf(id){return id?.8+rnd(idNum(String(id))+31)*.42:1;}
+  // 每一棵的大小：照編號算（同一棵每次都一樣大、兩支手機也一樣），0.84～1.16 倍
+  function sizeOf(id){return id?.84+rnd(idNum(String(id))+31)*.32:1;}
   function idNum(id){var n=0;for(var i=0;i<id.length;i++)n=(n*31+id.charCodeAt(i))%9973;return n;}
   // 每棵樹在哪：有存位置的先放；其他的照順序排在外圈，碰到別的樹就往後找空位（兩支手機算出來一樣）
   function layoutForest(list){
@@ -2079,7 +2087,7 @@ var Garden3D=(function(){
       var PN={bug:'🐛',snail:'🐌',beetle:'🪲'};
       var mp=mv&&mv.kind==='plot';
       p.lab.visible=open&&!(mv&&(mv.kind==='decor'||mv.kind==='decorNew'))&&(!s||showPlantNames||!!mp);
-      drawLabel(p.lab,s?{text:(mp&&s.id===mv.id?'🪴 ':s.pest?PN[s.pest]+' ':s.ready?'✨ ':'')+s.name,frac:s.r,ready:s.ready||(mp&&s.id===mv.id),pest:!!s.pest,thirsty:s.thirsty,waterStatus:!mp&&!s.ready&&!s.pest?(s.watered?'watered':'unwatered'):'',sub:mp&&s.id!==mv.id?'點這裡交換':s.pest?'先抓走害蟲':s.ready?'可以種進森林':s.thirsty?'口渴了':s.watered?'你今天已澆水':'你今天還沒澆水'}:{text:mp?'移到這裡':'＋',empty:true});
+      drawLabel(p.lab,s?{text:(mp&&s.id===mv.id?'🪴 ':s.pest?PN[s.pest]+' ':s.ready?'✨ ':'')+s.name,frac:s.r,ready:s.ready||(mp&&s.id===mv.id),pest:!!s.pest,thirsty:s.thirsty,wd:!mp&&!s.ready&&!s.pest?(s.duo?[{c:'學',on:!!s.ws},{c:'綾',on:!!s.wl}]:[{c:'',on:!!s.watered}]):null,sub:mp&&s.id!==mv.id?'點這裡交換':s.pest?'先抓走害蟲':s.ready?'可以種進森林':s.thirsty?'口渴了':''}:{text:mp?'移到這裡':'＋',empty:true});
       p.lab.position.y=(s?p.top+.3:.45);
     });
     setForest(st.forest||[]);
@@ -2131,6 +2139,7 @@ var Garden3D=(function(){
     // 卡片上換到別棵的時候，3D 裡也標出現在是哪一棵
     mark:function(kind,id){var t=null;if(kind==='plant'){var p=plots.filter(function(q){return q.on&&q.id===id;})[0];if(p)t={kind:'plot',p:p};}else if(trees[id])t={kind:'tree',id:id};if(t){setHL(t,true);hl.hold=1.6;}},
     // 測試用：螢幕上這一點會點到什麼
+    labelPng:function(i){var p=plots[i];return p&&p.lab.userData.c.toDataURL();},
     labelScreen:function(i){var p=plots[i];if(!p)return null;var up=new T.Vector3().setFromMatrixColumn(cam.matrixWorld,1);return toScreen(p.lab.position.clone().addScaledVector(up,p.lab.scale.y*.68),R.domElement.getBoundingClientRect());},
     plantScreen:function(i){var p=plots[i];if(!p||!p.id)return null;return toScreen(new T.Vector3(p.x,Math.max(.25,p.top*.55),p.z),R.domElement.getBoundingClientRect());},
     targetAt:function(x,y){var t=targetAt(x,y);return t?{kind:t.kind,id:t.id||(t.p&&(t.p.id||t.p.k))||t.k||null,slot:t.p&&t.p.i!=null?t.p.i:null}:null;},hl:function(){return {on:!!(hl.ring&&hl.ring.visible),key:hl.key};},party:function(){return party?{n:party.objs.length,cake:!!party.cake,hats:people.map(function(p){return p.hat.visible;})}:null;},firework:function(){firework();},decors:function(){return Object.keys(decors).map(function(id){var d=decors[id];return {id:id,k:d.k,x:d.x,z:d.z,flag:d.parts.flag?+d.parts.flag.rotation.z.toFixed(2):null};});},weather:function(){return {w:wx.w,s:wx.s,precip:precip?precip.N:0,drift:drift?drift.N:0,umb:people.map(function(p){return p.umb.visible;})};},setWeather:function(w,s){wx.w='';setWeather(w,s);},frames:function(){return drawn;},quality:function(t){if(t==null)return {tier:qTier,lock:qLock};qLock=t;setQuality(t);return qTier;},

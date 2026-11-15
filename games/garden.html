@@ -479,7 +479,7 @@ body.placing-decor .g3-tools,body.placing-decor .g3-full-control,body.placing-de
 <script src="sound.js?v=amb-20261105"></script>
 <script src="game.js?v=garden-20261102"></script>
 <script src="vs.js?v=mail-20261108"></script>
-<script src="garden3d.js?v=size-20261115"></script>
+<script src="garden3d.js?v=drops-20261115"></script>
 <script>
 /* 記憶小森林：兩個人一起種。每天回答一題問答拿水滴，一起澆水，把種子種成樹；長大的樹放進森林，留著那段時間的問答和兩個人的話。
    資料：班表同一個 Firebase 的 banbiao/<同步代碼>_garden（沒有同步代碼就存在這支手機）
@@ -1391,7 +1391,7 @@ function state3d(){
     var p=slots[i];if(!p){out.push(null);continue;}
     var g=grow(p),lo=LO[g.stage],hi=HI[g.stage];
     var pe=pestOf(p);
-    out.push({id:p.id,sp:p.sp,rot:+p.rot||0,stage:g.stage,r:g.r,frac:hi>lo?Math.max(0,Math.min(1,(g.r-lo)/(hi-lo))):1,name:p.name||SP[p.sp].name,ready:g.stage===4,thirsty:g.stage<4&&thirsty(p),watered:!!+(((p.w||{})[me]||{})[today()]),pest:pe?pe.kind:null,pkey:pe?pe.key:null});
+    out.push({id:p.id,sp:p.sp,rot:+p.rot||0,stage:g.stage,r:g.r,frac:hi>lo?Math.max(0,Math.min(1,(g.r-lo)/(hi-lo))):1,name:p.name||SP[p.sp].name,ready:g.stage===4,thirsty:g.stage<4&&thirsty(p),watered:!!+(((p.w||{})[me]||{})[today()]),ws:!!+(((p.w||{}).syue||{})[today()]),wl:!!+(((p.w||{}).ling||{})[today()]),duo:!!(cloud&&op),pest:pe?pe.kind:null,pkey:pe?pe.key:null});
   }
   var sp=special(today());
   return {party:sp.length?{title:sp.map(function(o){return o.e+' '+o.t;}).join('  '),bday:sp.filter(function(o){return o.k==='bday';}).map(function(o){return o.who;}),hol:(sp.filter(function(o){return o.k==='hol';})[0]||{}).h||'',plain:sp.some(function(o){return o.k!=='hol';})}:null,decor:decorList(),mail:unread()>0,weather:weatherOf(today()),season:seasonOf(today()),slots:out,open:open,lands:LANDS.map(function(l){return {id:l.id,name:l.name,lv:l.lv,open:L>=l.lv};}),forest:forest().slice().reverse().map(function(p){return {id:p.id,sp:p.sp,pos:p.pos||null,rot:+p.rot||0};})};
