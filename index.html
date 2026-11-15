@@ -1687,7 +1687,7 @@ function cleanEvents(obj){
     var e=obj[k];
     if(!/^e[a-z0-9]{4,30}$/.test(k)||!e||typeof e!=='object'||typeof e.title!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(e.date||''))return;
     out[k]={id:k,date:e.date,end:/^\d{4}-\d{2}-\d{2}$/.test(e.end||'')&&e.end>e.date?e.end:'',title:e.title,emoji:typeof e.emoji==='string'?e.emoji:'',
-      time:/^\d{2}:\d{2}$/.test(e.time||'')?e.time:'',who:WHO_KEYS.indexOf(e.who)>-1?e.who:'both',
+      time:/^\d{2}:\d{2}$/.test(e.time||'')?e.time:'',etime:/^\d{2}:\d{2}$/.test(e.time||'')&&/^\d{2}:\d{2}$/.test(e.etime||'')?e.etime:'',who:WHO_KEYS.indexOf(e.who)>-1?e.who:'both',
       yearly:!!e.yearly,note:typeof e.note==='string'?e.note:''};
   });
   return out;
@@ -1707,7 +1707,9 @@ function eventsByDay(y,m){
   for(var d=1;d<=dim;d++){var l=eventsOn(y,m,d);if(l.length)map[d]=l;}
   return map;
 }
-function evText(ev){return (ev.emoji?ev.emoji+' ':'')+ev.title+(ev.end?' ～'+evMD(ev.end):'')+(ev.time?' '+ev.time:'')+(ev.who!=='both'?'（'+WHO[ev.who].label+'）':'');}
+// 時間：10:00～12:00（沒有結束時間就只寫開始）
+function evTimeText(ev){return ev.time?ev.time+(ev.etime?'～'+ev.etime:''):'';}
+function evText(ev){return (ev.emoji?ev.emoji+' ':'')+ev.title+(ev.end?' ～'+evMD(ev.end):'')+(ev.time?' '+evTimeText(ev):'')+(ev.who!=='both'?'（'+WHO[ev.who].label+'）':'');}
 function evLabels(list){
   if(!list||!list.length)return '';
   var h='',n=list.length,show=n>2?1:n;
@@ -1765,7 +1767,9 @@ function showDaySheet(y,m,d,readOnly){
     h+='<div class="popup-list">';
     list.forEach(function(e,i){
       var w=WHO[e.who],os=evOccStart(e,key),span=evSpan(e);
-      var meta=[span?evMD(os)+'～'+evMD(addDays(os,span))+'（第'+(dayDiff(os,key)+1)+'/'+(span+1)+'天）':'',e.time||'整天',e.yearly?'每年':'',e.note].filter(Boolean).join('・');
+      // 一天的：10:00～12:00；好幾天的：第一天寫幾點開始、最後一天寫幾點結束
+      var di=span?dayDiff(os,key):0,tt=!span?(evTimeText(e)||'整天'):di===0?(e.time?e.time+' 開始':''):di===span?(e.etime?e.etime+' 結束':''):'';
+      var meta=[span?evMD(os)+'～'+evMD(addDays(os,span))+'（第'+(di+1)+'/'+(span+1)+'天）':'',tt,e.yearly?'每年':'',e.note].filter(Boolean).join('・');
       h+='<div class="popup-item ev-item'+(readOnly?' ro':'')+'" data-id="'+safeHtml(e.id)+'" style="animation-delay:'+(i*0.05)+'s"><div class="ev-emoji">'+safeHtml(e.emoji||'📌')+'</div><div class="ev-main"><div class="ev-title">'+safeHtml(e.title)+'</div><div class="ev-meta">'+safeHtml(meta)+'</div></div><div class="popup-item-badge" style="background:'+w.c+';color:var(--t)">'+w.label+'</div></div>';
     });
     h+='</div>';
@@ -1784,7 +1788,7 @@ function showDaySheet(y,m,d,readOnly){
 // 新增／編輯行程。fromKey＝從哪一天點進來的，存完回到那天
 function showEventForm(fromKey,id){
   var ev=id&&calEvents[id]?calEvents[id]:null;
-  var cur=ev||{title:'',emoji:'📌',date:fromKey,end:'',time:'',who:'both',yearly:false,note:''};
+  var cur=ev||{title:'',emoji:'📌',date:fromKey,end:'',time:'',etime:'',who:'both',yearly:false,note:''};
   var sel={emoji:cur.emoji||'📌',who:cur.who};
   var h='<div class="popup-grabber"></div><div class="popup-top"><div class="popup-dot" style="background:var(--ev)"></div><div class="popup-title">'+(ev?'編輯行程':'新增行程')+'</div><button class="popup-close" id="evBack">✕</button></div>';
   h+='<div class="popup-body"><div class="ev-form">';
@@ -1792,7 +1796,7 @@ function showEventForm(fromKey,id){
   h+='<div><div class="ev-lbl">圖示</div><div class="ev-emojis">'+EV_EMOJIS.map(function(e){return '<button type="button" class="ev-emo'+(e===sel.emoji?' on':'')+'" data-emo="'+e+'">'+e+'</button>';}).join('')+'</div></div>';
   // 結束日期跟開始同一天＝一天的行程
   h+='<div class="ev-2col"><div><label class="ev-lbl" for="evDate">開始日期</label><input class="ev-inp" type="date" id="evDate" value="'+safeHtml(cur.date)+'"></div><div><label class="ev-lbl" for="evEnd">結束日期<span class="ev-days" id="evDays"></span></label><input class="ev-inp" type="date" id="evEnd" value="'+safeHtml(cur.end||cur.date)+'"></div></div>';
-  h+='<div class="ev-2col"><div><label class="ev-lbl" for="evTime">時間（可不填）</label><input class="ev-inp" type="time" id="evTime" value="'+safeHtml(cur.time||'')+'"></div></div>';
+  h+='<div class="ev-2col"><div><label class="ev-lbl" for="evTime">開始時間（可不填）</label><input class="ev-inp" type="time" id="evTime" value="'+safeHtml(cur.time||'')+'"></div><div><label class="ev-lbl" for="evEtime">結束時間（可不填）</label><input class="ev-inp" type="time" id="evEtime" value="'+safeHtml(cur.etime||'')+'"></div></div>';
   h+='<div><div class="ev-lbl">誰的行程</div><div class="ev-seg">'+WHO_KEYS.map(function(w){return '<button type="button" data-who="'+w+'">'+WHO[w].label+'</button>';}).join('')+'</div></div>';
   h+='<label class="ev-check"><input type="checkbox" id="evYearly"'+(cur.yearly?' checked':'')+'>每年重複（生日、紀念日）</label>';
   h+='<div><label class="ev-lbl" for="evNote">備註（可不填）</label><input class="ev-inp" id="evNote" maxlength="60" autocomplete="off" value="'+safeHtml(cur.note||'')+'"></div>';
@@ -1841,11 +1845,14 @@ function showEventForm(fromKey,id){
     if(!/^\d{4}-\d{2}-\d{2}$/.test(date)){toast('請選擇開始日期');return;}
     if(!/^\d{4}-\d{2}-\d{2}$/.test(end)||end===date)end='';
     if(end&&end<date){toast('結束日期不能早於開始日期');return;}
+    var time=document.getElementById('evTime').value||'',etime=document.getElementById('evEtime').value||'';
+    if(etime&&!time){toast('請先填開始時間');document.getElementById('evTime').focus();return;}
+    if(etime&&!end&&etime<=time){toast('結束時間要晚於開始時間');document.getElementById('evEtime').focus();return;}
     var yearly=document.getElementById('evYearly').checked;
     if(end&&yearly&&dayDiff(date,end)>=365){toast('每年重複的行程最長一年');return;}
-    var nev={id:ev?ev.id:newEvId(),date:date,end:end,title:title,emoji:sel.emoji,time:document.getElementById('evTime').value||'',
+    var nev={id:ev?ev.id:newEvId(),date:date,end:end,title:title,emoji:sel.emoji,time:time,etime:etime,
       who:sel.who,yearly:yearly,note:document.getElementById('evNote').value.trim()};
-    var same=ev&&['date','end','title','emoji','time','who','yearly','note'].every(function(k){return String(ev[k]||'')===String(nev[k]||'');});
+    var same=ev&&['date','end','title','emoji','time','etime','who','yearly','note'].every(function(k){return String(ev[k]||'')===String(nev[k]||'');});
     if(same){back();return;}
     calEvents[nev.id]=nev;saveLocalOnly();writeEvent(nev.id);recordEventChange(ev?'edit':'add',nev);
     // 還在原本那天就回那天；日期改了就跳到新的日期
@@ -1870,8 +1877,9 @@ function vevent(start,end,summary,desc,uidKey){
   return 'BEGIN:VEVENT\r\nUID:'+uidKey+'@ourschedule\r\nDTSTAMP:'+icsStamp()+'\r\nDTSTART;VALUE=DATE:'+start+'\r\nDTEND;VALUE=DATE:'+end+'\r\nSUMMARY:'+escICS(summary)+'\r\nDESCRIPTION:'+escICS(desc)+'\r\nEND:VEVENT';
 }
 // 有時間的行程：當地時間，預設一小時
-function veventTimed(y,m,d,time,summary,desc,uidKey){
+function veventTimed(y,m,d,time,summary,desc,uidKey,etime,ey,em,ed){
   var s=new Date(y,m-1,d,+time.slice(0,2),+time.slice(3,5)),e=new Date(s.getTime()+3600000);
+  if(etime){var e2=new Date(ey||y,(em||m)-1,ed||d,+etime.slice(0,2),+etime.slice(3,5));if(e2>s)e=e2;}
   function f(t){return icsDateStr(t.getFullYear(),t.getMonth()+1,t.getDate())+'T'+pad2(t.getHours())+pad2(t.getMinutes())+'00';}
   return 'BEGIN:VEVENT\r\nUID:'+uidKey+'@ourschedule\r\nDTSTAMP:'+icsStamp()+'\r\nDTSTART:'+f(s)+'\r\nDTEND:'+f(e)+'\r\nSUMMARY:'+escICS(summary)+'\r\nDESCRIPTION:'+escICS(desc)+'\r\nEND:VEVENT';
 }
@@ -1885,7 +1893,8 @@ function customEventsICS(uid){
       var os=evOccStart(e,day),span=evSpan(e),key=os.replace(/-/g,'')+'-'+e.id;
       if(seen[key])return;seen[key]=1;
       var summary=(e.emoji?e.emoji+' ':'')+(e.who!=='both'?WHO[e.who].label+' ':'')+e.title,p=evParts(os),np=evParts(addDays(os,span+1));
-      if(e.time&&!span)out.push(veventTimed(p.y,p.m,p.d,e.time,summary,e.note,key));
+      var lp=evParts(addDays(os,span));
+      if(e.time&&(!span||e.etime))out.push(veventTimed(p.y,p.m,p.d,e.time,summary,e.note,key,e.etime,lp.y,lp.m,lp.d));
       else out.push(vevent(icsDateStr(p.y,p.m,p.d),icsDateStr(np.y,np.m,np.d),summary,[e.time?e.time+' 開始':'',e.note].filter(Boolean).join('\n'),key));
     });
   }
