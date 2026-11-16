@@ -1709,7 +1709,7 @@ function eventsByDay(y,m){
 }
 // 時間：10:00～12:00（沒有結束時間就只寫開始）
 function evTimeText(ev){return ev.time?ev.time+(ev.etime?'～'+ev.etime:''):'';}
-function evText(ev){return (ev.emoji?ev.emoji+' ':'')+ev.title+(ev.end?' ～'+evMD(ev.end):'')+(ev.time?' '+evTimeText(ev):'')+(ev.who!=='both'?'（'+WHO[ev.who].label+'）':'');}
+function evText(ev){return (ev.emoji?ev.emoji+' ':'')+ev.title+(ev.end?' '+evMD(ev.date)+(ev.time?' '+ev.time:'')+'～'+evMD(ev.end)+(ev.etime?' '+ev.etime:''):(ev.time?' '+evTimeText(ev):''))+(ev.who!=='both'?'（'+WHO[ev.who].label+'）':'');}
 function evLabels(list){
   if(!list||!list.length)return '';
   var h='',n=list.length,show=n>2?1:n;
@@ -1767,9 +1767,10 @@ function showDaySheet(y,m,d,readOnly){
     h+='<div class="popup-list">';
     list.forEach(function(e,i){
       var w=WHO[e.who],os=evOccStart(e,key),span=evSpan(e);
-      // 一天的：10:00～12:00；好幾天的：第一天寫幾點開始、最後一天寫幾點結束
-      var di=span?dayDiff(os,key):0,tt=!span?(evTimeText(e)||'整天'):di===0?(e.time?e.time+' 開始':''):di===span?(e.etime?e.etime+' 結束':''):'';
-      var meta=[span?evMD(os)+'～'+evMD(addDays(os,span))+'（第'+(di+1)+'/'+(span+1)+'天）':'',tt,e.yearly?'每年':'',e.note].filter(Boolean).join('・');
+      // 一天的：10:00～12:00；好幾天的每一天都寫完整的起訖：11/27 11:00～11/29 17:00（第1/3天）
+      var di=span?dayDiff(os,key):0,tt=!span?(evTimeText(e)||'整天'):'';
+      var rng=span?evMD(os)+(e.time?' '+e.time:'')+'～'+evMD(addDays(os,span))+(e.etime?' '+e.etime:'')+'（第'+(di+1)+'/'+(span+1)+'天）':'';
+      var meta=[rng,tt,e.yearly?'每年':'',e.note].filter(Boolean).join('・');
       h+='<div class="popup-item ev-item'+(readOnly?' ro':'')+'" data-id="'+safeHtml(e.id)+'" style="animation-delay:'+(i*0.05)+'s"><div class="ev-emoji">'+safeHtml(e.emoji||'📌')+'</div><div class="ev-main"><div class="ev-title">'+safeHtml(e.title)+'</div><div class="ev-meta">'+safeHtml(meta)+'</div></div><div class="popup-item-badge" style="background:'+w.c+';color:var(--t)">'+w.label+'</div></div>';
     });
     h+='</div>';
