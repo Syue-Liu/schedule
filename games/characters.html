@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f5f2e9">
+  <title>學與綾 · 小花園人物預覽</title>
+  <meta name="description" content="轉一圈，看看學與綾的新造型。可旋轉、縮放的 3D 人物試作。">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='12' fill='%23e5eadc'/%3E%3Cpath d='M20 31V18M20 24C8 24 9 13 9 13c12 0 11 11 11 11m0-4c0-11 11-11 11-11s1 11-11 11' fill='none' stroke='%23677b57' stroke-width='3'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="characters.css?v=1">
+  <script type="importmap">
+    {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+  </script>
+</head>
+<body>
+  <svg class="icon-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M12 21V10M12 15C3 15 4 7 4 7c8 0 8 8 8 8m0-4c0-8 8-8 8-8s1 8-8 8"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="m14 6-6 6 6 6M8 12h12"/></symbol>
+    <symbol id="i-idle" viewBox="0 0 24 24"><path d="M8 21v-7l-3 2M16 21v-7l3 2M8 13h8M9 13v-3h6v3M12 14v7"/><circle cx="12" cy="5" r="2.5"/></symbol>
+    <symbol id="i-walk" viewBox="0 0 24 24"><circle cx="14" cy="4" r="2"/><path d="m6 12 4-4 4 1 3 4 3 1M13 9l-2 6-4 6m4-6 5 2v4"/></symbol>
+    <symbol id="i-water" viewBox="0 0 24 24"><path d="M6 10h10v9H6zM6 12H4a3 3 0 0 1 0-6h3v4m9 5 4-5 2 1-6 8M9 7V5h4v2M20 16v1m2 2v1"/></symbol>
+    <symbol id="i-wave" viewBox="0 0 24 24"><path d="M8 12V6a1.5 1.5 0 0 1 3 0v5-7a1.5 1.5 0 0 1 3 0v7-5a1.5 1.5 0 0 1 3 0v6-3a1.5 1.5 0 0 1 3 0v7c0 7-10 8-13 2l-3-5c-1-2 1-3 2-1l2 2M2 7l2 1m17-5-1 1"/></symbol>
+    <symbol id="i-rotate" viewBox="0 0 24 24"><path d="M4 9a8 8 0 1 1 0 6M4 4v5h5"/></symbol>
+    <symbol id="i-camera" viewBox="0 0 24 24"><path d="M8 6l2-3h4l2 3h4a1 1 0 0 1 1 1v13H3V7a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="4"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
+  </svg>
+  <header class="topbar">
+    <a href="garden.html" class="back"><svg><use href="#i-back"/></svg><span>回小花園</span></a>
+    <span class="brand"><svg><use href="#i-leaf"/></svg>記憶小森林</span>
+    <span class="edition">人物試作 01</span>
+  </header>
+  <main>
+    <div class="intro"><p class="eyebrow">A LITTLE CLOSER</p><h1>熟悉的你們，<span>多一點細節。</span></h1><p class="subtitle">轉一圈，看看學與綾的新造型。</p></div>
+    <div class="workbench">
+      <section class="viewer" aria-label="互動 3D 人物預覽">
+        <div id="viewport" tabindex="0" role="img" aria-label="學與綾的 3D 模型。拖曳旋轉、兩指縮放；也可使用下方視角與縮放按鈕。"></div>
+        <div class="scene-caption"><span class="live-dot"></span><span id="scene-label">學與綾 · 雙人造型</span></div>
+        <div class="view-tools" aria-label="視角控制">
+          <button type="button" id="zoom-in" aria-label="拉近人物" title="拉近"><svg><use href="#i-plus"/></svg></button>
+          <button type="button" id="zoom-out" aria-label="拉遠人物" title="拉遠"><svg><use href="#i-minus"/></svg></button>
+          <button type="button" id="reset" aria-label="重設視角" title="重設視角"><svg><use href="#i-rotate"/></svg></button>
+        </div>
+        <div class="gesture-hint" id="gesture-hint">拖曳旋轉 <span>·</span> 兩指或滾輪縮放</div>
+        <div class="loading" id="loading" role="status"><span class="loader-leaf"><svg><use href="#i-leaf"/></svg></span><strong>學與綾正在準備中</strong><span id="load-progress">載入人物造型…</span></div>
+        <div class="load-error" id="load-error" hidden role="alert"><strong>人物暫時無法載入</strong><p id="error-message">請確認網路連線，再試一次。</p><button type="button" id="retry">重新載入</button></div>
+      </section>
+      <aside class="panel" aria-label="人物預覽設定">
+        <div class="panel-heading"><span class="small-leaf"><svg><use href="#i-leaf"/></svg></span><div><h2>來看看新造型</h2><p>每個角度，都有一點小細節。</p></div></div>
+        <fieldset><legend>想看誰</legend><div class="segmented" data-group="character">
+          <button type="button" data-value="both" aria-pressed="true">雙人</button><button type="button" data-value="syue" aria-pressed="false">學</button><button type="button" data-value="ling" aria-pressed="false">綾</button>
+        </div></fieldset>
+        <fieldset><legend>動一動</legend><div class="actions" data-group="action">
+          <button type="button" data-value="idle" aria-pressed="true"><svg><use href="#i-idle"/></svg><span>站立</span></button>
+          <button type="button" data-value="walk" aria-pressed="false"><svg><use href="#i-walk"/></svg><span>走路</span></button>
+          <button type="button" data-value="water" aria-pressed="false"><svg><use href="#i-water"/></svg><span>澆水</span></button>
+          <button type="button" data-value="wave" aria-pressed="false"><svg><use href="#i-wave"/></svg><span>打招呼</span></button>
+        </div></fieldset>
+        <fieldset><legend>看看細節</legend><div class="segmented" data-group="view">
+          <button type="button" data-value="front" aria-pressed="true">全身</button><button type="button" data-value="face" aria-pressed="false">臉部</button><button type="button" data-value="back" aria-pressed="false">背面</button>
+        </div></fieldset>
+        <fieldset><legend>背景</legend><div class="backgrounds" data-group="background">
+          <button type="button" data-value="garden" aria-pressed="true"><i class="swatch garden-swatch"></i>花園</button><button type="button" data-value="studio" aria-pressed="false"><i class="swatch studio-swatch"></i>奶油白</button>
+        </div></fieldset>
+        <div class="utility-row"><button type="button" id="auto-rotate" aria-pressed="false"><svg><use href="#i-rotate"/></svg>自動旋轉</button><button type="button" id="pause" aria-pressed="false"><svg><use href="#i-pause"/></svg><span>暫停動作</span></button></div>
+        <button type="button" class="snapshot" id="snapshot"><svg><use href="#i-camera"/></svg>留下這個角度</button>
+        <p class="prototype-note">這裡是獨立的人物試作預覽。</p>
+      </aside>
+    </div>
+    <p class="footnote">黑髮與藍外套，漁夫帽與小花。<span>把熟悉的小細節，都留在身邊。</span></p>
+  </main>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <noscript><p class="no-script">請開啟 JavaScript，即可旋轉查看人物。</p></noscript>
+  <script type="module">
+    import('./characters.js?v=1').catch(error => {
+      console.error(error);
+      document.getElementById('loading').hidden = true;
+      document.getElementById('load-error').hidden = false;
+    });
+    document.getElementById('retry').addEventListener('click', () => location.reload());
+  </script>
+</body>
+</html>
