@@ -324,6 +324,22 @@ body.placing-decor .g3-tools,body.placing-decor .g3-full-control,body.placing-de
 .mvbar .g-btns{margin-top:8px;}
 .mv-lands{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:8px;}
 .mv-lands button{padding:3px 10px;border:2px solid var(--ink);border-radius:999px;background:#FFFFFF;font-size:12px;}
+.sh-combo{margin-top:8px;padding:8px 12px;border-radius:14px;background:#FFF6DA;text-align:left;font-size:13px;line-height:1.55;color:#6B5A2E;}
+.sh-combo b{display:block;font-weight:400;font-size:14px;color:#8A6A1E;}.sh-combo span{display:block;margin-bottom:2px;}
+.cbook{grid-column:1/-1;}
+.cbook h4{margin:2px 2px 8px;font-weight:400;font-size:14px;}.cbook h4 small{color:var(--t3);font-size:12px;}
+.clist{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.ccard{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border:var(--lw2) solid var(--ink);border-radius:16px;background:var(--paper);text-align:left;font:inherit;color:var(--t);cursor:pointer;}
+.ccard i{flex:none;font-style:normal;font-size:22px;line-height:1.2;}
+.ccard b{display:block;font-weight:400;font-size:13px;}.ccard b em{margin-left:6px;font-style:normal;font-size:11px;color:#B0851F;}
+.ccard span{display:block;font-size:11.5px;line-height:1.45;color:var(--t3);}
+.ccard.found{background:#FFFBEF;}.ccard.on{background:#FFF3C9;box-shadow:0 2px 0 var(--ink);}
+.ccard:not(.on):not(.found) i{filter:grayscale(1);opacity:.6;}
+.cnote{margin:0 2px 8px;font-size:12px;color:var(--t3);line-height:1.5;}
+.cchips{display:flex;flex-wrap:wrap;gap:6px;}
+.cchip{padding:4px 10px;border:2px solid var(--ink);border-radius:999px;background:var(--paper);font:inherit;font-size:12px;color:var(--t);}
+.cchip.on{background:#FFF3C9;}
+@media (max-width:420px){.clist{grid-template-columns:1fr;}}
 .sh-pest{margin-top:8px;padding:6px 10px;border-radius:12px;background:#FCE6E1;font-size:13px;}
 .visitor{position:absolute;z-index:3;top:30%;font-size:28px;border:0;background:none;padding:4px;animation:fly 10s linear forwards;}
 @keyframes fly{from{left:-14%;}to{left:108%;}}
@@ -479,7 +495,7 @@ body.placing-decor .g3-tools,body.placing-decor .g3-full-control,body.placing-de
 <script src="sound.js?v=piano-20261116"></script>
 <script src="game.js?v=garden-20261102"></script>
 <script src="vs.js?v=mail-20261108"></script>
-<script src="garden3d.js?v=treefx2-20261116"></script>
+<script src="garden3d.js?v=flowerfx-20261116"></script>
 <script>
 /* 記憶小森林：兩個人一起種。每天回答一題問答拿水滴，一起澆水，把種子種成樹；長大的樹放進森林，留著那段時間的問答和兩個人的話。
    資料：班表同一個 Firebase 的 banbiao/<同步代碼>_garden（沒有同步代碼就存在這支手機）
@@ -682,6 +698,51 @@ var SPI={
   calla:{lang:'純潔・幸福',intro:'天南星科的多年生草本，白色的「花」像一個捲起來的喇叭，中間立著一根黃色的花序。',fact:'那片白色的喇叭其實是苞片。陽明山竹子湖每年春天有海芋季，可以下田採海芋。'},
   cypress:{lab:'寓意',lang:'長壽・守護',intro:'柏科的常綠大樹，是台灣特有的珍貴樹種，長在中高海拔的山區，可以活上千年。',fact:'阿里山、拉拉山的「神木」很多都是紅檜，有的已經超過兩千歲。檜木有一股好聞的香味，也是很好的木材。'}
 };
+/* ── 種在一起：同一種 3 株以上靠在一起變成花海、樹林；特別的三種種在一起是隱藏組合（三株兩兩都要靠在一起：相鄰的土，或森林裡挨著）。
+   3D 花園（garden3d.js）照這張表找組合、做效果；第一次湊到記在 combo（森林的「✨ 組合」看得到） ── */
+var COMBO=[
+  {k:'love',e:'💕',name:'甜蜜的愛',g:[['rose'],['tulip'],['strawberry']],fx:'hearts',c:['#F7A8C0'],hint:'玫瑰、鬱金香、草莓',d:'玫瑰說愛、鬱金香告白、草莓甜蜜蜜，種在一起會飄出粉紅色的愛心，還有蝴蝶飛來'},
+  {k:'sunny',e:'🌞',name:'陽光花園',g:[['sunflower'],['daisy'],['cosmos','gerbera']],fx:'sunny',c:['#FFE07A'],hint:'向日葵、雛菊、波斯菊（或非洲菊）',d:'像小太陽一樣的花種在一起，金色的花粉在陽光下閃閃發亮'},
+  {k:'spring',e:'🌸',name:'粉紅春天',g:[['cherry'],['peach'],['plum']],fx:'swirl',pk:'petal',c:['#F8C8D4','#F7B6C8','#FBE3EA'],hint:'櫻花樹、桃樹、梅花樹',d:'三種春天開的粉紅色花樹種在一起，花瓣會繞著它們轉圈圈'},
+  {k:'autumn',e:'🍁',name:'秋日楓情',g:[['maple'],['ginkgo'],['persimmon']],fx:'swirl',pk:'leaf',c:['#E2603C','#F6D27A','#F07A2A'],hint:'楓樹、銀杏、柿子樹',d:'紅的楓葉、黃的銀杏、橘的柿子，秋天的顏色一次到齊，落葉捲成一圈一圈'},
+  {k:'winter',e:'🎍',name:'歲寒三友',g:[['pine','cypress'],['bamboo'],['plum']],fx:'snow',c:['#FFFFFF'],hint:'松（或紅檜）、竹、梅',d:'松、竹、梅在寒冬裡也不怕冷，古人叫它們「歲寒三友」。種在一起會飄下細細的雪花'},
+  {k:'fruit',e:'🍎',name:'果香小園',any:['apple','orange','lemon','persimmon','mango','lychee'],fx:'fruit',c:['#F2A15B'],hint:'三種不一樣的果樹',d:'三種果樹種在一起，果子掉得更勤，樹下常常有香香的水果'},
+  {k:'scent',e:'🌿',name:'芬芳花園',any:['lavender','jasmine','hyacinth','lily','lilyvalley','orchid','osmanthus'],fx:'scent',c:['#CDBDF0','#FFFFFF','#F6B8D6'],hint:'三種香香的花（薰衣草、茉莉、風信子、百合、鈴蘭、蝴蝶蘭、桂花）',d:'香香的花種在一起，香氣變成一圈一圈的光點飄上天，還有蝴蝶飛來'}
+];
+var COMBO_NM={strawberry:'草莓園',lavender:'薰衣草田',succulent:'多肉小花園',rose:'玫瑰園',dandelion:'蒲公英草原',peony:'牡丹園',calla:'海芋田',orchid:'蘭花園',hydrangea:'繡球花步道',
+  cherry:'櫻花林',bamboo:'竹林',maple:'楓林',ginkgo:'銀杏大道',pine:'松林',cypress:'紅檜森林',palm:'椰林',willow:'柳岸',cactus:'仙人掌沙漠',tung:'五月雪',flame:'鳳凰花開',wisteria:'紫藤花廊',jacaranda:'藍花楹步道',trumpet:'風鈴木大道',kapok:'木棉道',bougain:'九重葛花牆',goldshower:'黃金雨'};
+function comboR(k){return COMBO.filter(function(c){return c.k===k;})[0];}
+function comboSp(k){return String(k).indexOf('sp:')===0?k.slice(3):'';}
+function comboName(k){var sp=comboSp(k),S=SP[sp];if(sp)return S?COMBO_NM[sp]||(S.kind==='tree'?S.name.replace(/樹$/,'')+'林':S.name.replace(/花$/,'')+'花海'):'';var R=comboR(k);return R?R.name:'';}
+function comboE(k){var sp=comboSp(k);if(sp)return SP[sp]&&SP[sp].kind==='tree'?'🌳':'🌼';var R=comboR(k);return R?R.e:'✨';}
+function comboDesc(k){var sp=comboSp(k);if(sp)return !SP[sp]?'':SP[sp].kind==='tree'?'長成一片樹林：樹下鋪滿花瓣、落葉，掉得也更多（開花的樹，花瓣還會繞著轉圈圈）；晚上地上會發光，還有螢火蟲':'變成花海：地上鋪滿小花瓣，香氣、花粉變多，蝴蝶在花上飛來飛去；晚上地上會發光，還有螢火蟲';var R=comboR(k);return R?R.d:'';}
+// 3D 花園現在找到的組合（[{key,ids}]）；第一次湊到的記下來、跳通知
+var C3=[];
+function onCombos(list){
+  C3=list||[];var seen=D.combo||{},o={},nw=[];
+  C3.forEach(function(c){if(!seen[c.key]&&!o[c.key]&&comboName(c.key)){o[c.key]=today();nw.push(c.key);}});
+  if(nw.length){write({combo:o});SND.sfx('chime');
+    toast('✨ 發現組合：'+nw.map(function(k){return '「'+comboName(k)+'」';}).join('、')+'　點這裡看看',function(){setForestTab('combo');var f=document.querySelector('.forest');if(f)f.scrollIntoView({behavior:'smooth',block:'start'});},5000);
+    paintNote();}
+  if(fTab==='combo'&&!fSp)paintForest();
+}
+function comboAt(id){return C3.filter(function(c){return c.ids.indexOf(id)>=0;});}
+function comboHtml(id){var L=comboAt(id);return L.length?'<div class="sh-combo">'+L.map(function(c){return '<b>'+comboE(c.key)+' 「'+esc(comboName(c.key))+'」</b><span>和旁邊的 '+(c.ids.length-1)+' 株種在一起，'+esc(comboDesc(c.key))+'</span>';}).join('')+'</div>':'';}
+// 森林的「✨ 組合」：特別組合（還沒湊到的只看得到提示）＋湊過的花海、樹林
+function comboBook(){
+  var seen=D.combo||{},on={};C3.forEach(function(c){(on[c.key]=on[c.key]||[]).push.apply(on[c.key],c.ids);});
+  var nr=COMBO.filter(function(R){return seen[R.k];}).length,sps=Object.keys(seen).filter(function(k){return comboSp(k)&&SP[comboSp(k)];}).sort(function(a,b){return seen[a]<seen[b]?-1:1;});
+  return '<div class="cbook"><h4>🌟 特別組合 <small>'+nr+' / '+COMBO.length+'</small></h4><div class="clist">'+COMBO.map(function(R){var f=seen[R.k],a=on[R.k];
+      return '<button class="ccard'+(a?' on':f?' found':'')+'" data-ck="'+R.k+'"><i>'+(f||a?R.e:'❔')+'</i><div><b>'+(f||a?esc(R.name):'？？？')+(a?'<em>✨ 花園裡有</em>':f?'<em>'+md(f)+' 發現</em>':'')+'</b><span>'+(f||a?esc(R.d):'提示：'+esc(R.hint)+' 種在一起')+'</span></div></button>';}).join('')+'</div>'+
+    '<h4>🌼 花海・🌳 樹林 <small>'+sps.length+'</small></h4><p class="cnote">同一種植物 3 株以上種在一起（相鄰的土，或森林裡挨著），就會變成花海、樹林。可以用「移植」把它們搬到一起</p>'+
+    (sps.length?'<div class="cchips">'+sps.map(function(k){return '<button class="cchip'+(on[k]?' on':'')+'" data-ck="'+k+'">'+comboE(k)+' '+esc(comboName(k))+(on[k]?' ✨':'')+'</button>';}).join('')+'</div>':'<p class="cnote">還沒有湊到過</p>')+'</div>';
+}
+function comboTap(k){
+  var ids=[];C3.forEach(function(c){if(c.key===k)ids=ids.concat(c.ids);});SND.sfx('tap');
+  var R=comboR(k),f=(D.combo||{})[k];
+  if(ids.length&&g3){Garden3D.flashTrees(ids);$('g3').scrollIntoView({behavior:'smooth',block:'center'});toast(comboE(k)+' 「'+comboName(k)+'」在這裡');return;}
+  toast(f?comboE(k)+' 「'+comboName(k)+'」現在沒有種在一起':R?'❔ 提示：'+R.hint+' 種在一起':'');
+}
 function spInfo(sp,small){var I=SPI[sp],S=SP[sp];if(!I||!S)return '';return '<div class="sp-info'+(small?' small':'')+'"><div class="sp-lang"><b>'+(I.lab||'花語')+'</b><span>'+esc(I.lang)+'</span></div><p>'+esc(I.intro)+'</p><p class="sp-fact">💡 '+esc(I.fact)+'</p></div>';}
 // 害蟲：長大中的植物每天有機會跑來一隻，抓走之前不能澆水
 var PESTS={bug:{name:'毛毛蟲',e:'🐛'},snail:{name:'蝸牛',e:'🐌'},beetle:{name:'甲蟲',e:'🪲'}},PK=['bug','snail','beetle'];
@@ -773,7 +834,7 @@ function connect(){
   VS.connect().then(function(){cloud=true;VS.docWatch('garden',onSnap);beat();setInterval(beat,20000);liveInit();}).catch(function(e){console.warn('garden',e);local();});
 }
 function local(){cloud=false;try{D=JSON.parse(localStorage.getItem('gardenLocal')||'{}')||{};}catch(e){D={};}norm();first=false;ready();}
-function norm(){D.plants=D.plants||{};D.qa=D.qa||{};D.here=D.here||{};D.pests=D.pests||{};D.bonus=D.bonus||{};D.gift=D.gift||{};D.qat=D.qat||{};D.cq=D.cq||{};D.ach=D.ach||{};D.decor=D.decor||{};D.mail=D.mail||{};D.rides=D.rides||{};}
+function norm(){D.plants=D.plants||{};D.qa=D.qa||{};D.here=D.here||{};D.pests=D.pests||{};D.bonus=D.bonus||{};D.gift=D.gift||{};D.qat=D.qat||{};D.cq=D.cq||{};D.ach=D.ach||{};D.decor=D.decor||{};D.mail=D.mail||{};D.rides=D.rides||{};D.combo=D.combo||{};}
 // 寫：先改畫面，再送出；剛寫的幾秒內，舊的雲端資料回來也不會蓋掉
 function write(o){
   recent.push({o:o,at:Date.now()});merge(D,o);
@@ -878,6 +939,11 @@ var ACH=[
   {id:'decorK20',e:'🏡',t:'裝飾收藏家',d:'擺過 20 種不同的裝飾',v:'decorK',n:20,r:6},
   {id:'album3',e:'📸',t:'小小攝影師',d:'相簿裡有 3 張照片',v:'album',n:3,r:2},
   {id:'album8',e:'📸',t:'相簿滿滿',d:'相簿 8 格都放滿照片',v:'album',n:8,r:3,decor:'photoframe'},
+  {id:'combo1',e:'✨',t:'種在一起',d:'發現第一個組合（3 株種在一起）',v:'combo',n:1,r:2},
+  {id:'combo5',e:'✨',t:'組合達人',d:'發現 5 種組合（花海、樹林、特別組合都算）',v:'combo',n:5,r:3},
+  {id:'combo15',e:'✨',t:'組合收藏家',d:'發現 15 種組合',v:'combo',n:15,r:5},
+  {id:'recipe3',e:'🌟',t:'特別組合',d:'發現 3 種特別組合',v:'recipe',n:3,r:3},
+  {id:'recipe7',e:'🌟',t:'組合大師',d:'7 種特別組合全部發現',v:'recipe',n:7,r:8},
   {id:'lv5',e:'⭐',t:'花園 Lv.5',d:'花園升到 Lv.5',v:'lv',n:5,r:3},
   {id:'lv10',e:'⭐',t:'花園 Lv.10',d:'花園升到 Lv.10',v:'lv',n:10,r:5},
   {id:'lv15',e:'⭐',t:'花園 Lv.15',d:'花園升到 Lv.15',v:'lv',n:15,r:6},
@@ -893,7 +959,7 @@ function achVals(){
   var wa=0,hd={},se={},cq=0,rd=0,dk={},wd={syue:{},ling:{}},nm=0,nt=0,ps=all();ps.forEach(function(p){['syue','ling'].forEach(function(u){var w=(p.w||{})[u]||{};Object.keys(w).forEach(function(d){var n=+w[d]||0;wa+=n;if(n>0){wd[u][d]=1;var h=holidayOf(d);if(h)hd[h.n||h.h]=1;}});});if(p.done)se[seasonOf(dayOf(p.done))]=1;if(p.name)nm++;if(p.note&&(p.note.syue||p.note.ling))nt++;});
   var bo=Object.keys(wd.syue).filter(function(d){return wd.ling[d];}).length;
   Object.keys(D.cq||{}).forEach(function(d){if(D.cq[d]&&D.cq[d].q)cq++;});Object.keys(D.rides||{}).forEach(function(d){rd+=+D.rides[d]||0;});decorList().forEach(function(d){dk[d.k]=1;});
-  return {book:Object.keys(bk).length,forest:f.length,streak:streak().best,qa:both,match:mt,pest:pe,mail:ml,decor:decorList().length,decorK:Object.keys(dk).length,album:albumList().length,lv:level(),water:wa,hol:Object.keys(hd).length,season:Object.keys(se).length,cq:cq,ride:rd,both:bo,planted:ps.length,named:nm,note:nt};
+  return {book:Object.keys(bk).length,forest:f.length,streak:streak().best,qa:both,match:mt,pest:pe,mail:ml,decor:decorList().length,decorK:Object.keys(dk).length,album:albumList().length,lv:level(),water:wa,hol:Object.keys(hd).length,season:Object.keys(se).length,cq:cq,ride:rd,both:bo,planted:ps.length,named:nm,note:nt,combo:Object.keys(D.combo||{}).filter(function(k){return comboName(k);}).length,recipe:COMBO.filter(function(R){return (D.combo||{})[R.k];}).length};
 }
 function achDone(id,V){var a=achOf(id);return !!a.id&&(V||achVals())[a.v]>=a.n;}
 function achMine(id){return ((D.ach||{})[me]||{})[id];}
@@ -1258,18 +1324,21 @@ function paintForest(){
   var all=forest(),n=all.length,cnt=function(fn){return all.filter(fn).length;},seen={};all.forEach(function(p){seen[p.sp]=(seen[p.sp]||0)+1;});
   var nSp=Object.keys(seen).length,nAll=Object.keys(SP).length;
   $('fcount').textContent=n?n+' 棵':'';
-  var tabs=[['all','全部 '+n],['tree','🌳 樹 '+cnt(function(p){return SP[p.sp].kind==='tree';})],['flower','🌸 花 '+cnt(function(p){return SP[p.sp].kind==='flower';})],['book','📖 圖鑑 '+nSp+'/'+nAll]];
+  var tabs=[['all','全部 '+n],['tree','🌳 樹 '+cnt(function(p){return SP[p.sp].kind==='tree';})],['flower','🌸 花 '+cnt(function(p){return SP[p.sp].kind==='flower';})],['book','📖 圖鑑 '+nSp+'/'+nAll],['combo','✨ 組合 '+Object.keys(D.combo||{}).filter(function(k){return comboName(k);}).length]];
   var th=n?tabs.map(function(t){return '<button data-ft="'+t[0]+'"'+(fTab===t[0]&&!fSp?' class="on"':'')+'>'+t[1]+'</button>';}).join(''):'';
   if(fSp)th='<button class="fx" data-ft="book">📖 '+esc(SP[fSp].name)+' ×'+(seen[fSp]||0)+'　✕</button>';
-  var list=forestList(),book=fTab==='book'&&!fSp;
-  if(n&&!book)th+=(g3&&(fSp||fTab!=='all')&&list.length?'<button class="ffind" data-find>✨ 在花園裡標出來</button>':'')+'<button class="fsort" data-fs>'+(fSort==='new'?'最新的在前 ↓':'最早的在前 ↑')+'</button>';
-  var tidy=g3&&n&&!book&&!fSp?tidyMoves():[];if(tidy.length)th+='<button class="ftidy" data-tidy>🌿 整理擠在一起的 '+tidy.length+' 棵</button>';
+  var list=forestList(),book=fTab==='book'&&!fSp,cbk=fTab==='combo'&&!fSp;
+  if(n&&!book&&!cbk)th+=(g3&&(fSp||fTab!=='all')&&list.length?'<button class="ffind" data-find>✨ 在花園裡標出來</button>':'')+'<button class="fsort" data-fs>'+(fSort==='new'?'最新的在前 ↓':'最早的在前 ↑')+'</button>';
+  var tidy=g3&&n&&!book&&!cbk&&!fSp?tidyMoves():[];if(tidy.length)th+='<button class="ftidy" data-tidy>🌿 整理擠在一起的 '+tidy.length+' 棵</button>';
   $('ftabs').innerHTML=th;
   var tdb=$('ftabs').querySelector('[data-tidy]');if(tdb)tdb.onclick=function(){SND.sfx('tap');openTidy();};$('finfo').innerHTML=fSp?'<b class="finfo-t">'+esc(SP[fSp].name)+'</b>'+spInfo(fSp,true):'';
   $('ftabs').querySelectorAll('[data-ft]').forEach(function(b){b.onclick=function(){setForestTab(b.getAttribute('data-ft'));};});
   var fsb=$('ftabs').querySelector('[data-fs]');if(fsb)fsb.onclick=function(){fSort=fSort==='new'?'old':'new';setForestTab(fTab,fSp);};
   var ffb=$('ftabs').querySelector('[data-find]');if(ffb)ffb.onclick=function(){SND.sfx('tap');Garden3D.flashTrees(forestList().map(function(p){return p.id;}));$('g3').scrollIntoView({behavior:'smooth',block:'center'});};
-  if(book){
+  if(cbk){
+    $('forest').innerHTML=comboBook();
+    $('forest').querySelectorAll('[data-ck]').forEach(function(b){b.onclick=function(){comboTap(b.getAttribute('data-ck'));};});
+  }else if(book){
     var L=level();
     $('forest').innerHTML=Object.keys(SP).map(function(k){var c=seen[k]||0,lock=L<SP[k].lv;return '<button class="ftree'+(c?'':' none')+'" data-sp="'+k+'"'+(c?'':' disabled')+'>'+art(k,c?4:4)+'<b>'+SP[k].name+'</b><span>'+(c?'×'+c:lock?'Lv.'+SP[k].lv+' 解鎖':'還沒種過')+'</span></button>';}).join('');
     $('forest').querySelectorAll('[data-sp]').forEach(function(b){b.onclick=function(){var k=b.getAttribute('data-sp');setForestTab('book',k);if(g3)Garden3D.flashTrees(all.filter(function(p){return p.sp===k;}).map(function(p){return p.id;}));};});
@@ -1498,7 +1567,7 @@ function start3d(){
   $('g3photo').onclick=function(){startPhoto();};
   Garden3D.init(box,{progress:function(s){ldStep(s);},plot:function(i){SND.sfx('tap');openSeeds(i);},plant:function(id){SND.sfx('tap');openPlant(id);},tree:function(id){SND.sfx('tap');openMemory(id);},pest:function(id){catchPest(id);},bird:function(){return birdGift();},gift:function(){return xmasGift();},bike:function(k){openBikes(k);},rideEnd:function(){toast('🏍️ 兜風回來了');},
     land:function(id,open){var l=LANDS.filter(function(x){return x.id===id;})[0];if(!l)return;SND.sfx('tap');toast(open?'🏡 '+l.name:'🔒 花園升到 Lv.'+l.lv+' 會開放新土地「'+l.name+'」');},
-    decor:function(id){openDecorItem(id);},live:function(c){liveCmdSend(c);},
+    decor:function(id){openDecorItem(id);},live:function(c){liveCmdSend(c);},combo:function(l){onCombos(l);},
     phase:function(ph){toast({day:'☀️ 天亮了！遊樂區有溜滑梯和盪鞦韆',eve:'🌇 傍晚了，長椅搬出來了，一起看夕陽吧',night:'🔥 晚上了，營火升起來，可以烤棉花糖了'}[ph]||'');},
     act:function(k,who){var n=who.map(function(u){return NAMES[u];}).join('和');toast(!n?'他們現在在忙，等一下再叫他們':{slide:n+'去溜滑梯了 🛝',swing:n+'去盪鞦韆了',bench:n+'坐到長椅上看夕陽 🌇',fire:n+'去營火邊烤棉花糖 🔥',cafe:n+'到涼亭喝咖啡、吃甜點 ☕🍰',tswing:n+'去樹屋旁盪鞦韆 🌳',tswingPush:(NAMES[who[1]]||'')+'在後面推'+(NAMES[who[0]]||'')+'盪鞦韆 🌳'}[k]);},
     moveSel:function(sel){if(!moving)return;if(moving.kind==='plot'){movePlotTo(sel.slot);return;}moving.sel=sel;SND.sfx(sel.ok?'tap':'swish');paintMove();}})
@@ -1793,7 +1862,7 @@ function openPlant(id){
     box.innerHTML=navHtml(nav,id)+'<div class="sh-art">'+art(p.sp,g.stage)+'</div><h2>'+esc(p.name||SP[p.sp].name)+'</h2><div class="sh-sp">'+SP[p.sp].name+'・'+stageName(p,g)+'・'+md(dayOf(p.at))+' '+NAMES[p.by]+'種的</div>'+
       '<div class="bar big"><i style="width:'+Math.round(g.r*100)+'%"></i></div><div class="sh-num">'+Math.min(g.pts,g.need)+' / '+g.need+'</div>'+
       '<div class="sh-today">今天 學 💧'+a+'・綾 💧'+b+(a&&b?' ✨ 兩個人都澆了 +'+TOGETHER:'')+(wet(today())&&today()>=WX_START?'・'+(weatherOf(today())==='snow'?'❄️':'🌧️')+' +'+RAIN:'')+'</div>'+(g.rain?'<div class="g-small" style="margin:2px 0 0">淋雨自己長了 '+g.rain*RAIN+' 點</div>':'')+
-      (g.stage<4&&thirsty(p)?'<div class="sh-warn">好幾天沒人澆水，口渴了…</div>':'')+(g.stage===4?spInfo(p.sp):'')+
+      (g.stage<4&&thirsty(p)?'<div class="sh-warn">好幾天沒人澆水，口渴了…</div>':'')+(g.stage===4?comboHtml(id)+spInfo(p.sp):'')+
       (pe?'<div class="sh-pest">'+PESTS[pe.kind].e+' 有'+PESTS[pe.kind].name+'在啃葉子！先抓走才能澆水</div>':'')+
       (naming?'<div class="sh-name"><input id="nmIn" maxlength="10" placeholder="幫它取名字" value="'+esc(p.name||'')+'"><button data-save>好</button></div>':'')+
       '<div class="g-btns">'+(g.stage===4?'<button class="g-btn" data-harvest>🌳 種進森林</button>':pe?'<button class="g-btn" data-catch>'+PESTS[pe.kind].e+' 抓走'+PESTS[pe.kind].name+'</button>':'<button class="g-btn" data-water>💧 澆水（還有 '+left()+' 滴）</button>')+
@@ -1832,7 +1901,7 @@ function openMemory(id,list){
     var kept=keepVals(box);
     box.innerHTML=navHtml(list,id)+'<div class="sh-art">'+art(p.sp,4)+'</div><h2>'+esc(p.name||SP[p.sp].name)+'</h2>'+(p.name?'<div class="sh-sp">'+SP[p.sp].name+'</div>':'')+
       '<div class="mem-row">🌱 '+md(d0)+' '+NAMES[p.by]+'種下 → 🌳 '+md(d1)+' 長大（'+days+' 天）</div>'+
-      '<div class="mem-row">學 💧'+g.sn+'・綾 💧'+g.ln+'・一起澆水 '+g.both+' 天</div>'+spInfo(p.sp)+
+      '<div class="mem-row">學 💧'+g.sn+'・綾 💧'+g.ln+'・一起澆水 '+g.both+' 天</div>'+comboHtml(id)+spInfo(p.sp)+
       '<div class="mem-notes">'+notes+'</div>'+(qs?'<div class="mem-qa"><h3>💬 這段時間的問答</h3>'+qs+'</div>':'')+
       '<div class="g-btns">'+(g3&&p.done?'<button class="g-btn ghost" data-move>🌳 移植</button>'+rotBtns():'')+'<button class="g-btn ghost" data-close>關閉</button></div>';
     restoreVals(box,kept);
@@ -1863,7 +1932,7 @@ function help(){
   card('<h2>🎮 遊戲操作</h2><div class="g-rules">'+
     '<h4>🖐️ 怎麼操作</h4><ul><li>拖曳轉一圈、兩指拉近拉遠；用「全螢幕」放大，用「視角」回到原本的角度</li><li>點土種樹、點植物澆水；需要時按「澆澆水」顯示植物名稱、成長進度和今天的澆水狀態，再按一次隱藏</li><li>植物和森林的樹都可以「移植」，把花園排成你們喜歡的樣子</li><li>右側工具列可以收合，按「展開」再打開；工具列裡有視角、澆澆水、裝飾、拍照、跟著看</li><li>樹屋旁停著學的紅色街車和綾的小電動車：點它們可以叫兩個人一起去兜風（下雨、下雪不騎）</li><li>3D 花園右邊的「跟著看」：選學、綾或一隻寵物，鏡頭就一直跟著他（拖曳繞著看、兩指拉近）</li><li>裝飾、植物、森林的樹都可以轉方向：點它，按「🔄 轉方向」，在花園裡邊看邊按 ↺ ↻</li></ul>'+
     '<h4>💧 水滴</h4><ul><li>每個人每天 '+BASE+' 滴水；回答今日問題 +'+ANSWER+' 滴，二選一兩個人選一樣再各多 '+MATCH+' 滴</li><li>同一天兩個人都澆同一棵，那天多長 '+TOGETHER+' 點</li><li>小鳥飛來的時候點牠，送一滴水（每天最多 '+BIRD+' 滴）；有害蟲要先抓走才能澆水</li><li>下雨、下雪那天，所有植物都會自己長一點</li></ul>'+
-    '<h4>🌳 森林</h4><ul><li>長大的植物種進森林，會留下那段時間的問答和你們寫的話</li><li>種進森林兩個人各拿 1 包飼料（算在每天 '+G.CAP+' 包裡）</li><li>澆水、回答、抓害蟲都會加經驗；升級多幾塊土、開放新土地、解鎖新的花和樹</li></ul>'+
+    '<h4>🌳 森林</h4><ul><li>長大的植物種進森林，會留下那段時間的問答和你們寫的話</li><li>種進森林兩個人各拿 1 包飼料（算在每天 '+G.CAP+' 包裡）</li><li>澆水、回答、抓害蟲都會加經驗；升級多幾塊土、開放新土地、解鎖新的花和樹</li><li>✨ 種在一起：同一種植物 3 株以上種在一起（相鄰的土，或森林裡挨著）會變成花海、樹林；特別的三種種在一起還有隱藏組合，像松、竹、梅是「歲寒三友」。森林的「✨ 組合」看得到提示</li></ul>'+
     '<h4>🛝 遊樂區（點它們叫學和綾過去）</h4><ul><li>白天溜滑梯、盪鞦韆；下雨、下雪天溜滑梯換成涼亭，喝咖啡吃甜點</li><li>傍晚長椅看夕陽，晚上營火烤棉花糖；下雨的晚上會搭起天幕</li><li>樹屋旁的鞦韆隨時都能盪，兩個人的話一個坐、一個在後面推</li></ul>'+
     '<h4>🔥 連續紀錄・🏅 成就・📸 拍照</h4><ul><li>兩個人同一天都有澆水或回答問題，連續紀錄就多一天（最上面的 🔥）</li><li>下面的 🏅 成就：達成後每個人各領一次獎勵水滴，有的還會解鎖限定裝飾</li><li>3D 花園右邊的「拍照」：按鈕和名字會收起來，選好角度按快門，可以存到手機或放進兩個人的相簿</li><li>今日問題下面的「✍️ 我來出題」：自己寫題目排進之後的今日問題</li></ul>'+
     '<h4>🎀 裝飾・📮 信箱・🎉 紀念日</h4><ul><li>升級解鎖裝飾（3D 花園工具列的「裝飾」）：盆栽、路燈、柵欄、蘑菇燈、花拱門、花圃、名字木牌、風車、長椅、小花車、稻草人、石板路、愛心氣球、鳥屋、南瓜燈、野餐墊、燈串、噴水池、風鈴、吊床、雙人鞦韆椅、小池塘、蜂箱、帳篷、狗屋、鳥浴盆、石燈籠、日晷、陽傘野餐桌、小鋼琴；學和綾會去坐長椅、躺吊床、坐鞦韆椅和野餐桌</li><li>成就限定裝飾：幸福鐘、許願井、望遠鏡（晚上點它看流星）、熱氣球、雪人、愛心拍照框、天燈、彩虹拱門</li><li>📮 寫信給對方，對方一打開班表或花園就會看到</li><li>紀念日（交往、結婚、生日、在一起每 100 天）花園會布置，每個人多 '+SPECIAL+' 滴水</li><li>節日也會布置：聖誕節（點聖誕樹拆禮物）、跨年、過年、情人節、七夕、中秋、萬聖節</li></ul>'+
