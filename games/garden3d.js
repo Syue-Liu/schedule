@@ -83,8 +83,8 @@ var Garden3D=(function(){
   function lilyH(g,y,k,c){var h=new T.Group();for(var i=0;i<6;i++){var a=i*Math.PI/3,p=mesh(ball(.1),c);p.scale.set(1.5,.2,.45);p.position.set(Math.cos(a)*.13,.06,Math.sin(a)*.13);p.rotation.set(0,-a,.6);h.add(p);h.add(mesh(ball(.028,0),'#F2A0B5',Math.cos(a)*.1,.07,Math.sin(a)*.1));}for(var j=0;j<3;j++){var b=j*2.1;h.add(mesh(ball(.022,0),'#E8913A',Math.cos(b)*.04,.17,Math.sin(b)*.04));}h.rotation.x=.45;h.position.y=y;h.scale.setScalar(k);g.add(h);}
   function puff(g,y,k){var h=new T.Group();h.add(mesh(ball(.2,1),'#FFFFFF'));for(var i=0;i<18;i++){var u=i*2.39996,v=Math.acos(1-(i+.5)/9);h.add(mesh(ball(.03,0),'#E9E2D6',Math.sin(v)*Math.cos(u)*.21,Math.cos(v)*.21,Math.sin(v)*Math.sin(u)*.21));}h.position.y=y+.12;h.scale.setScalar(k);g.add(h);}
   function head(sp,g,y,k,c,c2){if(sp==='bellflower')petals(g,y,k,c,5,1.15,'#F4F1FF',.05);else if(sp==='lily')lilyH(g,y,k,c);else if(sp==='dandelion'){if(k<1)petals(g,y,k,c,16,.7,'#F2B83A',.07);else puff(g,y,k);}else if(sp==='sunflower')petals(g,y,k,c,12,1.1,'#8C6A55',.19);else if(sp==='daisy')petals(g,y,k,c,12,.9,'#F6D27A',.1);else if(sp==='cosmos')petals(g,y,k,c,8,1.2,'#F6D27A',.08);else if(sp==='rose')rose(g,y,k,c);else if(sp==='hydrangea')hydra(g,y,k,c,c2);else tulip(g,y+.05,k,c);}
-  function plant(sp,stage){var w=new T.Group(),g=model(sp,stage);g.scale.setScalar(PS);w.add(g);return bake(w);}
-  function model(sp,stage){
+  function plant(sp,stage,big){var w=new T.Group(),g=model(sp,stage,big);g.scale.setScalar(PS);w.add(g);return bake(w);}
+  function model(sp,stage,big){
     var S=window.SP[sp],R=S.like||sp,g=new T.Group();
     if(stage===0){var sd=mesh(ball(.12),'#E2B88E',0,.06,0);sd.scale.y=.7;g.add(sd);return g;}
     if(stage===1){stem(g,.38,.035);leaf(g,.36,0,.9);leaf(g,.34,Math.PI,.9);return g;}
@@ -136,8 +136,9 @@ var Garden3D=(function(){
       if(stage===4){var f8=new T.Group();petals(f8,0,.55,S.dot,8,.9,'#F6D27A',.05);f8.children[0].rotation.x=0;f8.position.y=H8+R8*.9;g.add(f8);}
       return g;}
     // 其他樹：樹幹＋樹冠（圓的、扇形的銀杏、一層一層的松樹）；長大了換成那種樹的顏色、掛上花或果子
-    var k=[0,0,.5,.8,1][stage],Ht=[0,0,.5,.8,1][stage],col2=stage===4||S.shape==='pine'?S.c:LEAF;
-    g.add(mesh(cyl(.09*k+.02,.15*k+.02,Ht,7),TRUNK,0,Ht/2,0));
+    // big：森林裡的大樹，樹幹高一點、粗一點（學和綾站到樹下，頭不會卡進樹冠）
+    var k=[0,0,.5,.8,1][stage],Ht=[0,0,.5,.8,1][stage]*(big?1.5:1),tk=big?1.2:1,col2=stage===4||S.shape==='pine'?S.c:LEAF;
+    g.add(mesh(cyl((.09*k+.02)*tk,(.15*k+.02)*tk,Ht,7),TRUNK,0,Ht/2,0));
     var spots2=[];
     if(S.shape==='pine'){[[.75,.85,.25],[.58,.75,.75],[.4,.62,1.18]].forEach(function(c){g.add(mesh(cone(c[0]*k,c[1]*k,8),col2,0,Ht+c[2]*k,0));});
       if(stage===4&&!S.plain){[[.25,.62],[.7,.45],[1.12,.3]].forEach(function(c){g.add(mesh(cone(c[1]*.55,.18,8),'#FFFFFF',0,Ht+c[0]+.42,0));});g.add(mesh(new T.OctahedronGeometry(.13),'#F6D27A',0,Ht+1.62,0));}
@@ -279,7 +280,7 @@ var Garden3D=(function(){
   function blocked(x,z){
     if(bikes.length&&nearBike(x,z,1.0))return true;
     if(nearTree(x,z)||inArea(x,z,.2))return true;
-    for(var id in trees){if(Math.hypot(trees[id].x-x,trees[id].z-z)<.8)return true;}
+    for(var id in trees){if(Math.hypot(trees[id].x-x,trees[id].z-z)<(isTreeSp(trees[id].sp)?1.05:.8))return true;}
     for(var di in decors){if(Math.hypot(decors[di].x-x,decors[di].z-z)<(DECOR_R[decors[di].k]||.5)+.4)return true;}
     for(var j=0;j<flow.length-1;j++)if(segDist(x,z,flow[j],flow[j+1])<.6)return true;
     return !!pondP&&Math.hypot(x-pondP.x,z-pondP.z)<.95;
@@ -551,6 +552,7 @@ var Garden3D=(function(){
     var both=people.length===2&&people.every(function(o){return o.state==='sit';});
     people.forEach(function(p){
       var q=pos(p),st;
+      if(p.tp&&p.state!=='tplay'&&p.state!=='walk')p.tp=null;
       if(p.state==='idle'){p.timer-=dt;if(p.timer<=0)choose(p);}
       else if(p.state==='walk'){
         if(p.hand&&!p.lead){var hl0=p.hand;if(hl0.state!=='walk'||hl0.hand!==p){strollEnd(p);p.state='idle';p.timer=1;}else{var sd=sideOf(hl0);p.ta=Math.atan2(sd.z,sd.x);p.tr=Math.hypot(sd.x,sd.z);p.via=[];}}
@@ -560,10 +562,11 @@ var Garden3D=(function(){
         if(dist<.08&&p.via&&p.via.length)p.via.shift();
         else if(dist<.08&&p.hand&&!p.lead){p.face=p.hand.face;}
         else if(dist<.08&&p.goBike){p.state='mount';p.face=p.goBike.park.face;}
-        else if(dist<.08){if(p.hand&&p.lead){var o9=p.hand;strollEnd(p);hearts((pos(p).x+pos(o9).x)/2,1.7,(pos(p).z+pos(o9).z)/2,3);if(o9){o9.state='idle';o9.timer=2;o9.face=p.face;}p.state='idle';p.timer=2;}else if(p.goWater){p.state='water';p.timer=2.6;var gw=p.goWater,q2=pos(p);p.face=Math.atan2(gw.x-q2.x,gw.z-q2.z);}else if(p.toTree){p.toTree=false;p.state='climb';p.t=0;}else if(p.goAct)startAct(p);else if(p.goPic){p.state='pic';p.picT=14+Math.random()*6;var po=partner(p);if(po&&po.state==='pic'){var tt=Math.max(p.picT,po.picT);p.picT=po.picT=tt;}}else if(p.with)play(p);else{p.state='idle';p.timer=1.5+Math.random()*3;}}
+        else if(dist<.08){if(p.hand&&p.lead){var o9=p.hand;strollEnd(p);hearts((pos(p).x+pos(o9).x)/2,1.7,(pos(p).z+pos(o9).z)/2,3);if(o9){o9.state='idle';o9.timer=2;o9.face=p.face;}p.state='idle';p.timer=2;}else if(p.goWater){p.state='water';p.timer=2.6;var gw=p.goWater,q2=pos(p);p.face=Math.atan2(gw.x-q2.x,gw.z-q2.z);}else if(p.toTree){p.toTree=false;p.state='climb';p.t=0;}else if(p.goAct)startAct(p);else if(p.goPic){p.state='pic';p.picT=14+Math.random()*6;var po=partner(p);if(po&&po.state==='pic'){var tt=Math.max(p.picT,po.picT);p.picT=po.picT=tt;}var ts=p.goPic.tid&&trees[p.goPic.tid];if(ts&&Math.random()<.6)tpSay(p,treeLines(ts.sp,'sit'));}else if(p.tp){p.state='tplay';p.tp.t=0;p.tp.on=1;p.face=p.tp.f;}else if(p.with)play(p);else{p.state='idle';p.timer=1.5+Math.random()*3;}}
         else{var k=Math.min(1,step/dist);p.ang+=da*k;p.r+=dr*k;p.walkT+=dt;var nq=pos(p);p.face=Math.atan2(nq.x-q.x,nq.z-q.z);}
       }else if(p.state==='water'){p.timer-=dt;if(p.timer<=0){var pq2=partner(p);if(pq2&&pq2.state==='water'&&p.k==='syue')hearts((pos(p).x+pos(pq2).x)/2,1.6,(pos(p).z+pos(pq2).z)/2,3);p.state='idle';p.timer=1+Math.random();p.goWater=null;}
       }else if(p.state==='act'){actStep(p,dt);
+      }else if(p.state==='tplay'){tpStep(p,dt);
       }else if(p.state==='pic'){p.picT-=dt;var pp2=partner(p);if(pp2&&pp2.state==='pic'&&p.k==='syue'){p.hT=(p.hT||0)-dt;if(p.hT<=0){p.hT=3.6;hearts((p.g.position.x+pp2.g.position.x)/2,1.2,(p.g.position.z+pp2.g.position.z)/2,3);}}if(p.picT<=0){p.state='idle';p.timer=1+Math.random();p.goPic=null;}
       }else if(TREE_STATES[p.state]){
         var D=p.state==='climb'||p.state==='descend'?2.8:1.1;p.t=Math.min(1,p.t+dt/D);if(p.state!=='sit')p.walkT+=dt;
@@ -590,9 +593,11 @@ var Garden3D=(function(){
       // 呼吸、眨眼、東張西望；兩個人一起坐的時候頭靠向對方
       p.b.scale.y=1.23*(1+Math.sin(now*2.2+p.ph)*.012);
       p.blink-=dt;var bl=p.blink<0&&p.blink>-.13;p.eyes.forEach(function(e){e.scale.y=bl?.12:1;});if(p.blink<=-.13)p.blink=2.5+Math.random()*3;
-      p.hd.rotation.y=st==='idle'?Math.sin(now*.7+p.ph)*.35:0;
+      p.hd.rotation.y=st==='idle'?Math.sin(now*.7+p.ph)*.35:0;p.hd.rotation.x=0;
       p.hd.rotation.z=sit&&both?(p.seat===0?-.2:.2):0;
-      if(st==='pic'&&p.goPic){var gp=p.goPic;p.legs[0].rotation.x=p.legs[1].rotation.x=-1.38;p.arms[0].rotation.x=-.35;p.arms[1].rotation.x=-.35;p.b.position.y=-.23;var sy=gp.y==null?-.27:gp.y,sx=0;if(gp.k==='hammock'){var sa=Math.sin(now*1.2)*.12;sy+=-.0;sx=Math.sin(sa)*.6;}else if(gp.k==='swingchair'){var sa2=Math.sin(now*1.2)*.12;sx=-Math.sin(sa2)*1.2;sy+=1.2*(1-Math.cos(sa2));}p.g.position.set(gp.x+Math.sin(gp.face)*sx,sy,gp.z+Math.cos(gp.face)*sx);p.face=gp.face;if(hol&&hol.k==='moon')p.arms[1].rotation.x=-.35-Math.pow(Math.max(0,Math.sin(now*1.1+p.ph)),6)*1.5;var pq=partner(p);p.hd.rotation.z=pq&&pq.state==='pic'?(gp.i===0?-.18:.18):0;}
+      if(st==='pic'&&p.goPic){var gp=p.goPic;p.legs[0].rotation.x=p.legs[1].rotation.x=-1.38;p.arms[0].rotation.x=-.35;p.arms[1].rotation.x=-.35;p.b.position.y=-.23;var sy=gp.y==null?-.27:gp.y,sx=0;if(gp.k==='hammock'){var sa=Math.sin(now*1.2)*.12;sy+=-.0;sx=Math.sin(sa)*.6;}else if(gp.k==='swingchair'){var sa2=Math.sin(now*1.2)*.12;sx=-Math.sin(sa2)*1.2;sy+=1.2*(1-Math.cos(sa2));}p.g.position.set(gp.x+Math.sin(gp.face)*sx,sy,gp.z+Math.cos(gp.face)*sx);p.face=gp.face;if(hol&&hol.k==='moon')p.arms[1].rotation.x=-.35-Math.pow(Math.max(0,Math.sin(now*1.1+p.ph)),6)*1.5;var pq=partner(p);p.hd.rotation.z=pq&&pq.state==='pic'?(gp.i===0?-.18:.18):0;
+        // 坐在樹下：靠著樹幹、抬頭看，偶爾伸手接花瓣
+        if(gp.k==='tree'){p.b.rotation.x=-.12;p.hd.rotation.x=-.22+Math.sin(now*.5+p.ph)*.08;p.arms[1].rotation.x=-.35-Math.pow(Math.max(0,Math.sin(now*.8+p.ph*2)),10)*2.1;}}
       else if(st==='act'&&p.A)actPose(p);
       else if(st==='ride')ridePose(p);
       else if(st==='push')pushPose(p);
@@ -607,6 +612,7 @@ var Garden3D=(function(){
       p.arms[0].rotation.z=-.12;p.arms[1].rotation.z=.12;
       if(hand){if(p.lead){if(!share){p.arms[1].rotation.x=-.25;p.arms[1].rotation.z=.6;}}else{p.arms[0].rotation.x=share?-2.1:-.25;p.arms[0].rotation.z=share?.5:-.6;}}
       p.can.visible=st==='water';if(st==='water'){var tip=Math.sin(now*3)*.15;p.arms[1].rotation.x=-1.25+tip;p.b.rotation.x=.08;if(Math.random()<dt*6){var cq=p.can.getWorldPosition(new T.Vector3());burst(cq.x+Math.sin(p.face)*.25,cq.y-.05,cq.z+Math.cos(p.face)*.25,1,'#A8D3E6');}}
+      if(st==='tplay'&&p.tp)tpPose(p);
       var cur=p.g.rotation.y,df=angDiff(p.face,cur);p.g.rotation.y=st==='ride'||st==='push'?p.face:cur+df*Math.min(1,dt*8);
     });
   }
@@ -858,7 +864,7 @@ var Garden3D=(function(){
     envS.visible=true;envS.userData.id=mid;var b=Math.sin(now*2.4);envS.position.set(mb.x,1.78+b*.09,mb.z);envS.material.rotation=Math.sin(now*1.7)*.12;var sc=1+.06*Math.sin(now*4.8);envS.scale.set(.62*sc,.47*sc,1);
     envT-=dt;if(envT<=0){envT=2.6;hearts(mb.x,2.05,mb.z,1);}
   }
-  var SEAT={picnic:{lx:.36,lz:.12,y:-.27},bench:{lx:.28,lz:.06,y:.19},hammock:{lx:.24,lz:0,y:.42},swingchair:{lx:.28,lz:.02,y:.25},picnictable:{lx:.3,lz:-.62,y:.19}};
+  var SEAT={tree:{lx:.3,lz:0,y:-.27},picnic:{lx:.36,lz:.12,y:-.27},bench:{lx:.28,lz:.06,y:.19},hammock:{lx:.24,lz:0,y:.42},swingchair:{lx:.28,lz:.02,y:.25},picnictable:{lx:.3,lz:-.62,y:.19}};
   // 點了會動的裝飾：風鈴晃起來、望遠鏡（晚上）看到流星、熱氣球冒愛心
   function shootStar(){var m=new T.Mesh(new T.BoxGeometry(.06,.06,2.2),new T.MeshBasicMaterial({color:'#FFF6D8',transparent:true}));var a=Math.random()*6.283,x0=Math.cos(a)*14,z0=Math.sin(a)*14,y0=13+Math.random()*3,dx=-Math.cos(a+.6)*10,dz=-Math.sin(a+.6)*10;
     m.position.set(x0,y0,z0);m.lookAt(x0+dx,y0-4,z0+dz);scene.add(m);addFx({dur:1.1,up:function(f){var k=f.t/f.dur;m.position.set(x0+dx*k,y0-4*k,z0+dz*k);m.material.opacity=Math.sin(k*Math.PI);},end:function(){scene.remove(m);m.geometry.dispose();m.material.dispose();}});}
@@ -1185,7 +1191,7 @@ var Garden3D=(function(){
   function startRide(force){
     if(!bikes.length||RIDE)return [];var who=[];
     people.forEach(function(p){if(p.land||p.toTree||TREE_STATES[p.state])return;
-      if(force&&!freeP(p)){if(p.state==='act'||p.goAct)endAct(p);if(p.state==='play'){p.state='idle';p.timer=1;p.with=null;}strollEnd(p);p.goPic=null;p.goWater=null;if(p.state==='pic'||p.state==='water'){p.state='idle';p.timer=1;}}
+      if(force&&!freeP(p)){if(p.state==='act'||p.goAct)endAct(p);if(p.state==='play'){p.state='idle';p.timer=1;p.with=null;}strollEnd(p);p.goPic=null;p.goWater=null;p.tp=null;if(p.state==='pic'||p.state==='water'||p.state==='tplay'){p.state='idle';p.timer=1;}}
       if(!freeP(p)||!force&&p.state==='walk'&&p.via&&p.via.length>3)return;var b=bikeOf(p.k);if(!b)return;strollEnd(p);
       var q=bikeSide(b,GZ);p.with=null;p.goPic=null;p.via=[];p.ta=Math.atan2(q.z,q.x);p.tr=Math.hypot(q.x,q.z);p.goBike=b;p.state='walk';b.rider=p;who.push(p.k);});
     if(who.length)RIDE={t:0,go:false};return who;
@@ -1282,13 +1288,23 @@ var Garden3D=(function(){
     var spawn=function(sp,x,z,obj){var L=fxList(sp);if(!L.length||tfx.length>=cap||!near(x,z))return;
       // 剛種下、正在長大彈一下的時候先不算高度，等長好再算
       if(!obj.fxTop){if((obj.g&&obj.g.scale.x<.98)||obj.pop<1||obj.grow<1)return;var bb=new T.Box3().setFromObject(obj.fxObj);obj.fxTop=bb.max.y;obj.fxR=Math.max(.15,(bb.max.x-bb.min.x)/2*.7);}
-      for(var j=0;j<L.length;j++){var F=L[j],fl=!TFX_FLOAT[F[0]];if(fl&&nFall>=cap*.6)continue;if(Math.random()<F[2]*fxMod(F,seas,wet)*(obj.cb||1)*dt){tfxSpawn(F,x,z,obj.fxTop,obj.fxR);if(fl)nFall++;}}};
+      for(var j=0;j<L.length;j++){var F=L[j],fl=!TFX_FLOAT[F[0]];if(fl&&nFall>=cap*.6)continue;if(Math.random()<F[2]*fxMod(F,seas,wet)*(obj.cb||1)*(obj.sitB||1)*dt){tfxSpawn(F,x,z,obj.fxTop,obj.fxR);if(fl)nFall++;}}};
     // 花（和竹子）跟著風搖：相位照位置排，看起來像一陣風吹過去
     var amp=wet?.075:.045,sway=function(x,z,pl,k){if(!pl||!near(x,z))return;var ph=now*1.7-(x*.45+z*.3);pl.rotation.x=Math.sin(ph)*amp*k;pl.rotation.z=Math.cos(ph*.83+1.3)*amp*.7*k;},swk=function(sp){var S=window.SP[sp];return !S?0:S.kind==='flower'?1:S.shape==='bamboo'?.5:0;};
-    for(var id in trees){var t=trees[id],k0=swk(t.sp);t.fxObj=t.g.children[0];if(k0)sway(t.x,t.z,t.fxObj,k0);spawn(t.sp,t.x,t.z,t);}
+    // 有人坐在樹下、在樹下接花瓣：那棵掉多一點
+    for(var id0 in trees)trees[id0].sitB=0;
+    people.forEach(function(p){var gp=p.goPic;if(p.state==='pic'&&gp&&gp.tid&&trees[gp.tid])trees[gp.tid].sitB=2.2;if(p.state==='tplay'&&p.tp&&p.tp.k==='catch'&&trees[p.tp.id])trees[p.tp.id].sitB=1.6;});
+    for(var id in trees){var t=trees[id],k0=swk(t.sp);t.fxObj=t.g.children[0];if(k0)sway(t.x,t.z,t.fxObj,k0);
+      // 被搖的樹晃一晃
+      if(t.wob>0){t.wob=Math.max(0,t.wob-dt*.9);t.fxObj.rotation.z=Math.sin(now*24)*.045*t.wob;t.fxObj.rotation.x=Math.cos(now*19)*.03*t.wob;}
+      spawn(t.sp,t.x,t.z,t);}
     plots.forEach(function(p){if(!p.on||!p.sp)return;var k1=p.stage>=1?swk(p.sp):0;if(k1)sway(p.x,p.z,p.holder.children[0],k1);if(p.stage===4){p.fxObj=p.holder;spawn(p.sp,p.x,p.z,p);}});
     tickCombos(dt,near,cap);
+    // 走路（和寵物跑過去）會把地上的花瓣、葉子踢起來
+    var feet=[];people.forEach(function(p){if(p.state==='walk'||p.state==='tplay')feet.push(p.g.position.x,p.g.position.z);});pets.forEach(function(q){if(!(q.wait>0)&&q.x!=null)feet.push(q.x,q.z);});
     for(var i=tfx.length-1;i>=0;i--){var q=tfx[i],m=q.m;q.t+=dt;
+      if(q.land>.3&&q.land<5.5&&TFX_FALL[q.k]&&feet.length)for(var f0=0;f0<feet.length;f0+=2){var kx=m.position.x-feet[f0],kz=m.position.z-feet[f0+1],kd=Math.hypot(kx,kz);
+        if(kd<.3){kd=kd||1;q.land=-1;q.kick=1;q.vy=.55+Math.random()*.45;q.dx=kx/kd*.55;q.dz=kz/kd*.55;m.position.y=.06;break;}}
       if(TFX_FLOAT[q.k]){var L=q.life,t1=q.t;if(t1>=L){scene.remove(m);tfx.splice(i,1);continue;}
         var s=q.s*Math.max(0,Math.min(1,t1/.35,(L-t1)/.6));
         if(q.k==='scent'){q.x0+=wx0*dt;q.z0+=wz0*dt;var r1=.06+t1*.05;m.position.set(q.x0+Math.sin(t1*1.5+q.ph)*r1,q.y0+t1*q.vy,q.z0+Math.cos(t1*1.5+q.ph)*r1);}
@@ -1304,7 +1320,8 @@ var Garden3D=(function(){
         if(TFX_DROP[q.k]){q.vy-=9.8*dt;m.position.y+=q.vy*dt;m.position.x+=q.vx*dt;m.position.z+=q.vz*dt;
           if(m.position.y<=q.r){m.position.y=q.r;if(q.bounce<1&&q.vy<-1){q.bounce++;q.vy=-q.vy*.35;var ra=Math.random()*6.283;q.vx=Math.cos(ra)*.4;q.vz=Math.sin(ra)*.4;}else{q.land=0;q.vy=0;}}}
         else if(q.k==='seed'||q.k==='fluff'){m.position.x+=(.12+wx0*3+Math.sin(q.t*1.3+q.ph)*.15)*dt;m.position.z+=(.06+wz0*3+Math.cos(q.t*1.1+q.ph)*.15)*dt;m.position.y+=(q.vy+Math.sin(q.t*2+q.ph)*.05)*dt;if(q.t>q.life)q.land=0;}
-        else{m.position.y+=q.vy*(wet?1.5:1)*dt;m.position.x+=(q.dx+wx0+Math.sin(q.t*2.1+q.ph)*.3)*dt;m.position.z+=(q.dz+wz0+Math.cos(q.t*1.7+q.ph)*.22)*dt;m.rotation.x+=dt*2.4;m.rotation.y+=dt*1.7;
+        else{if(q.kick){q.vy-=2.4*dt;if(q.vy<-.3){q.vy=-.3;q.kick=0;q.dx*=.3;q.dz*=.3;}}
+          m.position.y+=q.vy*(wet&&!q.kick?1.5:1)*dt;m.position.x+=(q.dx+wx0+Math.sin(q.t*2.1+q.ph)*.3)*dt;m.position.z+=(q.dz+wz0+Math.cos(q.t*1.7+q.ph)*.22)*dt;m.rotation.x+=dt*2.4;m.rotation.y+=dt*1.7;
           if(m.position.y<=.025){m.position.y=.025;m.rotation.set(-Math.PI/2,0,Math.random()*3);q.land=0;}}
       }else{
         q.land+=dt;if(TFX_DROP[q.k]&&q.land<1.2){m.position.x+=q.vx*dt;m.position.z+=q.vz*dt;q.vx*=.96;q.vz*=.96;m.rotation.z-=q.vx*dt*8;}
@@ -1323,7 +1340,7 @@ var Garden3D=(function(){
     for(var id in trees){var t=trees[id];if(window.SP[t.sp])a.push({id:id,sp:t.sp,x:t.x,z:t.z,o:t});}
     return a;}
   // 算「靠在一起」：相鄰的土（中心差 2.5 左右）、森林裡隔一兩棵以內
-  function linked(a,b){var d=Math.hypot(a.x-b.x,a.z-b.z);return d<=(a.plot&&b.plot?2.6:a.plot||b.plot?2.3:isTreeSp(a.sp)||isTreeSp(b.sp)?2.1:1.75);}
+  function linked(a,b){var d=Math.hypot(a.x-b.x,a.z-b.z);return d<=(a.plot&&b.plot?2.6:a.plot||b.plot?2.3:isTreeSp(a.sp)||isTreeSp(b.sp)?2.3:1.75);}
   function comboMk(key,m){var cx=0,cz=0,r=0;m.forEach(function(n){cx+=n.x/m.length;cz+=n.z/m.length;});m.forEach(function(n){r=Math.max(r,Math.hypot(n.x-cx,n.z-cz));});
     var o={key:key,m:m,cx:cx,cz:cz,r:r+.5,fx:'',col:'#FFE07A',pal:null,gk:'petal'};
     if(key.indexOf('sp:')===0){var sp=key.slice(3),S=window.SP[sp]||{},F=TFX[sp];o.col=S.kind!=='tree'?S.c:!F?S.dot||S.c:F[0]==='fruit'?S.dot||F[1]:F[0]==='cone'||F[0]==='nut'?'#C9A36B':F[1];o.pal=[o.col];
@@ -1359,13 +1376,13 @@ var Garden3D=(function(){
     combos.forEach(function(c,ci){var boost=c.fx==='fruit'?4:c.fx==='scent'||c.fx==='sunny'?3:2.5;
       c.m.forEach(function(n){n.o.cb=Math.max(n.o.cb||0,boost);
         var g=new T.Mesh(glowGeo,new T.MeshBasicMaterial({map:glowTex,color:new T.Color(c.col),transparent:true,opacity:.45,depthWrite:false}));g.rotation.x=-Math.PI/2;
-        var r=n.plot?1.3:isTreeSp(n.sp)?1.25:1.0;g.scale.set(r,r,1);g.position.set(n.x,.03+(ci%5)*.002,n.z);g.renderOrder=2;g.userData.ph=Math.random()*6.28;scene.add(g);cglow.push(g);});});
+        var r=n.plot?1.3:isTreeSp(n.sp)?1.55:1.0;g.scale.set(r,r,1);g.position.set(n.x,.03+(ci%5)*.002,n.z);g.renderOrder=2;g.userData.ph=Math.random()*6.28;scene.add(g);cglow.push(g);});});
     // 地上鋪一圈小花瓣（組合的顏色；位置照編號算，兩支手機一樣）：土的外圈、樹和花的腳邊
     if(!carpMat)carpMat=new T.MeshToonMaterial({color:'#FFFFFF',gradientMap:GM,side:T.DoubleSide});
     var M4=new T.Matrix4(),qn=new T.Quaternion(),eu=new T.Euler(),vp=new T.Vector3(),vs=new T.Vector3(),cc=new T.Color(),WH=new T.Color('#FFFFFF');
     combos.forEach(function(c){var pal=c.pal||[c.col],per=function(n){return n.plot?28:isTreeSp(n.sp)?22:14;},K=0;c.m.forEach(function(n){K+=per(n);});
       var im=new T.InstancedMesh(tfxGeo('petal'),carpMat,K),i=0;
-      c.m.forEach(function(n){var b=idNum(n.id+c.key),r0=n.plot?.8:.22,r1=n.plot?1.3:isTreeSp(n.sp)?1.05:.72;
+      c.m.forEach(function(n){var b=idNum(n.id+c.key),r0=n.plot?.8:.22,r1=n.plot?1.3:isTreeSp(n.sp)?1.3:.72;
         for(var j=0;j<per(n);j++){var a=rnd(b+j*13+5)*6.283,rr=r0+(r1-r0)*Math.sqrt(rnd(b+j*7+3)),sz=.8+rnd(b+j*3+11)*.7;
           vp.set(n.x+Math.cos(a)*rr,.018+(j%7)*.0006,n.z+Math.sin(a)*rr);eu.set(-Math.PI/2,0,rnd(b+j*5+1)*6.283);qn.setFromEuler(eu);vs.set(sz,sz,sz);M4.compose(vp,qn,vs);im.setMatrixAt(i,M4);
           cc.set(pal[j%pal.length]);if(j%3===2)cc.lerp(WH,.35);im.setColorAt(i,cc);i++;}});
@@ -1568,7 +1585,7 @@ var Garden3D=(function(){
     if(old&&!quiet&&hooks.phase)hooks.phase(ph);
   }
   function sunAt(h){var k=Math.max(0,Math.min(1,(h-16.5)/2.5)),q=polar(150,AREA_A);sunDisc.position.set(q.x,20-22*k,q.z);sunDisc.material.color.set('#FFFFFF').lerp(new T.Color('#FF9C70'),k);}
-  function freeP(p){return p.state!=='act'&&p.state!=='pic'&&!p.goPic&&!p.goAct&&!p.toTree&&!TREE_STATES[p.state]&&!p.land&&p.state!=='play'&&p.state!=='water'&&!p.goWater&&!(p.hand&&!p.lead)&&!p.goBike&&p.state!=='mount'&&p.state!=='ride'&&p.state!=='push';}
+  function freeP(p){return p.state!=='act'&&p.state!=='pic'&&!p.goPic&&!p.goAct&&!p.toTree&&!TREE_STATES[p.state]&&!p.land&&p.state!=='play'&&p.state!=='water'&&!p.goWater&&!(p.hand&&!p.lead)&&!p.goBike&&p.state!=='mount'&&p.state!=='ride'&&p.state!=='push'&&!p.tp;}
   function partner(p){return people.filter(function(o){return o!==p;})[0];}
   // 走去玩：從現在的位置（溪對面先過橋）走到遊樂區旁邊，再走到那個東西前面；不好走就繞花園內圈
   function goAct(p,k,i,n){
@@ -1805,15 +1822,79 @@ var Garden3D=(function(){
   }
   // 野餐：中間花園裡有野餐墊的話，偶爾走過去坐在上面（另一個人在的話很想去陪）
   function allPics(){return holPic?picnics.concat([holPic]):picnics;}
-  function goPic(p){
-    var o=partner(p),C=allPics().filter(function(q){return Math.hypot(q.x,q.z)<ISL-1;}),P=null;
-    if(o&&o.goPic)P=C.filter(function(q){return q.id===o.goPic.pid;})[0]||(holPic&&o.goPic.pid===holPic.id?holPic:null);
+  // 樹下的位子：樹幹靠島中間那一邊，兩個人並排坐、背靠著樹（仙人掌不行、新土地上的樹走不過去）
+  // 樹旁邊哪一邊可以站：先試靠島中間那邊，不行（溪、泉水池、遊樂區、溪的另一邊、島外面）再試外面、左右
+  function treeDir(t,d){var A=Math.atan2(t.z,t.x),fs=far(A,Math.hypot(t.x,t.z)),D=[[-Math.cos(A),-Math.sin(A)],[-Math.sin(A),Math.cos(A)],[Math.sin(A),-Math.cos(A)],[Math.cos(A),Math.sin(A)]];
+    for(var i=0;i<D.length;i++){var u=D[i],x=t.x+u[0]*d,z=t.z+u[1]*d,ok=far(Math.atan2(z,x),Math.hypot(x,z))===fs&&Math.hypot(x,z)<ISL-.25&&!inArea(x,z,.1)&&!(pondP&&Math.hypot(x-pondP.x,z-pondP.z)<1);
+      for(var j=0;ok&&j<flow.length-1;j++)if(segDist(x,z,flow[j],flow[j+1])<.6)ok=false;
+      for(var k in trees)if(ok&&trees[k]!==t&&Math.hypot(trees[k].x-x,trees[k].z-z)<.45)ok=false;
+      if(ok)return u;}
+    return null;}
+  function treeSpot(id){var t=trees[id];if(!t||!isTreeSp(t.sp)||t.sp==='cactus'||Math.hypot(t.x,t.z)>ISL-.3)return null;var d=.6*TREE_S,u=treeDir(t,d+.35);if(!u)return null;
+    return {x:t.x+u[0]*d,z:t.z+u[1]*d,ry:Math.atan2(u[0],u[1]),k:'tree',id:'t:'+id,tid:id};}
+  function goPic(p,P0){
+    var o=partner(p),C=allPics().filter(function(q){return Math.hypot(q.x,q.z)<ISL-1;}),P=P0||null;
+    if(!P&&o&&o.goPic)P=C.filter(function(q){return q.id===o.goPic.pid;})[0]||(String(o.goPic.pid).indexOf('t:')===0?treeSpot(String(o.goPic.pid).slice(2)):null)||(holPic&&o.goPic.pid===holPic.id?holPic:null);
     if(!P&&holPic&&hol&&hol.k==='moon')P=holPic;
     if(!P)P=C[Math.floor(Math.random()*C.length)];if(!P)return false;
-    var S=SEAT[P.k||'picnic']||SEAT.picnic,i=o&&o.goPic&&o.goPic.i===0?1:0,lx=i===0?-S.lx:S.lx,lz=S.lz,c=Math.cos(P.ry),sn=Math.sin(P.ry),x=P.x+lx*c+lz*sn,z=P.z-lx*sn+lz*c,a=Math.atan2(z,x),r=Math.hypot(x,z);
+    var S=SEAT[P.k||'picnic']||SEAT.picnic,i=o&&o.goPic&&o.goPic.pid===P.id&&o.goPic.i===0?1:0,lx=i===0?-S.lx:S.lx,lz=S.lz,c=Math.cos(P.ry),sn=Math.sin(P.ry),x=P.x+lx*c+lz*sn,z=P.z-lx*sn+lz*c,a=Math.atan2(z,x),r=Math.hypot(x,z);
     if(!pathOk(p.ang,p.r,a,r))return false;
-    p.with=null;p.via=[];p.ta=a;p.tr=r;p.goPic={i:i,x:x,z:z,face:P.ry,y:S.y,k:P.k||'picnic',pid:P.id};p.state='walk';return true;
+    p.with=null;p.via=[];p.ta=a;p.tr=r;p.goPic={i:i,x:x,z:z,face:P.ry,y:S.y,k:P.k||'picnic',pid:P.id,tid:P.tid||null};p.state='walk';return true;
   }
+
+  /* ── 學和綾跟樹玩：去樹下坐（賞花，花瓣會掉多一點）、站在開花的樹下接花瓣、搖果樹接果子、跳進落葉堆、抱抱大樹、
+     摸仙人掌被扎到；另一個人有時候會跑過來一起。點回憶卡片的「一起來樹下」也會叫他們過去坐 ── */
+  var TP_DUR={catch:4.2,shake:4,leaf:3.6,hug:3.4,poke:2.6},FRUIT_E={apple:'🍎',orange:'🍊',lemon:'🍋',persimmon:'🧡',mango:'🥭',lychee:'🍒',palm:'🥥',pine:'🌰',cypress:'🌰'};
+  function tpKind(sp){var F=TFX[sp];if(sp==='cactus')return 'poke';if(!F||sp==='bamboo'||F[0]==='fluff')return 'hug';if(F[0]==='fruit'||F[0]==='nut'||F[0]==='cone')return 'shake';if(F[0]==='leaf'||F[0]==='fan')return 'leaf';return 'catch';}
+  function treeLines(sp,k){var F=TFX[sp]||[],n=((window.SP[sp]||{}).name||'').replace(/樹$/,''),L;
+    if(k==='catch')L=sp==='cherry'?['接到櫻花了 🌸','櫻花雨！','送你一片櫻花 💗']:sp==='tung'?['五月雪 ❄️','接到油桐花了','白白的好漂亮']:sp==='osmanthus'?['桂花好香','接到小桂花了']:['接到花瓣了 🌸','下花瓣雨了！','送你一片花瓣 💗'];
+    else if(k==='sit')L=night>.5?['螢火蟲好漂亮 ✨','樹下好安靜','星星從葉子中間跑出來了']:F[0]==='petal'||F[0]==='tiny'||F[0]==='bloom'?[n+'好美 🌸','花瓣掉下來了','在樹下好舒服']:F[0]==='leaf'||F[0]==='fan'?['葉子好漂亮 🍂','在樹下好舒服','好安靜喔']:F[0]==='fruit'?['好香的果子味','等它掉下來 😋','在樹下好涼快']:['在樹下好涼快','好舒服喔 🌳','靠著樹睡一下 😪'];
+    else if(k==='shake'){var e=FRUIT_E[sp]||'🌰';L=[e+' 掉下來了！',e+' 好甜喔',e+' 一顆給你'];if(sp==='pine'||sp==='cypress')L=['🌰 撿到松果了','松果好可愛'];if(sp==='palm')L=['🥥 椰子掉下來了！','好重的椰子'];}
+    else if(k==='leaf')L=['踩落葉 沙沙沙 🍂','葉子好漂亮','秋天的味道 🍁'];
+    else if(k==='hug')L=sp==='bamboo'?['竹子好直 🎋','敲敲竹子 咚咚']:['抱抱大樹 🌳','長好高喔','謝謝你長這麼大'];
+    else L=['好刺！🌵','哎呀 扎到了'];
+    return L;}
+  function tpSay(p,L){if(!follow3&&L&&L.length)bubble(p,L[Math.floor(Math.random()*L.length)]);}
+  function nearTrees(p){return Object.keys(trees).filter(function(k){var t=trees[k];return isTreeSp(t.sp)&&Math.hypot(t.x,t.z)<ISL-.3&&Math.abs(angDiff(Math.atan2(t.z,t.x),p.ang))<1.3;});}
+  function goTreeSit(p){var L=nearTrees(p).filter(function(k){return treeSpot(k);});if(!L.length)return false;return goPic(p,treeSpot(L[Math.floor(Math.random()*L.length)]));}
+  // 走到樹旁邊（靠島中間那邊），mate＝已經在那棵樹的人：站另一邊、做一樣的事
+  function goTreePlay(p,id,mate){
+    if(!id){var L=nearTrees(p);if(!L.length)return false;id=L[Math.floor(Math.random()*L.length)];}
+    var t=trees[id];if(!t||!isTreeSp(t.sp)||Math.hypot(t.x,t.z)>ISL-.3)return false;
+    var k=mate&&mate.tp?mate.tp.k:tpKind(t.sp),d=(k==='hug'||k==='poke'?.52:k==='catch'?1.3:k==='leaf'?1.05:.85)*TREE_S,side=mate&&mate.tp?-mate.tp.sd:(Math.random()<.5?-1:1),lat=(mate?.42:.15)*side,u=treeDir(t,d+.4);if(!u)return false;
+    var cx=u[0],cz=u[1],x=t.x+cx*d-cz*lat,z=t.z+cz*d+cx*lat,a=Math.atan2(z,x),r=Math.hypot(x,z);
+    if(!pathOk(p.ang,p.r,a,r))return false;
+    strollEnd(p);p.with=null;p.via=[];p.goPic=null;p.ta=a;p.tr=r;p.tp={id:id,k:k,x:x,z:z,f:Math.atan2(t.x-x,t.z-z),sd:side,t:0,on:0};p.state='walk';if(mate&&mate.tp)mate.tp.mate=p.k;return true;
+  }
+  function tpStep(p,dt){
+    var T0=p.tp,t=T0&&trees[T0.id];if(!t){p.tp=null;p.state='idle';p.timer=1;return;}
+    var t0=T0.t;T0.t+=dt;var tt=T0.t,k=T0.k,F=TFX[t.sp],top=t.fxTop||2.6,q=pos(p),o=partner(p),cross=function(v){return t0<v&&tt>=v;};
+    p.face=T0.f;
+    if(k==='catch'){
+      if(tt<3.2&&F&&Math.random()<dt*3.4)tfxSpawn(F,q.x,q.z,top,.35);
+      if(cross(3.2)){tpSay(p,treeLines(t.sp,k));if(!follow3){hearts(q.x,1.7,q.z,1);if(o&&o.state==='tplay'&&o.tp&&o.tp.id===T0.id&&p.k==='syue'){var oq=pos(o);hearts((q.x+oq.x)/2,1.9,(q.z+oq.z)/2,2);}}}
+    }else if(k==='shake'){
+      if(tt<1.6)t.wob=1;
+      if(cross(.9)&&F){var n=1+Math.floor(Math.random()*2);for(var i=0;i<n;i++)tfxSpawn(F,t.x,t.z,top,t.fxR||.8);SND.sfx('pop');}
+      if(cross(2.9))tpSay(p,treeLines(t.sp,k));
+    }else if(k==='leaf'){
+      if((cross(.45)||cross(1.25))&&F){for(var j=0;j<7;j++)tfxSpawn(F,q.x,q.z,1.0,.45);SND.sfx('swish');}
+      if(cross(1.8))tpSay(p,treeLines(t.sp,k));
+    }else if(k==='hug'){if(cross(1.2)){tpSay(p,treeLines(t.sp,k));if(!follow3)hearts(q.x,1.8,q.z,2);}}
+    else if(k==='poke'){if(cross(.8)){tpSay(p,treeLines(t.sp,k));SND.sfx('bonk');}}
+    if(tt>=(TP_DUR[k]||3)){p.tp=null;p.state='idle';p.timer=1+Math.random();}
+  }
+  // 動作：接花瓣舉高雙手看上面、搖樹（推樹幹）再蹲下撿、在落葉上跳、抱樹幹、伸手摸仙人掌被扎到跳開
+  function tpPose(p){var T0=p.tp,k=T0.k,t=T0.t,up=function(v){p.arms[0].rotation.x=p.arms[1].rotation.x=v;};
+    if(k==='catch'){var c=t<3.2?Math.min(1,t/.5):Math.max(0,1-(t-3.2)/.5);up(-2.75*c+Math.sin(now*3)*.12*c);p.arms[0].rotation.z=-.12-.3*c;p.arms[1].rotation.z=.12+.3*c;p.hd.rotation.x=-.45*c;}
+    else if(k==='shake'){if(t<1.6){up(-1.45);p.b.rotation.x=.1+Math.sin(now*20)*.07;}else if(t<2.9){var d=Math.sin(Math.min(1,(t-1.6)/1.3)*Math.PI);p.b.position.y=-.16*d;p.b.rotation.x=.4*d;up(-1.1*d);}else if(t<3.7)p.arms[1].rotation.x=-1.7;}
+    else if(k==='leaf'){if(t<1.6){var j=Math.abs(Math.sin(t*Math.PI/.8));p.b.position.y=j*.22;up(-2.2*j);p.legs[0].rotation.x=-.4*j;p.legs[1].rotation.x=.3*j;}}
+    else if(k==='hug'){var h=Math.min(1,t/.6,(TP_DUR.hug-t)/.5);up(-1.35*h);p.arms[0].rotation.z=-.12+.5*h;p.arms[1].rotation.z=.12-.5*h;p.hd.rotation.z=.25*h;p.b.rotation.x=.08*h;}
+    else if(k==='poke'){if(t<.8)p.arms[1].rotation.x=-1.4*Math.min(1,t/.5);else if(t<1.4){p.b.position.y=Math.sin((t-.8)/.6*Math.PI)*.18;up(-2.5);}}
+  }
+  function treeCall(id){var P=treeSpot(id),who=[];if(!P)return who;
+    people.filter(freeP).forEach(function(p){if(goPic(p,P))who.push(p.k);});
+    SND.sfx('tap');actHook('tree',who);return who;}
 
   /* ── 兩支手機一起看：同時在花園的時候，一支當主持（自己決定學、綾、寵物要做什麼），每 2 秒把大家的狀況送出去；
      另一支照著播：不自己決定，只照著主持的那支走、做一樣的事，所以兩邊看到的位置、在做什麼、騎車騎到哪都一樣。
@@ -1832,12 +1913,13 @@ var Garden3D=(function(){
     else if(c.c==='pet'&&p&&p.spr){p.hop=.5;hearts(p.x,1.2,p.z,1);}
     else if(c.c==='act'&&ACTS[c.k])callAct(c.k);
     else if(c.c==='ride'&&rideOK())startRide(true);
+    else if(c.c==='tree'&&c.tid)treeCall(String(c.tid));
   }
   function liveSnap(){
     var P=people.map(function(p){var bt=p.bub&&p.bubT>.4?p.bubTxt:null,v=[];(p.via||[]).forEach(function(q){v.push(r3(q.a),r3(q.r));});
       return {k:p.k,st:p.state,a:r3(p.ang),r:r3(p.r),ta:r3(p.ta),tr:r3(p.tr),v:v,tm:r3(p.timer),f:r3(p.face),wt:r3(p.walkT),t:r3(p.t),se:p.seat==null?-1:p.seat,tt:!!p.toTree,
         w:p.with?p.with.k:null,h:p.hand?p.hand.k:null,ld:!!p.lead,gp:plain(p.goPic),ga:plain(p.goAct),A:plain(p.A),gw:plain(p.goWater),pt:r3(p.picT),gb:p.goBike?p.goBike.k:null,
-        ac:r3(p.act),wv:r3(p.waveT),ln:landId(p.land),lN:p.landN||0,fd:!!p.feed,bt:bt,bi:bt?p.bubId:null,bl:bt?r3(p.bubT):0};});
+        ac:r3(p.act),wv:r3(p.waveT),tp:plain(p.tp),ln:landId(p.land),lN:p.landN||0,fd:!!p.feed,bt:bt,bi:bt?p.bubId:null,bl:bt?r3(p.bubT):0};});
     var Q=pets.map(function(q){var v=[];(q.via||[]).forEach(function(x){v.push(r3(x.a),r3(x.r));});return {k:q.k,a:r3(q.ang),r:r3(q.r),ta:r3(q.ta),tr:r3(q.tr),v:v,w:r3(q.wait),wt:r3(q.walkT),hp:r3(q.hop)};});
     var R=RIDE?{t:r3(RIDE.t),go:!!RIDE.go,b:bikes.map(function(b){return {k:b.k,ph:b.ph||null,s:r3(b.s),v:r3(b.v),ln:r3(b.lean),hd:!!b.hold,rd:b.rider?b.rider.k:null};})}:null;
     var S=ACTS.swing,TS=ACTS.tswing,X={};
@@ -1858,7 +1940,7 @@ var Garden3D=(function(){
       var v=[];for(var i=0;i+1<(s.v||[]).length;i+=2)v.push({a:s.v[i],r:s.v[i+1]});
       p.state=s.st;p.ang=s.a;p.r=s.r;p.ta=s.ta;p.tr=s.tr;p.via=v;p.timer=s.tm;p.face=s.f;p.walkT=s.wt;p.t=s.t;p.seat=s.se;p.toTree=!!s.tt;
       p.with=byK(s.w);p.hand=byK(s.h);p.lead=!!s.ld;p.goPic=s.gp||null;p.goAct=s.ga||null;p.A=s.A||null;p.goWater=s.gw||null;p.picT=s.pt;p.goBike=s.gb?bikeOf(s.gb):null;
-      p.act=s.ac;p.waveT=s.wv;p.land=s.ln?LAND_GEO[s.ln]:null;p.landN=s.lN;p.feed=!!s.fd;
+      p.act=s.ac;p.waveT=s.wv;p.tp=s.tp||null;p.land=s.ln?LAND_GEO[s.ln]:null;p.landN=s.lN;p.feed=!!s.fd;
       if(s.bt&&s.bi&&s.bi!==p.bubId){bubble(p,s.bt,s.bi);p.bubT=Math.max(.5,s.bl||2.8);}
       if(p.stick&&!(p.state==='act'&&p.A&&p.A.k==='fire')){scene.remove(p.stick);scene.remove(p.marsh);p.stick=p.marsh=null;}
       if(p.bite&&!(p.state==='act'&&p.A&&p.A.k==='cafe')){scene.remove(p.bite);p.bite=null;}
@@ -1887,12 +1969,14 @@ var Garden3D=(function(){
     if(inArea(px,pz,.05)){var la=toArea(px,pz),ex=AP(Math.max(-2.4,Math.min(2.4,la.x)),-1.1);p.via=[];p.with=null;p.ta=ex.a;p.tr=ex.r;p.state='walk';return;}
     var op0=partner(p);
     var pics=allPics().length;
-    if(pics&&op0&&(op0.state==='pic'||op0.goPic)&&Math.random()<.75&&goPic(p))return;
+    if(op0&&(op0.state==='pic'||op0.goPic)&&Math.random()<.75&&goPic(p))return;
+    if(op0&&op0.tp&&!op0.tp.mate&&Math.random()<.6&&goTreePlay(p,op0.tp.id,op0))return;
     if(hol&&hol.k==='moon'&&holPic&&(phase==='eve'||phase==='night')&&Math.random()<.7&&goPic(p))return;
     if(hol&&hol.k==='nye'&&night>.3&&free>=0&&Math.random()<.8){goTree(p,free);return;}
     if(pics&&Math.random()<.09&&goPic(p))return;
     var op1=partner(p);if(!RIDE&&rideOK()&&(phase==='day'||phase==='eve')&&op1&&op1.state==='idle'&&!op1.land&&Math.random()<.025&&startRide().length)return;
     if(op1&&op1.state==='idle'&&!op1.with&&!op1.toTree&&!op1.land&&Math.random()<(wx.w==='rain'?.3:.12)&&strollStart(p,op1))return;
+    var tr0=Math.random();if(tr0<.05&&goTreeSit(p))return;if(tr0>=.05&&tr0<.12&&wx.w!=='rain'&&wx.w!=='snow'&&goTreePlay(p))return;
     if(phase&&tryAct(p))return;
     if(ls.length&&other&&other.land&&Math.random()<.5){goLand(p,other.land);return;}
     if(ls.length&&Math.random()<.14){goLand(p,ls[Math.floor(Math.random()*ls.length)]);return;}
@@ -2006,6 +2090,8 @@ var Garden3D=(function(){
   /* ── 森林：長大的植物排在小島外圍；移植過的（pos）種在存下來的位置 ── */
   function forestSpot(i){var s=spots[i%spots.length],extra=Math.floor(i/spots.length);return {x:Math.cos(s.a+extra*.09)*(s.r-extra*.35),z:Math.sin(s.a+extra*.09)*(s.r-extra*.35)};}
   // 每一棵的大小：照編號算（同一棵每次都一樣大、兩支手機也一樣），0.84～1.16 倍
+  // 森林的樹：跟長在土裡的時候一樣大（花小一點）
+  var TREE_S=1.0;
   function sizeOf(id){return id?.84+rnd(idNum(String(id))+31)*.32:1;}
   function idNum(id){var n=0;for(var i=0;i<id.length;i++)n=(n*31+id.charCodeAt(i))%9973;return n;}
   // 每棵樹在哪：有存位置的先放；其他的照順序排在外圈，碰到別的樹就往後找空位（兩支手機算出來一樣）
@@ -2020,9 +2106,9 @@ var Garden3D=(function(){
     list.forEach(function(f){
       var p=at[f.id],t=trees[f.id];keep[f.id]=1;
       if(t){if(Math.hypot(t.x-p.x,t.z-p.z)>.05)moveTree(t,p.x,p.z);if((t.rot||0)!==(f.rot||0)){t.rot=f.rot||0;spinTo(t.g,t.base+t.rot*ROT);}return;}
-      var g=new T.Group(),pl=plant(f.sp,4),fw=window.SP[f.sp].kind==='flower';
-      pl.scale.setScalar((fw?.85:.72)*sizeOf(f.id));g.add(pl);g.position.set(p.x,0,p.z);var base=rnd(idNum(f.id))*6.28;g.rotation.y=base+(f.rot||0)*ROT;
-      var coll=new T.Mesh(cyl(.7,.7,3,8),hitMat);coll.position.y=1.4;coll.visible=false;coll.userData={tree:f.id};g.add(coll);
+      var g=new T.Group(),fw=window.SP[f.sp].kind==='flower',pl=plant(f.sp,4,!fw);
+      pl.scale.setScalar((fw?.85:TREE_S)*sizeOf(f.id));g.add(pl);g.position.set(p.x,0,p.z);var base=rnd(idNum(f.id))*6.28;g.rotation.y=base+(f.rot||0)*ROT;
+      var coll=new T.Mesh(cyl(fw?.7:.95,fw?.7:.95,fw?3:3.8,8),hitMat);coll.position.y=fw?1.4:1.8;coll.visible=false;coll.userData={tree:f.id};g.add(coll);
       scene.add(g);trees[f.id]={g:g,x:p.x,z:p.z,sp:f.sp,base:base,rot:f.rot||0};
       if(!first)growIn(g,p.x,p.z);
     });
@@ -2055,7 +2141,7 @@ var Garden3D=(function(){
   }
   /* ── 森林的位置：新長大的放到「離別的植物最遠」的空地，先放花園外圈、再一塊一塊新土地；
      花和花至少隔 1，有樹的話隔 1.35。「整理森林」：自己移植過的不動，其他擠在一起的搬到比較空的地方 ── */
-  var GAP_F=1.0,GAP_T=1.35,candC=null,candK='',planC=null,planK='';
+  var GAP_F=1.0,GAP_T=1.6,candC=null,candK='',planC=null,planK='';
   function isTreeSp(sp){var S=window.SP[sp];return !!S&&S.kind==='tree';}
   function gapOf(a,b){return isTreeSp(a)||isTreeSp(b)?GAP_T:GAP_F;}
   // 可以種的地方：花園外圈三圈、每塊開放的新土地四圈（避開土、溪、池、遊樂區、樹屋、車道、裝飾、去新土地的路口）
@@ -2116,7 +2202,7 @@ var Garden3D=(function(){
     mv={kind:kind,id:id,sel:null,src:src,mark:ring('#F6D27A',.85)};
     mv.mark.position.set(src.x,.035,src.z);
     if(kind==='tree'){
-      var gh=plant(src.sp,4),fw=window.SP[src.sp].kind==='flower';gh.scale.setScalar((fw?.85:.72)*sizeOf(id));mv.mats=[];
+      var fw=window.SP[src.sp].kind==='flower',gh=plant(src.sp,4,!fw);gh.scale.setScalar((fw?.85:TREE_S)*sizeOf(id));mv.mats=[];
       gh.traverse(function(o){if(o.isMesh){o.material=o.material.clone();o.material.transparent=true;o.material.opacity=.5;o.material.depthWrite=false;o.castShadow=false;mv.mats.push(o.material);}});
       gh.visible=false;scene.add(gh);mv.ghost=gh;mv.ok=ring('#7BC67E',.75);mv.bad=ring('#E2675A',.75);mv.ok.visible=mv.bad.visible=false;
       if(el<.95)egoal=.95;
@@ -2432,7 +2518,7 @@ var Garden3D=(function(){
     shot:function(){var wasHL=hl.ring&&hl.ring.visible;if(hl.ring)hl.ring.visible=false;var l1=cam.layers.isEnabled(1);cam.layers.disable(1);R.render(scene,cam);var u='';try{u=R.domElement.toDataURL('image/jpeg',.92);}catch(e){}if(l1)cam.layers.enable(1);if(hl.ring&&wasHL)hl.ring.visible=true;return u;},
     live:{snap:liveSnap,sig:liveSig,apply:liveApply,cmd:runCmd,follow:function(on){if(on&&!follow3)seenEv=null;follow3=!!on;},following:function(){return follow3;},
       pos:function(){return people.map(function(p){return {k:p.k,st:p.state,x:p.g.position.x,y:p.g.position.y,z:p.g.position.z,A:p.A?p.A.k+':'+p.A.step:''};}).concat(pets.map(function(q){return {k:q.k,st:q.wait>0?'wait':'walk',x:q.spr.position.x,y:q.spr.position.y,z:q.spr.position.z};}));}},
-    ring:function(id){ringBell(id);},say:function(k,t){var p=people.filter(function(o){return o.k===k;})[0];if(p)bubble(p,t||sayLine(p));},stroll:function(){var a=people[0],b=people[1];if(!a||!b)return false;[a,b].forEach(function(o){if(o.state==='act'||o.goAct)endAct(o);o.state='idle';o.with=null;o.goPic=null;});return strollStart(a,b);},
+    ring:function(id){ringBell(id);},say:function(k,t){var p=people.filter(function(o){return o.k===k;})[0];if(p)bubble(p,t||sayLine(p));},stroll:function(){var a=people[0],b=people[1];if(!a||!b)return false;[a,b].forEach(function(o){if(o.state==='act'||o.goAct)endAct(o);o.state='idle';o.with=null;o.goPic=null;o.tp=null;});return strollStart(a,b);},
     poses:function(){return people.map(function(p){return {k:p.k,st:p.state,hand:p.hand?p.hand.k:null,lead:!!p.lead,umb:p.umb.visible,can:p.can.visible,bub:!!p.bub,pic:p.goPic?p.goPic.k:null};});},
     ride:function(){if(!rideOK())return {ok:false,why:wx.w==='snow'?'snow':'rain'};if(follow3){liveCmd({c:'ride'});return {ok:true,pending:true,who:[]};}var w=startRide(true);return {ok:w.length>0,who:w,busy:!!RIDE&&!w.length};},riding:function(){return RIDE?{go:RIDE.go,bikes:bikes.map(function(b){return {k:b.k,s:+b.s.toFixed(1),len:b.path?+b.path.len.toFixed(1):0,x:+b.g.position.x.toFixed(2),z:+b.g.position.z.toFixed(2),rider:b.rider?b.rider.k+':'+b.rider.state:null};})}:null;},
     rideTurns:function(){return bikes.map(function(b){var pa=ridePath(b),mx=0,at=0,prev=pathAt(pa,0).face;for(var s0=.1;s0<=pa.len;s0+=.1){var f=pathAt(pa,s0).face,d=Math.abs(angDiff(f,prev));if(d>mx){mx=d;at=s0;}prev=f;}var l=W2L(pathAt(pa,at).x,pathAt(pa,at).z);return b.k+' max '+(mx*10).toFixed(2)+' rad/unit at s='+at.toFixed(1)+' L('+l.x.toFixed(2)+','+l.z.toFixed(2)+') len '+pa.len.toFixed(1)+' start '+angDiff(pathAt(pa,0).face,b.park.face).toFixed(3);});},
@@ -2451,7 +2537,7 @@ var Garden3D=(function(){
     // 測試用：每個人、每隻寵物在溪的哪一邊、離水多近、是不是在橋上；叫某個人／寵物走去某個地方
     // 營火有多近（看著遊樂區＝1、很遠＝0）：給環境音調營火聲大小
     fireNear:function(){if(!actG)return 0;var c=AWp(0,.3),d=Math.hypot(tgt.x-c.x,tgt.z-c.z)+Math.max(0,rad-14)*.5;return Math.max(0,Math.min(1,1-(d-3)/12));},
-    speed:function(n){tScale=n||1;},treePos:function(id){var t=trees[id];return t?{x:t.x,z:t.z}:null;},rots:function(){var o={};for(var id in decors)o['d:'+id]=+decors[id].g.rotation.y.toFixed(2);for(var t in trees)o['t:'+t]=+trees[t].g.rotation.y.toFixed(2);plots.forEach(function(p){if(p.id)o['p:'+p.id]=+p.holder.rotation.y.toFixed(2);});return o;},hol:function(){return hol?{k:hol.k,objs:hol.objs.length,tree:hol.tree?{x:+hol.tree.x.toFixed(2),z:+hol.tree.z.toFixed(2)}:null,pic:holPic?{x:+holPic.x.toFixed(2),z:+holPic.z.toFixed(2)}:null,hats:people.map(function(p){return [p.santa.visible,p.pomelo.visible];}),moon:moonDisc?[moonDisc.visible,moonDisc.scale.x]:null}:null;},env:function(){return envS&&envS.visible?{on:true,id:envS.userData.id,y:+envS.position.y.toFixed(2)}:{on:false};},hold:function(v){holdAI=!!v;},flashTrees:flashTrees,combos:function(){return combos.map(function(c){return {key:c.key,ids:c.m.map(function(n){return n.id;}),fx:c.fx,cx:+c.cx.toFixed(2),cz:+c.cz.toFixed(2)};});},
+    speed:function(n){tScale=n||1;},treePos:function(id){var t=trees[id];return t?{x:t.x,z:t.z}:null;},rots:function(){var o={};for(var id in decors)o['d:'+id]=+decors[id].g.rotation.y.toFixed(2);for(var t in trees)o['t:'+t]=+trees[t].g.rotation.y.toFixed(2);plots.forEach(function(p){if(p.id)o['p:'+p.id]=+p.holder.rotation.y.toFixed(2);});return o;},hol:function(){return hol?{k:hol.k,objs:hol.objs.length,tree:hol.tree?{x:+hol.tree.x.toFixed(2),z:+hol.tree.z.toFixed(2)}:null,pic:holPic?{x:+holPic.x.toFixed(2),z:+holPic.z.toFixed(2)}:null,hats:people.map(function(p){return [p.santa.visible,p.pomelo.visible];}),moon:moonDisc?[moonDisc.visible,moonDisc.scale.x]:null}:null;},env:function(){return envS&&envS.visible?{on:true,id:envS.userData.id,y:+envS.position.y.toFixed(2)}:{on:false};},hold:function(v){holdAI=!!v;},flashTrees:flashTrees,treeOK:function(id){return !!treeSpot(id);},treeCall:function(id){if(follow3){liveCmd({c:'tree',tid:id});return null;}return treeCall(id);},tplay:function(k,id){var p=byK(k);if(!p)return false;if(p.state==='act'||p.goAct)endAct(p);strollEnd(p);p.goPic=null;return goTreePlay(p,id);},treeSit:function(k,id){var p=byK(k);if(!p)return false;strollEnd(p);p.tp=null;var P=treeSpot(id);return P?goPic(p,P):false;},combos:function(){return combos.map(function(c){return {key:c.key,ids:c.m.map(function(n){return n.id;}),fx:c.fx,cx:+c.cx.toFixed(2),cz:+c.cz.toFixed(2)};});},
     // 卡片上換到別棵的時候，3D 裡也標出現在是哪一棵
     mark:function(kind,id){var t=null;if(kind==='plant'){var p=plots.filter(function(q){return q.on&&q.id===id;})[0];if(p)t={kind:'plot',p:p};}else if(trees[id])t={kind:'tree',id:id};if(t){setHL(t,true);hl.hold=1.6;}},
     // 測試用：螢幕上這一點會點到什麼
