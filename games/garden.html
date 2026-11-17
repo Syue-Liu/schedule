@@ -760,26 +760,39 @@ function slotCombos(slot,sp,occ){
 // 還沒發現的特別組合不講名字（留一點驚喜）
 function comboLabel(k){return comboSp(k)||(D.combo||{})[k]?'「'+comboName(k)+'」':'隱藏組合';}
 function spList(a){return a.map(function(k){return SP[k].name;}).join('、');}
-// 花園裡的植物：旁邊（或隔一塊）的空土種什麼可以湊成組合
+// 花園裡的植物：旁邊（或隔一塊）的空土種什麼可以湊成組合；差一株的先講，差兩株以上的也講
 function plantHints(id){
   if(!g3)return [];var si=-1;garden().forEach(function(p,i){if(p&&p.id===id)si=i;});if(si<0)return [];
-  var occ=slotSpecies(),L=level(),open={},have={},out=[],seenK={};openSlots(L).forEach(function(i){open[i]=1;});
-  slotCombos(si,occ[si],occ).forEach(function(c){have[c.k]=1;});
+  var occ=slotSpecies(),L=level(),open={},have={},out=[],seenK={},sp=occ[si],S=SP[sp],u=S.kind==='tree'?'棵':'株';openSlots(L).forEach(function(i){open[i]=1;});
+  slotCombos(si,sp,occ).forEach(function(c){have[c.k]=1;});
   var emp=[];linkedSlots(si).forEach(function(b){if(open[b]&&!occ[b])emp.push(b);else if(occ[b])linkedSlots(b).forEach(function(c){if(c!=si&&open[c]&&!occ[c]&&emp.indexOf(c)<0)emp.push(c);});});
-  emp.forEach(function(e){Object.keys(SP).forEach(function(k){if(L<SP[k].lv)return;slotCombos(e,k,occ).forEach(function(c){if(c.slots.indexOf(si)<0||have[c.k]||seenK[c.k])return;seenK[c.k]=1;out.push({k:c.k,sp:k});});});});
-  out.sort(function(a,b){return (comboSp(a.k)?1:0)-(comboSp(b.k)?1:0);});
-  return out.slice(0,2).map(function(h){return comboSp(h.k)?'旁邊的空地再種一株<b>'+SP[h.sp].name+'</b>，就會變成'+comboLabel(h.k):'旁邊的空地種<b>'+SP[h.sp].name+'</b>，可以湊成'+comboLabel(h.k)+' ✨';});
+  emp.forEach(function(e){linkedSlots(e).forEach(function(c){if(c!=si&&open[c]&&!occ[c]&&emp.indexOf(c)<0)emp.push(c);});});
+  var one=[];emp.forEach(function(e){Object.keys(SP).forEach(function(k){if(L<SP[k].lv)return;slotCombos(e,k,occ).forEach(function(c){if(c.slots.indexOf(si)<0||have[c.k]||seenK[c.k])return;seenK[c.k]=1;one.push({k:c.k,sp:k});});});});
+  one.sort(function(a,b){return (comboSp(a.k)?1:0)-(comboSp(b.k)?1:0);});
+  one.forEach(function(h){out.push(comboSp(h.k)?'旁邊的空地再種一'+u+'<b>'+SP[h.sp].name+'</b>，就會變成'+comboLabel(h.k):'旁邊的空地種<b>'+SP[h.sp].name+'</b>，可以湊成'+comboLabel(h.k)+' ✨');});
+  // 差兩株以上：同一種現在連著幾株、特別組合還差哪幾種（空地要夠）
+  var bfs=function(ok){var sn={},q=[si],cp=[];sn[si]=1;while(q.length){var x=q.pop();cp.push(x);linkedSlots(x).forEach(function(y){if(!sn[y]&&occ[y]&&ok(occ[y])){sn[y]=1;q.push(y);}});}return cp;};
+  var need=3-bfs(function(x){return x===sp;}).length;
+  if(!have['sp:'+sp]&&!seenK['sp:'+sp]&&need>1&&emp.length>=need)out.push('旁邊的空地再種 '+need+' '+u+'<b>'+S.name+'</b>，就會變成'+comboLabel('sp:'+sp));
+  COMBO.forEach(function(R){if(have[R.k]||seenK[R.k])return;var G=R.g||null,All=G?[].concat.apply([],G):R.any;if(All.indexOf(sp)<0)return;
+    var hasS={};bfs(function(x){return All.indexOf(x)>=0;}).forEach(function(i){hasS[occ[i]]=1;});var miss=[],bad=false;
+    if(G)G.forEach(function(g){if(g.some(function(x){return hasS[x];}))return;var m=g.filter(function(x){return L>=SP[x].lv;})[0];if(m)miss.push(m);else bad=true;});
+    else{var n=3-Object.keys(hasS).length;R.any.forEach(function(x){if(n>0&&!hasS[x]&&L>=SP[x].lv){miss.push(x);n--;}});if(n>0)bad=true;}
+    if(!bad&&miss.length>1&&emp.length>=miss.length)out.push('旁邊的空地種'+miss.map(function(k){return '<b>'+SP[k].name+'</b>';}).join('、')+'，可以湊成'+comboLabel(R.k)+' ✨');});
+  return out.slice(0,2);
 }
-// 森林的樹：森林裡有誰可以一起移植過來
+// 森林的樹：同一種還差幾棵、森林裡有誰可以一起移植過來、特別組合還差哪幾種
 function forestHints(id){
-  var p=D.plants[id];if(!p||!SP[p.sp])return [];var cnt={},have={},out=[],L=level();forest().forEach(function(q){cnt[q.sp]=(cnt[q.sp]||0)+1;});
+  var p=D.plants[id];if(!p||!SP[p.sp])return [];var cnt={},have={},out=[],L=level(),S=SP[p.sp],u=S.kind==='tree'?'棵':'株';forest().forEach(function(q){cnt[q.sp]=(cnt[q.sp]||0)+1;});
   C3.forEach(function(c){if(c.ids.indexOf(id)>=0)have[c.key]=1;});
-  if(!have['sp:'+p.sp]&&cnt[p.sp]>=3)out.push('森林裡有 '+cnt[p.sp]+' 棵'+SP[p.sp].name+'，用「移植」把它們挨著種，就會變成'+comboLabel('sp:'+p.sp));
+  if(!have['sp:'+p.sp]){var c=cnt[p.sp]||0;out.push(c>=3?'森林裡有 '+c+' '+u+S.name+'，用「移植」把它們挨著種，就會變成'+comboLabel('sp:'+p.sp):'再種 '+(3-c)+' '+u+'<b>'+S.name+'</b>，長大後和這'+u+'挨著種，就會變成'+comboLabel('sp:'+p.sp));}
   COMBO.forEach(function(R){if(have[R.k]||out.length>=2)return;var G=R.g||[R.any,R.any,R.any],mi=-1;
     G.forEach(function(g,i){if(mi<0&&g.indexOf(p.sp)>=0)mi=i;});if(mi<0)return;
-    var got=[],miss=[];G.forEach(function(g,i){if(i===mi)return;var k=g.filter(function(x){return cnt[x]&&x!==p.sp&&got.indexOf(x)<0;})[0];if(k)got.push(k);else miss.push(g.filter(function(x){return x!==p.sp&&got.indexOf(x)<0&&L>=SP[x].lv;})[0]||'');});
-    if(!miss.length)out.push('森林裡也有'+spList(got)+'，把它們移植到這棵旁邊，就能湊成'+comboLabel(R.k)+' ✨');
-    else if(miss.length===1&&miss[0])out.push('和'+(got.length?spList(got)+'、':'')+'<b>'+SP[miss[0]].name+'</b>種在一起，可以湊成'+comboLabel(R.k)+'（還沒有'+SP[miss[0]].name+'）');});
+    var got=[],miss=[],bad=false;G.forEach(function(g,i){if(i===mi)return;var k=g.filter(function(x){return cnt[x]&&x!==p.sp&&got.indexOf(x)<0;})[0];if(k){got.push(k);return;}
+      var m=g.filter(function(x){return x!==p.sp&&got.indexOf(x)<0&&miss.indexOf(x)<0&&L>=SP[x].lv;})[0];if(m)miss.push(m);else bad=true;});
+    if(bad)return;
+    if(!miss.length)out.push('森林裡也有'+spList(got)+'，把它們移植到這'+u+'旁邊，就能湊成'+comboLabel(R.k)+' ✨');
+    else out.push('和'+got.concat(miss).map(function(k){return miss.indexOf(k)>=0?'<b>'+SP[k].name+'</b>':SP[k].name;}).join('、')+'種在一起，可以湊成'+comboLabel(R.k)+'（還沒有'+spList(miss)+'）');});
   return out.slice(0,2);
 }
 function hintHtml(L){return L.length?'<div class="sh-hint">'+L.map(function(t){return '<p>💡 '+t+'</p>';}).join('')+'</div>':'';}
