@@ -2127,7 +2127,8 @@ var Garden3D=(function(){
     var ok=Math.hypot(x,z)<ISL-.45;
     LAND_IDS.forEach(function(id){var L=LAND_GEO[id];if(L.open&&Math.hypot(x-L.c.x,z-L.c.z)<L.R-.45)ok=true;});
     if(!ok)return '要種在花園的草地上';
-    for(var i=0;i<PLOT.length;i++){var lo=landOf(i);if((!lo||lo.open)&&Math.hypot(PLOT[i][0]-x,PLOT[i][1]-z)<1.2)return '這裡是種花的土';}
+    // 新土地的土：有開才算（果樹坡沒有土，整塊都能移植）
+    for(var i=0;i<PLOT.length;i++){var lo=landOf(i);if((!lo||(lo.open&&plots[i]&&plots[i].on))&&Math.hypot(PLOT[i][0]-x,PLOT[i][1]-z)<1.2)return '這裡是種花的土';}
     for(var j=0;j<flow.length-1;j++)if(segDist(x,z,flow[j],flow[j+1])<.62)return '這裡是小溪';
     if(pondP&&Math.hypot(x-pondP.x,z-pondP.z)<1)return '這裡是泉水池';
     if(inArea(x,z,.3))return '這裡是遊樂區';
@@ -2147,7 +2148,7 @@ var Garden3D=(function(){
   function gapOf(a,b){return isTreeSp(a)||isTreeSp(b)?GAP_T:GAP_F;}
   // 可以種的地方：花園外圈三圈、每塊開放的新土地四圈（避開土、溪、池、遊樂區、樹屋、車道、裝飾、去新土地的路口）
   function forestCands(){
-    var k=LAND_IDS.map(function(id){return LAND_GEO[id].open?1:0;}).join('')+'|'+Object.keys(decors).map(function(id){var d=decors[id];return Math.round(d.x*10)+','+Math.round(d.z*10);}).join(';');
+    var k=LAND_IDS.map(function(id){return LAND_GEO[id].open?1:0;}).join('')+'|'+plots.slice(12).map(function(p){return p.on?1:0;}).join('')+'|'+Object.keys(decors).map(function(id){var d=decors[id];return Math.round(d.x*10)+','+Math.round(d.z*10);}).join(';');
     if(candC&&candK===k)return candC;
     var ok=function(x,z){return canPlace(x,z,null,.45,true)==='';},G=[],main=[];
     [7.0,7.5,8.0].forEach(function(r,ri){var n=Math.round(Math.PI*2*r/1.05);for(var i=0;i<n;i++){var a=(i+(ri%2)*.5)/n*Math.PI*2;if(LAND_IDS.some(function(id){return Math.abs(angDiff(a,LAND_GEO[id].a))<.2;}))continue;var q=polar(r,a);if(ok(q.x,q.z))main.push({x:q.x,z:q.z});}});
