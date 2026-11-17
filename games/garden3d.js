@@ -1355,15 +1355,15 @@ var Garden3D=(function(){
       for(var i0=0;i0<L.length;i0++){if(seen[i0])continue;seen[i0]=1;var comp=[],st=[i0];
         while(st.length){var a=st.pop();comp.push(L[a]);for(var j=0;j<L.length;j++)if(!seen[j]&&linked(L[a],L[j])){seen[j]=1;st.push(j);}}
         if(comp.length>=3)out.push(comboMk('sp:'+sp,comp));}});
-    // 特別組合：三種各一株，三株連在一起（g：每一格可以是哪幾種；any：這幾種裡挑三種不一樣的）
+    // 特別組合：這個組合的植物（g：每一格可以是哪幾種；any：這幾種裡挑）連成一片，片裡每一格都有（any：有三種不一樣的）就算；
+    // 組合可以變大：旁邊再種同一類的，連著的都會一起加入，整片都有效果
     (window.COMBO||[]).forEach(function(R){
-      var used={},G=R.g||[R.any,R.any,R.any],P=G.map(function(g){return N.filter(function(n){return g.indexOf(n.sp)>=0;});}),hit=true;
-      while(hit){hit=false;
-        for(var i=0;i<P[0].length&&!hit;i++){var a=P[0][i];if(used[a.id])continue;
-          for(var j=0;j<P[1].length&&!hit;j++){var b=P[1][j],ab=linked(a,b);if(used[b.id]||b===a||(R.any&&b.sp===a.sp))continue;
-            // 三株連在一起就算（兩兩相鄰，或排成一串：新土地的三塊土是一排）
-            for(var k=0;k<P[2].length;k++){var c=P[2][k];if(used[c.id]||c===a||c===b||(R.any&&(c.sp===a.sp||c.sp===b.sp))||(ab?0:1)+(linked(a,c)?0:1)+(linked(b,c)?0:1)>1)continue;
-              used[a.id]=used[b.id]=used[c.id]=1;out.push(comboMk(R.k,[a,b,c]));hit=true;break;}}}}
+      var G=R.g||null,S=G?[].concat.apply([],G):R.any,L=N.filter(function(n){return S.indexOf(n.sp)>=0;}),seen={};
+      for(var i0=0;i0<L.length;i0++){if(seen[i0])continue;seen[i0]=1;var comp=[],st=[i0];
+        while(st.length){var a=st.pop();comp.push(L[a]);for(var j=0;j<L.length;j++)if(!seen[j]&&linked(L[a],L[j])){seen[j]=1;st.push(j);}}
+        if(comp.length<3)continue;var has={};comp.forEach(function(n){has[n.sp]=1;});
+        var ok=G?G.every(function(g){return g.some(function(x){return has[x];});}):Object.keys(has).length>=3;
+        if(ok)out.push(comboMk(R.k,comp));}
     });
     return out;
   }
@@ -1402,16 +1402,16 @@ var Garden3D=(function(){
     cglow.forEach(function(g){g.visible=night>.05;if(g.visible)g.material.opacity=.45*night*(1+.3*Math.sin(now*1.6+g.userData.ph));});
     var pick=function(c){return c.m[Math.floor(Math.random()*c.m.length)];};
     combos.forEach(function(c){if(!near(c.cx,c.cz)||tfx.length>=cap)return;
-      var top=0;c.m.forEach(function(n){top=Math.max(top,topOf(n));});c.top=top;
+      var top=0;c.m.forEach(function(n){top=Math.max(top,topOf(n));});c.top=top;var dd=dt*Math.min(2.5,Math.max(1,c.m.length/3));
       // 植物之間跑來跑去的小光點
-      if(Math.random()<.7*dt){var a=pick(c),b=c.m[(c.m.indexOf(a)+1)%c.m.length];if(linked(a,b))tfxAdd('spark',c.col==='#FFFFFF'?'#FFF3B0':c.col,a.x,topOf(a)*.65,a.z,{life:1.4,ax:a.x,az:a.z,ay:topOf(a)*.65,bx:b.x,bz:b.z,by:topOf(b)*.65,s:1});}
-      if(night>.5&&Math.random()<.9*dt){var an=Math.random()*6.28,rr=Math.random()*c.r;tfxAdd('firefly','#FFF3A0',c.cx+Math.cos(an)*rr,.4+Math.random()*top*.8,c.cz+Math.sin(an)*rr,{life:4+Math.random()*2,r1:.3+Math.random()*.4});}
+      if(Math.random()<.7*dd){var a=pick(c),b=c.m[(c.m.indexOf(a)+1)%c.m.length];if(linked(a,b))tfxAdd('spark',c.col==='#FFFFFF'?'#FFF3B0':c.col,a.x,topOf(a)*.65,a.z,{life:1.4,ax:a.x,az:a.z,ay:topOf(a)*.65,bx:b.x,bz:b.z,by:topOf(b)*.65,s:1});}
+      if(night>.5&&Math.random()<.9*dd){var an=Math.random()*6.28,rr=Math.random()*c.r;tfxAdd('firefly','#FFF3A0',c.cx+Math.cos(an)*rr,.4+Math.random()*top*.8,c.cz+Math.sin(an)*rr,{life:4+Math.random()*2,r1:.3+Math.random()*.4});}
       var pal=c.pal||[c.col],pc=function(){return pal[Math.floor(Math.random()*pal.length)];};
-      if(c.fx==='swirl'&&Math.random()<2.4*dt)tfxAdd('swirl',pc(),c.cx,top*(.35+Math.random()*.6),c.cz,{gk:c.gk,life:6+Math.random()*2,cx:c.cx,cz:c.cz,a:Math.random()*6.28,w:(.55+Math.random()*.35)*(c.key.length%2?1:-1),r0:c.r+.15+Math.random()*.7,vy:.08+Math.random()*.08,s:1.35});
-      else if(c.fx==='snow'&&Math.random()<2.2*dt){var a2=Math.random()*6.28,r3=Math.random()*c.r;tfxAdd('flake','#FFFFFF',c.cx+Math.cos(a2)*r3,top+.6+Math.random()*.6,c.cz+Math.sin(a2)*r3,{life:0,vy:.24+Math.random()*.08,s:.8+Math.random()*.5}).life=(top+1)/.26;}
-      else if(c.fx==='hearts'&&Math.random()<.55*dt){var h=pick(c);tfxAdd('heart','',h.x+(Math.random()-.5)*.3,topOf(h)*.9,h.z+(Math.random()-.5)*.3,{life:2.2,s:.26});}
-      else if(c.fx==='scent'&&Math.random()<1.6*dt)tfxAdd('swirl',pc(),c.cx,top*(.6+Math.random()*.5),c.cz,{gk:'scent',life:4.5+Math.random()*1.5,cx:c.cx,cz:c.cz,a:Math.random()*6.28,w:.9,r0:.3+Math.random()*c.r*.8,vy:-.18,s:1});
-      else if(c.fx==='sunny'&&Math.random()<1.6*dt){var s0=pick(c),a3=Math.random()*6.28;tfxAdd('pollen','#FFE07A',s0.x+Math.cos(a3)*.3,topOf(s0)*.9,s0.z+Math.sin(a3)*.3,{life:2.6+Math.random(),vy:.12+Math.random()*.1,dx:(Math.random()-.5)*.3,dz:(Math.random()-.5)*.3,s:1.3});}
+      if(c.fx==='swirl'&&Math.random()<2.4*dd)tfxAdd('swirl',pc(),c.cx,top*(.35+Math.random()*.6),c.cz,{gk:c.gk,life:6+Math.random()*2,cx:c.cx,cz:c.cz,a:Math.random()*6.28,w:(.55+Math.random()*.35)*(c.key.length%2?1:-1),r0:c.r+.15+Math.random()*.7,vy:.08+Math.random()*.08,s:1.35});
+      else if(c.fx==='snow'&&Math.random()<2.2*dd){var a2=Math.random()*6.28,r3=Math.random()*c.r;tfxAdd('flake','#FFFFFF',c.cx+Math.cos(a2)*r3,top+.6+Math.random()*.6,c.cz+Math.sin(a2)*r3,{life:0,vy:.24+Math.random()*.08,s:.8+Math.random()*.5}).life=(top+1)/.26;}
+      else if(c.fx==='hearts'&&Math.random()<.55*dd){var h=pick(c);tfxAdd('heart','',h.x+(Math.random()-.5)*.3,topOf(h)*.9,h.z+(Math.random()-.5)*.3,{life:2.2,s:.26});}
+      else if(c.fx==='scent'&&Math.random()<1.6*dd)tfxAdd('swirl',pc(),c.cx,top*(.6+Math.random()*.5),c.cz,{gk:'scent',life:4.5+Math.random()*1.5,cx:c.cx,cz:c.cz,a:Math.random()*6.28,w:.9,r0:.3+Math.random()*c.r*.8,vy:-.18,s:1});
+      else if(c.fx==='sunny'&&Math.random()<1.6*dd){var s0=pick(c),a3=Math.random()*6.28;tfxAdd('pollen','#FFE07A',s0.x+Math.cos(a3)*.3,topOf(s0)*.9,s0.z+Math.sin(a3)*.3,{life:2.6+Math.random(),vy:.12+Math.random()*.1,dx:(Math.random()-.5)*.3,dz:(Math.random()-.5)*.3,s:1.3});}
     });
     // 組合的蝴蝶：一朵一朵停過去，停一下再飛；晚上去睡覺
     cbfly.forEach(function(b){var c=b.c,on=!!c&&night<.5;b.g.visible=on;if(!on)return;

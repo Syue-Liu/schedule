@@ -500,7 +500,7 @@ body.placing-decor .g3-tools,body.placing-decor .g3-full-control,body.placing-de
 <script src="sound.js?v=piano-20261116"></script>
 <script src="game.js?v=garden-20261102"></script>
 <script src="vs.js?v=mail-20261108"></script>
-<script src="garden3d.js?v=combohint-20261117"></script>
+<script src="garden3d.js?v=combogrow-20261117"></script>
 <script>
 /* 記憶小森林：兩個人一起種。每天回答一題問答拿水滴，一起澆水，把種子種成樹；長大的樹放進森林，留著那段時間的問答和兩個人的話。
    資料：班表同一個 Firebase 的 banbiao/<同步代碼>_garden（沒有同步代碼就存在這支手機）
@@ -703,7 +703,7 @@ var SPI={
   calla:{lang:'純潔・幸福',intro:'天南星科的多年生草本，白色的「花」像一個捲起來的喇叭，中間立著一根黃色的花序。',fact:'那片白色的喇叭其實是苞片。陽明山竹子湖每年春天有海芋季，可以下田採海芋。'},
   cypress:{lab:'寓意',lang:'長壽・守護',intro:'柏科的常綠大樹，是台灣特有的珍貴樹種，長在中高海拔的山區，可以活上千年。',fact:'阿里山、拉拉山的「神木」很多都是紅檜，有的已經超過兩千歲。檜木有一股好聞的香味，也是很好的木材。'}
 };
-/* ── 種在一起：同一種 3 株以上靠在一起變成花海、樹林；特別的三種種在一起是隱藏組合（三株連在一起：相鄰的土，或森林裡挨著）。
+/* ── 種在一起：同一種 3 株以上靠在一起變成花海、樹林；特別的三種種在一起是隱藏組合（連在一起：相鄰的土，或森林裡挨著；旁邊再種同一類的會一起加入，組合可以變大）。
    3D 花園（garden3d.js）照這張表找組合、做效果；第一次湊到記在 combo（森林的「✨ 組合」看得到） ── */
 var COMBO=[
   {k:'love',e:'💕',name:'甜蜜的愛',g:[['rose'],['tulip'],['strawberry']],fx:'hearts',c:['#F7A8C0'],hint:'玫瑰、鬱金香、草莓',d:'玫瑰說愛、鬱金香告白、草莓甜蜜蜜，種在一起會飄出粉紅色的愛心，還有蝴蝶飛來'},
@@ -739,24 +739,22 @@ function comboBook(){
   var nr=COMBO.filter(function(R){return seen[R.k];}).length,sps=Object.keys(seen).filter(function(k){return comboSp(k)&&SP[comboSp(k)];}).sort(function(a,b){return seen[a]<seen[b]?-1:1;});
   return '<div class="cbook"><h4>🌟 特別組合 <small>'+nr+' / '+COMBO.length+'</small></h4><div class="clist">'+COMBO.map(function(R){var f=seen[R.k],a=on[R.k];
       return '<button class="ccard'+(a?' on':f?' found':'')+'" data-ck="'+R.k+'"><i>'+(f||a?R.e:'❔')+'</i><div><b>'+(f||a?esc(R.name):'？？？')+(a?'<em>✨ 花園裡有</em>':f?'<em>'+md(f)+' 發現</em>':'')+'</b><span>'+(f||a?esc(R.d):'提示：'+esc(R.hint)+' 種在一起')+'</span>'+(!a&&comboProgress(R)?'<span class="cprog">'+esc(comboProgress(R))+'</span>':'')+'</div></button>';}).join('')+'</div>'+
-    '<h4>🌼 花海・🌳 樹林 <small>'+sps.length+'</small></h4><p class="cnote">同一種植物 3 株以上種在一起（相鄰的土，或森林裡挨著），就會變成花海、樹林。可以用「移植」把它們搬到一起。選種子的時候，有 ✨ 的就是種在那塊土會湊成組合的</p>'+
+    '<h4>🌼 花海・🌳 樹林 <small>'+sps.length+'</small></h4><p class="cnote">同一種植物 3 株以上種在一起（相鄰的土，或森林裡挨著），就會變成花海、樹林。可以用「移植」把它們搬到一起。組合湊成以後，旁邊再種同一類的植物會一起加入，越大片效果越熱鬧。選種子的時候，有 ✨ 的就是種在那塊土會湊成（或加入）組合的</p>'+
     (sps.length?'<div class="cchips">'+sps.map(function(k){return '<button class="cchip'+(on[k]?' on':'')+'" data-ck="'+k+'">'+comboE(k)+' '+esc(comboName(k))+(on[k]?' ✨':'')+'</button>';}).join('')+'</div>':'<p class="cnote">還沒有湊到過</p>')+'</div>';
 }
 /* ── 組合提示：選種子時標出「種在這裡會湊成組合」的、植物卡片說旁邊再種什麼、森林的樹說要把誰移植到一起、組合圖鑑說已經有哪些 ── */
 function linkedSlots(i){return g3&&Garden3D.slotNear?Garden3D.slotNear(i):[];}
 function slotSpecies(){var o={};garden().forEach(function(p,i){if(p)o[i]=p.sp;});return o;}
-function comboFits(R,sps){
-  if(R.any)return sps.every(function(x){return R.any.indexOf(x)>=0;})&&sps[0]!==sps[1]&&sps[0]!==sps[2]&&sps[1]!==sps[2];
-  return [[0,1,2],[0,2,1],[1,0,2],[1,2,0],[2,0,1],[2,1,0]].some(function(q){return R.g[0].indexOf(sps[q[0]])>=0&&R.g[1].indexOf(sps[q[1]])>=0&&R.g[2].indexOf(sps[q[2]])>=0;});}
 // 這塊土種 sp 會湊成哪些組合（旁邊的植物長多大都算，開花後才有效果）：[{k,slots}]
 function slotCombos(slot,sp,occ){
   var o={},N={},out=[];for(var x in occ)o[x]=occ[x];o[slot]=sp;var nb=function(i){return N[i]||(N[i]=linkedSlots(i));};
   var seen={},st=[slot],comp=[];seen[slot]=1;while(st.length){var a=st.pop();comp.push(a);nb(a).forEach(function(b){if(!seen[b]&&o[b]===sp){seen[b]=1;st.push(b);}});}
   if(comp.length>=3)out.push({k:'sp:'+sp,slots:comp});
-  var near=nb(slot).filter(function(b){return o[b];});
-  COMBO.forEach(function(R){var hit=null;
-    near.forEach(function(a){if(hit)return;near.concat(nb(a).filter(function(b){return b!=slot&&o[b];})).forEach(function(b){if(!hit&&b!=a&&comboFits(R,[sp,o[a],o[b]]))hit=[+slot,+a,+b];});});
-    if(hit)out.push({k:R.k,slots:hit});});
+  // 特別組合：這個組合的植物連成一片，每一格都有（any：三種不一樣的）；片可以一直變大
+  COMBO.forEach(function(R){var G=R.g||null,S=G?[].concat.apply([],G):R.any;if(S.indexOf(sp)<0)return;
+    var sn={},q=[+slot],cp=[];sn[slot]=1;while(q.length){var a=q.pop();cp.push(a);nb(a).forEach(function(b){if(!sn[b]&&o[b]&&S.indexOf(o[b])>=0){sn[b]=1;q.push(b);}});}
+    if(cp.length<3)return;var has={};cp.forEach(function(i){has[o[i]]=1;});
+    if(G?G.every(function(g){return g.some(function(x){return has[x];});}):Object.keys(has).length>=3)out.push({k:R.k,slots:cp});});
   return out;
 }
 // 還沒發現的特別組合不講名字（留一點驚喜）
@@ -1937,10 +1935,11 @@ function openPlant(id){
   sheet.paint();
 }
 function openSeeds(slot){
-  var L=level(),occ=g3?slotSpecies():null,anyC=false;
+  var L=level(),occ=g3?slotSpecies():null,anyC=false,planned={};
+  if(occ)linkedSlots(slot).forEach(function(b){if(occ[b])slotCombos(b,occ[b],occ).forEach(function(c){planned[c.k]=1;});});
   // 種在這塊土會和旁邊的植物湊成組合的：金色框＋✨ 名字
   var h=Object.keys(SP).map(function(k){var S=SP[k],lock=L<S.lv,cs=!lock&&occ?slotCombos(slot,k,occ):[];if(cs.length)anyC=true;cs.sort(function(a,b){return (comboSp(a.k)?1:0)-(comboSp(b.k)?1:0);});
-    return '<button data-sp="'+k+'"'+(lock?' disabled':'')+(cs.length?' class="cmb"':'')+'>'+(cs.length?'<i class="cmb-tag">✨ '+esc(comboLabel(cs[0].k))+'</i>':'')+art(k,lock?0:4)+S.name+'<small>'+(lock?'Lv.'+S.lv+' 解鎖':(S.kind==='flower'?'花・':'樹・')+'要 '+S.need+' 點')+'</small></button>';}).join('');
+    return '<button data-sp="'+k+'"'+(lock?' disabled':'')+(cs.length?' class="cmb"':'')+'>'+(cs.length?'<i class="cmb-tag">✨ '+(planned[cs[0].k]?'加入':'')+esc(comboLabel(cs[0].k))+'</i>':'')+art(k,lock?0:4)+S.name+'<small>'+(lock?'Lv.'+S.lv+' 解鎖':(S.kind==='flower'?'花・':'樹・')+'要 '+S.need+' 點')+'</small></button>';}).join('');
   var ov=card('<h2>🌱 要種什麼呢？</h2>'+(anyC?'<p class="g-small" style="margin:0 0 4px">✨ 的種在這裡，會和旁邊的植物湊成組合（都開花後出現效果）</p>':'')+'<div class="seeds">'+h+'</div><p class="g-small">花長得快；樹長得慢，但長大很漂亮</p><div class="g-btns"><button class="g-btn ghost" data-close>取消</button></div>');
   ov.querySelectorAll('[data-sp]').forEach(function(b){b.onclick=function(){closeSheet();plantSeed(slot,b.getAttribute('data-sp'));};});
   ov.querySelector('[data-close]').onclick=closeSheet;
@@ -1991,7 +1990,7 @@ function help(){
   card('<h2>🎮 遊戲操作</h2><div class="g-rules">'+
     '<h4>🖐️ 怎麼操作</h4><ul><li>拖曳轉一圈、兩指拉近拉遠；用「全螢幕」放大，用「視角」回到原本的角度</li><li>點土種樹、點植物澆水；需要時按「澆澆水」顯示植物名稱、成長進度和今天的澆水狀態，再按一次隱藏</li><li>植物和森林的樹都可以「移植」，把花園排成你們喜歡的樣子</li><li>右側工具列可以收合，按「展開」再打開；工具列裡有視角、澆澆水、裝飾、拍照、跟著看</li><li>樹屋旁停著學的紅色街車和綾的小電動車：點它們可以叫兩個人一起去兜風（下雨、下雪不騎）</li><li>3D 花園右邊的「跟著看」：選學、綾或一隻寵物，鏡頭就一直跟著他（拖曳繞著看、兩指拉近）</li><li>裝飾、植物、森林的樹都可以轉方向：點它，按「🔄 轉方向」，在花園裡邊看邊按 ↺ ↻</li></ul>'+
     '<h4>💧 水滴</h4><ul><li>每個人每天 '+BASE+' 滴水；回答今日問題 +'+ANSWER+' 滴，二選一兩個人選一樣再各多 '+MATCH+' 滴</li><li>同一天兩個人都澆同一棵，那天多長 '+TOGETHER+' 點</li><li>小鳥飛來的時候點牠，送一滴水（每天最多 '+BIRD+' 滴）；有害蟲要先抓走才能澆水</li><li>下雨、下雪那天，所有植物都會自己長一點</li></ul>'+
-    '<h4>🌳 森林</h4><ul><li>長大的植物種進森林，會留下那段時間的問答和你們寫的話</li><li>種進森林兩個人各拿 1 包飼料（算在每天 '+G.CAP+' 包裡）</li><li>澆水、回答、抓害蟲都會加經驗；升級多幾塊土、開放新土地、解鎖新的花和樹</li><li>🧺 學和綾會自己去樹下坐坐、接花瓣、搖果樹撿果子、在落葉上跳、抱抱大樹；森林回憶卡片的「一起來樹下坐坐」可以叫他們過去</li><li>✨ 種在一起：同一種植物 3 株以上種在一起（相鄰的土，或森林裡挨著）會變成花海、樹林；特別的三種種在一起還有隱藏組合，像松、竹、梅是「歲寒三友」。森林的「✨ 組合」看得到提示</li></ul>'+
+    '<h4>🌳 森林</h4><ul><li>長大的植物種進森林，會留下那段時間的問答和你們寫的話</li><li>種進森林兩個人各拿 1 包飼料（算在每天 '+G.CAP+' 包裡）</li><li>澆水、回答、抓害蟲都會加經驗；升級多幾塊土、開放新土地、解鎖新的花和樹</li><li>🧺 學和綾會自己去樹下坐坐、接花瓣、搖果樹撿果子、在落葉上跳、抱抱大樹；森林回憶卡片的「一起來樹下坐坐」可以叫他們過去</li><li>✨ 種在一起：同一種植物 3 株以上種在一起（相鄰的土，或森林裡挨著）會變成花海、樹林；特別的三種種在一起還有隱藏組合，像松、竹、梅是「歲寒三友」；組合湊成後，旁邊再種同一類的會一起加入，越大片效果越熱鬧。森林的「✨ 組合」看得到提示</li></ul>'+
     '<h4>🛝 遊樂區（點它們叫學和綾過去）</h4><ul><li>白天溜滑梯、盪鞦韆；下雨、下雪天溜滑梯換成涼亭，喝咖啡吃甜點</li><li>傍晚長椅看夕陽，晚上營火烤棉花糖；下雨的晚上會搭起天幕</li><li>樹屋旁的鞦韆隨時都能盪，兩個人的話一個坐、一個在後面推</li></ul>'+
     '<h4>🔥 連續紀錄・🏅 成就・📸 拍照</h4><ul><li>兩個人同一天都有澆水或回答問題，連續紀錄就多一天（最上面的 🔥）</li><li>下面的 🏅 成就：達成後每個人各領一次獎勵水滴，有的還會解鎖限定裝飾</li><li>3D 花園右邊的「拍照」：按鈕和名字會收起來，選好角度按快門，可以存到手機或放進兩個人的相簿</li><li>今日問題下面的「✍️ 我來出題」：自己寫題目排進之後的今日問題</li></ul>'+
     '<h4>🎀 裝飾・📮 信箱・🎉 紀念日</h4><ul><li>升級解鎖裝飾（3D 花園工具列的「裝飾」）：盆栽、路燈、柵欄、蘑菇燈、花拱門、花圃、名字木牌、風車、長椅、小花車、稻草人、石板路、愛心氣球、鳥屋、南瓜燈、野餐墊、燈串、噴水池、風鈴、吊床、雙人鞦韆椅、小池塘、蜂箱、帳篷、狗屋、鳥浴盆、石燈籠、日晷、陽傘野餐桌、小鋼琴；學和綾會去坐長椅、躺吊床、坐鞦韆椅和野餐桌</li><li>成就限定裝飾：幸福鐘、許願井、望遠鏡（晚上點它看流星）、熱氣球、雪人、愛心拍照框、天燈、彩虹拱門</li><li>📮 寫信給對方，對方一打開班表或花園就會看到</li><li>紀念日（交往、結婚、生日、在一起每 100 天）花園會布置，每個人多 '+SPECIAL+' 滴水</li><li>節日也會布置：聖誕節（點聖誕樹拆禮物）、跨年、過年、情人節、七夕、中秋、萬聖節</li></ul>'+
