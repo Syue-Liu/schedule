@@ -1793,9 +1793,10 @@ function paintMove(){
   }
   var p=D.plants[moving.id];if(!p||(moving.kind==='plot'&&p.done)){endMove();return;}
   if(moving.kind==='tree'){
-    h='<b>🌳 移植'+esc(label(p))+'</b>'+(s?(s.ok?'<span>種在這裡嗎？也可以再點別的地方</span>':'<span class="bad">'+esc(s.why)+'，換個地方</span>'):'<span>點草地選新位置・拖曳轉動、兩指拉近</span>')+
+    var sw=s&&s.swap&&D.plants[s.swap];
+    h='<b>🌳 移植'+esc(label(p))+'</b>'+(sw?'<span>和'+esc(label(sw))+'交換位置嗎？</span>':s?(s.ok?'<span>種在這裡嗎？也可以再點別的地方</span>':'<span class="bad">'+esc(s.why)+'，換個地方</span>'):'<span>點草地選新位置；點別的植物可以直接交換位置</span>')+
       chips+
-      '<div class="g-btns">'+(s&&s.ok?'<button class="g-btn" data-ok>種在這裡</button>':'')+'<button class="g-btn ghost" data-cancel>取消</button></div>';
+      '<div class="g-btns">'+(s&&s.ok?'<button class="g-btn" data-ok>'+(sw?'🔄 交換位置':'種在這裡')+'</button>':'')+'<button class="g-btn ghost" data-cancel>取消</button></div>';
   }else h='<b>🪴 移植'+esc(label(p))+'</b><span>點一塊空的土搬過去；點有植物的土會交換位置</span><div class="g-btns"><button class="g-btn ghost" data-cancel>取消</button></div>';
   bar.innerHTML=h;bar.hidden=false;
   bar.querySelector('[data-cancel]').onclick=function(){SND.sfx('tap');endMove();};
@@ -1815,7 +1816,9 @@ function moveTreeTo(){
   var id=moving.id,o={plants:{}},pos=Garden3D.forestPos();
   // 第一次移植：先把森林每棵樹現在的位置存起來，之後別棵就不會跟著跑
   Object.keys(pos).forEach(function(k){if(D.plants[k]&&!D.plants[k].pos)o.plants[k]={pos:pos[k]};});
-  o.plants[id]={pos:{x:s.x,z:s.z},mv:{by:me,at:Date.now()}};
+  var mk={by:me,at:Date.now()};o.plants[id]={pos:{x:s.x,z:s.z},mv:mk};
+  // 交換：點的那棵搬到這棵原來的位置
+  if(s.swap&&D.plants[s.swap]&&pos[id]){o.plants[s.swap]={pos:pos[id],mv:mk};write(o);SND.sfx('plant');toast(label(D.plants[id])+'和'+label(D.plants[s.swap])+'交換位置了 🌳');endMove();paint();return;}
   write(o);toast('把'+label(D.plants[id])+'移植到新的地方了 🌳');
   endMove();paint();
 }

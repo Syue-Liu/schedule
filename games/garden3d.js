@@ -2213,7 +2213,7 @@ var Garden3D=(function(){
   }
   function moveEnd(){
     if(!mv)return;
-    [mv.mark,mv.ok,mv.bad,mv.ghost].forEach(function(o){if(o)scene.remove(o);});(mv.mats||[]).forEach(function(m){m.dispose();});
+    [mv.mark,mv.ok,mv.bad,mv.ghost,mv.ghost2].forEach(function(o){if(o)scene.remove(o);});(mv.mats||[]).concat(mv.mats2||[]).forEach(function(m){m.dispose();});
     var view=mv.view;mv=null;if(lastSt)update(lastSt);if(view){tgoal.set(view.x,view.y,view.z);rgoal=view.rad;agoal=view.az;egoal=view.el;}
   }
   function movePick(ray){
@@ -2225,11 +2225,30 @@ var Garden3D=(function(){
       if(!p||p.id===mv.id)return;
       hooks.moveSel({slot:p.i,swap:p.id||null});return;
     }
+    // 森林的樹：點到別棵（或點在別棵旁邊）就兩棵交換位置
+    if(mv.kind==='tree'){
+      var cs=[];for(var k in trees)if(k!==mv.id)trees[k].g.children.forEach(function(c){if(c.userData&&c.userData.tree)cs.push(c);});
+      var h=ray.intersectObjects(cs,false)[0],sw=h?h.object.userData.tree:null;
+      if(!sw&&gnd){var bd=.7;for(var k2 in trees){if(k2===mv.id)continue;var d=Math.hypot(trees[k2].x-pt.x,trees[k2].z-pt.z);if(d<bd){bd=d;sw=k2;}}}
+      if(sw){selectSwap(sw);return;}
+      swapGhost(null);
+    }
     if(!gnd)return;
     selectMoveSpot(Math.round(pt.x*2)/2,Math.round(pt.z*2)/2);
   }
+  // 交換：要搬的那棵（半透明）放到點的那棵的位置，點的那棵（半透明）放到原來的位置
+  function selectSwap(sw){var T0=trees[sw],src=mv.src;mv.sel={x:T0.x,z:T0.z,ok:true,swap:sw};
+    mv.ghost.visible=true;mv.ghost.position.set(T0.x,0,T0.z);mv.ok.visible=true;mv.bad.visible=false;mv.ok.position.set(T0.x,.04,T0.z);
+    swapGhost(sw);if(mv.ghost2){mv.ghost2.position.set(src.x,0,src.z);}hooks.moveSel(mv.sel);}
+  function swapGhost(sw){
+    if(mv.ghost2&&mv.ghost2.userData.id===sw)return;
+    if(mv.ghost2){scene.remove(mv.ghost2);(mv.mats2||[]).forEach(function(m){m.dispose();});mv.ghost2=null;mv.mats2=[];}
+    if(!sw||!trees[sw])return;var fw=window.SP[trees[sw].sp].kind==='flower',g=plant(trees[sw].sp,4,!fw);g.scale.setScalar((fw?.85:TREE_S)*sizeOf(sw));mv.mats2=[];
+    g.traverse(function(o){if(o.isMesh){o.material=o.material.clone();o.material.transparent=true;o.material.opacity=.5;o.material.depthWrite=false;o.castShadow=false;mv.mats2.push(o.material);}});
+    g.userData.id=sw;scene.add(g);mv.ghost2=g;
+  }
   function moveWhy(x,z){var why=canPlace(x,z,mv.id,mv.r);if(!why&&SEAT[mv.k]&&Math.hypot(x,z)>ISL-1.1)why=(mv.k==='picnic'?'野餐墊':mv.k==='bench'?'長椅':'吊床')+'要放在中間的花園裡';return why;}
-  function selectMoveSpot(x,z){var why=moveWhy(x,z);mv.sel={x:x,z:z,ok:!why,why:why};
+  function selectMoveSpot(x,z){var why=moveWhy(x,z);mv.sel={x:x,z:z,ok:!why,why:why};if(mv.kind==='tree')swapGhost(null);
     mv.ghost.visible=!why;mv.ghost.position.set(x,0,z);if(mv.k)mv.ghost.rotation.y=Math.atan2(-x,-z);
     mv.ok.visible=!why;mv.bad.visible=!!why;(why?mv.bad:mv.ok).position.set(x,.04,z);hooks.moveSel(mv.sel);
   }
