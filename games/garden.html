@@ -188,6 +188,8 @@ body.placing-decor .g3-tools,body.placing-decor .g3-full-control,body.placing-de
 .seeds button svg{width:64px;height:70px;}
 .seeds button small{font-size:10px;color:var(--t3);}
 .seeds button[disabled]{opacity:.45;border-style:dashed;}
+.seeds button.cmb{position:relative;border-color:#D9A93A;background:#FFF7DD;box-shadow:inset 0 0 0 1.5px #F6D27A;}
+.seeds .cmb-tag{max-width:100%;padding:1px 6px;border-radius:999px;background:#F6D27A;font-style:normal;font-size:10px;line-height:1.5;color:#7A5A12;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .seeds.newsp{max-height:46vh;overflow:auto;}.seeds.newsp .lock{opacity:.6;}.seeds.newsp div{display:flex;flex-direction:column;align-items:center;padding:6px 2px;border:var(--lw2) solid var(--ink);border-radius:14px;background:var(--paper);font-size:13px;}
 .seeds.newsp div svg{width:64px;height:70px;}.seeds.newsp div small{font-size:10px;color:var(--t3);}
 .mem,.mem-notes,.mem-qa{text-align:left;}
@@ -335,6 +337,9 @@ body.placing-decor .g3-tools,body.placing-decor .g3-full-control,body.placing-de
 .ccard span{display:block;font-size:11.5px;line-height:1.45;color:var(--t3);}
 .ccard.found{background:#FFFBEF;}.ccard.on{background:#FFF3C9;box-shadow:0 2px 0 var(--ink);}
 .ccard:not(.on):not(.found) i{filter:grayscale(1);opacity:.6;}
+.sh-hint{margin-top:8px;padding:7px 12px;border-radius:14px;background:#EEF6E8;text-align:left;font-size:13px;line-height:1.55;color:#4D6A4D;}
+.sh-hint p{margin:2px 0;}.sh-hint b{font-weight:400;color:#2F5A35;border-bottom:1.5px solid #9FC48C;}
+.ccard .cprog{margin-top:3px;color:#7E9A62;}
 .cnote{margin:0 2px 8px;font-size:12px;color:var(--t3);line-height:1.5;}
 .cchips{display:flex;flex-wrap:wrap;gap:6px;}
 .cchip{padding:4px 10px;border:2px solid var(--ink);border-radius:999px;background:var(--paper);font:inherit;font-size:12px;color:var(--t);}
@@ -495,7 +500,7 @@ body.placing-decor .g3-tools,body.placing-decor .g3-full-control,body.placing-de
 <script src="sound.js?v=piano-20261116"></script>
 <script src="game.js?v=garden-20261102"></script>
 <script src="vs.js?v=mail-20261108"></script>
-<script src="garden3d.js?v=treeplay-20261116"></script>
+<script src="garden3d.js?v=combohint-20261117"></script>
 <script>
 /* 記憶小森林：兩個人一起種。每天回答一題問答拿水滴，一起澆水，把種子種成樹；長大的樹放進森林，留著那段時間的問答和兩個人的話。
    資料：班表同一個 Firebase 的 banbiao/<同步代碼>_garden（沒有同步代碼就存在這支手機）
@@ -698,7 +703,7 @@ var SPI={
   calla:{lang:'純潔・幸福',intro:'天南星科的多年生草本，白色的「花」像一個捲起來的喇叭，中間立著一根黃色的花序。',fact:'那片白色的喇叭其實是苞片。陽明山竹子湖每年春天有海芋季，可以下田採海芋。'},
   cypress:{lab:'寓意',lang:'長壽・守護',intro:'柏科的常綠大樹，是台灣特有的珍貴樹種，長在中高海拔的山區，可以活上千年。',fact:'阿里山、拉拉山的「神木」很多都是紅檜，有的已經超過兩千歲。檜木有一股好聞的香味，也是很好的木材。'}
 };
-/* ── 種在一起：同一種 3 株以上靠在一起變成花海、樹林；特別的三種種在一起是隱藏組合（三株兩兩都要靠在一起：相鄰的土，或森林裡挨著）。
+/* ── 種在一起：同一種 3 株以上靠在一起變成花海、樹林；特別的三種種在一起是隱藏組合（三株連在一起：相鄰的土，或森林裡挨著）。
    3D 花園（garden3d.js）照這張表找組合、做效果；第一次湊到記在 combo（森林的「✨ 組合」看得到） ── */
 var COMBO=[
   {k:'love',e:'💕',name:'甜蜜的愛',g:[['rose'],['tulip'],['strawberry']],fx:'hearts',c:['#F7A8C0'],hint:'玫瑰、鬱金香、草莓',d:'玫瑰說愛、鬱金香告白、草莓甜蜜蜜，種在一起會飄出粉紅色的愛心，還有蝴蝶飛來'},
@@ -733,9 +738,59 @@ function comboBook(){
   var seen=D.combo||{},on={};C3.forEach(function(c){(on[c.key]=on[c.key]||[]).push.apply(on[c.key],c.ids);});
   var nr=COMBO.filter(function(R){return seen[R.k];}).length,sps=Object.keys(seen).filter(function(k){return comboSp(k)&&SP[comboSp(k)];}).sort(function(a,b){return seen[a]<seen[b]?-1:1;});
   return '<div class="cbook"><h4>🌟 特別組合 <small>'+nr+' / '+COMBO.length+'</small></h4><div class="clist">'+COMBO.map(function(R){var f=seen[R.k],a=on[R.k];
-      return '<button class="ccard'+(a?' on':f?' found':'')+'" data-ck="'+R.k+'"><i>'+(f||a?R.e:'❔')+'</i><div><b>'+(f||a?esc(R.name):'？？？')+(a?'<em>✨ 花園裡有</em>':f?'<em>'+md(f)+' 發現</em>':'')+'</b><span>'+(f||a?esc(R.d):'提示：'+esc(R.hint)+' 種在一起')+'</span></div></button>';}).join('')+'</div>'+
-    '<h4>🌼 花海・🌳 樹林 <small>'+sps.length+'</small></h4><p class="cnote">同一種植物 3 株以上種在一起（相鄰的土，或森林裡挨著），就會變成花海、樹林。可以用「移植」把它們搬到一起</p>'+
+      return '<button class="ccard'+(a?' on':f?' found':'')+'" data-ck="'+R.k+'"><i>'+(f||a?R.e:'❔')+'</i><div><b>'+(f||a?esc(R.name):'？？？')+(a?'<em>✨ 花園裡有</em>':f?'<em>'+md(f)+' 發現</em>':'')+'</b><span>'+(f||a?esc(R.d):'提示：'+esc(R.hint)+' 種在一起')+'</span>'+(!a&&comboProgress(R)?'<span class="cprog">'+esc(comboProgress(R))+'</span>':'')+'</div></button>';}).join('')+'</div>'+
+    '<h4>🌼 花海・🌳 樹林 <small>'+sps.length+'</small></h4><p class="cnote">同一種植物 3 株以上種在一起（相鄰的土，或森林裡挨著），就會變成花海、樹林。可以用「移植」把它們搬到一起。選種子的時候，有 ✨ 的就是種在那塊土會湊成組合的</p>'+
     (sps.length?'<div class="cchips">'+sps.map(function(k){return '<button class="cchip'+(on[k]?' on':'')+'" data-ck="'+k+'">'+comboE(k)+' '+esc(comboName(k))+(on[k]?' ✨':'')+'</button>';}).join('')+'</div>':'<p class="cnote">還沒有湊到過</p>')+'</div>';
+}
+/* ── 組合提示：選種子時標出「種在這裡會湊成組合」的、植物卡片說旁邊再種什麼、森林的樹說要把誰移植到一起、組合圖鑑說已經有哪些 ── */
+function linkedSlots(i){return g3&&Garden3D.slotNear?Garden3D.slotNear(i):[];}
+function slotSpecies(){var o={};garden().forEach(function(p,i){if(p)o[i]=p.sp;});return o;}
+function comboFits(R,sps){
+  if(R.any)return sps.every(function(x){return R.any.indexOf(x)>=0;})&&sps[0]!==sps[1]&&sps[0]!==sps[2]&&sps[1]!==sps[2];
+  return [[0,1,2],[0,2,1],[1,0,2],[1,2,0],[2,0,1],[2,1,0]].some(function(q){return R.g[0].indexOf(sps[q[0]])>=0&&R.g[1].indexOf(sps[q[1]])>=0&&R.g[2].indexOf(sps[q[2]])>=0;});}
+// 這塊土種 sp 會湊成哪些組合（旁邊的植物長多大都算，開花後才有效果）：[{k,slots}]
+function slotCombos(slot,sp,occ){
+  var o={},N={},out=[];for(var x in occ)o[x]=occ[x];o[slot]=sp;var nb=function(i){return N[i]||(N[i]=linkedSlots(i));};
+  var seen={},st=[slot],comp=[];seen[slot]=1;while(st.length){var a=st.pop();comp.push(a);nb(a).forEach(function(b){if(!seen[b]&&o[b]===sp){seen[b]=1;st.push(b);}});}
+  if(comp.length>=3)out.push({k:'sp:'+sp,slots:comp});
+  var near=nb(slot).filter(function(b){return o[b];});
+  COMBO.forEach(function(R){var hit=null;
+    near.forEach(function(a){if(hit)return;near.concat(nb(a).filter(function(b){return b!=slot&&o[b];})).forEach(function(b){if(!hit&&b!=a&&comboFits(R,[sp,o[a],o[b]]))hit=[+slot,+a,+b];});});
+    if(hit)out.push({k:R.k,slots:hit});});
+  return out;
+}
+// 還沒發現的特別組合不講名字（留一點驚喜）
+function comboLabel(k){return comboSp(k)||(D.combo||{})[k]?'「'+comboName(k)+'」':'隱藏組合';}
+function spList(a){return a.map(function(k){return SP[k].name;}).join('、');}
+// 花園裡的植物：旁邊（或隔一塊）的空土種什麼可以湊成組合
+function plantHints(id){
+  if(!g3)return [];var si=-1;garden().forEach(function(p,i){if(p&&p.id===id)si=i;});if(si<0)return [];
+  var occ=slotSpecies(),L=level(),open={},have={},out=[],seenK={};openSlots(L).forEach(function(i){open[i]=1;});
+  slotCombos(si,occ[si],occ).forEach(function(c){have[c.k]=1;});
+  var emp=[];linkedSlots(si).forEach(function(b){if(open[b]&&!occ[b])emp.push(b);else if(occ[b])linkedSlots(b).forEach(function(c){if(c!=si&&open[c]&&!occ[c]&&emp.indexOf(c)<0)emp.push(c);});});
+  emp.forEach(function(e){Object.keys(SP).forEach(function(k){if(L<SP[k].lv)return;slotCombos(e,k,occ).forEach(function(c){if(c.slots.indexOf(si)<0||have[c.k]||seenK[c.k])return;seenK[c.k]=1;out.push({k:c.k,sp:k});});});});
+  out.sort(function(a,b){return (comboSp(a.k)?1:0)-(comboSp(b.k)?1:0);});
+  return out.slice(0,2).map(function(h){return comboSp(h.k)?'旁邊的空地再種一株<b>'+SP[h.sp].name+'</b>，就會變成'+comboLabel(h.k):'旁邊的空地種<b>'+SP[h.sp].name+'</b>，可以湊成'+comboLabel(h.k)+' ✨';});
+}
+// 森林的樹：森林裡有誰可以一起移植過來
+function forestHints(id){
+  var p=D.plants[id];if(!p||!SP[p.sp])return [];var cnt={},have={},out=[],L=level();forest().forEach(function(q){cnt[q.sp]=(cnt[q.sp]||0)+1;});
+  C3.forEach(function(c){if(c.ids.indexOf(id)>=0)have[c.key]=1;});
+  if(!have['sp:'+p.sp]&&cnt[p.sp]>=3)out.push('森林裡有 '+cnt[p.sp]+' 棵'+SP[p.sp].name+'，用「移植」把它們挨著種，就會變成'+comboLabel('sp:'+p.sp));
+  COMBO.forEach(function(R){if(have[R.k]||out.length>=2)return;var G=R.g||[R.any,R.any,R.any],mi=-1;
+    G.forEach(function(g,i){if(mi<0&&g.indexOf(p.sp)>=0)mi=i;});if(mi<0)return;
+    var got=[],miss=[];G.forEach(function(g,i){if(i===mi)return;var k=g.filter(function(x){return cnt[x]&&x!==p.sp&&got.indexOf(x)<0;})[0];if(k)got.push(k);else miss.push(g.filter(function(x){return x!==p.sp&&got.indexOf(x)<0&&L>=SP[x].lv;})[0]||'');});
+    if(!miss.length)out.push('森林裡也有'+spList(got)+'，把它們移植到這棵旁邊，就能湊成'+comboLabel(R.k)+' ✨');
+    else if(miss.length===1&&miss[0])out.push('和'+(got.length?spList(got)+'、':'')+'<b>'+SP[miss[0]].name+'</b>種在一起，可以湊成'+comboLabel(R.k)+'（還沒有'+SP[miss[0]].name+'）');});
+  return out.slice(0,2);
+}
+function hintHtml(L){return L.length?'<div class="sh-hint">'+L.map(function(t){return '<p>💡 '+t+'</p>';}).join('')+'</div>':'';}
+// 組合圖鑑：這個組合已經種了哪些、還差哪些
+function comboProgress(R){
+  var own={};all().forEach(function(p){own[p.sp]=1;});
+  if(R.any){var g=R.any.filter(function(x){return own[x];});return g.length?'已經有 '+g.length+' 種：'+spList(g)+(g.length<3?'（要 3 種）':''):'';}
+  var got=[],miss=[];R.g.forEach(function(g){var k=g.filter(function(x){return own[x];})[0];if(k)got.push(k);else miss.push(g[0]);});
+  return got.length?'已經有：'+spList(got)+(miss.length?'・還差：'+spList(miss):'・都有了，種在一起吧！'):'';
 }
 function comboTap(k){
   var ids=[];C3.forEach(function(c){if(c.key===k)ids=ids.concat(c.ids);});SND.sfx('tap');
@@ -1862,7 +1917,7 @@ function openPlant(id){
     box.innerHTML=navHtml(nav,id)+'<div class="sh-art">'+art(p.sp,g.stage)+'</div><h2>'+esc(p.name||SP[p.sp].name)+'</h2><div class="sh-sp">'+SP[p.sp].name+'・'+stageName(p,g)+'・'+md(dayOf(p.at))+' '+NAMES[p.by]+'種的</div>'+
       '<div class="bar big"><i style="width:'+Math.round(g.r*100)+'%"></i></div><div class="sh-num">'+Math.min(g.pts,g.need)+' / '+g.need+'</div>'+
       '<div class="sh-today">今天 學 💧'+a+'・綾 💧'+b+(a&&b?' ✨ 兩個人都澆了 +'+TOGETHER:'')+(wet(today())&&today()>=WX_START?'・'+(weatherOf(today())==='snow'?'❄️':'🌧️')+' +'+RAIN:'')+'</div>'+(g.rain?'<div class="g-small" style="margin:2px 0 0">淋雨自己長了 '+g.rain*RAIN+' 點</div>':'')+
-      (g.stage<4&&thirsty(p)?'<div class="sh-warn">好幾天沒人澆水，口渴了…</div>':'')+(g.stage===4?comboHtml(id)+spInfo(p.sp):'')+
+      (g.stage<4&&thirsty(p)?'<div class="sh-warn">好幾天沒人澆水，口渴了…</div>':'')+(g.stage===4?comboHtml(id):'')+hintHtml(plantHints(id))+(g.stage===4?spInfo(p.sp):'')+
       (pe?'<div class="sh-pest">'+PESTS[pe.kind].e+' 有'+PESTS[pe.kind].name+'在啃葉子！先抓走才能澆水</div>':'')+
       (naming?'<div class="sh-name"><input id="nmIn" maxlength="10" placeholder="幫它取名字" value="'+esc(p.name||'')+'"><button data-save>好</button></div>':'')+
       '<div class="g-btns">'+(g.stage===4?'<button class="g-btn" data-harvest>🌳 種進森林</button>':pe?'<button class="g-btn" data-catch>'+PESTS[pe.kind].e+' 抓走'+PESTS[pe.kind].name+'</button>':'<button class="g-btn" data-water>💧 澆水（還有 '+left()+' 滴）</button>')+
@@ -1882,8 +1937,11 @@ function openPlant(id){
   sheet.paint();
 }
 function openSeeds(slot){
-  var L=level();
-  var ov=card('<h2>🌱 要種什麼呢？</h2><div class="seeds">'+Object.keys(SP).map(function(k){var S=SP[k],lock=L<S.lv;return '<button data-sp="'+k+'"'+(lock?' disabled':'')+'>'+art(k,lock?0:4)+S.name+'<small>'+(lock?'Lv.'+S.lv+' 解鎖':(S.kind==='flower'?'花・':'樹・')+'要 '+S.need+' 點')+'</small></button>';}).join('')+'</div><p class="g-small">花長得快；樹長得慢，但長大很漂亮</p><div class="g-btns"><button class="g-btn ghost" data-close>取消</button></div>');
+  var L=level(),occ=g3?slotSpecies():null,anyC=false;
+  // 種在這塊土會和旁邊的植物湊成組合的：金色框＋✨ 名字
+  var h=Object.keys(SP).map(function(k){var S=SP[k],lock=L<S.lv,cs=!lock&&occ?slotCombos(slot,k,occ):[];if(cs.length)anyC=true;cs.sort(function(a,b){return (comboSp(a.k)?1:0)-(comboSp(b.k)?1:0);});
+    return '<button data-sp="'+k+'"'+(lock?' disabled':'')+(cs.length?' class="cmb"':'')+'>'+(cs.length?'<i class="cmb-tag">✨ '+esc(comboLabel(cs[0].k))+'</i>':'')+art(k,lock?0:4)+S.name+'<small>'+(lock?'Lv.'+S.lv+' 解鎖':(S.kind==='flower'?'花・':'樹・')+'要 '+S.need+' 點')+'</small></button>';}).join('');
+  var ov=card('<h2>🌱 要種什麼呢？</h2>'+(anyC?'<p class="g-small" style="margin:0 0 4px">✨ 的種在這裡，會和旁邊的植物湊成組合（都開花後出現效果）</p>':'')+'<div class="seeds">'+h+'</div><p class="g-small">花長得快；樹長得慢，但長大很漂亮</p><div class="g-btns"><button class="g-btn ghost" data-close>取消</button></div>');
   ov.querySelectorAll('[data-sp]').forEach(function(b){b.onclick=function(){closeSheet();plantSeed(slot,b.getAttribute('data-sp'));};});
   ov.querySelector('[data-close]').onclick=closeSheet;
 }
@@ -1901,7 +1959,7 @@ function openMemory(id,list){
     var kept=keepVals(box);
     box.innerHTML=navHtml(list,id)+'<div class="sh-art">'+art(p.sp,4)+'</div><h2>'+esc(p.name||SP[p.sp].name)+'</h2>'+(p.name?'<div class="sh-sp">'+SP[p.sp].name+'</div>':'')+
       '<div class="mem-row">🌱 '+md(d0)+' '+NAMES[p.by]+'種下 → 🌳 '+md(d1)+' 長大（'+days+' 天）</div>'+
-      '<div class="mem-row">學 💧'+g.sn+'・綾 💧'+g.ln+'・一起澆水 '+g.both+' 天</div>'+comboHtml(id)+spInfo(p.sp)+
+      '<div class="mem-row">學 💧'+g.sn+'・綾 💧'+g.ln+'・一起澆水 '+g.both+' 天</div>'+comboHtml(id)+hintHtml(forestHints(id))+spInfo(p.sp)+
       '<div class="mem-notes">'+notes+'</div>'+(qs?'<div class="mem-qa"><h3>💬 這段時間的問答</h3>'+qs+'</div>':'')+
       '<div class="g-btns">'+(g3&&p.done&&Garden3D.treeOK(id)?'<button class="g-btn" data-tcall>🧺 一起來樹下坐坐</button>':'')+(g3&&p.done?'<button class="g-btn ghost" data-move>🌳 移植</button>'+rotBtns():'')+'<button class="g-btn ghost" data-close>關閉</button></div>';
     restoreVals(box,kept);

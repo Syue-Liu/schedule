@@ -1355,13 +1355,14 @@ var Garden3D=(function(){
       for(var i0=0;i0<L.length;i0++){if(seen[i0])continue;seen[i0]=1;var comp=[],st=[i0];
         while(st.length){var a=st.pop();comp.push(L[a]);for(var j=0;j<L.length;j++)if(!seen[j]&&linked(L[a],L[j])){seen[j]=1;st.push(j);}}
         if(comp.length>=3)out.push(comboMk('sp:'+sp,comp));}});
-    // 特別組合：三種各一株，兩兩都靠在一起（g：每一格可以是哪幾種；any：這幾種裡挑三種不一樣的）
+    // 特別組合：三種各一株，三株連在一起（g：每一格可以是哪幾種；any：這幾種裡挑三種不一樣的）
     (window.COMBO||[]).forEach(function(R){
       var used={},G=R.g||[R.any,R.any,R.any],P=G.map(function(g){return N.filter(function(n){return g.indexOf(n.sp)>=0;});}),hit=true;
       while(hit){hit=false;
         for(var i=0;i<P[0].length&&!hit;i++){var a=P[0][i];if(used[a.id])continue;
-          for(var j=0;j<P[1].length&&!hit;j++){var b=P[1][j];if(used[b.id]||b===a||(R.any&&b.sp===a.sp)||!linked(a,b))continue;
-            for(var k=0;k<P[2].length;k++){var c=P[2][k];if(used[c.id]||c===a||c===b||(R.any&&(c.sp===a.sp||c.sp===b.sp))||!linked(a,c)||!linked(b,c))continue;
+          for(var j=0;j<P[1].length&&!hit;j++){var b=P[1][j],ab=linked(a,b);if(used[b.id]||b===a||(R.any&&b.sp===a.sp))continue;
+            // 三株連在一起就算（兩兩相鄰，或排成一串：新土地的三塊土是一排）
+            for(var k=0;k<P[2].length;k++){var c=P[2][k];if(used[c.id]||c===a||c===b||(R.any&&(c.sp===a.sp||c.sp===b.sp))||(ab?0:1)+(linked(a,c)?0:1)+(linked(b,c)?0:1)>1)continue;
               used[a.id]=used[b.id]=used[c.id]=1;out.push(comboMk(R.k,[a,b,c]));hit=true;break;}}}}
     });
     return out;
@@ -2537,7 +2538,7 @@ var Garden3D=(function(){
     // 測試用：每個人、每隻寵物在溪的哪一邊、離水多近、是不是在橋上；叫某個人／寵物走去某個地方
     // 營火有多近（看著遊樂區＝1、很遠＝0）：給環境音調營火聲大小
     fireNear:function(){if(!actG)return 0;var c=AWp(0,.3),d=Math.hypot(tgt.x-c.x,tgt.z-c.z)+Math.max(0,rad-14)*.5;return Math.max(0,Math.min(1,1-(d-3)/12));},
-    speed:function(n){tScale=n||1;},treePos:function(id){var t=trees[id];return t?{x:t.x,z:t.z}:null;},rots:function(){var o={};for(var id in decors)o['d:'+id]=+decors[id].g.rotation.y.toFixed(2);for(var t in trees)o['t:'+t]=+trees[t].g.rotation.y.toFixed(2);plots.forEach(function(p){if(p.id)o['p:'+p.id]=+p.holder.rotation.y.toFixed(2);});return o;},hol:function(){return hol?{k:hol.k,objs:hol.objs.length,tree:hol.tree?{x:+hol.tree.x.toFixed(2),z:+hol.tree.z.toFixed(2)}:null,pic:holPic?{x:+holPic.x.toFixed(2),z:+holPic.z.toFixed(2)}:null,hats:people.map(function(p){return [p.santa.visible,p.pomelo.visible];}),moon:moonDisc?[moonDisc.visible,moonDisc.scale.x]:null}:null;},env:function(){return envS&&envS.visible?{on:true,id:envS.userData.id,y:+envS.position.y.toFixed(2)}:{on:false};},hold:function(v){holdAI=!!v;},flashTrees:flashTrees,treeOK:function(id){return !!treeSpot(id);},treeCall:function(id){if(follow3){liveCmd({c:'tree',tid:id});return null;}return treeCall(id);},tplay:function(k,id){var p=byK(k);if(!p)return false;if(p.state==='act'||p.goAct)endAct(p);strollEnd(p);p.goPic=null;return goTreePlay(p,id);},treeSit:function(k,id){var p=byK(k);if(!p)return false;strollEnd(p);p.tp=null;var P=treeSpot(id);return P?goPic(p,P):false;},combos:function(){return combos.map(function(c){return {key:c.key,ids:c.m.map(function(n){return n.id;}),fx:c.fx,cx:+c.cx.toFixed(2),cz:+c.cz.toFixed(2)};});},
+    speed:function(n){tScale=n||1;},treePos:function(id){var t=trees[id];return t?{x:t.x,z:t.z}:null;},rots:function(){var o={};for(var id in decors)o['d:'+id]=+decors[id].g.rotation.y.toFixed(2);for(var t in trees)o['t:'+t]=+trees[t].g.rotation.y.toFixed(2);plots.forEach(function(p){if(p.id)o['p:'+p.id]=+p.holder.rotation.y.toFixed(2);});return o;},hol:function(){return hol?{k:hol.k,objs:hol.objs.length,tree:hol.tree?{x:+hol.tree.x.toFixed(2),z:+hol.tree.z.toFixed(2)}:null,pic:holPic?{x:+holPic.x.toFixed(2),z:+holPic.z.toFixed(2)}:null,hats:people.map(function(p){return [p.santa.visible,p.pomelo.visible];}),moon:moonDisc?[moonDisc.visible,moonDisc.scale.x]:null}:null;},env:function(){return envS&&envS.visible?{on:true,id:envS.userData.id,y:+envS.position.y.toFixed(2)}:{on:false};},hold:function(v){holdAI=!!v;},flashTrees:flashTrees,treeOK:function(id){return !!treeSpot(id);},slotNear:function(i){var a=plots[i];if(!a)return [];var o=[];plots.forEach(function(b,j){if(j!==i&&Math.hypot(a.x-b.x,a.z-b.z)<=2.6)o.push(j);});return o;},treeCall:function(id){if(follow3){liveCmd({c:'tree',tid:id});return null;}return treeCall(id);},tplay:function(k,id){var p=byK(k);if(!p)return false;if(p.state==='act'||p.goAct)endAct(p);strollEnd(p);p.goPic=null;return goTreePlay(p,id);},treeSit:function(k,id){var p=byK(k);if(!p)return false;strollEnd(p);p.tp=null;var P=treeSpot(id);return P?goPic(p,P):false;},combos:function(){return combos.map(function(c){return {key:c.key,ids:c.m.map(function(n){return n.id;}),fx:c.fx,cx:+c.cx.toFixed(2),cz:+c.cz.toFixed(2)};});},
     // 卡片上換到別棵的時候，3D 裡也標出現在是哪一棵
     mark:function(kind,id){var t=null;if(kind==='plant'){var p=plots.filter(function(q){return q.on&&q.id===id;})[0];if(p)t={kind:'plot',p:p};}else if(trees[id])t={kind:'tree',id:id};if(t){setHL(t,true);hl.hold=1.6;}},
     // 測試用：螢幕上這一點會點到什麼
