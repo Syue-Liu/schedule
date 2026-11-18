@@ -2546,7 +2546,7 @@ var Garden3D=(function(){
     else if(typeof o==='string'&&trees[o])v=trees[o].g.position.clone().setY(.8);
     else if(o&&o.pest){var p=plots.filter(function(q){return q.id===o.pest&&q.pest;})[0];if(p)v=p.pest.g.position.clone().setY(.3);}
     else if(o&&o.visitor!=null&&visitors[o.visitor])v=visitors[o.visitor].g.position.clone();
-    else if(o&&o.sign&&LAND_GEO[o.sign])v=LAND_GEO[o.sign].sign.hb.position.clone();
+    else if(o&&o.sign&&LAND_GEO[o.sign])v=LAND_GEO[o.sign].sign.hb.getWorldPosition(new T.Vector3());
     else if(o&&o.at)v=new T.Vector3(o.at[0],0,o.at[1]);
     else if(o&&o.decor&&decors[o.decor])v=decors[o.decor].g.position.clone().setY(.8);
     else if(o&&o.act){var hh=(ACTS.hits[phase]||[]).concat(ACTS.hits.all||[]).filter(function(m){return m.userData.act===o.act;})[0];if(hh){v=new T.Vector3();hh.getWorldPosition(v);}}

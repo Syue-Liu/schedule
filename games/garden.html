@@ -282,6 +282,10 @@ body.placing-decor .g3-tools,body.placing-decor .g3-full-control,body.placing-de
 .g3.full .g3-drops{top:calc(env(safe-area-inset-top) + 12px);}
 .g3-soil{position:absolute;left:12px;bottom:12px;display:flex;gap:6px;z-index:3;}
 .g3-soil[hidden]{display:none;}
+.g3:not(.full) .g3-soil{flex-wrap:wrap;right:72px;}
+.areas{display:flex;flex-direction:column;gap:8px;margin:8px 0 4px;}
+.area-row{display:flex;align-items:center;gap:8px;}.area-row span{font-size:20px;}
+.area-row input{flex:1;min-width:0;padding:8px 12px;border:var(--lw2) solid var(--ink);border-radius:12px;background:var(--paper);font:inherit;font-size:16px;color:var(--t);}
 .g3-soil button{padding:6px 12px;border:var(--lw2) solid var(--ink);border-radius:999px;background:#FFFCF6;font:inherit;font-size:13px;color:var(--t);box-shadow:0 2px 0 var(--ink);cursor:pointer;}
 .g3-soil button:active{transform:translateY(1px);box-shadow:0 1px 0 var(--ink);}
 .g3.full .g3-soil{bottom:calc(env(safe-area-inset-bottom) + 16px);}
@@ -502,7 +506,7 @@ body.placing-decor .g3-tools,body.placing-decor .g3-full-control,body.placing-de
     <button class="g3-tool" id="g3photo" aria-label="拍照"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l1.4-2h7.2L17 8h3a1.5 1.5 0 0 1 1.5 1.5v8A1.5 1.5 0 0 1 20 19H4a1.5 1.5 0 0 1-1.5-1.5v-8A1.5 1.5 0 0 1 4 8Z"/><circle class="accent" cx="12" cy="13" r="3.2"/><path d="M18 10.5h.1"/></svg><span>拍照</span></button>
     <button class="g3-tool" id="g3follow" aria-label="跟著看"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.4-5 9.5-5 9.5 5 9.5 5-3.4 5-9.5 5-9.5-5-9.5-5Z"/><circle class="accent" cx="12" cy="12" r="2.7"/><circle cx="12" cy="12" r=".6" fill="#665347" stroke="none"/></svg><span>跟著看</span></button>
     </div>
-  </div><div class="g3-soil" id="g3soil" hidden><button data-soil="soil">🪏 翻土</button><button data-soil="fill">⛏️ 填土</button></div><div class="g3-tip" id="g3tip">拖曳轉一圈・兩指拉近・點土種樹・點植物澆水</div></section>
+  </div><div class="g3-soil" id="g3soil" hidden><button data-soil="soil">🪏 翻土</button><button data-soil="fill">⛏️ 填土</button><button data-areas>🏷️ 區域名字</button></div><div class="g3-tip" id="g3tip">拖曳轉一圈・兩指拉近・點土種樹・點植物澆水</div></section>
   <div class="mvbar" id="mvbar" hidden></div>
   <div class="fbar" id="fbar" hidden></div>
   <div class="pbar" id="pbar" hidden></div><div class="ptip" id="ptip" hidden>拖曳選角度・兩指拉近</div>
@@ -514,7 +518,7 @@ body.placing-decor .g3-tools,body.placing-decor .g3-full-control,body.placing-de
 <script src="sound.js?v=piano-20261116"></script>
 <script src="game.js?v=garden-20261102"></script>
 <script src="vs.js?v=mail-20261108"></script>
-<script src="garden3d.js?v=combogrow-20261117"></script>
+<script src="garden3d.js?v=area-20261118"></script>
 <script>
 /* 記憶小森林：兩個人一起種。每天回答一題問答拿水滴，一起澆水，把種子種成樹；長大的樹放進森林，留著那段時間的問答和兩個人的話。
    資料：班表同一個 Firebase 的 banbiao/<同步代碼>_garden（沒有同步代碼就存在這支手機）
@@ -915,7 +919,7 @@ function connect(){
   VS.connect().then(function(){cloud=true;VS.docWatch('garden',onSnap);beat();setInterval(beat,20000);liveInit();}).catch(function(e){console.warn('garden',e);local();});
 }
 function local(){cloud=false;try{D=JSON.parse(localStorage.getItem('gardenLocal')||'{}')||{};}catch(e){D={};}norm();first=false;ready();}
-function norm(){D.plants=D.plants||{};D.qa=D.qa||{};D.here=D.here||{};D.pests=D.pests||{};D.bonus=D.bonus||{};D.gift=D.gift||{};D.qat=D.qat||{};D.cq=D.cq||{};D.ach=D.ach||{};D.decor=D.decor||{};D.mail=D.mail||{};D.rides=D.rides||{};D.combo=D.combo||{};D.soil=D.soil||{};}
+function norm(){D.plants=D.plants||{};D.qa=D.qa||{};D.here=D.here||{};D.pests=D.pests||{};D.bonus=D.bonus||{};D.gift=D.gift||{};D.qat=D.qat||{};D.cq=D.cq||{};D.ach=D.ach||{};D.decor=D.decor||{};D.mail=D.mail||{};D.rides=D.rides||{};D.combo=D.combo||{};D.soil=D.soil||{};D.area=D.area||{};}
 // 寫：先改畫面，再送出；剛寫的幾秒內，舊的雲端資料回來也不會蓋掉
 function write(o){
   recent.push({o:o,at:Date.now()});merge(D,o);
@@ -1106,13 +1110,25 @@ function level(){var x=xp(),L=1;while(L<MAXLV&&x>=lvNeed(L))L++;return L;}
 function slotGone(i){var lo=landOfSlot(i);return !!(lo&&lo.noplot);}
 /* ── 翻土、填土：每一塊土可以填掉（soil[i]={off:1}），再翻到花園裡任何地方（soil[i]={x,z}）；有幾塊土還是照等級。
    果樹坡那三塊一開始就是填掉的，可以翻到別的地方 ── */
+/* ── 區域的名字：中間的花園、每塊新土地都可以自己取（area[id]，兩個人看到的一樣；空的就用原本的名字） ── */
+function areaDef(id){if(!id||id==='center')return '中間的花園';var l=LANDS.filter(function(x){return x.id===id;})[0];return l?l.name:'';}
+function areaName(id){return ((D.area||{})[id||'center'])||areaDef(id);}
+function openAreas(fid){
+  var L=level(),list=[{id:'center',e:'🌳'}].concat(LANDS.filter(function(l){return L>=l.lv;}).map(function(l){return {id:l.id,e:'🏡'};}));
+  var ov=card('<h2>🏷️ 幫區域取名字</h2><p class="g-small" style="margin-top:0">取好的名字兩個人都看得到；留空就用原本的名字</p><div class="areas">'+list.map(function(a){return '<label class="area-row"><span>'+a.e+'</span><input data-area="'+a.id+'" maxlength="8" placeholder="'+esc(areaDef(a.id))+'" value="'+esc((D.area||{})[a.id]||'')+'"></label>';}).join('')+
+    '</div><div class="g-btns"><button class="g-btn" data-save>好</button><button class="g-btn ghost" data-close>取消</button></div>','areacard');
+  var fi=fid&&ov.querySelector('[data-area="'+fid+'"]');if(fi)setTimeout(function(){fi.focus();},50);
+  ov.querySelector('[data-save]').onclick=function(){var o={},n=0;ov.querySelectorAll('[data-area]').forEach(function(i){var id=i.getAttribute('data-area'),v=i.value.trim().slice(0,8);if(v!==((D.area||{})[id]||'')){o[id]=v;n++;}});
+    if(n){write({area:o});SND.sfx('chime');toast('🏷️ 名字改好了');}closeSheet();paint();};
+  ov.querySelector('[data-close]').onclick=closeSheet;
+}
 // 這塊土在哪：{x,z}＝自己翻的位置、'def'＝原本的位置、null＝填掉了（或果樹坡）
 function slotPos(i){var o=(D.soil||{})[i];if(o&&o.x!=null)return {x:+o.x,z:+o.z};if((o&&o.off)||slotGone(i))return null;return 'def';}
 function openSlots(L){var a=[];SLOT_LV.forEach(function(v,i){if(v<=L&&slotPos(i)!==null)a.push(i);});return a;}
 // 還可以翻幾塊：等級夠了、現在是填掉的
 function freeSoil(){var L=level(),a=[];SLOT_LV.forEach(function(v,i){if(v<=L&&slotPos(i)===null)a.push(i);});return a;}
 function settleGone(){var o={plants:{}},n=[];all().forEach(function(p){if(!p.done&&slotPos(+p.slot||0)===null){o.plants[p.id]=null;n.push(SP[p.sp].name);}});
-  if(n.length){write(o);toast('🪴 果樹坡的土拿掉了，那裡的'+n.join('、')+'也一起拔掉了',null,5000);}}
+  if(n.length){write(o);toast('🪴 '+areaName('orchard')+'的土拿掉了，那裡的'+n.join('、')+'也一起拔掉了',null,5000);}}
 function plotsAt(L){return openSlots(L).length;}
 function nPlots(){return plotsAt(level());}
 function landAt(L){return LANDS.filter(function(l){return l.lv===L;})[0];}
@@ -1265,7 +1281,7 @@ function paintLvl(){
   $('lvl').innerHTML='<b>🌳 花園 Lv.'+L+'</b><span class="xpb"><i style="width:'+Math.round(f*100)+'%"></i></span>'+(lvPending?'<span class="lv-new">新解鎖</span>':'')+'<small>'+(L>=MAXLV?'滿級':x+' / '+hi)+' ›</small>';
   $('lvl').onclick=function(){SND.sfx('tap');if(lvPending){var a=lvPending;lvPending=null;try{localStorage.removeItem('gardenLvPending');}catch(e){}levelUp(a[0],a[1]);paintLvl();}else openLevels();};
 }
-function unlockText(L){var a=[],n=newAt(L),nl=landAt(L),dc=Object.keys(DECOR).filter(function(k){return DECOR[k].lv===L;}).map(function(k){return DECOR[k].e+' '+DECOR[k].name;});if(nl)a.push('開放新土地「'+nl.name+'」'+(nl.noplot?'（移植用的花園，森林多好多地方種）':'（多 3 塊土、森林多好多地方種）'));else if(plotsAt(L)>plotsAt(L-1))a.push(L>4?'中間的花園多 '+(plotsAt(L)-plotsAt(L-1))+' 塊土（一共 '+plotsAt(L)+' 塊）':'土變成 '+plotsAt(L)+' 塊');if(n.length)a.push('解鎖 '+n.join('、'));if(dc.length&&L>1)a.push('裝飾 '+dc.join('、'));return a.join('・');}
+function unlockText(L){var a=[],n=newAt(L),nl=landAt(L),dc=Object.keys(DECOR).filter(function(k){return DECOR[k].lv===L;}).map(function(k){return DECOR[k].e+' '+DECOR[k].name;});if(nl)a.push('開放新土地「'+areaName(nl.id)+'」'+(nl.noplot?'（移植用的花園，森林多好多地方種）':'（多 3 塊土、森林多好多地方種）'));else if(plotsAt(L)>plotsAt(L-1))a.push(L>4?'中間的花園多 '+(plotsAt(L)-plotsAt(L-1))+' 塊土（一共 '+plotsAt(L)+' 塊）':'土變成 '+plotsAt(L)+' 塊');if(n.length)a.push('解鎖 '+n.join('、'));if(dc.length&&L>1)a.push('裝飾 '+dc.join('、'));return a.join('・');}
 function levelUp(a,b){
   var lines=[];for(var L=a+1;L<=b;L++){var t=unlockText(L);if(t)lines.push('<p><b>Lv.'+L+'</b>　'+esc(t)+'</p>');}
   card('<h2>🎉 花園升到 Lv.'+b+'！</h2><p>一起種出的花園又長大了。</p><div class="lv-summary">'+(lines.length?'<details><summary>查看新解鎖的內容</summary>'+lines.join('')+'</details>':'')+'</div><div class="g-btns"><button class="g-btn" data-close>太好了</button></div>');
@@ -1377,7 +1393,7 @@ function paintPlots(){
   var slots=garden(),h='',L=level(),os=openSlots(L),N=os.length,mp=moving&&moving.kind==='plot',grp=-1;
   os.forEach(function(i){
     var p=slots[i],lo=landOfSlot(i),gi=lo?LANDS.indexOf(lo):-1;
-    if(gi!==grp&&os[os.length-1]>=12){h+='<div class="plot-land">'+(lo?'🏡 '+esc(lo.name):'🌳 中間的花園')+'</div>';}grp=gi;
+    if(gi!==grp&&os[os.length-1]>=12){h+='<div class="plot-land">'+(lo?'🏡 '+esc(areaName(lo.id)):'🌳 '+esc(areaName('center')))+'</div>';}grp=gi;
     if(!p){h+=mp?'<button class="plot target" data-to="'+i+'"><span class="empty"><i>🪴</i>移到這裡</span></button>':'<button class="plot" data-slot="'+i+'" aria-label="空的土，種一棵"><span class="empty"><i>🌱</i>種一棵</span></button>';return;}
     var g=grow(p),td=(p.w||{}),a=+((td.syue||{})[today()])||0,b=+((td.ling||{})[today()])||0,pe=pestOf(p),me2=mp&&p.id===moving.id;
     h+='<button class="plot has'+(g.stage===4?' ready':'')+(g.stage<4&&thirsty(p)?' thirsty':'')+(me2?' moving':mp?' swap':'')+'" '+(mp?(me2?'':'data-to="'+i+'"'):'data-id="'+p.id+'"')+' aria-label="'+esc(label(p))+(pe?'，有'+PESTS[pe.kind].name:'')+'">'+(pe?'<span class="pest">'+PESTS[pe.kind].e+'</span>':'')+'<div class="art">'+art(p.sp,g.stage)+'</div><div class="pn">'+esc(p.name||SP[p.sp].name)+'</div><div class="bar"><i style="width:'+Math.round(g.r*100)+'%"></i></div><div class="pw">'+(me2?'<span class="on syue">🪴 移植中</span>':mp?'<span class="on ling">點這裡交換</span>':'<span class="syue'+(a?' on':'')+'">學💧'+a+'</span><span class="ling'+(b?' on':'')+'">綾💧'+b+'</span>')+'</div></button>';
@@ -1648,7 +1664,7 @@ function state3d(){
     out.push({id:p.id,sp:p.sp,rot:+p.rot||0,stage:g.stage,r:g.r,frac:hi>lo?Math.max(0,Math.min(1,(g.r-lo)/(hi-lo))):1,name:p.name||SP[p.sp].name,ready:g.stage===4,thirsty:g.stage<4&&thirsty(p),watered:!!+(((p.w||{})[me]||{})[today()]),ws:!!+(((p.w||{}).syue||{})[today()]),wl:!!+(((p.w||{}).ling||{})[today()]),duo:!!(cloud&&op),pest:pe?pe.kind:null,pkey:pe?pe.key:null});
   }
   var sp=special(today());
-  return {pos:pos,party:sp.length?{title:sp.map(function(o){return o.e+' '+o.t;}).join('  '),bday:sp.filter(function(o){return o.k==='bday';}).map(function(o){return o.who;}),hol:(sp.filter(function(o){return o.k==='hol';})[0]||{}).h||'',plain:sp.some(function(o){return o.k!=='hol';})}:null,decor:decorList(),mail:unread()>0,weather:weatherOf(today()),season:seasonOf(today()),slots:out,open:open,lands:LANDS.map(function(l){return {id:l.id,name:l.name,lv:l.lv,open:L>=l.lv};}),forest:forest().filter(function(p){return !p.bag;}).slice().reverse().map(function(p){return {id:p.id,sp:p.sp,pos:p.pos||null,rot:+p.rot||0};})};
+  return {pos:pos,party:sp.length?{title:sp.map(function(o){return o.e+' '+o.t;}).join('  '),bday:sp.filter(function(o){return o.k==='bday';}).map(function(o){return o.who;}),hol:(sp.filter(function(o){return o.k==='hol';})[0]||{}).h||'',plain:sp.some(function(o){return o.k!=='hol';})}:null,decor:decorList(),mail:unread()>0,weather:weatherOf(today()),season:seasonOf(today()),slots:out,open:open,lands:LANDS.map(function(l){return {id:l.id,name:areaName(l.id),lv:l.lv,open:L>=l.lv};}),forest:forest().filter(function(p){return !p.bag;}).slice().reverse().map(function(p){return {id:p.id,sp:p.sp,pos:p.pos||null,rot:+p.rot||0};})};
 }
 function start3d(){
   var box=$('g3');
@@ -1658,6 +1674,7 @@ function start3d(){
   $('g3toolsToggle').onclick=function(){var closed=!$('g3toolList').hidden;toolsCollapsed(closed);try{localStorage.setItem('gardenToolsCollapsed',closed?'1':'0');}catch(e){}SND.sfx('tap');};
   $('g3names').onclick=function(){var on=this.getAttribute('aria-pressed')!=='true';this.setAttribute('aria-pressed',String(on));this.setAttribute('aria-label',on?'隱藏植物名稱和澆水狀態':'顯示植物名稱和澆水狀態');this.querySelector('.g3-tool-state').hidden=!on;this.classList.toggle('on',on);if(g3)Garden3D.plantLabels(on);if(on)toast('點植物即可澆水；下面的「翻土」「填土」可以改土的位置');SND.sfx('tap');paintSoilBar();};
   $('g3soil').querySelectorAll('[data-soil]').forEach(function(b){b.onclick=function(){startSoil(b.getAttribute('data-soil'));};});
+  $('g3soil').querySelector('[data-areas]').onclick=function(){SND.sfx('tap');openAreas();};
   $('g3full').onclick=function(){if(shooting){endPhoto();return;}if(rotating){SND.sfx('tap');endRotate();return;}if(following&&following.full){SND.sfx('tap');stopFollow();return;}setFull(!box.classList.contains('full'));SND.sfx('tap');};
   $('g3reset').onclick=function(){if(following)stopFollow();if(g3)Garden3D.resetView();};
   $('g3follow').onclick=function(){if(following){SND.sfx('tap');stopFollow();}else openFollow();};
@@ -1665,7 +1682,7 @@ function start3d(){
   $('g3bag').onclick=function(){SND.sfx('tap');if(bagPick){setBagPick(false);toast('🎒 收好了');return;}openBag();};
   $('g3photo').onclick=function(){startPhoto();};
   Garden3D.init(box,{progress:function(s){ldStep(s);},plot:function(i){SND.sfx('tap');openSeeds(i);},plant:function(id){if(bagPick){toast('還在長的植物不能收，長大種進森林以後才可以 🌱');return;}SND.sfx('tap');openPlant(id);},tree:function(id){if(bagPick){bagIn(id);return;}SND.sfx('tap');openMemory(id);},pest:function(id){catchPest(id);},bird:function(){return birdGift();},gift:function(){return xmasGift();},bike:function(k){openBikes(k);},rideEnd:function(){toast('🏍️ 兜風回來了');},
-    land:function(id,open){var l=LANDS.filter(function(x){return x.id===id;})[0];if(!l)return;SND.sfx('tap');toast(open?'🏡 '+l.name:'🔒 花園升到 Lv.'+l.lv+' 會開放新土地「'+l.name+'」');},
+    land:function(id,open){var l=LANDS.filter(function(x){return x.id===id;})[0];if(!l)return;SND.sfx('tap');if(open){openAreas(id);return;}toast('🔒 花園升到 Lv.'+l.lv+' 會開放新土地「'+areaName(l.id)+'」');},
     decor:function(id){openDecorItem(id);},live:function(c){liveCmdSend(c);},combo:function(l){onCombos(l);},
     phase:function(ph){toast({day:'☀️ 天亮了！遊樂區有溜滑梯和盪鞦韆',eve:'🌇 傍晚了，長椅搬出來了，一起看夕陽吧',night:'🔥 晚上了，營火升起來，可以烤棉花糖了'}[ph]||'');},
     act:function(k,who){var n=who.map(function(u){return NAMES[u];}).join('和');toast(!n?'他們現在在忙，等一下再叫他們':{slide:n+'去溜滑梯了 🛝',swing:n+'去盪鞦韆了',bench:n+'坐到長椅上看夕陽 🌇',fire:n+'去營火邊烤棉花糖 🔥',cafe:n+'到涼亭喝咖啡、吃甜點 ☕🍰',tswing:n+'去樹屋旁盪鞦韆 🌳',tswingPush:(NAMES[who[1]]||'')+'在後面推'+(NAMES[who[0]]||'')+'盪鞦韆 🌳',tree:n+'去樹下坐坐 🧺'}[k]);},
@@ -1800,7 +1817,7 @@ function paintMove(){
   var bar=$('mvbar');
   if(!moving){bar.hidden=true;bar.classList.remove('decor-mode');bar.innerHTML='';paintSoilBar();return;}
   bar.classList.toggle('decor-mode',moving.kind==='decor'||moving.kind==='decorNew');
-  var s=moving.sel,h,ls=LANDS.filter(function(l){return level()>=l.lv;}),chips=ls.length?'<div class="mv-lands"><button data-land="">🌳 中間</button>'+ls.map(function(l){return '<button data-land="'+l.id+'">🏡 '+esc(l.name)+'</button>';}).join('')+'</div>':'';
+  var s=moving.sel,h,ls=LANDS.filter(function(l){return level()>=l.lv;}),chips=ls.length?'<div class="mv-lands"><button data-land="">🌳 '+esc(areaName('center'))+'</button>'+ls.map(function(l){return '<button data-land="'+l.id+'">🏡 '+esc(areaName(l.id))+'</button>';}).join('')+'</div>':'';
   if(moving.kind==='decor'||moving.kind==='decorNew'){
     if(moving.kind==='decor'&&!D.decor[moving.id]){endMove();return;}
     var dk=DECOR[moving.k];
@@ -2087,7 +2104,7 @@ function askWho(){
 function help(){
   var L=level(),nt=L<TOPLV?unlockText(L+1):'',first=false;try{first=!localStorage.getItem('gardenHelp');}catch(e){}
   card('<h2>🎮 遊戲操作</h2><div class="g-rules">'+
-    '<h4>🖐️ 怎麼操作</h4><ul><li>拖曳轉一圈、兩指拉近拉遠；用「全螢幕」放大，用「視角」回到原本的角度</li><li>點土種樹、點植物澆水；需要時按「澆澆水」顯示植物名稱、成長進度和今天的澆水狀態，再按一次隱藏</li><li>植物和森林的樹都可以「移植」，把花園排成你們喜歡的樣子</li><li>按「澆澆水」以後，下面有「⛏️ 填土」和「🪏 翻土」：空的土可以填平，再翻到花園裡想要的地方（土的數量還是照等級）</li><li>右側工具列可以收合，按「展開」再打開；工具列裡有視角、澆澆水、裝飾、背包、拍照、跟著看</li><li>樹屋旁停著學的紅色街車和綾的小電動車：點它們可以叫兩個人一起去兜風（下雨、下雪不騎）</li><li>3D 花園右邊的「跟著看」：選學、綾或一隻寵物，鏡頭就一直跟著他（拖曳繞著看、兩指拉近）</li><li>裝飾、植物、森林的樹都可以轉方向：點它，按「🔄 轉方向」，在花園裡邊看邊按 ↺ ↻</li></ul>'+
+    '<h4>🖐️ 怎麼操作</h4><ul><li>拖曳轉一圈、兩指拉近拉遠；用「全螢幕」放大，用「視角」回到原本的角度</li><li>點土種樹、點植物澆水；需要時按「澆澆水」顯示植物名稱、成長進度和今天的澆水狀態，再按一次隱藏</li><li>植物和森林的樹都可以「移植」，把花園排成你們喜歡的樣子</li><li>點新土地的木牌，或按「澆澆水」以後左下角的「🏷️ 區域名字」，可以幫中間的花園和每塊新土地取名字</li><li>按「澆澆水」以後，下面有「⛏️ 填土」和「🪏 翻土」：空的土可以填平，再翻到花園裡想要的地方（土的數量還是照等級）</li><li>右側工具列可以收合，按「展開」再打開；工具列裡有視角、澆澆水、裝飾、背包、拍照、跟著看</li><li>樹屋旁停著學的紅色街車和綾的小電動車：點它們可以叫兩個人一起去兜風（下雨、下雪不騎）</li><li>3D 花園右邊的「跟著看」：選學、綾或一隻寵物，鏡頭就一直跟著他（拖曳繞著看、兩指拉近）</li><li>裝飾、植物、森林的樹都可以轉方向：點它，按「🔄 轉方向」，在花園裡邊看邊按 ↺ ↻</li></ul>'+
     '<h4>💧 水滴</h4><ul><li>每個人每天 '+BASE+' 滴水；回答今日問題 +'+ANSWER+' 滴，二選一兩個人選一樣再各多 '+MATCH+' 滴</li><li>同一天兩個人都澆同一棵，那天多長 '+TOGETHER+' 點</li><li>小鳥飛來的時候點牠，送一滴水（每天最多 '+BIRD+' 滴）；有害蟲要先抓走才能澆水</li><li>下雨、下雪那天，所有植物都會自己長一點</li></ul>'+
     '<h4>🌳 森林</h4><ul><li>長大的植物種進森林，會留下那段時間的問答和你們寫的話</li><li>種進森林兩個人各拿 1 包飼料（算在每天 '+G.CAP+' 包裡）</li><li>澆水、回答、抓害蟲都會加經驗；升級多幾塊土、開放新土地、解鎖新的花和樹</li><li>🎒 不想放在花園裡的植物可以先收起來（還是算在森林和圖鑑裡）：右邊工具列的「背包」按「點花園裡的植物收進來」再點植物，或在回憶卡片按「收進背包」；背包裡的隨時可以拿出來</li><li>🧺 學和綾會自己去樹下坐坐、接花瓣、搖果樹撿果子、在落葉上跳、抱抱大樹；森林回憶卡片的「一起來樹下坐坐」可以叫他們過去</li><li>✨ 種在一起：同一種植物 3 株以上種在一起（相鄰的土，或森林裡種在旁邊）會變成花海、樹林；特別的三種種在一起還有隱藏組合，像松、竹、梅是「歲寒三友」；組合湊成後，旁邊再種同一類的會一起加入，越大片效果越熱鬧。森林的「✨ 組合」看得到提示</li></ul>'+
     '<h4>🛝 遊樂區（點它們叫學和綾過去）</h4><ul><li>白天溜滑梯、盪鞦韆；下雨、下雪天溜滑梯換成涼亭，喝咖啡吃甜點</li><li>傍晚長椅看夕陽，晚上營火烤棉花糖；下雨的晚上會搭起天幕</li><li>樹屋旁的鞦韆隨時都能盪，兩個人的話一個坐、一個在後面推</li></ul>'+
