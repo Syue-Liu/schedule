@@ -1795,7 +1795,7 @@ var Garden3D=(function(){
   function openLands(){return LAND_IDS.map(function(id){return LAND_GEO[id];}).filter(function(L){return L.open;});}
   function landPoint(L){
     for(var n=0;n<12;n++){var a=Math.random()*6.28,d=Math.random()*(L.R-.8),x=L.c.x+Math.cos(a)*d,z=L.c.z+Math.sin(a)*d,ok=!blocked(x,z);
-      for(var i=L.p0;i<L.p0+3&&ok;i++)if(Math.hypot(PLOT[i][0]-x,PLOT[i][1]-z)<1.15)ok=false;
+      for(var i=0;i<plots.length&&ok;i++)if(plots[i].on&&Math.hypot(plots[i].x-x,plots[i].z-z)<1.15)ok=false;
       if(ok)return {a:Math.atan2(z,x),r:Math.hypot(x,z)};}
     return {a:L.a,r:L.r-L.R+.9};
   }
@@ -2128,7 +2128,7 @@ var Garden3D=(function(){
     LAND_IDS.forEach(function(id){var L=LAND_GEO[id];if(L.open&&Math.hypot(x-L.c.x,z-L.c.z)<L.R-.45)ok=true;});
     if(!ok)return '要種在花園的草地上';
     // 新土地的土：有開才算（果樹坡沒有土，整塊都能移植）
-    for(var i=0;i<PLOT.length;i++){var lo=landOf(i);if((!lo||(lo.open&&plots[i]&&plots[i].on))&&Math.hypot(PLOT[i][0]-x,PLOT[i][1]-z)<1.2)return '這裡是種花的土';}
+    for(var i=0;i<plots.length;i++){var q=plots[i];if((q.on||q.res)&&Math.hypot(q.x-x,q.z-z)<1.2)return '這裡是種花的土';}
     for(var j=0;j<flow.length-1;j++)if(segDist(x,z,flow[j],flow[j+1])<.62)return '這裡是小溪';
     if(pondP&&Math.hypot(x-pondP.x,z-pondP.z)<1)return '這裡是泉水池';
     if(inArea(x,z,.3))return '這裡是遊樂區';
@@ -2148,7 +2148,7 @@ var Garden3D=(function(){
   function gapOf(a,b){return isTreeSp(a)||isTreeSp(b)?GAP_T:GAP_F;}
   // 可以種的地方：花園外圈三圈、每塊開放的新土地四圈（避開土、溪、池、遊樂區、樹屋、車道、裝飾、去新土地的路口）
   function forestCands(){
-    var k=LAND_IDS.map(function(id){return LAND_GEO[id].open?1:0;}).join('')+'|'+plots.slice(12).map(function(p){return p.on?1:0;}).join('')+'|'+Object.keys(decors).map(function(id){var d=decors[id];return Math.round(d.x*10)+','+Math.round(d.z*10);}).join(';');
+    var k=LAND_IDS.map(function(id){return LAND_GEO[id].open?1:0;}).join('')+'|'+plots.map(function(p){return p.on||p.res?Math.round(p.x*10)+','+Math.round(p.z*10):'';}).join(';')+'|'+Object.keys(decors).map(function(id){var d=decors[id];return Math.round(d.x*10)+','+Math.round(d.z*10);}).join(';');
     if(candC&&candK===k)return candC;
     var ok=function(x,z){return canPlace(x,z,null,.45,true)==='';},G=[],main=[];
     [7.0,7.5,8.0].forEach(function(r,ri){var n=Math.round(Math.PI*2*r/1.05);for(var i=0;i<n;i++){var a=(i+(ri%2)*.5)/n*Math.PI*2;if(LAND_IDS.some(function(id){return Math.abs(angDiff(a,LAND_GEO[id].a))<.2;}))continue;var q=polar(r,a);if(ok(q.x,q.z))main.push({x:q.x,z:q.z});}});
@@ -2200,6 +2200,12 @@ var Garden3D=(function(){
       dg.visible=false;scene.add(dg);mv.ghost=dg;mv.ok=ring('#7BC67E',mv.r+.2);mv.bad=ring('#E2675A',mv.r+.2);mv.ok.visible=mv.bad.visible=false;
       if(lastSt)update(lastSt);if(el<.95)egoal=.95;return true;
     }
+    // 翻土：半透明的一塊土跟著點的地方；填土：點一塊空的土
+    if(kind==='soil'||kind==='fill'){
+      mv={kind:kind,id:null,r:.8,sel:null,src:null,mark:ring('#F6D27A',1.05)};mv.mark.visible=false;mv.ok=ring('#7BC67E',1.0);mv.bad=ring('#E2675A',1.0);mv.ok.visible=mv.bad.visible=false;mv.mats=[];
+      if(kind==='soil'){var sg=new T.Group();sg.add(mesh(cyl(.62,.76,.18,16),SOIL,0,.07,0));sg.traverse(function(o){if(o.isMesh){o.material=o.material.clone();o.material.transparent=true;o.material.opacity=.6;o.material.depthWrite=false;o.castShadow=false;mv.mats.push(o.material);}});sg.visible=false;scene.add(sg);mv.ghost=sg;}
+      if(el<.95)egoal=.95;if(lastSt)update(lastSt);return true;
+    }
     var src=kind==='tree'?trees[id]:plots.filter(function(p){return p.on&&p.id===id;})[0];if(!src)return false;
     mv={kind:kind,id:id,sel:null,src:src,mark:ring('#F6D27A',.85)};
     mv.mark.position.set(src.x,.035,src.z);
@@ -2219,6 +2225,12 @@ var Garden3D=(function(){
   }
   function movePick(ray){
     var pt=new T.Vector3(),gnd=ray.ray.intersectPlane(new T.Plane(new T.Vector3(0,1,0),0),pt);
+    if(mv.kind==='fill'){
+      var fp=null,fd=1;if(gnd)plots.forEach(function(q){var d=Math.hypot(q.x-pt.x,q.z-pt.z);if(q.on&&d<fd){fd=d;fp=q;}});
+      if(!fp){var fh=ray.intersectObjects(plots.filter(function(q){return q.on;}).map(function(q){return q.coll;}))[0];if(fh)fp=plots.filter(function(q){return q.coll===fh.object;})[0];}
+      if(!fp)return;var fw=fp.id?'上面種了植物，先移植或拔掉':'';mv.sel={slot:fp.i,ok:!fw,why:fw,x:fp.x,z:fp.z};
+      mv.ok.visible=!fw;mv.bad.visible=!!fw;(fw?mv.bad:mv.ok).position.set(fp.x,.2,fp.z);hooks.moveSel(mv.sel);return;
+    }
     if(mv.kind==='plot'){
       // 先看點到地上的哪一塊土（前面那塊的植物比較高，不要擋到後面的土），沒有再看點到哪棵植物
       var p=null,bd=1;if(gnd)plots.forEach(function(q){var d=Math.hypot(q.x-pt.x,q.z-pt.z);if(q.on&&d<bd){bd=d;p=q;}});
@@ -2248,7 +2260,13 @@ var Garden3D=(function(){
     g.traverse(function(o){if(o.isMesh){o.material=o.material.clone();o.material.transparent=true;o.material.opacity=.5;o.material.depthWrite=false;o.castShadow=false;mv.mats2.push(o.material);}});
     g.userData.id=sw;scene.add(g);mv.ghost2=g;
   }
-  function moveWhy(x,z){var why=canPlace(x,z,mv.id,mv.r);if(!why&&SEAT[mv.k]&&Math.hypot(x,z)>ISL-1.1)why=(mv.k==='picnic'?'野餐墊':mv.k==='bench'?'長椅':'吊床')+'要放在中間的花園裡';return why;}
+  // 翻土可以翻在哪：開放的草地上、離別塊土、樹、裝飾、溪水、樹屋、遊樂區、車道都要有距離
+  function soilWhy(x,z){var why=canPlace(x,z,null,.8);if(why)return why;
+    var ok=Math.hypot(x,z)<ISL-.95;LAND_IDS.forEach(function(id){var L=LAND_GEO[id];if(L.open&&Math.hypot(x-L.c.x,z-L.c.z)<L.R-.95)ok=true;});if(!ok)return '太靠近花園邊邊了';
+    for(var i=0;i<plots.length;i++){var q=plots[i];if((q.on||q.res)&&Math.hypot(q.x-x,q.z-z)<1.7)return '太靠近別塊土了';}
+    for(var j=0;j<flow.length-1;j++)if(segDist(x,z,flow[j],flow[j+1])<.95)return '太靠近小溪了';
+    return '';}
+  function moveWhy(x,z){if(mv.kind==='soil')return soilWhy(x,z);var why=canPlace(x,z,mv.id,mv.r);if(!why&&SEAT[mv.k]&&Math.hypot(x,z)>ISL-1.1)why=(mv.k==='picnic'?'野餐墊':mv.k==='bench'?'長椅':'吊床')+'要放在中間的花園裡';return why;}
   function selectMoveSpot(x,z){var why=moveWhy(x,z);mv.sel={x:x,z:z,ok:!why,why:why};if(mv.kind==='tree')swapGhost(null);
     mv.ghost.visible=!why;mv.ghost.position.set(x,0,z);if(mv.k)mv.ghost.rotation.y=Math.atan2(-x,-z);
     mv.ok.visible=!why;mv.bad.visible=!!why;(why?mv.bad:mv.ok).position.set(x,.04,z);hooks.moveSel(mv.sel);
@@ -2485,6 +2503,9 @@ var Garden3D=(function(){
     });
     plots.forEach(function(p,i){
       var open=st.open?!!st.open[i]:i<st.slots.length,s=open?st.slots[i]||null:null;
+      // 翻土、填土：自己翻的位置（pos[i]＝{x,z}），'off'＝填掉了，沒有＝原本的位置；中間原本的土（還沒開的也算）要留位置
+      var ps=st.pos&&st.pos[i],cu=ps&&ps!=='off',px=cu?ps.x:PLOT[i][0],pz=cu?ps.z:PLOT[i][1];p.res=i<12&&!ps;
+      if(Math.hypot(p.x-px,p.z-pz)>.01){p.x=px;p.z=pz;p.base.position.set(px,0,pz);p.lab.position.x=px;p.lab.position.z=pz;}
       if(open!==p.on){p.on=open;p.base.visible=p.lab.visible=open;if(open&&p.key===''&&p.stage===-1&&p.seen){p.grow=0;burst(p.x,.4,p.z,10);}p.seen=true;}
       if(!open){setPest(p,null);return;}
       var key=s?[s.id,s.sp,s.stage].join(':'):'';
@@ -2521,7 +2542,7 @@ var Garden3D=(function(){
   // 測試用：某個東西在畫面上的位置、特效和訪客數量、叫一隻訪客來
   function screen(o){
     var v=null;
-    if(typeof o==='number')v=new T.Vector3(PLOT[o][0],.5,PLOT[o][1]);
+    if(typeof o==='number')v=new T.Vector3(plots[o].x,.5,plots[o].z);
     else if(typeof o==='string'&&trees[o])v=trees[o].g.position.clone().setY(.8);
     else if(o&&o.pest){var p=plots.filter(function(q){return q.id===o.pest&&q.pest;})[0];if(p)v=p.pest.g.position.clone().setY(.3);}
     else if(o&&o.visitor!=null&&visitors[o.visitor])v=visitors[o.visitor].g.position.clone();
