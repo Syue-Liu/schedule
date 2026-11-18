@@ -124,6 +124,7 @@ body.shooting .fbar,body.shooting .toasts{display:none;}
 .bagi{display:flex;flex-direction:column;align-items:center;padding:6px 4px 8px;border:var(--lw2) dashed var(--ink);border-radius:14px;background:var(--paper);font-size:12px;}
 .bagi>svg{width:60px;height:64px;}.bagi b{font-weight:400;font-size:13px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}.bagi span{color:var(--t3);font-size:11px;}
 .bagi button{margin-top:5px;padding:3px 10px;border:1.5px solid #9FC48C;border-radius:999px;background:#EEF6E8;font:inherit;font-size:12px;color:#4D6A4D;}
+.sh-dig{margin-top:10px;padding:10px 12px 4px;border-radius:14px;background:#FCE6E1;font-size:13px;color:#8A4B40;}.sh-dig p{margin:0 0 4px;}
 .sh-bag{margin-top:8px;padding:6px 12px;border-radius:12px;background:#F6F1E7;font-size:13px;color:#7A6A55;}
 .sh-nav{display:flex;align-items:center;justify-content:space-between;margin:-6px -6px 2px;}
 .sh-nav button{width:40px;height:34px;border:2px solid var(--ink);border-radius:12px;background:var(--paper);font-size:20px;line-height:1;}
@@ -1052,7 +1053,7 @@ function all(){return Object.keys(D.plants).map(function(id){var p=D.plants[id];
 function garden(){
   var os=openSlots(level()),on={},slots=[];os.forEach(function(i){on[i]=1;});
   // 先放好自己那塊土有開、沒被搶走的，再把剩下的（土沒開、同一格比較晚種的）放到空的土，不會擠走別人
-  var later=[];all().filter(function(p){return !p.done;}).sort(function(a,b){return a.at-b.at;}).forEach(function(p){var k=+p.slot||0;if(on[k]&&!slots[k])slots[k]=p;else later.push(p);});
+  var later=[];all().filter(function(p){return !p.done;}).sort(function(a,b){return a.at-b.at;}).forEach(function(p){var k=+p.slot||0;if(slotGone(k))return;if(on[k]&&!slots[k])slots[k]=p;else later.push(p);});
   later.forEach(function(p){for(var j=0;j<os.length;j++)if(!slots[os[j]]){slots[os[j]]=p;break;}});
   return slots;
 }
@@ -1095,17 +1096,11 @@ function lvNeed(L){return 15*L*(L+1);}
 var MAXLV=30;
 function level(){var x=xp(),L=1;while(L<MAXLV&&x>=lvNeed(L))L++;return L;}
 // 幾塊土：中間 Lv.1～2 六塊，之後每兩級多兩塊（最多 12 塊）；新土地每塊再多三塊
-// 果樹坡（noplot）的土拿掉了，只拿來移植森林的植物；原本種在那裡、還在長的植物先搬到空的土（settleGone 記下來），
-// 沒有空的土就先留著那一塊，等它長大種進森林
+// 果樹坡（noplot）沒有種花的土，只拿來移植森林的植物；還種在那裡、在長的植物直接拔掉（settleGone）
 function slotGone(i){var lo=landOfSlot(i);return !!(lo&&lo.noplot);}
-function openSlots(L){var a=[],gone=[];SLOT_LV.forEach(function(v,i){if(v<=L){if(slotGone(i))gone.push(i);else a.push(i);}});
-  if(!gone.length)return a;
-  var used={},need=[];all().filter(function(p){return !p.done;}).sort(function(x,y){return x.at-y.at;}).forEach(function(p){var k=+p.slot||0;if(a.indexOf(k)>=0&&!used[k])used[k]=1;else need.push(k);});
-  var free=a.filter(function(i){return !used[i];}).length;
-  need.forEach(function(k,j){if(j>=free&&gone.indexOf(k)>=0&&a.indexOf(k)<0)a.push(k);});
-  return a.sort(function(x,y){return x-y;});
-}
-function settleGone(){var o={plants:{}},n=0;garden().forEach(function(p,i){if(p&&+p.slot!==i&&slotGone(+p.slot||0)){o.plants[p.id]={slot:i};n++;}});if(n){write(o);toast('🪴 果樹坡改成移植用的花園，原本種在那裡的 '+n+' 株搬到空的土了',null,5000);}}
+function openSlots(L){var a=[];SLOT_LV.forEach(function(v,i){if(v<=L&&!slotGone(i))a.push(i);});return a;}
+function settleGone(){var o={plants:{}},n=[];all().forEach(function(p){if(!p.done&&slotGone(+p.slot||0)){o.plants[p.id]=null;n.push(SP[p.sp].name);}});
+  if(n.length){write(o);toast('🪴 果樹坡的土拿掉了，那裡的'+n.join('、')+'也一起拔掉了',null,5000);}}
 function plotsAt(L){return openSlots(L).length;}
 function nPlots(){return plotsAt(level());}
 function landAt(L){return LANDS.filter(function(l){return l.lv===L;})[0];}
@@ -1964,8 +1959,10 @@ function closeSheet(){if(sheet&&sheet.ov)sheet.ov.remove();sheet=null;clearTimeo
 function navHtml(list,id){var i=list.indexOf(id);return list.length>1&&i>=0?'<div class="sh-nav"><button data-prev aria-label="上一棵">‹</button><span>'+(i+1)+' / '+list.length+'</span><button data-next aria-label="下一棵">›</button></div>':'';}
 function wireNav(box,list,id,go){var i=list.indexOf(id),pv=box.querySelector('[data-prev]'),nx=box.querySelector('[data-next]');if(pv)pv.onclick=function(){SND.sfx('tap');go(list[(i-1+list.length)%list.length]);};if(nx)nx.onclick=function(){SND.sfx('tap');go(list[(i+1)%list.length]);};}
 function plantNav(){var o=[];garden().forEach(function(p){if(p)o.push(p.id);});return o;}
+// 拔掉還在長的植物（太擠的時候）：澆過的水、長的進度都不會留下
+function digUp(id){var p=D.plants[id];if(!p||p.done)return;delete pendW[id];write({plants:obj(id,null)});SND.sfx('swish');toast('🗑️ '+label(p)+'拔掉了');closeSheet();paint();}
 function openPlant(id){
-  var naming=false;
+  var naming=false,dig=false;
   card('','plant');
   sheet.paint=function(){
     var p=D.plants[id];if(!p||p.done){closeSheet();return;}
@@ -1979,16 +1976,20 @@ function openPlant(id){
       (pe?'<div class="sh-pest">'+PESTS[pe.kind].e+' 有'+PESTS[pe.kind].name+'在啃葉子！先抓走才能澆水</div>':'')+
       (naming?'<div class="sh-name"><input id="nmIn" maxlength="10" placeholder="幫它取名字" value="'+esc(p.name||'')+'"><button data-save>好</button></div>':'')+
       '<div class="g-btns">'+(g.stage===4?'<button class="g-btn" data-harvest>🌳 種進森林</button>':pe?'<button class="g-btn" data-catch>'+PESTS[pe.kind].e+' 抓走'+PESTS[pe.kind].name+'</button>':'<button class="g-btn" data-water>💧 澆水（還有 '+left()+' 滴）</button>')+
-      (naming?'':'<button class="g-btn ghost" data-name>✏️ 取名字</button>')+'<button class="g-btn ghost" data-move>🪴 移植</button>'+(g.stage>0?rotBtns():'')+'<button class="g-btn ghost" data-close>關閉</button></div>'+
+      (naming?'':'<button class="g-btn ghost" data-name>✏️ 取名字</button>')+'<button class="g-btn ghost" data-move>🪴 移植</button>'+(g.stage>0?rotBtns():'')+(dig?'':'<button class="g-btn ghost" data-dig>🗑️ 拔掉</button>')+'<button class="g-btn ghost" data-close>關閉</button></div>'+
+      (dig?'<div class="sh-dig"><p>確定要拔掉'+esc(label(p))+'嗎？澆過的水和長的進度都不會留下</p><div class="g-btns"><button class="g-btn" data-digok>🗑️ 拔掉</button><button class="g-btn ghost" data-digno>先不要</button></div></div>':'')+
       '<p class="g-small">同一天兩個人都有澆，這天多長 '+TOGETHER+' 點</p>';
     restoreVals(box,kept);
-    wireNav(box,nav,id,function(nid){id=nid;naming=false;if(g3)Garden3D.mark('plant',nid);sheet.paint();});
+    wireNav(box,nav,id,function(nid){id=nid;naming=false;dig=false;if(g3)Garden3D.mark('plant',nid);sheet.paint();});
     var w=box.querySelector('[data-water]');if(w)w.onclick=function(){water(id);};
     var ct=box.querySelector('[data-catch]');if(ct)ct.onclick=function(){catchPest(id);};
     var hv=box.querySelector('[data-harvest]');if(hv)hv.onclick=function(){harvest(id);};
     box.querySelector('[data-move]').onclick=function(){startMove('plot',id);};
     wireRot(box,'plant',id);
     var nm=box.querySelector('[data-name]');if(nm)nm.onclick=function(){naming=true;sheet.paint();var i=$('nmIn');if(i)i.focus();};
+    var dg=box.querySelector('[data-dig]');if(dg)dg.onclick=function(){SND.sfx('tap');dig=true;sheet.paint();var c=box.querySelector('.sh-dig');if(c)c.scrollIntoView({block:'nearest'});};
+    var dno=box.querySelector('[data-digno]');if(dno)dno.onclick=function(){SND.sfx('tap');dig=false;sheet.paint();};
+    var dok=box.querySelector('[data-digok]');if(dok)dok.onclick=function(){digUp(id);};
     var sv=box.querySelector('[data-save]');if(sv)sv.onclick=function(){var v=($('nmIn').value||'').trim().slice(0,10);naming=false;write({plants:obj(id,{name:v})});SND.sfx('tap');paint();};
     box.querySelector('[data-close]').onclick=closeSheet;
   };
