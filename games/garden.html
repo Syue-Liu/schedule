@@ -181,6 +181,31 @@ body.placing-decor .g3-tools,body.placing-decor .g3-full-control,body.placing-de
 @media(max-width:350px){.garden-status{padding:8px;}.garden-status .mailbtn{padding:0 7px;}.garden-status .feedbtn{min-width:105px;font-size:12px;}.garden-status .strk{padding-inline:8px;font-size:12px;}}
 /* 卡片（澆水、種子、回憶） */
 .sh-art{height:170px;display:flex;justify-content:center;}
+/* 植物卡片 */
+.pc-head{display:flex;align-items:center;gap:14px;margin:4px 0 12px;text-align:left;}
+.pc-art{flex:none;width:96px;height:108px;display:flex;align-items:flex-end;justify-content:center;border-radius:20px;background:radial-gradient(circle at 50% 88%,#EAF3DF 0 46%,#F6F1E7 47%);overflow:hidden;}
+.pc-art svg{width:auto;height:104px;}
+.pc-title{min-width:0;flex:1;}.pc-title h2{margin:0 0 5px;text-align:left;font-size:22px;line-height:1.2;overflow-wrap:anywhere;}
+.pc-chips{display:flex;flex-wrap:wrap;gap:5px;}.pc-chips span{padding:2px 9px;border-radius:999px;background:#EEF6E8;font-size:12px;color:#4D6A4D;}.pc-chips span.ready{background:#FDF2D2;color:#8A6A1E;}
+.pc-by{margin-top:5px;font-size:12px;color:var(--t3);}
+.pc-box{margin-top:8px;padding:10px 12px;border-radius:16px;background:#F7F2E8;text-align:left;}
+.pc-row{display:flex;align-items:baseline;justify-content:space-between;gap:8px;}.pc-row b{font-weight:400;font-size:14px;}.pc-row span{font-size:12px;color:var(--t3);}
+.pc-box .bar.big{height:12px;margin:8px 0 6px;}
+.pc-steps{display:flex;justify-content:space-between;}
+.pc-steps i{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-style:normal;}
+.pc-steps b{width:10px;height:10px;border-radius:50%;border:2px solid #C9BBA6;background:#FFFCF6;}
+.pc-steps i.done b{border-color:#8DBA77;background:#8DBA77;}.pc-steps i.on b{width:14px;height:14px;margin-top:-2px;border-color:#5E9A4F;background:#B7DDA4;box-shadow:0 0 0 3px #DDEFD3;}
+.pc-steps span{font-size:10.5px;line-height:1.2;color:var(--t3);white-space:nowrap;}.pc-steps i.on span{color:#4D6A4D;}
+.pc-note{margin-top:6px;font-size:12px;color:#6C8A9C;}
+.pc-ws{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.pc-w{padding:3px 10px;border-radius:999px;border:1.5px solid #D7CDBE;background:#FFFCF6;font-size:13px;color:var(--t2);}
+.pc-w.on{border-color:#79BDDA;background:#E6F3FA;color:#2F6E8C;}.pc-w.both{border-color:#F2A497;background:#FCE6E1;color:#9A5A4E;}.pc-w.rain{border-color:#B9CBD6;background:#EEF3F6;color:#5C7685;}
+.pc-main{margin-top:12px;}
+.g-card.plant>.g-btns:last-child{position:static;margin:12px 0 0;padding:0;background:none;}.g-card.plant>.g-btns:last-child .g-btn{height:42px;}.pc-main .g-btn{width:100%;}
+.pc-acts{display:grid;grid-template-columns:repeat(auto-fit,minmax(64px,1fr));gap:8px;margin-top:10px;}
+.pc-acts button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:58px;padding:6px 2px;border:2px solid var(--ink);border-radius:16px;background:var(--paper);box-shadow:0 3px 0 #D8CBB8;font:inherit;font-size:12px;color:var(--t);cursor:pointer;}
+.pc-acts button:active{transform:translateY(2px);box-shadow:0 1px 0 #D8CBB8;}
+.pc-acts i{font-style:normal;font-size:20px;line-height:1;}.pc-acts .garden-action-icon{width:22px;height:22px;vertical-align:0;}
 .sh-art svg{height:100%;width:auto;}
 .sh-sp{font-size:13px;color:var(--t2);margin-top:-6px;}
 .bar.big{width:100%;height:14px;margin:10px 0 4px;}
@@ -2021,16 +2046,21 @@ function openPlant(id){
     var g=grow(p),a=+(((p.w||{}).syue||{})[today()])||0,b=+(((p.w||{}).ling||{})[today()])||0,box=sheet.ov.querySelector('.g-card'),pe=pestOf(p);
     var kept=keepVals(box);
     var nav=plantNav();
-    box.innerHTML=navHtml(nav,id)+'<div class="sh-art">'+art(p.sp,g.stage)+'</div><h2>'+esc(p.name||SP[p.sp].name)+'</h2><div class="sh-sp">'+SP[p.sp].name+'・'+stageName(p,g)+'・'+md(dayOf(p.at))+' '+NAMES[p.by]+'種的</div>'+
-      '<div class="bar big"><i style="width:'+Math.round(g.r*100)+'%"></i></div><div class="sh-num">'+Math.min(g.pts,g.need)+' / '+g.need+'</div>'+
-      '<div class="sh-today">今天 學 💧'+a+'・綾 💧'+b+(a&&b?' ✨ 兩個人都澆了 +'+TOGETHER:'')+(wet(today())&&today()>=WX_START?'・'+(weatherOf(today())==='snow'?'❄️':'🌧️')+' +'+RAIN:'')+'</div>'+(g.rain?'<div class="g-small" style="margin:2px 0 0">淋雨自己長了 '+g.rain*RAIN+' 點</div>':'')+
-      (g.stage<4&&thirsty(p)?'<div class="sh-warn">好幾天沒人澆水，口渴了…</div>':'')+(g.stage===4?comboHtml(id):'')+hintHtml(plantHints(id))+(g.stage===4?spInfo(p.sp):'')+
-      (pe?'<div class="sh-pest">'+PESTS[pe.kind].e+' 有'+PESTS[pe.kind].name+'在啃葉子！先抓走才能澆水</div>':'')+
+    // 版面：上面是圖和名字，接著「成長」（進度條＋五個階段）、「今天」（兩個人澆了幾滴、下雨），再來提示，最後一顆主要的按鈕和一排小按鈕
+    var S0=SP[p.sp],stl=STAGE[S0.kind],wt=wet(today())&&today()>=WX_START,both=a&&b;
+    var steps='<div class="pc-steps">'+stl.map(function(n,i){return '<i class="'+(i<g.stage?'done':i===g.stage?'on':'')+'"><b></b><span>'+esc(n.replace(/！$/,''))+'</span></i>';}).join('')+'</div>';
+    var main=g.stage===4?'<button class="g-btn" data-harvest>🌳 種進森林</button>':pe?'<button class="g-btn" data-catch>'+PESTS[pe.kind].e+' 抓走'+PESTS[pe.kind].name+'</button>':'<button class="g-btn" data-water>💧 澆水（還有 '+left()+' 滴）</button>';
+    var tiles=(naming?'':'<button data-name><i>✏️</i><span>取名字</span></button>')+'<button data-move><i>🪴</i><span>移植</span></button>'+(g3&&g.stage>0?'<button data-rot><i>🔄</i><span>轉方向</span></button>':'')+(dig?'':'<button data-dig><i>🗑️</i><span>拔掉</span></button>');
+    box.innerHTML=navHtml(nav,id)+
+      '<div class="pc-head"><div class="pc-art">'+art(p.sp,g.stage)+'</div><div class="pc-title"><h2>'+esc(p.name||S0.name)+'</h2><div class="pc-chips">'+(p.name?'<span>'+esc(S0.name)+'</span>':'')+'<span class="'+(g.stage===4?'ready':'')+'">'+esc(stageName(p,g))+'</span></div><div class="pc-by">'+md(dayOf(p.at))+' '+NAMES[p.by]+'種的</div></div></div>'+
+      '<div class="pc-box"><div class="pc-row"><b>🌱 成長</b><span>'+Math.min(g.pts,g.need)+' / '+g.need+' 點</span></div><div class="bar big"><i style="width:'+Math.round(g.r*100)+'%"></i></div>'+steps+(g.rain?'<div class="pc-note">🌧️ 淋雨自己長了 '+g.rain*RAIN+' 點</div>':'')+'</div>'+
+      '<div class="pc-box"><div class="pc-row"><b>💧 今天</b><span>兩個人都澆，多長 '+TOGETHER+' 點</span></div><div class="pc-ws"><span class="pc-w'+(a?' on':'')+'">學 💧'+a+'</span><span class="pc-w'+(b?' on':'')+'">綾 💧'+b+'</span>'+(both?'<span class="pc-w both">✨ +'+TOGETHER+'</span>':'')+(wt?'<span class="pc-w rain">'+(weatherOf(today())==='snow'?'❄️':'🌧️')+' +'+RAIN+'</span>':'')+'</div></div>'+
+      (g.stage<4&&thirsty(p)?'<div class="sh-warn">好幾天沒人澆水，口渴了…</div>':'')+(pe?'<div class="sh-pest">'+PESTS[pe.kind].e+' 有'+PESTS[pe.kind].name+'在啃葉子！先抓走才能澆水</div>':'')+
+      (g.stage===4?comboHtml(id):'')+hintHtml(plantHints(id))+(g.stage===4?spInfo(p.sp):'')+
       (naming?'<div class="sh-name"><input id="nmIn" maxlength="10" placeholder="幫它取名字" value="'+esc(p.name||'')+'"><button data-save>好</button></div>':'')+
-      '<div class="g-btns">'+(g.stage===4?'<button class="g-btn" data-harvest>🌳 種進森林</button>':pe?'<button class="g-btn" data-catch>'+PESTS[pe.kind].e+' 抓走'+PESTS[pe.kind].name+'</button>':'<button class="g-btn" data-water>💧 澆水（還有 '+left()+' 滴）</button>')+
-      (naming?'':'<button class="g-btn ghost" data-name>✏️ 取名字</button>')+'<button class="g-btn ghost" data-move>🪴 移植</button>'+(g.stage>0?rotBtns():'')+(dig?'':'<button class="g-btn ghost" data-dig>🗑️ 拔掉</button>')+'<button class="g-btn ghost" data-close>關閉</button></div>'+
+      '<div class="pc-main">'+main+'</div><div class="pc-acts">'+tiles+'</div>'+
       (dig?'<div class="sh-dig"><p>確定要拔掉'+esc(label(p))+'嗎？澆過的水和長的進度都不會留下</p><div class="g-btns"><button class="g-btn" data-digok>🗑️ 拔掉</button><button class="g-btn ghost" data-digno>先不要</button></div></div>':'')+
-      '<p class="g-small">同一天兩個人都有澆，這天多長 '+TOGETHER+' 點</p>';
+      '<div class="g-btns"><button class="g-btn ghost" data-close>關閉</button></div>';
     restoreVals(box,kept);
     wireNav(box,nav,id,function(nid){id=nid;naming=false;dig=false;if(g3)Garden3D.mark('plant',nid);sheet.paint();});
     var w=box.querySelector('[data-water]');if(w)w.onclick=function(){water(id);};
@@ -2182,7 +2212,7 @@ addEventListener('pagehide',function(){clearTimeout(wT);flush();});
 start3d();
 connect();
 </script>
-<script src="garden-icons.js?v=status-20261115"></script>
+<script src="garden-icons.js?v=card-20261118"></script>
 </body>
 </html>
 
