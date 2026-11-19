@@ -280,6 +280,7 @@ var Garden3D=(function(){
   function blocked(x,z){
     if(bikes.length&&nearBike(x,z,1.0))return true;
     if(nearTree(x,z)||inArea(x,z,.2))return true;
+    if(centerSign&&Math.hypot(x-centerSign.x,z-centerSign.z)<.8)return true;
     for(var id in trees){if(Math.hypot(trees[id].x-x,trees[id].z-z)<(isTreeSp(trees[id].sp)?1.05:.8))return true;}
     for(var di in decors){if(Math.hypot(decors[di].x-x,decors[di].z-z)<(DECOR_R[decors[di].k]||.5)+.4)return true;}
     for(var j=0;j<flow.length-1;j++)if(segDist(x,z,flow[j],flow[j+1])<.6)return true;
@@ -324,6 +325,14 @@ var Garden3D=(function(){
     return {x:bp.x,z:bp.z,ux:-Math.sin(dir),uz:Math.cos(dir),s:sc};
   }
   /* ── 新土地：草地、一圈沙土小路、接回花園的小路、幾朵小花；路口有木牌（點了鏡頭飛過去）。還沒開放的只有木牌和小柵欄 ── */
+  // 中間花園的木牌：在花園前面的小路邊（一開始的鏡頭看得到），牌子朝外；名字在 garden.html 取
+  var centerSign=null,CS_A=1.571,CS_R=5.6;
+  function addCenterSign(){var c=polar(CS_R,CS_A),ca=Math.cos(CS_A),sa=Math.sin(CS_A),sg=new T.Group();sg.position.set(c.x,0,c.z);sg.rotation.y=Math.atan2(ca,sa);scene.add(sg);
+    sg.add(mesh(cyl(.05,.06,1.05,6),'#8C6A55',0,.52,0));sg.add(mesh(new T.BoxGeometry(.86,.4,.06),'#C99A6F',0,.92,.04));sg.add(mesh(new T.BoxGeometry(.92,.06,.07),'#A97853',0,1.14,.04));
+    sg.add(mesh(ball(.07,0),'#F8C8D4',-.32,1.2,.06));sg.add(mesh(ball(.06,0),'#F6D27A',.34,1.19,.06));
+    var lb=label(320,120,1.7,.64);lb.position.set(c.x,1.25,c.z);lb.layers.set(1);scene.add(lb);
+    var hb=hit(.75,{land:'center'});hb.position.set(c.x,.9,c.z);scene.add(hb);bake(sg);
+    centerSign={g:sg,lb:lb,hb:hb,x:c.x,z:c.z};drawLabel(lb,{text:'🌳 中間的花園'});}
   function addLands(){
     LAND_IDS.forEach(function(id,j){
       var L=LAND_GEO[id],g=new T.Group(),ca=Math.cos(L.a),sa=Math.sin(L.a);g.position.set(L.c.x,0,L.c.z);scene.add(g);L.g=g;
@@ -396,7 +405,7 @@ var Garden3D=(function(){
     for(var bu=0;bu<22;bu++){var ba=bu*.29+rnd(bu+400)*.2,bp=polar(ISL+1.4+rnd(bu+410)*2.5,ba);if(Math.hypot(bp.x-lake.x,bp.z-lake.z)<lake.r+1||onLand(bp.x,bp.z,.9))continue;var bs=mesh(ball(.35+rnd(bu+420)*.25,1),['#86B67C','#9AC58C'][bu%2],bp.x,.15,bp.z);bs.scale.y=.75;scene.add(bs);if(bu%4===0)scene.add(mesh(ball(.07,0),'#F8C8D4',bp.x+.15,.42,bp.z));}
     // 森林可以放的位置：兩圈，避開泉水池、溪水出口、樹屋，還有新土地的路口（學和綾從那裡走出去）
     [[7.15,22,0],[7.95,26,.12]].forEach(function(rg){for(var i=0;i<rg[1];i++){var fa=i/rg[1]*Math.PI*2+rg[2]+.05;var sp0=polar(rg[0],fa);if(Math.hypot(sp0.x-pond.x,sp0.z-pond.z)<1.5||inArea(sp0.x,sp0.z,.45)||Math.abs(angDiff(fa,WF))<.2||Math.abs(angDiff(fa,TH_A))<.5||LAND_IDS.some(function(id){return Math.abs(angDiff(fa,LAND_GEO[id].a))<.2;}))continue;spots.push({r:rg[0],a:fa});}});
-    addLands();
+    addLands();addCenterSign();
     // 土：中間十二塊＋每塊新土地三塊（點的範圍做大一點、看不到）；還沒開放的先藏起來
     PLOT.forEach(function(p,i){
       var base=new T.Group();base.position.set(p[0],0,p[1]);scene.add(base);
@@ -2133,6 +2142,7 @@ var Garden3D=(function(){
     if(pondP&&Math.hypot(x-pondP.x,z-pondP.z)<1)return '這裡是泉水池';
     if(inArea(x,z,.3))return '這裡是遊樂區';
     if(treeHome&&Math.hypot(x-treeHome.c.x,z-treeHome.c.z)<3)return '這裡是樹屋';
+    if(centerSign&&Math.hypot(x-centerSign.x,z-centerSign.z)<(arguments[3]||.45)+.45)return '這裡是木牌';
     if(bikes.length&&nearBike(x,z,(arguments[3]||.45)+.7))return '這裡停了機車';
     if(nearDrive(x,z,(arguments[3]||.45)+.55))return '這裡是機車道';
     if(treeHome){var s0=THw(TSW.x,0,-2.4),s1=THw(TSW.x,0,1.1);if(segDist(x,z,s0,s1)<.95)return '這裡是樹屋的鞦韆';}
@@ -2362,7 +2372,7 @@ var Garden3D=(function(){
     var ray=rayAt(cx,cy);
     // 信箱上飄的信封最優先（有人、寵物走到前面也點得到）
     if(envS&&envS.visible&&ray.intersectObject(envS)[0])return {kind:'decor',id:envS.userData.id};
-    var lh=ray.intersectObjects(LAND_IDS.map(function(id){return LAND_GEO[id].sign.hb;}))[0];if(lh)return {kind:'sign',id:lh.object.userData.land};
+    var lh=ray.intersectObjects(LAND_IDS.map(function(id){return LAND_GEO[id].sign.hb;}).concat(centerSign?[centerSign.hb]:[]))[0];if(lh)return {kind:'sign',id:lh.object.userData.land};
     var vh=ray.intersectObjects(visitors.map(function(q){return q.hb;}))[0];if(vh)return {kind:'visitor',v:vh.object.userData.v};
     var lb=labelAt(cx,cy);if(lb)return {kind:'plot',p:lb};
     var pt=ray.intersectObjects(plots.filter(function(p){return p.pest;}).map(function(p){return p.pest.hb;}))[0];if(pt)return {kind:'pest',id:pt.object.userData.pest};
@@ -2399,7 +2409,7 @@ var Garden3D=(function(){
   }
   function act(t){
     if(!t)return;
-    if(t.kind==='sign'){var L=LAND_GEO[t.id];if(L.open)focusLand(t.id);if(hooks.land)hooks.land(t.id,L.open);return;}
+    if(t.kind==='sign'){if(t.id==='center'){focusLand('');if(hooks.land)hooks.land('center',true);return;}var L=LAND_GEO[t.id];if(L.open)focusLand(t.id);if(hooks.land)hooks.land(t.id,L.open);return;}
     if(t.kind==='visitor'){var vv=t.v;hearts(vv.g.position.x,vv.g.position.y+.2,vv.g.position.z,vv.kind==='bird'?3:1);if(vv.kind==='bird'){if(vv.state!=='out')hooks.bird();}else SND.sfx('pop');leave(vv);return;}
     if(t.kind==='pest'){hooks.pest(t.id);return;}
     if(t.kind==='pet'){var pp=t.p;pp.hop=.5;SND.sfx('pop');hearts(pp.x,1.2,pp.z,1);liveCmd({c:'pet',k:pp.k});return;}
@@ -2534,6 +2544,7 @@ var Garden3D=(function(){
       drawLabel(p.lab,s?{text:(mp&&s.id===mv.id?'🪴 ':s.pest?PN[s.pest]+' ':s.ready?'✨ ':'')+s.name,frac:s.r,ready:s.ready||(mp&&s.id===mv.id),pest:!!s.pest,thirsty:s.thirsty,wd:!mp&&!s.ready&&!s.pest?(s.duo?[{c:'學',on:!!s.ws},{c:'綾',on:!!s.wl}]:[{c:'',on:!!s.watered}]):null,sub:mp&&s.id!==mv.id?'點這裡交換':s.pest?'先抓走害蟲':s.ready?'可以種進森林':s.thirsty?'口渴了':''}:{text:mp?'移到這裡':'＋',empty:true});
       p.lab.position.y=(s?p.top+.3:.45);
     });
+    if(centerSign)drawLabel(centerSign.lb,{text:'🌳 '+(st.centerName||'中間的花園')});
     setForest(st.forest||[]);setCombos();
   }
   function water(id,who){var p=plots.filter(function(q){return q.id===id;})[0];if(!p)return;rain(p);hop();
