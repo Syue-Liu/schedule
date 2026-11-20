@@ -1828,6 +1828,14 @@ function openBag(){
   ov.querySelector('[data-close]').onclick=closeSheet;
 }
 function bagAll(){var L=forest().filter(function(p){return p.bag;});L.forEach(function(p){bagOut(p.id,true);});if(L.length){SND.sfx('plant');toast('🌱 背包裡的 '+L.length+' 株都種回森林了');}}
+/* ── 澆水提醒：對方種的植物兩天以上沒人澆，打開花園時提醒一下（同一株一天提醒一次），點了直接打開那株 ── */
+function thirstTip(){
+  if(!op||!cloud||!started)return;var day=today(),seen={};try{seen=JSON.parse(localStorage.getItem('gardenThirst')||'{}')||{};}catch(e){}if(seen.d!==day)seen={d:day,ids:[]};
+  var L=garden().filter(function(p){return p&&p.by===op&&!p.done&&grow(p).stage<4&&dnum(day)-dnum(lastDay(p))>=2&&seen.ids.indexOf(p.id)<0&&!pestOf(p);});
+  if(!L.length)return;L.sort(function(a,b){return lastDay(a)<lastDay(b)?-1:1;});var p=L[0],n=dnum(day)-dnum(lastDay(p));
+  seen.ids=seen.ids.concat(L.map(function(x){return x.id;}));try{localStorage.setItem('gardenThirst',JSON.stringify(seen));}catch(e){}
+  toast('💧 '+NAMES[op]+'種的'+label(p)+(n>=3?'口渴了':'兩天沒喝水了')+(L.length>1?'（還有 '+(L.length-1)+' 株）':'')+'，幫'+NAMES[op]+'澆一下？',function(){if(g3){Garden3D.mark('plant',p.id);}openPlant(p.id);},7000);
+}
 function harvest(id){
   var p=D.plants[id];if(!p||p.done||grow(p).stage<4)return;
   var o={done:Date.now(),doneBy:me};if(g3){var fp=Garden3D.freeSpot(p.sp);if(fp)o.pos=fp;}
@@ -2272,7 +2280,7 @@ function ambient(){
 var gardenEnteredAt=0;
 function ready(){
   gardenEnteredAt=Date.now();
-  ldStep('data');loadYearly();albumLoad();setInterval(streakWarn,60000);setTimeout(partyCard,1200);setTimeout(mailEntry,300);setTimeout(newSpCard,2600);setInterval(ambient,2500);ambient();
+  ldStep('data');loadYearly();albumLoad();setInterval(streakWarn,60000);setTimeout(partyCard,1200);setTimeout(mailEntry,300);setTimeout(newSpCard,2600);setTimeout(thirstTip,4200);setInterval(ambient,2500);ambient();
 
   started=true;
   $('gpets').innerHTML=['cat','pg','dg'].map(function(k){return '<img src="'+G.petImg(k,'happy')+'" alt="'+esc(G.petName(k))+'">';}).join('');
