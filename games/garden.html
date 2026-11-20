@@ -135,6 +135,7 @@ body.shooting .fbar,body.shooting .toasts{display:none;}
 .ps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;}
 .ps-grid button,.ps-clo button{padding:8px 4px;border:2px solid var(--ink);border-radius:14px;background:var(--paper);box-shadow:0 2px 0 #D8CBB8;font:inherit;font-size:12.5px;color:var(--t);cursor:pointer;}
 .ps-grid button:active,.ps-clo button:active{transform:translateY(2px);box-shadow:none;}
+.ps-tabs{display:flex;gap:5px;margin-bottom:7px;overflow-x:auto;}.ps-tabs button{flex:1;min-width:0;padding:4px 6px;border:2px solid var(--ink);border-radius:999px;background:var(--paper);font:inherit;font-size:12px;color:var(--t);white-space:nowrap;}.ps-tabs button.on{background:#E7F2DF;box-shadow:0 2px 0 var(--ink);}
 .ps-clo{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:7px;}
 .ps-clo button{display:flex;flex-direction:column;align-items:center;gap:4px;}.ps-clo button.on{background:#FFF3C9;box-shadow:0 2px 0 var(--ink);}
 .ps-clo .sw{display:flex;}.ps-clo .sw i{width:16px;height:16px;margin-left:-4px;border:1.5px solid var(--ink);border-radius:50%;}.ps-clo .sw i:first-child{margin-left:0;}.ps-clo .sw i.dft{background:linear-gradient(135deg,#4A5F86 50%,#F6E7D8 50%);}
@@ -571,7 +572,7 @@ body.placing-decor .g3-tools,body.placing-decor .g3-full-control,body.placing-de
 <script src="sound.js?v=piano-20261116"></script>
 <script src="game.js?v=garden-20261102"></script>
 <script src="vs.js?v=mail-20261108"></script>
-<script src="garden3d.js?v=power-20261120"></script>
+<script src="garden3d.js?v=clo2-20261120"></script>
 <script>
 /* 記憶小森林：兩個人一起種。每天回答一題問答拿水滴，一起澆水，把種子種成樹；長大的樹放進森林，留著那段時間的問答和兩個人的話。
    資料：班表同一個 Firebase 的 banbiao/<同步代碼>_garden（沒有同步代碼就存在這支手機）
@@ -1999,8 +2000,9 @@ function doingText(I){var d=I.d,o=DOING[d];if(d==='land')return '在'+areaName(I
   if(d==='pet')return '在摸'+(G.petName(I.x)||'寵物');if(d==='play')return '在跟'+(NAMES[I.x]||G.petName(I.x)||'')+'打招呼';if(typeof o==='object')return o[I.x]||(d==='pic'?'坐著休息':'在玩');return o||'發呆中';}
 var PACTS={slide:'🛝 溜滑梯',swing:'🎠 盪鞦韆',bench:'🌇 坐長椅',fire:'🔥 烤棉花糖',cafe:'☕ 去涼亭',tswing:'🌳 樹屋鞦韆'};
 var PRES={ok:'',busy:'那裡有人在用，等一下再去',tree:'在樹屋上，先下來囉，等一下再叫他',ride:'正在騎車兜風，回來再叫他',fail:'現在沒辦法過去，換一個試試',none:'',sent:''};
+var CLO_S=[['spring','🌸 春'],['summer','☀️ 夏'],['autumn','🍁 秋'],['winter','❄️ 冬'],['special','💝 特別']];
 function openPerson(k){
-  if(!g3)return;var timer=null;
+  if(!g3)return;var timer=null,cur=(Garden3D.outfits(k).filter(function(o){return o.id===((D.outfit||{})[k]||'daily');})[0]||{}).s,cloTab=cur||seasonOf(today());
   card('','pcardx');
   sheet.paint=function(){
     var I=Garden3D.personInfo(k);if(!I){closeSheet();return;}var box=sheet.ov.querySelector('.g-card'),O=Garden3D.outfits(k),who=k==='syue'?'ling':'syue';
@@ -2009,11 +2011,12 @@ function openPerson(k){
     box.innerHTML='<div class="ps-head"><span class="ps-av '+k+'">'+(k==='syue'?'🧑':'👩')+'</span><div><h2>'+NAMES[k]+'<small>'+esc((O.filter(function(o){return o.id===I.outfit;})[0]||{}).name||'')+'</small></h2><div class="ps-doing"><i></i>'+esc(doingText(I))+'</div></div></div>'+
       '<button class="g-btn" data-pc="stop"'+(I.ride?' disabled':'')+'>✋ 停下來</button>'+
       '<h4 class="ps-h">去做別的事</h4><div class="ps-grid">'+btn('walk','🚶 散步')+btn('treehouse','🏠 上樹屋')+acts+(I.trees?btn('treeSit','🧺 樹下坐坐')+btn('treePlay','🌸 樹下玩'):'')+(I.pets?btn('pet','🐾 摸寵物'):'')+btn('stroll','💑 找'+NAMES[who]+'散步')+(I.plants?btn('water','💧 照顧植物'):'')+(I.lands?btn('land','🏡 去新土地'):'')+'<button data-follow>👀 跟著看</button></div>'+
-      '<h4 class="ps-h">換衣服</h4><div class="ps-clo">'+O.map(function(o){return '<button data-clo="'+o.id+'"'+(o.id===I.outfit?' class="on"':'')+'><span class="sw">'+(o.cols.length?o.cols.map(function(c){return '<i style="background:'+c+'"></i>';}).join(''):'<i class="dft"></i>')+'</span>'+esc(o.name)+'</button>';}).join('')+'</div>'+
+      '<h4 class="ps-h">換衣服</h4><div class="ps-tabs">'+CLO_S.map(function(t){return '<button data-ct="'+t[0]+'"'+(t[0]===cloTab?' class="on"':'')+'>'+t[1]+'</button>';}).join('')+'</div><div class="ps-clo">'+O.filter(function(o){return o.s===cloTab;}).map(function(o){return '<button data-clo="'+o.id+'"'+(o.id===I.outfit?' class="on"':'')+'><span class="sw">'+(o.cols.length?o.cols.map(function(c){return '<i style="background:'+c+'"></i>';}).join(''):'<i class="dft"></i>')+'</span>'+esc(o.name)+'</button>';}).join('')+'</div>'+
       '<div class="g-btns"><button class="g-btn ghost" data-close>關閉</button></div>';
     box.querySelectorAll('[data-pc]').forEach(function(b){b.onclick=function(){var cmd=b.getAttribute('data-pc'),r=Garden3D.personCmd(k,cmd);SND.sfx('tap');
       if(r==='ok'||r==='sent'){closeSheet();toast(cmd==='stop'?'✋ '+NAMES[k]+'停下來了':'好～'+NAMES[k]+'去'+b.textContent.replace(/^\S+\s/,'')+'了');}else{toast(PRES[r]||'現在沒辦法');sheet.paint();}};});
     var fb=box.querySelector('[data-follow]');if(fb)fb.onclick=function(){closeSheet();startFollow(k);};
+    box.querySelectorAll('[data-ct]').forEach(function(b){b.onclick=function(){SND.sfx('tap');cloTab=b.getAttribute('data-ct');sheet.paint();};});
     box.querySelectorAll('[data-clo]').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-clo');SND.sfx('pop');write({outfit:obj(k,id)});paintPlots();sheet.paint();toast('👕 '+NAMES[k]+'換上'+b.textContent);};});
     box.querySelector('[data-close]').onclick=closeSheet;
   };
