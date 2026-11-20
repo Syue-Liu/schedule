@@ -325,13 +325,52 @@ var Garden3D=(function(){
     return {x:bp.x,z:bp.z,ux:-Math.sin(dir),uz:Math.cos(dir),s:sc};
   }
   /* ── 新土地：草地、一圈沙土小路、接回花園的小路、幾朵小花；路口有木牌（點了鏡頭飛過去）。還沒開放的只有木牌和小柵欄 ── */
+  /* ── 木牌上的小插圖：木紋底、細框，每個區域畫不一樣的（中間：小花園、果樹坡：果樹和小苗、西邊花田：一排鬱金香、
+     山腳草地：山坡和太陽、湖畔小園：小鴨子和荷葉）；名字可以改，插圖跟著區域 ── */
+  function signArt(id){
+    var W=344,H=160,c=document.createElement('canvas');c.width=W;c.height=H;var x=c.getContext('2d'),INK='#5A3E2B';
+    var g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,'#D8AD80');g.addColorStop(1,'#C2905F');x.fillStyle=g;x.fillRect(0,0,W,H);
+    x.strokeStyle='rgba(120,80,45,.22)';x.lineWidth=2;for(var i=0;i<6;i++){var yy=18+i*26+(i%2)*5;x.beginPath();x.moveTo(0,yy);x.bezierCurveTo(W*.3,yy-6,W*.6,yy+7,W,yy-2);x.stroke();}
+    x.strokeStyle='rgba(90,62,43,.55)';x.lineWidth=5;rr(x,8,8,W-16,H-16,14);x.stroke();
+    var ln=function(){x.lineWidth=3.2;x.strokeStyle=INK;x.lineJoin='round';x.lineCap='round';};
+    var blob=function(cx,cy,r,col){x.beginPath();x.arc(cx,cy,r,0,Math.PI*2);x.fillStyle=col;x.fill();ln();x.stroke();};
+    var stemL=function(sx,sy,h){ln();x.strokeStyle='#5E8F4E';x.lineWidth=4;x.beginPath();x.moveTo(sx,sy);x.lineTo(sx,sy-h);x.stroke();
+      x.fillStyle='#8DBA77';x.beginPath();x.ellipse(sx-8,sy-h*.45,9,4.5,-.6,0,Math.PI*2);x.fill();x.beginPath();x.ellipse(sx+8,sy-h*.6,9,4.5,.6,0,Math.PI*2);x.fill();};
+    var tulip=function(tx,ty,col){stemL(tx,ty,38);var hy=ty-44;x.beginPath();x.moveTo(tx-11,hy-6);x.lineTo(tx-11,hy+4);x.quadraticCurveTo(tx,hy+16,tx+11,hy+4);x.lineTo(tx+11,hy-6);x.lineTo(tx+5,hy);x.lineTo(tx,hy-9);x.lineTo(tx-5,hy);x.closePath();x.fillStyle=col;x.fill();ln();x.stroke();};
+    var daisy=function(dx,dy,col){stemL(dx,dy,34);var hy=dy-40;for(var k=0;k<8;k++){var a=k*Math.PI/4;x.beginPath();x.ellipse(dx+Math.cos(a)*9,hy+Math.sin(a)*9,6.5,4,a,0,Math.PI*2);x.fillStyle=col;x.fill();x.lineWidth=2;x.strokeStyle=INK;x.stroke();}blob(dx,hy,5.5,'#F6D27A');};
+    var grass=function(){x.fillStyle='#8DBA77';x.beginPath();x.moveTo(14,H-14);for(var k=0;k<=12;k++){var gx=14+k*(W-28)/12;x.quadraticCurveTo(gx-6,H-30-(k%2)*5,gx,H-24);}x.lineTo(W-14,H-14);x.closePath();x.fill();};
+    var heart=function(hx,hy,s0,col){x.save();x.translate(hx,hy);x.scale(s0,s0);x.beginPath();x.moveTo(0,8);x.bezierCurveTo(-14,-2,-8,-14,0,-6);x.bezierCurveTo(8,-14,14,-2,0,8);x.fillStyle=col;x.fill();x.lineWidth=2.4/s0;x.strokeStyle=INK;x.stroke();x.restore();};
+    var tree=function(tx,ty,s0,col,dots){x.save();x.translate(tx,ty);x.scale(s0,s0);x.fillStyle='#9C7258';x.beginPath();x.moveTo(-6,0);x.lineTo(-4,-30);x.lineTo(4,-30);x.lineTo(6,0);x.closePath();x.fill();ln();x.lineWidth=3/s0;x.stroke();
+      [[0,-48,20],[-15,-38,14],[15,-38,14]].forEach(function(q){x.beginPath();x.arc(q[0],q[1],q[2],0,Math.PI*2);x.fillStyle=col;x.fill();});x.lineWidth=3/s0;x.strokeStyle=INK;[[0,-48,20],[-15,-38,14],[15,-38,14]].forEach(function(q){x.beginPath();x.arc(q[0],q[1],q[2],0,Math.PI*2);x.stroke();});
+      x.fillStyle=col;[[0,-48,18],[-15,-38,12],[15,-38,12]].forEach(function(q){x.beginPath();x.arc(q[0],q[1],q[2],0,Math.PI*2);x.fill();});
+      (dots||[]).forEach(function(d){x.beginPath();x.arc(d[0],d[1],4.5,0,Math.PI*2);x.fillStyle=d[2];x.fill();x.lineWidth=1.8/s0;x.stroke();});x.restore();};
+    var sun=function(sx,sy,r){x.strokeStyle='#E8A93A';x.lineWidth=3;for(var k=0;k<8;k++){var a=k*Math.PI/4;x.beginPath();x.moveTo(sx+Math.cos(a)*(r+4),sy+Math.sin(a)*(r+4));x.lineTo(sx+Math.cos(a)*(r+10),sy+Math.sin(a)*(r+10));x.stroke();}blob(sx,sy,r,'#F6D27A');};
+    var cloud=function(cx,cy){x.fillStyle='#FFFCF6';[[0,0,10],[11,-5,12],[23,0,9]].forEach(function(q){x.beginPath();x.arc(cx+q[0],cy+q[1],q[2],0,Math.PI*2);x.fill();});};
+    // 圖案放大一點（以底部中間為基準），框框不動
+    x.save();x.beginPath();rr(x,10,10,W-20,H-20,12);x.clip();x.translate(W/2,H-12);x.scale(1.18,1.18);x.translate(-W/2,-(H-12));
+    if(id==='center'){grass();tulip(70,H-22,'#F2A497');daisy(118,H-22,'#FFFFFF');tree(W/2+6,H-22,1.05,'#A6D391',[[-8,-50,'#F8C8D4'],[9,-42,'#F8C8D4'],[-16,-36,'#F8C8D4']]);daisy(W-118,H-22,'#F8C8D4');tulip(W-70,H-22,'#B9A6DE');heart(W/2+6,30,1.1,'#F2A497');}
+    else if(id==='orchard'){grass();tree(90,H-22,1.15,'#9CCB85',[[-8,-50,'#E2675A'],[9,-44,'#E2675A'],[-15,-36,'#E2675A'],[14,-34,'#E2675A']]);
+      ln();x.strokeStyle='#8C6A55';x.lineWidth=4;x.setLineDash([2,9]);x.beginPath();x.moveTo(140,62);x.quadraticCurveTo(W/2+10,30,W-130,62);x.stroke();x.setLineDash([]);x.fillStyle='#8C6A55';x.beginPath();x.moveTo(W-128,70);x.lineTo(W-140,56);x.lineTo(W-122,56);x.closePath();x.fill();
+      x.fillStyle='#9C7258';x.beginPath();x.ellipse(W-96,H-26,30,9,0,0,Math.PI*2);x.fill();stemL(W-96,H-30,30);x.fillStyle='#8DBA77';x.beginPath();x.ellipse(W-104,H-62,10,5,-.5,0,Math.PI*2);x.fill();x.beginPath();x.ellipse(W-88,H-64,10,5,.5,0,Math.PI*2);x.fill();}
+    else if(id==='west'){sun(W-58,40,15);grass();['#F2A497','#F6D27A','#B9A6DE','#E2675A','#F8C8D4'].forEach(function(col,i){tulip(48+i*50,H-22,col);});}
+    else if(id==='hill'){sun(W-64,42,14);cloud(52,40);cloud(150,30);x.fillStyle='#A6D391';x.beginPath();x.moveTo(14,H-14);x.quadraticCurveTo(100,40,200,H-14);x.closePath();x.fill();ln();x.stroke();
+      x.fillStyle='#86B67C';x.beginPath();x.moveTo(120,H-14);x.quadraticCurveTo(230,58,W-14,H-14);x.closePath();x.fill();ln();x.stroke();daisy(84,H-20,'#FFFFFF');tree(240,H-36,.7,'#6FA37E');}
+    else if(id==='lake'){x.fillStyle='#8CC9E6';rr(x,14,H-62,W-28,48,14);x.fill();x.strokeStyle='#FFFFFF';x.lineWidth=3;[[60,H-38],[150,H-28],[250,H-40]].forEach(function(q){x.beginPath();x.arc(q[0],q[1],8,Math.PI*1.1,Math.PI*1.9);x.stroke();});
+      x.fillStyle='#7FB36E';x.beginPath();x.ellipse(W-80,H-36,20,8,0,.3,Math.PI*2-.3);x.lineTo(W-80,H-36);x.fill();blob(W-72,H-42,4,'#F8C8D4');
+      x.fillStyle='#FFFFFF';x.beginPath();x.ellipse(120,H-56,24,13,0,0,Math.PI*2);x.fill();ln();x.stroke();blob(140,H-76,10,'#FFFFFF');x.fillStyle='#F2A15B';x.beginPath();x.moveTo(149,H-78);x.lineTo(160,H-75);x.lineTo(149,H-72);x.closePath();x.fill();x.fillStyle=INK;x.beginPath();x.arc(143,H-79,1.8,0,Math.PI*2);x.fill();
+      tulip(46,H-60,'#F8C8D4');sun(W-50,36,12);}
+    x.restore();
+    var t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;t.anisotropy=4;return t;
+  }
+  // 板子兩面都貼上插圖（板子 .86×.4×.06、中心 (0,.92,.04)）
+  function signFace(sg,id){var tx=signArt(id),m=new T.MeshToonMaterial({map:tx,gradientMap:GM,emissive:new T.Color('#FFFFFF'),emissiveMap:tx,emissiveIntensity:.28});[[.071,0],[.009,Math.PI]].forEach(function(q){var pl=new T.Mesh(new T.PlaneGeometry(.84,.38),m);pl.position.set(0,.92,q[0]);pl.rotation.y=q[1];pl.userData.dyn=true;sg.add(pl);});}
   // 中間花園的木牌：在花園前面的小路邊（一開始的鏡頭看得到），牌子朝外；名字在 garden.html 取
   var centerSign=null,CS_A=1.571,CS_R=5.6;
   function addCenterSign(){var c=polar(CS_R,CS_A),ca=Math.cos(CS_A),sa=Math.sin(CS_A),sg=new T.Group();sg.position.set(c.x,0,c.z);sg.rotation.y=Math.atan2(ca,sa);scene.add(sg);
     sg.add(mesh(cyl(.05,.06,1.05,6),'#8C6A55',0,.52,0));sg.add(mesh(new T.BoxGeometry(.86,.4,.06),'#C99A6F',0,.92,.04));sg.add(mesh(new T.BoxGeometry(.92,.06,.07),'#A97853',0,1.14,.04));
     sg.add(mesh(ball(.07,0),'#F8C8D4',-.32,1.2,.06));sg.add(mesh(ball(.06,0),'#F6D27A',.34,1.19,.06));
     var lb=label(320,120,1.7,.64);lb.position.set(c.x,1.25,c.z);lb.layers.set(1);scene.add(lb);
-    var hb=hit(.75,{land:'center'});hb.position.set(c.x,.9,c.z);scene.add(hb);bake(sg);
+    var hb=hit(.75,{land:'center'});hb.position.set(c.x,.9,c.z);scene.add(hb);bake(sg);signFace(sg,'center');
     centerSign={g:sg,lb:lb,hb:hb,x:c.x,z:c.z};drawLabel(lb,{text:'🌳 中間的花園'});}
   function addLands(){
     LAND_IDS.forEach(function(id,j){
@@ -353,7 +392,7 @@ var Garden3D=(function(){
       var lk=new T.Group(),fp=polar(ISL+.95,L.a);lk.position.set(fp.x,0,fp.z);lk.rotation.y=face;scene.add(lk);
       [-.75,0,.75].forEach(function(x){lk.add(mesh(cyl(.045,.05,.6,6),'#8C6A55',x,.3,0));});lk.add(mesh(new T.BoxGeometry(1.6,.07,.05),'#B9845E',0,.45,0));lk.add(mesh(new T.BoxGeometry(1.6,.06,.05),'#B9845E',0,.22,0));
       sg.userData.still=true;bake(g);bake(lk);
-      L.sign={g:sg,lb:lb,hb:hb};L.lock=lk;L.open=false;g.visible=false;
+      signFace(sg,id);L.sign={g:sg,lb:lb,hb:hb};L.lock=lk;L.open=false;g.visible=false;
     });
   }
   function build(){
@@ -2590,7 +2629,7 @@ var Garden3D=(function(){
     // 測試用：每個人、每隻寵物在溪的哪一邊、離水多近、是不是在橋上；叫某個人／寵物走去某個地方
     // 營火有多近（看著遊樂區＝1、很遠＝0）：給環境音調營火聲大小
     fireNear:function(){if(!actG)return 0;var c=AWp(0,.3),d=Math.hypot(tgt.x-c.x,tgt.z-c.z)+Math.max(0,rad-14)*.5;return Math.max(0,Math.min(1,1-(d-3)/12));},
-    speed:function(n){tScale=n||1;},treePos:function(id){var t=trees[id];return t?{x:t.x,z:t.z}:null;},rots:function(){var o={};for(var id in decors)o['d:'+id]=+decors[id].g.rotation.y.toFixed(2);for(var t in trees)o['t:'+t]=+trees[t].g.rotation.y.toFixed(2);plots.forEach(function(p){if(p.id)o['p:'+p.id]=+p.holder.rotation.y.toFixed(2);});return o;},hol:function(){return hol?{k:hol.k,objs:hol.objs.length,tree:hol.tree?{x:+hol.tree.x.toFixed(2),z:+hol.tree.z.toFixed(2)}:null,pic:holPic?{x:+holPic.x.toFixed(2),z:+holPic.z.toFixed(2)}:null,hats:people.map(function(p){return [p.santa.visible,p.pomelo.visible];}),moon:moonDisc?[moonDisc.visible,moonDisc.scale.x]:null}:null;},env:function(){return envS&&envS.visible?{on:true,id:envS.userData.id,y:+envS.position.y.toFixed(2)}:{on:false};},hold:function(v){holdAI=!!v;},flashTrees:flashTrees,treeOK:function(id){return !!treeSpot(id);},slotNear:function(i){var a=plots[i];if(!a)return [];var o=[];plots.forEach(function(b,j){if(j!==i&&Math.hypot(a.x-b.x,a.z-b.z)<=2.6)o.push(j);});return o;},treeCall:function(id){if(follow3){liveCmd({c:'tree',tid:id});return null;}return treeCall(id);},tplay:function(k,id){var p=byK(k);if(!p)return false;if(p.state==='act'||p.goAct)endAct(p);strollEnd(p);p.goPic=null;return goTreePlay(p,id);},treeSit:function(k,id){var p=byK(k);if(!p)return false;strollEnd(p);p.tp=null;var P=treeSpot(id);return P?goPic(p,P):false;},combos:function(){return combos.map(function(c){return {key:c.key,ids:c.m.map(function(n){return n.id;}),fx:c.fx,cx:+c.cx.toFixed(2),cz:+c.cz.toFixed(2)};});},
+    speed:function(n){tScale=n||1;},treePos:function(id){var t=trees[id];return t?{x:t.x,z:t.z}:null;},rots:function(){var o={};for(var id in decors)o['d:'+id]=+decors[id].g.rotation.y.toFixed(2);for(var t in trees)o['t:'+t]=+trees[t].g.rotation.y.toFixed(2);plots.forEach(function(p){if(p.id)o['p:'+p.id]=+p.holder.rotation.y.toFixed(2);});return o;},hol:function(){return hol?{k:hol.k,objs:hol.objs.length,tree:hol.tree?{x:+hol.tree.x.toFixed(2),z:+hol.tree.z.toFixed(2)}:null,pic:holPic?{x:+holPic.x.toFixed(2),z:+holPic.z.toFixed(2)}:null,hats:people.map(function(p){return [p.santa.visible,p.pomelo.visible];}),moon:moonDisc?[moonDisc.visible,moonDisc.scale.x]:null}:null;},env:function(){return envS&&envS.visible?{on:true,id:envS.userData.id,y:+envS.position.y.toFixed(2)}:{on:false};},hold:function(v){holdAI=!!v;},flashTrees:flashTrees,treeOK:function(id){return !!treeSpot(id);},signAt:function(id){var S=id==='center'?centerSign:LAND_GEO[id]&&LAND_GEO[id].sign;if(!S)return null;var v=S.hb.getWorldPosition(new T.Vector3());return {x:v.x,z:v.z,ry:S.g.rotation.y};},slotNear:function(i){var a=plots[i];if(!a)return [];var o=[];plots.forEach(function(b,j){if(j!==i&&Math.hypot(a.x-b.x,a.z-b.z)<=2.6)o.push(j);});return o;},treeCall:function(id){if(follow3){liveCmd({c:'tree',tid:id});return null;}return treeCall(id);},tplay:function(k,id){var p=byK(k);if(!p)return false;if(p.state==='act'||p.goAct)endAct(p);strollEnd(p);p.goPic=null;return goTreePlay(p,id);},treeSit:function(k,id){var p=byK(k);if(!p)return false;strollEnd(p);p.tp=null;var P=treeSpot(id);return P?goPic(p,P):false;},combos:function(){return combos.map(function(c){return {key:c.key,ids:c.m.map(function(n){return n.id;}),fx:c.fx,cx:+c.cx.toFixed(2),cz:+c.cz.toFixed(2)};});},
     // 卡片上換到別棵的時候，3D 裡也標出現在是哪一棵
     mark:function(kind,id){var t=null;if(kind==='plant'){var p=plots.filter(function(q){return q.on&&q.id===id;})[0];if(p)t={kind:'plot',p:p};}else if(trees[id])t={kind:'tree',id:id};if(t){setHL(t,true);hl.hold=1.6;}},
     // 測試用：螢幕上這一點會點到什麼
