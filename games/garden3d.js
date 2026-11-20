@@ -524,6 +524,63 @@ var Garden3D=(function(){
   function hop(k){var list=k?pets.filter(function(p){return p.k===k;}):[pets[Math.floor(Math.random()*pets.length)]];list.forEach(function(p){if(p&&p.hop<=0)p.hop=.5;});}
 
   /* ── 學和綾：Q 版人物，在小島上散步；偶爾走去摸摸寵物、或跟對方打招呼 ── */
+  /* ── 髮型：學、綾各六種（default＝原本的）；兩支手機一樣（存在 garden.html 的 look） ── */
+  function hBall(h,c,r,x,y,z,sx,sy,sz){var m=mesh(ball(r,2),c,x,y,z);m.scale.set(sx||1,sy||1,sz||1);h.add(m);return m;}
+  function syueBase(h,c,c2,bangs){h.add(hairCap(c,.42));var crown=mesh(ball(.21,2),c2,-.065,.19,-.04);crown.scale.set(1.1,.5,1);h.add(crown);
+    if(bangs!==false)[-.13,-.04,.05,.13].forEach(function(x,i){var t=mesh(ball(.07,2),c,x,.19-(i%2)*.025,.215);t.scale.set(1.15,.62,.8);t.rotation.z=x*1.4;h.add(t);});
+    [-1,1].forEach(function(sd){hBall(h,c,.07,sd*.245,.04,.06,.55,1.25,.9);});hBall(h,c,.2,0,-.06,-.12,1.15,.75,.85);}
+  function lingBase(h,c,c2){h.add(hairCap(c,.36));[-.13,-.045,.045,.13].forEach(function(x,i){hBall(h,c2,.068,x,.16-(i===1||i===2?.03:0),.205,1.05,.72,.7);});}
+  var HAIRS={
+    syue:{
+      default:function(h){syueBase(h,'#2E2A2A','#403735');},
+      side:function(h){syueBase(h,'#2E2A2A','#403735',false);[[-.16,.2],[-.07,.215],[.02,.205],[.1,.17],[.17,.12]].forEach(function(q,i){var t=hBall(h,'#2E2A2A',.072,q[0],q[1],.2,1.35,.6,.8);t.rotation.z=-.45;});},
+      curly:function(h){syueBase(h,'#3A2E2B','#4A3A35',false);for(var i=0;i<30;i++){var u=i*2.39996,v=Math.acos(1-(i+.5)/30*1.15);var x=Math.sin(v)*Math.cos(u)*.3,y=Math.cos(v)*.3+.02,z=Math.sin(v)*Math.sin(u)*.3;if(y<.02||(z>.16&&y<.14))continue;hBall(h,i%3?'#3A2E2B':'#4A3A35',.075,x,y,z);}},
+      spiky:function(h){syueBase(h,'#2E2A2A','#403735');[[0,1,0],[.5,.85,.2],[-.5,.85,.2],[.3,.9,-.4],[-.3,.9,-.4],[0,.8,.5],[0,.7,-.65]].forEach(function(d){var n=new T.Vector3(d[0],d[1],d[2]).normalize(),c0=mesh(cone(.065,.17,6),'#2E2A2A',n.x*.27,n.y*.27+.02,n.z*.27);c0.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),n);h.add(c0);});},
+      brown:function(h){syueBase(h,'#6B4A3A','#7A5544');},
+      mid:function(h){syueBase(h,'#2E2A2A','#403735');hBall(h,'#2E2A2A',.21,0,-.16,-.12,1.15,1.15,.75);[-1,1].forEach(function(sd){hBall(h,'#2E2A2A',.08,sd*.25,-.1,.02,.6,1.5,.8);});}},
+    ling:{
+      default:function(h){lingBase(h,'#6B4A3A','#795343');hBall(h,'#6B4A3A',.22,0,-.16,-.14,1.15,1.25,.7);
+        [-.25,.25].forEach(function(x){hBall(h,'#6B4A3A',.1,x,-.12,.02,.7,1.5,.8);hBall(h,'#795343',.06,x*1.05,-.27,.05,1,.8,.9);});
+        [-.16,0,.16].forEach(function(x){hBall(h,'#795343',.075,x,-.38,-.15,1,.75,.8);});},
+      pony:function(h){lingBase(h,'#6B4A3A','#795343');hBall(h,'#6B4A3A',.22,0,-.05,-.14,1.15,1,.7);hBall(h,'#F2A0B5',.05,0,.06,-.27);
+        [[0,-.02,-.33,.07],[0,-.14,-.37,.078],[0,-.27,-.35,.068],[0,-.38,-.31,.05]].forEach(function(q){hBall(h,'#6B4A3A',q[3],q[0],q[1],q[2]);});},
+      bun:function(h){lingBase(h,'#6B4A3A','#795343');hBall(h,'#6B4A3A',.22,0,-.06,-.13,1.15,1,.75);hBall(h,'#795343',.11,0,.3,-.1);var tie=mesh(new T.TorusGeometry(.07,.018,6,14),'#F6D27A',0,.23,-.08);tie.rotation.x=Math.PI/2-.3;h.add(tie);},
+      long:function(h){lingBase(h,'#5A3E30','#6B4A3A');hBall(h,'#5A3E30',.22,0,-.28,-.13,1.2,2.0,.65);[-1,1].forEach(function(sd){hBall(h,'#5A3E30',.09,sd*.25,-.22,.02,.65,2.3,.8);});},
+      twin:function(h){lingBase(h,'#6B4A3A','#795343');hBall(h,'#6B4A3A',.22,0,-.06,-.13,1.15,1,.75);
+        [-1,1].forEach(function(sd){hBall(h,'#F2A0B5',.045,sd*.27,.06,-.08);[[.32,-.02,-.08,.07],[.36,-.14,-.07,.075],[.36,-.27,-.05,.065],[.33,-.37,-.03,.048]].forEach(function(q){hBall(h,'#6B4A3A',q[3],sd*q[0],q[1],q[2]);});});},
+      bob:function(h){lingBase(h,'#6B4A3A','#795343');hBall(h,'#6B4A3A',.22,0,-.07,-.1,1.28,1.05,1.0);[-1,1].forEach(function(sd){hBall(h,'#6B4A3A',.1,sd*.24,-.08,.03,.75,1.15,.95);hBall(h,'#795343',.06,sd*.25,-.19,.07,1.1,.6,.9);});}}};
+  /* ── 表情：眉毛、嘴巴、腮紅、眼睛（eyes：1 兩眼、0 換成別的眼睛、'L' 只留左眼） ── */
+  var EXPR={
+    smile:{eyes:1,brow:'n',mouth:'smile',blush:1},
+    laugh:{eyes:0,eye:'arc',brow:'up',mouth:'open',blush:1.25},
+    shy:{eyes:1,brow:'worry',mouth:'small',blush:1.9,lines:1},
+    surprise:{eyes:1,eyeS:1.28,brow:'high',mouth:'o',blush:.6},
+    wink:{eyes:'L',eye:'arcR',brow:'n',mouth:'tongue',blush:1.1},
+    love:{eyes:0,eye:'heart',brow:'up',mouth:'smile',blush:1.5},
+    sleepy:{eyes:0,eye:'line',brow:'n',mouth:'osmall',blush:.8},
+    pout:{eyes:1,brow:'angry',mouth:'pout',blush:1.3}};
+  function exprGroup(E,browC){var g=new T.Group(),INK='#362B29';
+    var BR={n:[.06,.12],up:[.07,.12],high:[.088,.05],worry:[.064,-.3],angry:[.052,-.36]}[E.brow]||[.06,.12];
+    [-.09,.09].forEach(function(x){var bz=.96*Math.sqrt(Math.max(0,.0729-x*x-BR[0]*BR[0]))+.004,br=mesh(ball(.032,1),browC,x,BR[0],bz);br.scale.set(1.05,.22,.25);br.rotation.z=x>0?-BR[1]:BR[1];g.add(br);
+      var bl=mesh(ball(.04,1),E.blush>1.6?'#F4A0A0':'#F7B5A8',x*1.62,-.065,.21);bl.scale.set(E.blush,.5*Math.min(E.blush,1.3),.3);g.add(bl);
+      if(E.lines)for(var j=0;j<3;j++){var ln=mesh(new T.BoxGeometry(.006,.026,.004),'#E07A7A',x*1.62+(j-1)*.017,-.062,.245);ln.rotation.z=.4;g.add(ln);}
+      var right=x>0;
+      if(E.eye==='arc'||(E.eye==='arcR'&&right)){var a=mesh(new T.TorusGeometry(.027,.007,6,12,Math.PI),INK,x,-.005,.25);g.add(a);}
+      else if(E.eye==='line'){g.add(mesh(new T.BoxGeometry(.05,.008,.006),INK,x,-.005,.25));}
+      else if(E.eye==='heart'){var hm=new T.Mesh(new T.ExtrudeGeometry(heartShape(.042),{depth:.012,bevelEnabled:false}),M('#E2556A'));hm.position.set(x,.005,.243);g.add(hm);}});
+    var MC='#A76C65';
+    if(E.mouth==='smile'||E.mouth==='tongue'){var sm=mesh(new T.TorusGeometry(.035,.006,6,16,Math.PI),MC,0,-.094,.245);sm.rotation.z=Math.PI;g.add(sm);if(E.mouth==='tongue')g.add(mesh(ball(.014,1),'#F28C95',.012,-.128,.236));}
+    else if(E.mouth==='small'){var s2=mesh(new T.TorusGeometry(.02,.005,6,12,Math.PI),MC,0,-.098,.246);s2.rotation.z=Math.PI;g.add(s2);}
+    else if(E.mouth==='open'){g.add(mesh(new T.CircleGeometry(.042,18,Math.PI,Math.PI),'#8C4A4A',0,-.088,.252));g.add(mesh(new T.CircleGeometry(.022,12,Math.PI,Math.PI),'#F28C95',0,-.112,.2535));}
+    else if(E.mouth==='o'){g.add(mesh(new T.TorusGeometry(.018,.007,6,14),MC,0,-.1,.248));}
+    else if(E.mouth==='osmall'){g.add(mesh(new T.TorusGeometry(.011,.005,6,12),MC,0,-.1,.249));}
+    else if(E.mouth==='pout'){var po=mesh(ball(.016,1),'#C77A70',0,-.1,.25);po.scale.set(1.2,.7,.5);g.add(po);}
+    g.traverse(function(m){if(m.isMesh)m.castShadow=false;});return g;}
+  function setHair(p,id){if(!p.hairs[id])id='default';if(p.hair===id)return;p.hair=id;for(var k in p.hairs)p.hairs[k].visible=k===id;}
+  function setExpr(p,id){if(!p.exprs[id])id='smile';if(p.expr===id)return;p.expr=id;for(var k in p.exprs)p.exprs[k].visible=k===id;var E=EXPR[id];p.eyes[0].visible=!!E.eyes;p.eyes[1].visible=E.eyes===1;p.eyeS=E.eyeS||1;}
+  // 自動表情：牽手→愛心眼、在玩→大笑、晚上坐著→想睡、揮手→眨眼、平常→微笑
+  function autoExpr(p){var A=p.A&&p.A.k;if(p.hand)return 'love';if(A==='swing'||A==='slide'||A==='tswing'||(p.tp&&(p.tp.k==='catch'||p.tp.k==='leaf'))||(p.state==='play'&&p.with&&p.with.spr))return 'laugh';
+    if(night>.6&&(p.state==='pic'||p.state==='sit'))return 'sleepy';if(p.waveT>0)return 'wink';if(p.tp&&p.tp.k==='poke')return 'surprise';return 'smile';}
   function hairCap(c,tilt){var m=mesh(new T.SphereGeometry(.29,18,10,0,Math.PI*2,0,Math.PI*.56),c,0,.02,-.01);m.rotation.x=-tilt;return m;}
   function human(o){
     var g=new T.Group(),b=new T.Group();b.scale.y=1.23;g.add(b);
@@ -563,19 +620,19 @@ var Garden3D=(function(){
     var hd=new T.Group();hd.position.y=1.1;hd.scale.setScalar(.82);b.add(hd);
     var face=mesh(new T.SphereGeometry(.27,26,18),o.skin);face.scale.set(1,.97,.96);hd.add(face);
     [-1,1].forEach(function(side){var ear=mesh(ball(.055,2),o.skin,side*.265,-.015,-.005);ear.scale.set(.68,1,.7);hd.add(ear);});
-    o.hair(hd);
-    // 臉：眼睛（亮點）、眉毛、腮紅、鼻子、嘴巴；綾有睫毛
+    // 髮型：每一種先做好藏起來（HAIRS），換髮型只是換哪一組看得到；綾的漁夫帽是另外一組（衣服可以拿掉）
+    var hairs={},HS=HAIRS[o.k]||{default:o.hair};Object.keys(HS).forEach(function(id){var hg=new T.Group();HS[id](hg);hg.visible=id==='default';hd.add(hg);hairs[id]=hg;});
+    var hatG=null;if(o.hat){hatG=new T.Group();o.hat(hatG);hd.add(hatG);}
+    // 臉：眼睛（亮點）、鼻子；眉毛、嘴巴、腮紅跟著表情換（EXPR）
     var eyes=[];
     [-.09,.09].forEach(function(x){
       var ey=new T.Group();ey.position.set(x,0,.244);hd.add(ey);
       var eye=mesh(ball(.031,2),'#362B29');eye.scale.set(.8,1.12,.5);ey.add(eye);ey.add(mesh(ball(.008,1),'#FFF9F1',-.008,.013,.016));ey.add(mesh(ball(.004,1),'#FFF9F1',.008,-.01,.016));
       if(o.k==='ling'){var lash=mesh(ball(.009,1),'#362B29',x>0?.022:-.022,.03,0);lash.scale.set(1.4,.45,.4);ey.add(lash);}
       eyes.push(ey);
-      var brow=mesh(ball(.03,1),o.brow,x,.08,.23);brow.scale.set(1,.18,.2);brow.rotation.z=x>0?-.12:.12;hd.add(brow);
-      var blush=mesh(ball(.04,1),'#F7B5A8',x*1.62,-.065,.21);blush.scale.set(1,.5,.3);hd.add(blush);
     });
     var nose=mesh(ball(.017,2),'#E5B9A6',0,-.055,.257);nose.scale.set(.7,.6,.5);hd.add(nose);
-    var smile=mesh(new T.TorusGeometry(.035,.006,6,16,Math.PI),'#A76C65',0,-.094,.245);smile.rotation.z=Math.PI;hd.add(smile);
+    var exprs={};Object.keys(EXPR).forEach(function(id){var eg=exprGroup(EXPR[id],o.brow);eg.visible=id==='smile';hd.add(eg);exprs[id]=eg;});
     var tag=nameTag(o.name,o.bg);tag.position.y=1.94;tag.layers.set(1);g.add(tag);
     var sh2=new T.Mesh(new T.CircleGeometry(.32,16),new T.MeshBasicMaterial({color:'#000000',transparent:true,opacity:.16,depthWrite:false}));sh2.rotation.x=-Math.PI/2;sh2.position.y=.02;g.add(sh2);
     var hb=hit(.5,{person:o.k});hb.position.y=1;hb.scale.set(1,2.15,1);g.add(hb);
@@ -585,7 +642,8 @@ var Garden3D=(function(){
     var pom=new T.Group();pom.add(mesh(new T.SphereGeometry(.26,14,6,0,Math.PI*2,0,Math.PI/2),'#D3DC6A',0,.17+lift,0));pom.add(mesh(cyl(.02,.025,.08,5),'#7A6A3A',0,.45+lift,0));var plf=mesh(ball(.05,1),'#8DBB5E',.06,.46+lift,0);plf.scale.set(1.6,.4,.8);pom.add(plf);pom.visible=false;hd.add(pom);bake(pom);
     var umb=new T.Group();umb.add(mesh(cyl(.014,.014,.95,5),'#594C43',.2,1.3,.06));var can=mesh(cone(.62,.3,10),o.k==='syue'?'#7FA8CB':'#F2A497',.2,1.86,.06);umb.add(can);umb.add(mesh(ball(.035,1),'#594C43',.2,2.03,.06));umb.visible=false;g.add(umb);bake(umb);
     g.scale.setScalar(1.15);scene.add(g);
-    [L1,L2,A1,A2].concat(eyes).forEach(function(n){bake(n);});bake(hd,eyes.concat([hat,santa,pom]));bake(b,[L1,L2,A1,A2,hd]);
+    var hdStop=eyes.concat([hat,santa,pom]),hg0=[];for(var hk in hairs)hg0.push(hairs[hk]);for(var ek in exprs)hg0.push(exprs[ek]);if(hatG)hg0.push(hatG);
+    [L1,L2,A1,A2].concat(eyes).concat(hg0).forEach(function(n){var v=n.visible;n.visible=true;bake(n);n.visible=v;});bake(hd,hdStop.concat(hg0));bake(b,[L1,L2,A1,A2,hd]);
     // 配件（換衣服用）：圍巾、毛帽、棒球帽、太陽眼鏡、耳罩；main＝跟著衣服換顏色的那幾塊
     var acc={};function accG(par,k){var ag=new T.Group();ag.visible=false;ag.userData.dyn=true;par.add(ag);acc[k]=ag;return ag;}
     function am(ag,geo,x,y,z,sub){var m=new T.Mesh(geo,M(sub||'#E2675A'));m.position.set(x,y,z);m.castShadow=true;m.userData.main=!sub;ag.add(m);return m;}
@@ -597,8 +655,8 @@ var Garden3D=(function(){
     if(o.k==='syue'){bn.scale.setScalar(1.15);cp.scale.setScalar(1.15);}
     var em=accG(hd,'earmuffs');am(em,new T.TorusGeometry(.295,.022,6,18,Math.PI),0,0,-.02);[-1,1].forEach(function(sd){var mf=am(em,ball(.08,1),sd*.285,-.02,0);mf.scale.set(.75,1,1);});
     // 換衣服用：身體、手腳、頭上（不含眼睛、節日帽子）每一塊合起來的網格和它原本的顏色
-    var parts=[];[b,L1,L2,A1,A2,hd].forEach(function(gp){gp.children.forEach(function(c){if(c.isMesh&&c.material&&c.material.color&&c.material!==o.skin)parts.push({m:c,orig:'#'+c.material.color.getHexString().toUpperCase(),hd:gp===hd});});});
-    return {parts:parts,acc:acc,outfit:'daily',tag:tag,can:wcan,hat:hat,santa:santa,pomelo:pom,umb:umb,k:o.k,g:g,b:b,legs:[L1,L2],arms:[A1,A2],hd:hd,eyes:eyes,sh:sh2,ang:o.ang,r:5.3,ta:o.ang,tr:5.3,state:'idle',timer:1+Math.random()*2,walkT:0,face:0,with:null,act:0,ph:Math.random()*6,blink:2+Math.random()*3,waveT:0,seat:-1};
+    var parts=[];[b,L1,L2,A1,A2,hd].concat(hatG?[hatG]:[]).forEach(function(gp){gp.children.forEach(function(c){if(c.isMesh&&c.material&&c.material.color&&c.material!==o.skin)parts.push({m:c,orig:'#'+c.material.color.getHexString().toUpperCase(),hd:gp===hd||gp===hatG});});});
+    return {parts:parts,acc:acc,hairs:hairs,hair:'default',exprs:exprs,expr:'smile',exprSel:'auto',exprT:0,eyeS:1,outfit:'daily',tag:tag,can:wcan,hat:hat,santa:santa,pomelo:pom,umb:umb,k:o.k,g:g,b:b,legs:[L1,L2],arms:[A1,A2],hd:hd,eyes:eyes,sh:sh2,ang:o.ang,r:5.3,ta:o.ang,tr:5.3,state:'idle',timer:1+Math.random()*2,walkT:0,face:0,with:null,act:0,ph:Math.random()*6,blink:2+Math.random()*3,waveT:0,seat:-1};
   }
   /* ── 衣服：每一套是「原本的顏色 → 新的顏色」；綾的帽子可以拿掉或換顏色。兩支手機穿一樣（存在 garden.html 的 outfit） ── */
   // s：季節（spring 春、summer 夏、autumn 秋、winter 冬、special 特別）；acc：配件和顏色（glasses 不用顏色）
@@ -682,18 +740,9 @@ var Garden3D=(function(){
   function addPeople(){
     var SK='#F6D8C4';
     // 學：短黑髮（頭頂、瀏海、鬢角、後腦）、深藍外套、灰褲子
-    people.push(human({k:'syue',name:'學',bg:'#EEF6E8',ang:.3,skin:SK,top:'#4A5F86',legs:'#7C7F86',shoe:'#584B43',cuff:'#DFE5E7',brow:'#2E2A2A',hair:function(h){
-      var c='#2E2A2A';h.add(hairCap(c,.42));var crown=mesh(ball(.21,2),'#403735',-.065,.19,-.04);crown.scale.set(1.1,.5,1);h.add(crown);
-      [-.13,-.04,.05,.13].forEach(function(x,i){var t=mesh(ball(.07,2),c,x,.19-(i%2)*.025,.215);t.scale.set(1.15,.62,.8);t.rotation.z=(x)*1.4;h.add(t);});
-      [-1,1].forEach(function(sd){var sb=mesh(ball(.07,2),c,sd*.245,.04,.06);sb.scale.set(.55,1.25,.9);h.add(sb);});
-      var nape=mesh(ball(.2,2),c,0,-.06,-.12);nape.scale.set(1.15,.75,.85);h.add(nape);}}));
+    people.push(human({k:'syue',name:'學',bg:'#EEF6E8',ang:.3,skin:SK,top:'#4A5F86',legs:'#7C7F86',shoe:'#584B43',cuff:'#DFE5E7',brow:'#2E2A2A',hair:HAIRS.syue.default}));
     // 綾：咖啡色及肩髮（瀏海、兩側、後面捲捲的髮尾）、黑色漁夫帽（帽帶、小花）、米白上衣、灰藍裙子、白襪
-    people.push(human({k:'ling',name:'綾',bg:'#FDEEEA',ang:.75,skin:SK,top:'#F6E7D8',legs:'#F1D2C0',shin:'#F1D2C0',socks:'#FFFFFF',shoe:'#816B60',skirt:'#6E7C9A',cuff:'#FFF9EF',brow:'#6B4A3A',hair:function(h){
-      var c='#6B4A3A';h.add(hairCap(c,.36));
-      [-.13,-.045,.045,.13].forEach(function(x,i){var bang=mesh(ball(.068,2),'#795343',x,.16-(i===1||i===2?.03:0),.205);bang.scale.set(1.05,.72,.7);h.add(bang);});
-      var bk=mesh(ball(.22,2),c,0,-.16,-.14);bk.scale.set(1.15,1.25,.7);h.add(bk);
-      [-.25,.25].forEach(function(x){var sd=mesh(ball(.1,2),c,x,-.12,.02);sd.scale.set(.7,1.5,.8);h.add(sd);var tipc=mesh(ball(.06,2),'#795343',x*1.05,-.27,.05);tipc.scale.set(1,.8,.9);h.add(tipc);});
-      [-.16,0,.16].forEach(function(x){var cu=mesh(ball(.075,2),'#795343',x,-.38,-.15);cu.scale.set(1,.75,.8);h.add(cu);});
+    people.push(human({k:'ling',name:'綾',bg:'#FDEEEA',ang:.75,skin:SK,top:'#F6E7D8',legs:'#F1D2C0',shin:'#F1D2C0',socks:'#FFFFFF',shoe:'#816B60',skirt:'#6E7C9A',cuff:'#FFF9EF',brow:'#6B4A3A',hair:HAIRS.ling.default,hat:function(h){
       h.add(mesh(cyl(.25,.3,.16,16),'#3E3A39',0,.24,-.01));h.add(mesh(cyl(.38,.38,.035,28),'#3E3A39',0,.16,0));h.add(mesh(cyl(.255,.255,.035,22),'#B98D76',0,.195,-.01));
       for(var pf=0;pf<5;pf++){var a=pf*1.2566;h.add(mesh(ball(.024,1),'#F8C8D4',.24+Math.cos(a)*.03,.215+Math.sin(a)*.03,.07));}h.add(mesh(ball(.018,1),'#F6D27A',.24,.215,.08));}}));
   }
@@ -748,7 +797,8 @@ var Garden3D=(function(){
       p.b.rotation.x=pet?.28:0;
       // 呼吸、眨眼、東張西望；兩個人一起坐的時候頭靠向對方
       p.b.scale.y=1.23*(1+Math.sin(now*2.2+p.ph)*.012);
-      p.blink-=dt;var bl=p.blink<0&&p.blink>-.13;p.eyes.forEach(function(e){e.scale.y=bl?.12:1;});if(p.blink<=-.13)p.blink=2.5+Math.random()*3;
+      p.blink-=dt;var bl=p.blink<0&&p.blink>-.13;p.eyes.forEach(function(e){e.scale.y=(bl?.12:1)*p.eyeS;e.scale.x=p.eyeS;});
+      p.exprT-=dt;if(p.exprT<=0){p.exprT=.4;setExpr(p,p.exprSel==='auto'?autoExpr(p):p.exprSel);}if(p.blink<=-.13)p.blink=2.5+Math.random()*3;
       p.hd.rotation.y=st==='idle'?Math.sin(now*.7+p.ph)*.35:0;p.hd.rotation.x=0;
       p.hd.rotation.z=sit&&both?(p.seat===0?-.2:.2):0;
       if(st==='pic'&&p.goPic){var gp=p.goPic;p.legs[0].rotation.x=p.legs[1].rotation.x=-1.38;p.arms[0].rotation.x=-.35;p.arms[1].rotation.x=-.35;p.b.position.y=-.23;var sy=gp.y==null?-.27:gp.y,sx=0;if(gp.k==='hammock'){var sa=Math.sin(now*1.2)*.12;sy+=-.0;sx=Math.sin(sa)*.6;}else if(gp.k==='swingchair'){var sa2=Math.sin(now*1.2)*.12;sx=-Math.sin(sa2)*1.2;sy+=1.2*(1-Math.cos(sa2));}p.g.position.set(gp.x+Math.sin(gp.face)*sx,sy,gp.z+Math.cos(gp.face)*sx);p.face=gp.face;if(hol&&hol.k==='moon')p.arms[1].rotation.x=-.35-Math.pow(Math.max(0,Math.sin(now*1.1+p.ph)),6)*1.5;var pq=partner(p);p.hd.rotation.z=pq&&pq.state==='pic'?(gp.i===0?-.18:.18):0;
@@ -2710,7 +2760,7 @@ var Garden3D=(function(){
       p.lab.position.y=(s?p.top+.3:.45);
     });
     if(centerSign)drawLabel(centerSign.lb,{text:'🌳 '+(st.centerName||'中間的花園')});
-    people.forEach(function(p){dress(p,(st.outfit||{})[p.k]||'daily');});
+    people.forEach(function(p){dress(p,(st.outfit||{})[p.k]||'daily');var lk=(st.look||{})[p.k]||{};setHair(p,lk.hair||'default');p.exprSel=EXPR[lk.face]?lk.face:'auto';p.exprT=0;});
     setForest(st.forest||[]);setCombos();
   }
   function water(id,who){var p=plots.filter(function(q){return q.id===id;})[0];if(!p)return;rain(p);hop();
@@ -2756,7 +2806,7 @@ var Garden3D=(function(){
     // 測試用：每個人、每隻寵物在溪的哪一邊、離水多近、是不是在橋上；叫某個人／寵物走去某個地方
     // 營火有多近（看著遊樂區＝1、很遠＝0）：給環境音調營火聲大小
     fireNear:function(){if(!actG)return 0;var c=AWp(0,.3),d=Math.hypot(tgt.x-c.x,tgt.z-c.z)+Math.max(0,rad-14)*.5;return Math.max(0,Math.min(1,1-(d-3)/12));},
-    speed:function(n){tScale=n||1;},treePos:function(id){var t=trees[id];return t?{x:t.x,z:t.z}:null;},rots:function(){var o={};for(var id in decors)o['d:'+id]=+decors[id].g.rotation.y.toFixed(2);for(var t in trees)o['t:'+t]=+trees[t].g.rotation.y.toFixed(2);plots.forEach(function(p){if(p.id)o['p:'+p.id]=+p.holder.rotation.y.toFixed(2);});return o;},hol:function(){return hol?{k:hol.k,objs:hol.objs.length,tree:hol.tree?{x:+hol.tree.x.toFixed(2),z:+hol.tree.z.toFixed(2)}:null,pic:holPic?{x:+holPic.x.toFixed(2),z:+holPic.z.toFixed(2)}:null,hats:people.map(function(p){return [p.santa.visible,p.pomelo.visible];}),moon:moonDisc?[moonDisc.visible,moonDisc.scale.x]:null}:null;},env:function(){return envS&&envS.visible?{on:true,id:envS.userData.id,y:+envS.position.y.toFixed(2)}:{on:false};},hold:function(v){holdAI=!!v;},flashTrees:flashTrees,treeOK:function(id){return !!treeSpot(id);},power:function(){return {gap:frameGap,covered:covered,lowBat:lowBat,idle:Date.now()-idleAt,drawn:drawn};},comboShot:comboShot,personInfo:personInfo,personCmd:function(k,cmd){if(follow3){liveCmd({c:'pcmd',k:k,cmd:cmd});return 'sent';}return personCmd(k,cmd);},outfits:function(k){return (OUTFIT[k]||[]).map(function(o){var cs=[];Object.keys(o.c).slice(0,3).forEach(function(f){cs.push(o.c[f]);});return {id:o.id,s:o.s,name:o.name,cols:cs};});},personScreen:function(k){var p=people.filter(function(o){return o.k===k;})[0];if(!p)return null;return toScreen(p.g.position.clone().setY(1.2),R.domElement.getBoundingClientRect());},signAt:function(id){var S=id==='center'?centerSign:LAND_GEO[id]&&LAND_GEO[id].sign;if(!S)return null;var v=S.hb.getWorldPosition(new T.Vector3());return {x:v.x,z:v.z,ry:S.g.rotation.y};},slotNear:function(i){var a=plots[i];if(!a)return [];var o=[];plots.forEach(function(b,j){if(j!==i&&Math.hypot(a.x-b.x,a.z-b.z)<=2.6)o.push(j);});return o;},treeCall:function(id){if(follow3){liveCmd({c:'tree',tid:id});return null;}return treeCall(id);},tplay:function(k,id){var p=byK(k);if(!p)return false;if(p.state==='act'||p.goAct)endAct(p);strollEnd(p);p.goPic=null;return goTreePlay(p,id);},treeSit:function(k,id){var p=byK(k);if(!p)return false;strollEnd(p);p.tp=null;var P=treeSpot(id);return P?goPic(p,P):false;},combos:function(){return combos.map(function(c){return {key:c.key,ids:c.m.map(function(n){return n.id;}),fx:c.fx,cx:+c.cx.toFixed(2),cz:+c.cz.toFixed(2)};});},
+    speed:function(n){tScale=n||1;},treePos:function(id){var t=trees[id];return t?{x:t.x,z:t.z}:null;},rots:function(){var o={};for(var id in decors)o['d:'+id]=+decors[id].g.rotation.y.toFixed(2);for(var t in trees)o['t:'+t]=+trees[t].g.rotation.y.toFixed(2);plots.forEach(function(p){if(p.id)o['p:'+p.id]=+p.holder.rotation.y.toFixed(2);});return o;},hol:function(){return hol?{k:hol.k,objs:hol.objs.length,tree:hol.tree?{x:+hol.tree.x.toFixed(2),z:+hol.tree.z.toFixed(2)}:null,pic:holPic?{x:+holPic.x.toFixed(2),z:+holPic.z.toFixed(2)}:null,hats:people.map(function(p){return [p.santa.visible,p.pomelo.visible];}),moon:moonDisc?[moonDisc.visible,moonDisc.scale.x]:null}:null;},env:function(){return envS&&envS.visible?{on:true,id:envS.userData.id,y:+envS.position.y.toFixed(2)}:{on:false};},hold:function(v){holdAI=!!v;},flashTrees:flashTrees,treeOK:function(id){return !!treeSpot(id);},power:function(){return {gap:frameGap,covered:covered,lowBat:lowBat,idle:Date.now()-idleAt,drawn:drawn};},comboShot:comboShot,personInfo:personInfo,personCmd:function(k,cmd){if(follow3){liveCmd({c:'pcmd',k:k,cmd:cmd});return 'sent';}return personCmd(k,cmd);},hairs:function(k){return Object.keys(HAIRS[k]||{});},exprs:function(){return Object.keys(EXPR);},lookOf:function(k){var p=people.filter(function(o){return o.k===k;})[0];return p?{hair:p.hair,expr:p.expr,sel:p.exprSel}:null;},outfits:function(k){return (OUTFIT[k]||[]).map(function(o){var cs=[];Object.keys(o.c).slice(0,3).forEach(function(f){cs.push(o.c[f]);});return {id:o.id,s:o.s,name:o.name,cols:cs};});},personScreen:function(k){var p=people.filter(function(o){return o.k===k;})[0];if(!p)return null;return toScreen(p.g.position.clone().setY(1.2),R.domElement.getBoundingClientRect());},signAt:function(id){var S=id==='center'?centerSign:LAND_GEO[id]&&LAND_GEO[id].sign;if(!S)return null;var v=S.hb.getWorldPosition(new T.Vector3());return {x:v.x,z:v.z,ry:S.g.rotation.y};},slotNear:function(i){var a=plots[i];if(!a)return [];var o=[];plots.forEach(function(b,j){if(j!==i&&Math.hypot(a.x-b.x,a.z-b.z)<=2.6)o.push(j);});return o;},treeCall:function(id){if(follow3){liveCmd({c:'tree',tid:id});return null;}return treeCall(id);},tplay:function(k,id){var p=byK(k);if(!p)return false;if(p.state==='act'||p.goAct)endAct(p);strollEnd(p);p.goPic=null;return goTreePlay(p,id);},treeSit:function(k,id){var p=byK(k);if(!p)return false;strollEnd(p);p.tp=null;var P=treeSpot(id);return P?goPic(p,P):false;},combos:function(){return combos.map(function(c){return {key:c.key,ids:c.m.map(function(n){return n.id;}),fx:c.fx,cx:+c.cx.toFixed(2),cz:+c.cz.toFixed(2)};});},
     // 卡片上換到別棵的時候，3D 裡也標出現在是哪一棵
     mark:function(kind,id){var t=null;if(kind==='plant'){var p=plots.filter(function(q){return q.on&&q.id===id;})[0];if(p)t={kind:'plot',p:p};}else if(trees[id])t={kind:'tree',id:id};if(t){setHL(t,true);hl.hold=1.6;}},
     // 測試用：螢幕上這一點會點到什麼
