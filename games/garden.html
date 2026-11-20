@@ -135,8 +135,8 @@ body.shooting .fbar,body.shooting .toasts{display:none;}
 @keyframes psb{50%{opacity:.4;}}
 .ps-qk{display:flex;gap:6px;flex:none;}.ps-qk button{display:flex;flex-direction:column;align-items:center;gap:1px;width:56px;padding:6px 2px;border:2px solid var(--ink);border-radius:14px;background:var(--paper);box-shadow:0 2px 0 #D8CBB8;font:inherit;font-size:18px;line-height:1;color:var(--t);}
 .ps-qk button span{font-size:11px;}.ps-qk button[data-pc="stop"]{background:#FFF0C2;}.ps-qk button:disabled{opacity:.45;}
-.ps-seg{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:4px;border-radius:16px;background:#F1E9DB;}
-.ps-seg button{display:flex;align-items:center;justify-content:center;gap:4px;padding:7px 2px;border:0;border-radius:12px;background:none;font:inherit;font-size:13px;color:var(--t2);}
+.ps-seg{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:4px;border-radius:16px;background:#F1E9DB;}
+.ps-seg button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:5px 2px;border:0;border-radius:12px;background:none;font:inherit;font-size:12px;line-height:1.2;color:var(--t2);}.ps-seg button i{font-size:17px;}
 .ps-seg button i{font-style:normal;}.ps-seg button.on{background:var(--paper);color:var(--t);box-shadow:0 1px 0 #D8CBB8,0 0 0 2px var(--ink) inset;}
 .ps-body{min-height:310px;padding-top:10px;text-align:left;}
 .ps-sec h5{margin:6px 2px 6px;font-weight:400;font-size:12px;color:var(--t3);}.ps-sec+.ps-sec{margin-top:6px;}
@@ -585,7 +585,7 @@ body.placing-decor .g3-tools,body.placing-decor .g3-full-control,body.placing-de
 <script src="sound.js?v=piano-20261116"></script>
 <script src="game.js?v=garden-20261102"></script>
 <script src="vs.js?v=mail-20261108"></script>
-<script src="garden3d.js?v=looks-20261120"></script>
+<script src="garden3d.js?v=hats2-20261120"></script>
 <script>
 /* 記憶小森林：兩個人一起種。每天回答一題問答拿水滴，一起澆水，把種子種成樹；長大的樹放進森林，留著那段時間的問答和兩個人的話。
    資料：班表同一個 Firebase 的 banbiao/<同步代碼>_garden（沒有同步代碼就存在這支手機）
@@ -2016,6 +2016,7 @@ var PRES={ok:'',busy:'那裡有人在用，等一下再去',tree:'在樹屋上�
 var CLO_S=[['spring','🌸 春'],['summer','☀️ 夏'],['autumn','🍁 秋'],['winter','❄️ 冬'],['special','💝 特別']];
 var HAIRN={syue:{default:['💇‍♂️','清爽短髮'],side:['💁‍♂️','旁分'],curly:['🌀','捲捲頭'],spiky:['⚡','刺刺頭'],brown:['🤎','咖啡色短髮'],mid:['🎸','中長髮']},
   ling:{default:['👒','及肩捲髮'],pony:['🎀','馬尾'],bun:['🍡','丸子頭'],long:['✨','長直髮'],twin:['🎀','雙馬尾'],bob:['🌰','鮑伯頭']}};
+var HATN={bucket:['🧺','漁夫帽'],beanie:['🧶','毛帽'],cap:['🧢','棒球帽'],straw:['👒','草帽'],beret:['🎨','貝雷帽'],tophat:['🎩','紳士帽'],bow:['🎀','蝴蝶結'],flower:['🌼','花圈'],crown:['👑','小皇冠'],cat:['🐱','貓耳'],bunny:['🐰','兔耳']};
 var FACEN={auto:['✨','自動'],smile:['😊','微笑'],laugh:['😆','大笑'],shy:['☺️','害羞'],surprise:['😮','驚訝'],wink:['😉','眨眼'],love:['😍','愛心眼'],sleepy:['😪','想睡'],pout:['😤','嘟嘴']};
 var PS={k:'syue',tab:'do',clo:''};
 // 狀態欄：上面是誰（可以切換學、綾）、現在在做什麼、停下來和跟著看；下面四個分頁：做什麼、衣服、髮型、表情
@@ -2034,8 +2035,12 @@ function openPerson(k){
         sec('樹和植物',[I.trees?tile('data-pc="treeSit"','🧺','樹下坐坐'):'',I.trees?tile('data-pc="treePlay"','🌸','樹下玩'):'',I.plants?tile('data-pc="water"','💧','照顧植物'):'',I.pets?tile('data-pc="pet"','🐾','摸寵物'):'']);
     }else if(PS.tab==='clo'){
       body='<div class="ps-tabs">'+CLO_S.map(function(t){return '<button data-ct="'+t[0]+'"'+(t[0]===PS.clo?' class="on"':'')+'>'+t[1]+'</button>';}).join('')+'</div><div class="ps-clo">'+O.filter(function(o){return o.s===PS.clo;}).map(function(o){return '<button data-clo="'+o.id+'"'+(o.id===I.outfit?' class="on"':'')+'><span class="sw">'+(o.cols.length?o.cols.map(function(c){return '<i style="background:'+c+'"></i>';}).join(''):'<i class="dft"></i>')+'</span>'+esc(o.name)+'</button>';}).join('')+'</div>';
+    }else if(PS.tab==='hat'){
+      var hs=LK.hat||'auto',HO=Garden3D.hatOf(k)||{};
+      body='<div class="ps-grid">'+tile('data-hat="auto"','👕','跟著衣服',hs==='auto')+tile('data-hat="none"','🙆','不戴帽子',hs==='none')+Garden3D.hats().map(function(h){var n=HATN[h]||['🎩',h];return tile('data-hat="'+h+'"',n[0],n[1],hs===h);}).join('')+'</div>'+
+        '<p class="ps-note">'+(hs==='auto'?'跟著衣服：'+(HO.outfitHat?'這套衣服有帽子':'這套衣服沒有帽子')+'。選「不戴帽子」就能看清楚髮型':'換衣服的時候帽子不會變，想跟著衣服就選「跟著衣服」')+'</p>';
     }else if(PS.tab==='hair'){
-      body='<div class="ps-grid g3c">'+Garden3D.hairs(k).map(function(h){var n=HAIRN[k][h]||['💇',h];return tile('data-hair="'+h+'"',n[0],n[1],(LK.hair||'default')===h);}).join('')+'</div>';
+      body='<div class="ps-grid g3c">'+Garden3D.hairs(k).map(function(h){var n=HAIRN[k][h]||['💇',h];return tile('data-hair="'+h+'"',n[0],n[1],(LK.hair||'default')===h);}).join('')+'</div><p class="ps-note">選髮型的時候先把帽子拿下來給你看，換到別的分頁就會戴回去</p>';
     }else{
       var L=Garden3D.lookOf(k)||{},sel=LK.face||'auto';
       body='<div class="ps-grid">'+['auto'].concat(Garden3D.exprs()).map(function(f){var n=FACEN[f]||['🙂',f];return tile('data-face="'+f+'"',n[0],n[1],sel===f);}).join('')+'</div><p class="ps-note">'+(sel==='auto'?'自動：牽手的時候愛心眼、玩的時候大笑、晚上坐著會想睡（現在：'+(FACEN[L.expr]||['',''])[1]+'）':'一直維持這個表情，選「自動」會跟著心情變')+'</p>';
@@ -2043,7 +2048,7 @@ function openPerson(k){
     box.innerHTML='<div class="ps-who">'+['syue','ling'].map(function(u){return '<button data-who="'+u+'"'+(u===k?' class="on"':'')+'>'+(u==='syue'?'🧑':'👩')+' '+NAMES[u]+'</button>';}).join('')+'</div>'+
       '<div class="ps-head"><span class="ps-av '+k+'">'+(k==='syue'?'🧑':'👩')+'</span><div class="ps-hm"><h2>'+NAMES[k]+'<small>'+esc(curO.name||'')+'</small></h2><div class="ps-doing"><i></i>'+esc(doingText(I))+'</div></div>'+
       '<div class="ps-qk"><button data-pc="stop"'+(I.ride?' disabled':'')+'>✋<span>停下來</span></button><button data-follow>👀<span>跟著看</span></button></div></div>'+
-      '<div class="ps-seg">'+[['do','🎯','做什麼'],['clo','👕','衣服'],['hair','💇','髮型'],['face','😊','表情']].map(function(t){return '<button data-tab="'+t[0]+'"'+(PS.tab===t[0]?' class="on"':'')+'><i>'+t[1]+'</i>'+t[2]+'</button>';}).join('')+'</div>'+
+      '<div class="ps-seg">'+[['do','🎯','做什麼'],['clo','👕','衣服'],['hat','🎩','帽子'],['hair','💇','髮型'],['face','😊','表情']].map(function(t){return '<button data-tab="'+t[0]+'"'+(PS.tab===t[0]?' class="on"':'')+'><i>'+t[1]+'</i>'+t[2]+'</button>';}).join('')+'</div>'+
       '<div class="ps-body">'+body+'</div>'+
       '<div class="g-btns"><button class="g-btn ghost" data-close>關閉</button></div>';
     box.querySelectorAll('[data-who]').forEach(function(b){b.onclick=function(){SND.sfx('tap');PS.k=b.getAttribute('data-who');sheet.paint();};});
@@ -2054,12 +2059,14 @@ function openPerson(k){
     box.querySelectorAll('[data-ct]').forEach(function(b){b.onclick=function(){SND.sfx('tap');PS.clo=b.getAttribute('data-ct');sheet.paint();};});
     box.querySelectorAll('[data-clo]').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-clo');SND.sfx('pop');write({outfit:obj(k,id)});paintPlots();sheet.paint();toast('👕 '+NAMES[k]+'換上'+b.textContent);};});
     box.querySelectorAll('[data-hair]').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-hair');SND.sfx('pop');write({look:obj(k,{hair:id})});paintPlots();sheet.paint();toast('💇 '+NAMES[k]+'換成'+b.textContent.replace(/^\S+/,'').trim());};});
+    box.querySelectorAll('[data-hat]').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-hat');SND.sfx('pop');write({look:obj(k,{hat:id})});paintPlots();sheet.paint();toast(id==='none'?'🙆 '+NAMES[k]+'把帽子脫下來了':id==='auto'?'👕 帽子跟著衣服':'🎩 '+NAMES[k]+'戴上'+(HATN[id]||['',''])[1]);};});
     box.querySelectorAll('[data-face]').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-face');SND.sfx('pop');write({look:obj(k,{face:id})});paintPlots();sheet.paint();};});
     box.querySelector('[data-close]').onclick=closeSheet;
+    Garden3D.peekHair(PS.tab==='hair'?k:null);
   };
   sheet.paint();
   // 狀態每秒更新一次（只換文字，不重畫按鈕）
-  timer=setInterval(function(){if(!sheet||!sheet.ov||!document.body.contains(sheet.ov)||!sheet.ov.querySelector('.pcardx')){clearInterval(timer);return;}var I=Garden3D.personInfo(PS.k),el=sheet.ov.querySelector('.ps-doing');if(I&&el)el.innerHTML='<i></i>'+esc(doingText(I));},1000);
+  timer=setInterval(function(){if(!sheet||!sheet.ov||!document.body.contains(sheet.ov)||!sheet.ov.querySelector('.pcardx')){clearInterval(timer);Garden3D.peekHair(null);return;}var I=Garden3D.personInfo(PS.k),el=sheet.ov.querySelector('.ps-doing');if(I&&el)el.innerHTML='<i></i>'+esc(doingText(I));},1000);
 }
 /* ── 長按植物：小選單（不用打開卡片） ── */
 var qmenu=null;
@@ -2290,7 +2297,7 @@ function help(){
   card('<h2>🎮 遊戲操作</h2><div class="g-rules">'+
     '<h4>🖐️ 怎麼操作</h4><ul><li>拖曳轉一圈、兩指拉近拉遠；用「全螢幕」放大，用「視角」回到原本的角度</li><li>點土種樹、點植物澆水；需要時按「澆澆水」顯示植物名稱、成長進度和今天的澆水狀態，再按一次隱藏</li><li>植物和森林的樹都可以「移植」，把花園排成你們喜歡的樣子</li><li>按「澆澆水」以後左下角的「🏷️ 區域名字」，可以幫中間的花園和每塊新土地取名字（會寫在木牌上）</li><li>按「澆澆水」以後，下面有「⛏️ 填土」和「🪏 翻土」：空的土可以填平，再翻到花園裡想要的地方（土的數量還是照等級）</li><li>右側工具列可以收合，按「展開」再打開；工具列裡有視角、澆澆水、裝飾、背包、拍照、跟著看</li><li>樹屋旁停著學的紅色街車和綾的小電動車：點它們可以叫兩個人一起去兜風（下雨、下雪不騎）</li><li>3D 花園右邊的「跟著看」：選學、綾或一隻寵物，鏡頭就一直跟著他（拖曳繞著看、兩指拉近）</li><li>裝飾、植物、森林的樹都可以轉方向：點它，按「🔄 轉方向」，在花園裡邊看邊按 ↺ ↻</li></ul>'+
     '<h4>💧 水滴</h4><ul><li>每個人每天 '+BASE+' 滴水；回答今日問題 +'+ANSWER+' 滴，二選一兩個人選一樣再各多 '+MATCH+' 滴</li><li>同一天兩個人都澆同一棵，那天多長 '+TOGETHER+' 點</li><li>小鳥飛來的時候點牠，送一滴水（每天最多 '+BIRD+' 滴）；有害蟲要先抓走才能澆水</li><li>下雨、下雪那天，所有植物都會自己長一點</li></ul>'+
-    '<h4>🌳 森林</h4><ul><li>長大的植物種進森林，會留下那段時間的問答和你們寫的話</li><li>種進森林兩個人各拿 1 包飼料（算在每天 '+G.CAP+' 包裡）</li><li>澆水、回答、抓害蟲都會加經驗；升級多幾塊土、開放新土地、解鎖新的花和樹</li><li>🎒 不想放在花園裡的植物可以先收起來（還是算在森林和圖鑑裡）：右邊工具列的「背包」按「點花園裡的植物收進來」再點植物，或在回憶卡片按「收進背包」；背包裡的隨時可以拿出來</li><li>👫 長按學或綾打開狀態欄：上面看他現在在做什麼、停下來、跟著看；下面四頁「做什麼、衣服（春夏秋冬＋特別）、髮型、表情」，上面的按鈕可以切換學和綾</li><li>🖐️ 長按植物或森林的樹：跳出小選單，直接澆水、移植、轉方向、拔掉或收進背包</li><li>🧺 學和綾會自己去樹下坐坐、接花瓣、搖果樹撿果子、在落葉上跳、抱抱大樹；森林回憶卡片的「一起來樹下坐坐」可以叫他們過去</li><li>✨ 種在一起：同一種植物 3 株以上種在一起（相鄰的土，或森林裡種在旁邊）會變成花海、樹林；特別的三種種在一起還有隱藏組合，像松、竹、梅是「歲寒三友」；組合湊成後，旁邊再種同一類的會一起加入，越大片效果越熱鬧。森林的「✨ 組合」看得到提示</li></ul>'+
+    '<h4>🌳 森林</h4><ul><li>長大的植物種進森林，會留下那段時間的問答和你們寫的話</li><li>種進森林兩個人各拿 1 包飼料（算在每天 '+G.CAP+' 包裡）</li><li>澆水、回答、抓害蟲都會加經驗；升級多幾塊土、開放新土地、解鎖新的花和樹</li><li>🎒 不想放在花園裡的植物可以先收起來（還是算在森林和圖鑑裡）：右邊工具列的「背包」按「點花園裡的植物收進來」再點植物，或在回憶卡片按「收進背包」；背包裡的隨時可以拿出來</li><li>👫 長按學或綾打開狀態欄：上面看他現在在做什麼、停下來、跟著看；下面五頁「做什麼、衣服（春夏秋冬＋特別）、帽子（可以不戴）、髮型、表情」，上面的按鈕可以切換學和綾</li><li>🖐️ 長按植物或森林的樹：跳出小選單，直接澆水、移植、轉方向、拔掉或收進背包</li><li>🧺 學和綾會自己去樹下坐坐、接花瓣、搖果樹撿果子、在落葉上跳、抱抱大樹；森林回憶卡片的「一起來樹下坐坐」可以叫他們過去</li><li>✨ 種在一起：同一種植物 3 株以上種在一起（相鄰的土，或森林裡種在旁邊）會變成花海、樹林；特別的三種種在一起還有隱藏組合，像松、竹、梅是「歲寒三友」；組合湊成後，旁邊再種同一類的會一起加入，越大片效果越熱鬧。森林的「✨ 組合」看得到提示</li></ul>'+
     '<h4>🛝 遊樂區（點它們叫學和綾過去）</h4><ul><li>白天溜滑梯、盪鞦韆；下雨、下雪天溜滑梯換成涼亭，喝咖啡吃甜點</li><li>傍晚長椅看夕陽，晚上營火烤棉花糖；下雨的晚上會搭起天幕</li><li>樹屋旁的鞦韆隨時都能盪，兩個人的話一個坐、一個在後面推</li></ul>'+
     '<h4>🔥 連續紀錄・🏅 成就・📸 拍照</h4><ul><li>兩個人同一天都有澆水或回答問題，連續紀錄就多一天（最上面的 🔥）</li><li>下面的 🏅 成就：達成後每個人各領一次獎勵水滴，有的還會解鎖限定裝飾</li><li>3D 花園右邊的「拍照」：按鈕和名字會收起來，選好角度按快門，可以存到手機或放進兩個人的相簿</li><li>今日問題下面的「✍️ 我來出題」：自己寫題目排進之後的今日問題</li></ul>'+
     '<h4>🎀 裝飾・📮 信箱・🎉 紀念日</h4><ul><li>升級解鎖裝飾（3D 花園工具列的「裝飾」）：盆栽、路燈、柵欄、蘑菇燈、花拱門、花圃、名字木牌、風車、長椅、小花車、稻草人、石板路、愛心氣球、鳥屋、南瓜燈、野餐墊、燈串、噴水池、風鈴、吊床、雙人鞦韆椅、小池塘、蜂箱、帳篷、狗屋、鳥浴盆、石燈籠、日晷、陽傘野餐桌、小鋼琴；學和綾會去坐長椅、躺吊床、坐鞦韆椅和野餐桌</li><li>成就限定裝飾：幸福鐘、許願井、望遠鏡（晚上點它看流星）、熱氣球、雪人、愛心拍照框、天燈、彩虹拱門</li><li>📮 寫信給對方，對方一打開班表或花園就會看到</li><li>紀念日（交往、結婚、生日、在一起每 100 天）花園會布置，每個人多 '+SPECIAL+' 滴水</li><li>節日也會布置：聖誕節（點聖誕樹拆禮物）、跨年、過年、情人節、七夕、中秋、萬聖節</li></ul>'+
