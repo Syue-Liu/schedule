@@ -400,6 +400,9 @@ body.placing-decor .g3-tools,body.placing-decor .g3-full-control,body.placing-de
 .clist{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
 .ccard{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border:var(--lw2) solid var(--ink);border-radius:16px;background:var(--paper);text-align:left;font:inherit;color:var(--t);cursor:pointer;}
 .ccard i{flex:none;font-style:normal;font-size:22px;line-height:1.2;}
+.ccard img.cph{flex:none;width:52px;height:52px;object-fit:cover;border:2px solid var(--ink);border-radius:12px;}
+.cchip img.cph{width:22px;height:22px;object-fit:cover;border-radius:6px;margin-right:4px;vertical-align:-6px;border:1.5px solid var(--ink);}
+.alb-h{margin:14px 0 6px;font-weight:400;font-size:14px;text-align:left;}.alb.cphs{grid-template-columns:repeat(3,1fr);max-height:none;}.alb.cphs img{aspect-ratio:3/4;object-fit:cover;}.alb.cphs small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .ccard b{display:block;font-weight:400;font-size:13px;}.ccard b em{margin-left:6px;font-style:normal;font-size:11px;color:#B0851F;}
 .ccard span{display:block;font-size:11.5px;line-height:1.45;color:var(--t3);}
 .ccard.found{background:#FFFBEF;}.ccard.on{background:#FFF3C9;box-shadow:0 2px 0 var(--ink);}
@@ -568,7 +571,7 @@ body.placing-decor .g3-tools,body.placing-decor .g3-full-control,body.placing-de
 <script src="sound.js?v=piano-20261116"></script>
 <script src="game.js?v=garden-20261102"></script>
 <script src="vs.js?v=mail-20261108"></script>
-<script src="garden3d.js?v=people-20261120"></script>
+<script src="garden3d.js?v=cphoto-20261120"></script>
 <script>
 /* 記憶小森林：兩個人一起種。每天回答一題問答拿水滴，一起澆水，把種子種成樹；長大的樹放進森林，留著那段時間的問答和兩個人的話。
    資料：班表同一個 Firebase 的 banbiao/<同步代碼>_garden（沒有同步代碼就存在這支手機）
@@ -795,11 +798,28 @@ var C3=[];
 function onCombos(list){
   C3=list||[];var seen=D.combo||{},o={},nw=[];
   C3.forEach(function(c){if(!seen[c.key]&&!o[c.key]&&comboName(c.key)){o[c.key]=today();nw.push(c.key);}});
-  if(nw.length){write({combo:o});SND.sfx('chime');
+  if(nw.length){write({combo:o});SND.sfx('chime');comboPhotos(nw.slice(0,3));
     toast('✨ 發現組合：'+nw.map(function(k){return '「'+comboName(k)+'」';}).join('、')+'　點這裡看看',function(){setForestTab('combo');var f=document.querySelector('.forest');if(f)f.scrollIntoView({behavior:'smooth',block:'start'});},5000);
     paintNote();}
   if(fTab==='combo'&&!fSp)paintForest();
 }
+/* ── 組合紀念照：第一次湊到組合的那支手機，鏡頭飛過去拍一張（縮小存在 banbiao/<代碼>_comboph，最多留 30 張）；
+   組合圖鑑的卡片和相簿都看得到 ── */
+var CPH={},CPH_MAX=30;
+function cphLoad(){if(!cloud){try{CPH=JSON.parse(localStorage.getItem('gardenComboPh')||'{}')||{};}catch(e){CPH={};}return;}
+  VS.docWatch('comboph',function(d){CPH=(d&&d.c)||{};if(started&&fTab==='combo'&&!fSp)paintForest();if(sheet&&sheet.album)sheet.paint();});}
+function cphList(){return Object.keys(CPH).map(function(k){var x=CPH[k];return x&&x.img?{k:k,at:+x.at||0,by:x.by,img:x.img}:null;}).filter(Boolean).sort(function(a,b){return b.at-a.at;});}
+function cphPut(o){Object.keys(o).forEach(function(k){if(o[k]===null)delete CPH[k];else CPH[k]=o[k];});
+  if(cloud)VS.docPut('comboph',{c:o}).catch(function(e){console.warn(e);});else try{localStorage.setItem('gardenComboPh',JSON.stringify(CPH));}catch(e){}}
+function comboPhotos(keys){if(!g3||!keys.length||document.hidden)return;var k=keys[0];
+  setTimeout(function(){Garden3D.comboShot(k,function(url){
+    if(url&&url.length>2000){var fl=document.createElement('div');fl.className='flash';document.body.appendChild(fl);setTimeout(function(){fl.remove();},450);SND.sfx('pop');
+      shrink(url,360,function(small){if(!small)return;var o={},L=cphList();o[k]={at:Date.now(),by:me,img:small};L.slice(CPH_MAX-1).forEach(function(x){if(x.k!==k)o[x.k]=null;});cphPut(o);
+        toast('📸 幫「'+comboName(k)+'」拍了一張紀念照，放在組合圖鑑和相簿',function(){openComboPhoto(k);},4500);});}
+    if(keys.length>1)comboPhotos(keys.slice(1));});},1500);}
+function openComboPhoto(k){var x=CPH[k];if(!x||!x.img)return;SND.sfx('tap');
+  var ov=card('<h2>'+comboE(k)+' '+esc(comboName(k))+'</h2><img class="shot" src="'+x.img+'" alt=""><p class="g-small">'+md(dayOf(x.at))+' 第一次湊到・'+(NAMES[x.by]||'')+'的手機拍的</p><div class="g-btns"><button class="g-btn ghost" data-save>💾 存到手機</button><button class="g-btn ghost" data-close>關閉</button></div>');
+  ov.querySelector('[data-save]').onclick=function(){savePhoto(x.img);};ov.querySelector('[data-close]').onclick=closeSheet;}
 function comboAt(id){return C3.filter(function(c){return c.ids.indexOf(id)>=0;});}
 function comboHtml(id){var L=comboAt(id);return L.length?'<div class="sh-combo">'+L.map(function(c){return '<b>'+comboE(c.key)+' 「'+esc(comboName(c.key))+'」</b><span>和旁邊的 '+(c.ids.length-1)+' 株種在一起，'+esc(comboDesc(c.key))+'</span>';}).join('')+'</div>':'';}
 // 森林的「✨ 組合」：特別組合（還沒湊到的只看得到提示）＋湊過的花海、樹林
@@ -807,9 +827,9 @@ function comboBook(){
   var seen=D.combo||{},on={};C3.forEach(function(c){(on[c.key]=on[c.key]||[]).push.apply(on[c.key],c.ids);});
   var nr=COMBO.filter(function(R){return seen[R.k];}).length,sps=Object.keys(seen).filter(function(k){return comboSp(k)&&SP[comboSp(k)];}).sort(function(a,b){return seen[a]<seen[b]?-1:1;});
   return '<div class="cbook"><h4>🌟 特別組合 <small>'+nr+' / '+COMBO.length+'</small></h4><div class="clist">'+COMBO.map(function(R){var f=seen[R.k],a=on[R.k];
-      return '<button class="ccard'+(a?' on':f?' found':'')+'" data-ck="'+R.k+'"><i>'+(f||a?R.e:'❔')+'</i><div><b>'+(f||a?esc(R.name):'？？？')+(a?'<em>✨ 花園裡有</em>':f?'<em>'+md(f)+' 發現</em>':'')+'</b><span>'+(f||a?esc(R.d):'提示：'+esc(R.hint)+' 種在一起')+'</span>'+(!a&&comboProgress(R)?'<span class="cprog">'+esc(comboProgress(R))+'</span>':'')+'</div></button>';}).join('')+'</div>'+
+      return '<button class="ccard'+(a?' on':f?' found':'')+'" data-ck="'+R.k+'">'+(CPH[R.k]&&CPH[R.k].img?'<img class="cph" src="'+CPH[R.k].img+'" alt="" data-cph="'+R.k+'">':'<i>'+(f||a?R.e:'❔')+'</i>')+'<div><b>'+(f||a?esc(R.name):'？？？')+(a?'<em>✨ 花園裡有</em>':f?'<em>'+md(f)+' 發現</em>':'')+'</b><span>'+(f||a?esc(R.d):'提示：'+esc(R.hint)+' 種在一起')+'</span>'+(!a&&comboProgress(R)?'<span class="cprog">'+esc(comboProgress(R))+'</span>':'')+'</div></button>';}).join('')+'</div>'+
     '<h4>🌼 花海・🌳 樹林 <small>'+sps.length+'</small></h4><p class="cnote">同一種植物 3 株以上種在一起（相鄰的土，或森林裡種在旁邊），就會變成花海、樹林。可以用「移植」把它們搬到一起。組合湊成以後，旁邊再種同一類的植物會一起加入，越大片效果越熱鬧。選種子的時候，有 ✨ 的就是種在那塊土會湊成（或加入）組合的</p>'+
-    (sps.length?'<div class="cchips">'+sps.map(function(k){return '<button class="cchip'+(on[k]?' on':'')+'" data-ck="'+k+'">'+comboE(k)+' '+esc(comboName(k))+(on[k]?' ✨':'')+'</button>';}).join('')+'</div>':'<p class="cnote">還沒有湊到過</p>')+'</div>';
+    (sps.length?'<div class="cchips">'+sps.map(function(k){return '<button class="cchip'+(on[k]?' on':'')+'" data-ck="'+k+'">'+(CPH[k]&&CPH[k].img?'<img class="cph" src="'+CPH[k].img+'" alt="" data-cph="'+k+'">':comboE(k)+' ')+esc(comboName(k))+(on[k]?' ✨':'')+'</button>';}).join('')+'</div>':'<p class="cnote">還沒有湊到過</p>')+'</div>';
 }
 /* ── 組合提示：選種子時標出「種在這裡會湊成組合」的、植物卡片說旁邊再種什麼、森林的樹說要把誰移植到一起、組合圖鑑說已經有哪些 ── */
 function linkedSlots(i){return g3&&Garden3D.slotNear?Garden3D.slotNear(i):[];}
@@ -1500,7 +1520,7 @@ function paintForest(){
   var ffb=$('ftabs').querySelector('[data-find]');if(ffb)ffb.onclick=function(){SND.sfx('tap');Garden3D.flashTrees(forestList().map(function(p){return p.id;}));$('g3').scrollIntoView({behavior:'smooth',block:'center'});};
   if(cbk){
     $('forest').innerHTML=comboBook();
-    $('forest').querySelectorAll('[data-ck]').forEach(function(b){b.onclick=function(){comboTap(b.getAttribute('data-ck'));};});
+    $('forest').querySelectorAll('[data-ck]').forEach(function(b){b.onclick=function(e){var ph=e.target.closest('[data-cph]');if(ph){openComboPhoto(ph.getAttribute('data-cph'));return;}comboTap(b.getAttribute('data-ck'));};});
   }else if(book){
     var L=level();
     $('forest').innerHTML=Object.keys(SP).map(function(k){var c=seen[k]||0,lock=L<SP[k].lv;return '<button class="ftree'+(c?'':' none')+'" data-sp="'+k+'"'+(c?'':' disabled')+'>'+art(k,c?4:4)+'<b>'+SP[k].name+'</b><span>'+(c?'×'+c:lock?'Lv.'+SP[k].lv+' 解鎖':'還沒種過')+'</span></button>';}).join('');
@@ -1616,8 +1636,11 @@ function openAlbum(){
   card('','memcard');sheet.album=true;
   sheet.paint=function(){
     var box=sheet.ov.querySelector('.g-card'),L=albumList();
+    var CL=cphList();
     box.innerHTML='<h2>🖼 我們的相簿</h2>'+(L.length?'<div class="alb">'+L.map(function(x){return '<button data-ph="'+x.id+'"><img src="'+x.img+'" alt=""><small>'+md(dayOf(x.at))+'・'+(NAMES[x.by]||'')+'拍的</small></button>';}).join('')+'</div><p class="g-small">最多留 '+ALB_MAX+' 張，放新的進來最舊的會拿掉；喜歡的記得存到手機</p>':'<p class="g-small">還沒有照片。到 3D 花園按右邊的 📸 拍一張，放進相簿兩個人都看得到</p>')+
+      (CL.length?'<h3 class="alb-h">✨ 組合紀念照</h3><div class="alb cphs">'+CL.map(function(x){return '<button data-cp="'+x.k+'"><img src="'+x.img+'" alt=""><small>'+esc(comboName(x.k))+'</small></button>';}).join('')+'</div>':'')+
       '<div class="g-btns">'+(g3&&!shooting?'<button class="g-btn" data-go>📸 去拍照</button>':'')+'<button class="g-btn ghost" data-close>關閉</button></div>';
+    box.querySelectorAll('[data-cp]').forEach(function(b){b.onclick=function(){openComboPhoto(b.getAttribute('data-cp'));};});
     box.querySelectorAll('[data-ph]').forEach(function(b){b.onclick=function(){SND.sfx('tap');openPhoto(b.getAttribute('data-ph'));};});
     var go=box.querySelector('[data-go]');if(go)go.onclick=function(){closeSheet();startPhoto();};
     box.querySelector('[data-close]').onclick=closeSheet;
@@ -2280,7 +2303,7 @@ function ambient(){
 var gardenEnteredAt=0;
 function ready(){
   gardenEnteredAt=Date.now();
-  ldStep('data');loadYearly();albumLoad();setInterval(streakWarn,60000);setTimeout(partyCard,1200);setTimeout(mailEntry,300);setTimeout(newSpCard,2600);setTimeout(thirstTip,4200);setInterval(ambient,2500);ambient();
+  ldStep('data');loadYearly();albumLoad();cphLoad();setInterval(streakWarn,60000);setTimeout(partyCard,1200);setTimeout(mailEntry,300);setTimeout(newSpCard,2600);setTimeout(thirstTip,4200);setInterval(ambient,2500);ambient();
 
   started=true;
   $('gpets').innerHTML=['cat','pg','dg'].map(function(k){return '<img src="'+G.petImg(k,'happy')+'" alt="'+esc(G.petName(k))+'">';}).join('');
