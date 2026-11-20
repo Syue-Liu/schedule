@@ -247,6 +247,11 @@ body.placing-decor .g3-tools,body.placing-decor .g3-full-control,body.placing-de
 .mem,.mem-notes,.mem-qa{text-align:left;}
 .mem-row{margin-top:6px;font-size:13px;color:var(--t2);text-align:center;}
 .mem-notes{margin-top:10px;display:flex;flex-direction:column;gap:6px;}
+.pc-box .mem-notes{margin-top:8px;}.pc-box .mem-note{background:#FFFCF6;}
+.pc-box.mem-qa{margin-top:8px;}.pc-box.mem-qa .mem-q:first-of-type{border-top:0;}
+.mem-tl{display:flex;align-items:center;gap:8px;margin-top:8px;}.mem-tl>div{display:flex;flex-direction:column;align-items:center;min-width:70px;}.mem-tl i{font-style:normal;font-size:20px;}.mem-tl b{font-weight:400;font-size:14px;}.mem-tl span{font-size:11.5px;color:var(--t3);}
+.mem-tl em{flex:1;height:0;border-top:3px dotted #B9CFA8;margin-bottom:22px;}
+.memcard>.g-btns:last-child{position:static;margin:12px 0 0;padding:0;background:none;}.memcard>.g-btns:last-child .g-btn{height:42px;}
 .mem-note{display:flex;gap:8px;align-items:flex-start;padding:7px 10px;border-radius:12px;background:#F7F1E6;font-size:14px;line-height:1.5;}
 .mem-note b{flex-shrink:0;font-weight:400;padding:0 8px;border:1.5px solid var(--ink);border-radius:999px;font-size:12px;}
 .mem-note.syue b{background:#EEF6E8;}.mem-note.ling b{background:#FDEEEA;}
@@ -2171,12 +2176,18 @@ function openMemory(id,list){
       if(u===me&&editing)return '<div class="mem-note '+u+'"><b>'+NAMES[u]+'</b><textarea id="ntIn" maxlength="60">'+esc(t||'')+'</textarea><button data-nsave>好</button></div>';
       return '<div class="mem-note '+u+'"><b>'+NAMES[u]+'</b>'+(t?esc(t):'')+(u===me?' <button data-nedit>'+(t?'改一下':'寫一句話給這棵樹')+'</button>':(t?'':'<span style="color:var(--t3)">還沒寫</span>'))+'</div>';}).join('');
     var kept=keepVals(box);
-    box.innerHTML=navHtml(list,id)+'<div class="sh-art">'+art(p.sp,4)+'</div><h2>'+esc(p.name||SP[p.sp].name)+'</h2>'+(p.name?'<div class="sh-sp">'+SP[p.sp].name+'</div>':'')+
-      '<div class="mem-row">🌱 '+md(d0)+' '+NAMES[p.by]+'種下 → 🌳 '+md(d1)+' 長大（'+days+' 天）</div>'+
-      '<div class="mem-row">學 💧'+g.sn+'・綾 💧'+g.ln+'・一起澆水 '+g.both+' 天</div>'+comboHtml(id)+hintHtml(forestHints(id))+spInfo(p.sp)+
-      '<div class="mem-notes">'+notes+'</div>'+(qs?'<div class="mem-qa"><h3>💬 這段時間的問答</h3>'+qs+'</div>':'')+
-      (p.bag?'<div class="sh-bag">🎒 收在背包裡，現在沒有放在花園</div>':'')+
-      '<div class="g-btns">'+(p.done&&p.bag?'<button class="g-btn" data-bagout>🌱 拿出來種回森林</button>':(g3&&p.done&&Garden3D.treeOK(id)?'<button class="g-btn" data-tcall>🧺 一起來樹下坐坐</button>':'')+(g3&&p.done?'<button class="g-btn ghost" data-move>🌳 移植</button>'+rotBtns():'')+(p.done?'<button class="g-btn ghost" data-bagin>🎒 收進背包</button>':''))+'<button class="g-btn ghost" data-close>關閉</button></div>';
+    // 跟植物卡片一樣的版面：圖和名字、「一起長大」、寫給它的話、那段時間的問答，最後主要按鈕＋一排小按鈕
+    var S0=SP[p.sp],main=p.done&&p.bag?'<button class="g-btn" data-bagout>🌱 拿出來種回森林</button>':g3&&p.done&&Garden3D.treeOK(id)?'<button class="g-btn" data-tcall>🧺 一起來樹下坐坐</button>':'';
+    var tiles=p.done&&!p.bag&&g3?'<button data-move><i>🌳</i><span>移植</span></button><button data-rot><i>🔄</i><span>轉方向</span></button>':'';if(p.done&&!p.bag)tiles+='<button data-bagin><i>🎒</i><span>收進背包</span></button>';
+    box.innerHTML=navHtml(list,id)+
+      '<div class="pc-head"><div class="pc-art">'+art(p.sp,4)+'</div><div class="pc-title"><h2>'+esc(p.name||S0.name)+'</h2><div class="pc-chips">'+(p.name?'<span>'+esc(S0.name)+'</span>':'')+'<span class="ready">'+(p.bag?'🎒 在背包裡':S0.kind==='tree'?'🌳 森林裡的樹':'🌸 森林裡的花')+'</span></div><div class="pc-by">'+md(d1)+' 種進森林</div></div></div>'+
+      '<div class="pc-box"><div class="pc-row"><b>🌱 一起長大</b><span>'+days+' 天</span></div><div class="mem-tl"><div><i>🌱</i><b>'+md(d0)+'</b><span>'+NAMES[p.by]+'種下</span></div><em></em><div><i>🌳</i><b>'+md(d1)+'</b><span>長大了</span></div></div>'+
+        '<div class="pc-ws"><span class="pc-w on">學 💧'+g.sn+'</span><span class="pc-w on">綾 💧'+g.ln+'</span>'+(g.both?'<span class="pc-w both">💑 一起澆水 '+g.both+' 天</span>':'')+(g.rain?'<span class="pc-w rain">🌧️ 淋雨 '+g.rain+' 天</span>':'')+'</div></div>'+
+      comboHtml(id)+hintHtml(forestHints(id))+spInfo(p.sp)+
+      '<div class="pc-box"><div class="pc-row"><b>💌 寫給它的話</b></div><div class="mem-notes">'+notes+'</div></div>'+
+      (qs?'<div class="pc-box mem-qa"><div class="pc-row"><b>💬 這段時間的問答</b></div>'+qs+'</div>':'')+
+      (main?'<div class="pc-main">'+main+'</div>':'')+(tiles?'<div class="pc-acts">'+tiles+'</div>':'')+
+      '<div class="g-btns"><button class="g-btn ghost" data-close>關閉</button></div>';
     restoreVals(box,kept);
     wireNav(box,list,id,function(nid){id=nid;editing=false;if(g3)Garden3D.mark('tree',nid);sheet.paint();});
     var mvb=box.querySelector('[data-move]');if(mvb)mvb.onclick=function(){startMove('tree',id);};
@@ -2284,7 +2295,7 @@ addEventListener('pagehide',function(){clearTimeout(wT);flush();});
 start3d();
 connect();
 </script>
-<script src="garden-icons.js?v=card-20261118"></script>
+<script src="garden-icons.js?v=mem-20261120"></script>
 </body>
 </html>
 
