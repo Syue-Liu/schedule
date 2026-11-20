@@ -1382,7 +1382,7 @@ var Garden3D=(function(){
   /* ── 種在一起：同一種 3 株以上靠在一起（花海、樹林），或特別的三種湊在一起（歲寒三友…，配方在 garden.html 的 COMBO）。
      地上會發光、花瓣香氣變多、植物之間有小光點跑來跑去；花的組合有蝴蝶飛來飛去，晚上換成螢火蟲；
      特別組合：愛心飄上去、雪花飄下來、花瓣／落葉繞著轉圈圈、香氣和花粉一圈一圈 ── */
-  var combos=[],comboSig='',cglow=[],ccarp=[],cbfly=[],glowTex=null,glowGeo=null,carpMat=null;
+  var GOLD=null,combos=[],comboSig='',cglow=[],ccarp=[],cbfly=[],glowTex=null,glowGeo=null,carpMat=null;
   function comboNodes(){var a=[];
     plots.forEach(function(p){if(p.on&&p.id&&p.stage===4&&p.sp&&window.SP[p.sp])a.push({id:p.id,sp:p.sp,x:p.x,z:p.z,o:p,plot:1});});
     for(var id in trees){var t=trees[id];if(window.SP[t.sp])a.push({id:id,sp:t.sp,x:t.x,z:t.z,o:t});}
@@ -1425,7 +1425,7 @@ var Garden3D=(function(){
     combos.forEach(function(c,ci){var boost=c.fx==='fruit'?4:c.fx==='scent'||c.fx==='sunny'?3:2.5;
       c.m.forEach(function(n){n.o.cb=Math.max(n.o.cb||0,boost);
         var g=new T.Mesh(glowGeo,new T.MeshBasicMaterial({map:glowTex,color:new T.Color(c.col),transparent:true,opacity:.45,depthWrite:false}));g.rotation.x=-Math.PI/2;
-        var r=n.plot?1.3:isTreeSp(n.sp)?1.55:1.0;g.scale.set(r,r,1);g.position.set(n.x,.03+(ci%5)*.002,n.z);g.renderOrder=2;g.userData.ph=Math.random()*6.28;scene.add(g);cglow.push(g);});});
+        var r=n.plot?1.3:isTreeSp(n.sp)?1.55:1.0;g.scale.set(r,r,1);g.position.set(n.x,.03+(ci%5)*.002,n.z);g.renderOrder=2;g.userData.ph=Math.random()*6.28;g.userData.base=new T.Color(c.col);scene.add(g);cglow.push(g);});});
     // 地上鋪一圈小花瓣（組合的顏色；位置照編號算，兩支手機一樣）：土的外圈、樹和花的腳邊
     if(!carpMat)carpMat=new T.MeshToonMaterial({color:'#FFFFFF',gradientMap:GM,side:T.DoubleSide});
     var M4=new T.Matrix4(),qn=new T.Quaternion(),eu=new T.Euler(),vp=new T.Vector3(),vs=new T.Vector3(),cc=new T.Color(),WH=new T.Color('#FFFFFF');
@@ -1446,8 +1446,9 @@ var Garden3D=(function(){
   }
   function topOf(n){return n.o.fxTop||(n.plot?n.o.top:1.2);}
   function tickCombos(dt,near,cap){
-    // 地上的光：白天看不到（有小花瓣就夠了），天黑才亮起來
-    cglow.forEach(function(g){g.visible=night>.05;if(g.visible)g.material.opacity=.45*night*(1+.3*Math.sin(now*1.6+g.userData.ph));});
+    // 地上的光：白天淡淡的金色，天黑慢慢變成組合的顏色、亮起來
+    if(!GOLD)GOLD=new T.Color('#FFD45C');
+    cglow.forEach(function(g){g.material.color.copy(GOLD).lerp(g.userData.base,night);g.material.opacity=(.38+.07*night)*(1+.2*Math.sin(now*1.6+g.userData.ph));});
     var pick=function(c){return c.m[Math.floor(Math.random()*c.m.length)];};
     combos.forEach(function(c){if(!near(c.cx,c.cz)||tfx.length>=cap)return;
       var top=0;c.m.forEach(function(n){top=Math.max(top,topOf(n));});c.top=top;var dd=dt*Math.min(2.5,Math.max(1,c.m.length/3));
