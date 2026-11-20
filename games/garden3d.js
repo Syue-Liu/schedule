@@ -362,6 +362,22 @@ var Garden3D=(function(){
     x.restore();
     var t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;t.anisotropy=4;return t;
   }
+  /* ── 晚上的花園燈：木牌旁邊掛一盞小燈籠，中間花園外圈的小路邊插一圈小地燈；白天不亮，傍晚微亮，晚上亮起來還有一圈光暈 ── */
+  var halos=[],haloTex=null;
+  function halo(x,y,z,s0,col){if(!haloTex){var c=document.createElement('canvas');c.width=c.height=64;var g2=c.getContext('2d'),gr=g2.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(255,240,190,.9)');gr.addColorStop(.4,'rgba(255,220,140,.35)');gr.addColorStop(1,'rgba(255,210,120,0)');g2.fillStyle=gr;g2.fillRect(0,0,64,64);haloTex=new T.CanvasTexture(c);}
+    var sp=new T.Sprite(new T.SpriteMaterial({map:haloTex,color:new T.Color(col||'#FFE6A8'),transparent:true,depthWrite:false,blending:T.AdditiveBlending,opacity:0}));sp.position.set(x,y,z);sp.scale.setScalar(s0);sp.userData={s:s0,ph:Math.random()*6.28};sp.visible=false;scene.add(sp);halos.push(sp);return sp;}
+  // 木牌：右邊伸一根小橫桿，掛一盞小燈籠
+  function signLamp(sg){var arm=mesh(new T.BoxGeometry(.32,.035,.035),'#7A5A44',.56,1.16,.04);sg.add(arm);
+    var lg=new T.Group();lg.position.set(.68,1.0,.04);lg.add(mesh(cyl(.006,.006,.12,4),'#594C43',0,.1,0));lg.add(mesh(cyl(.07,.055,.03,8),'#594C43',0,.045,0));
+    var bulb=new T.Mesh(cyl(.055,.045,.12,8),glowMat('#F3E6C8','#FFD36B'));lg.add(bulb);lg.add(mesh(cyl(.045,.06,.025,8),'#594C43',0,-.07,0));lg.userData.dyn=true;sg.add(lg);
+    sg.updateMatrixWorld(true);var w=bulb.getWorldPosition(new T.Vector3());halo(w.x,w.y,w.z,.9);}
+  function pathLights(){var n=14;for(var i=0;i<n;i++){var a=i/n*Math.PI*2+.11,q=polar(4.45,a);
+      if(inArea(q.x,q.z,.6)||(treeHome&&Math.hypot(q.x-treeHome.c.x,q.z-treeHome.c.z)<3.2)||(pondP&&Math.hypot(q.x-pondP.x,q.z-pondP.z)<1.4)||(centerSign&&Math.hypot(q.x-centerSign.x,q.z-centerSign.z)<1))continue;
+      var wet=false;for(var j=0;j<flow.length-1;j++)if(segDist(q.x,q.z,flow[j],flow[j+1])<1)wet=true;if(wet)continue;
+      if(plots.some(function(p){return Math.hypot(p.x-q.x,p.z-q.z)<1.05;}))continue;
+      var g=new T.Group();g.position.set(q.x,0,q.z);g.add(mesh(cyl(.022,.028,.32,6),'#6E5449',0,.16,0));var top=new T.Mesh(ball(.06,1),glowMat('#EDE3C8','#FFE08A'));top.position.y=.36;top.scale.y=.85;g.add(top);g.add(mesh(cone(.075,.05,8),'#6E5449',0,.42,0));scene.add(g);
+      halo(q.x,.38,q.z,.75);}}
+  function tickHalos(dt){var k=night>.5?1:phase==='eve'?.35:0;halos.forEach(function(h){h.visible=k>0;if(k>0){h.material.opacity=k*(.75+.18*Math.sin(now*2.1+h.userData.ph));var sc=h.userData.s*(1+.06*Math.sin(now*1.7+h.userData.ph));h.scale.setScalar(sc);}});}
   // 板子兩面都貼上插圖（板子 .86×.4×.06、中心 (0,.92,.04)）
   function signFace(sg,id){var tx=signArt(id),m=new T.MeshToonMaterial({map:tx,gradientMap:GM,emissive:new T.Color('#FFFFFF'),emissiveMap:tx,emissiveIntensity:.28});[[.071,0],[.009,Math.PI]].forEach(function(q){var pl=new T.Mesh(new T.PlaneGeometry(.84,.38),m);pl.position.set(0,.92,q[0]);pl.rotation.y=q[1];pl.userData.dyn=true;sg.add(pl);});}
   // 中間花園的木牌：在花園前面的小路邊（一開始的鏡頭看得到），牌子朝外；名字在 garden.html 取
@@ -370,7 +386,7 @@ var Garden3D=(function(){
     sg.add(mesh(cyl(.05,.06,1.05,6),'#8C6A55',0,.52,0));sg.add(mesh(new T.BoxGeometry(.86,.4,.06),'#C99A6F',0,.92,.04));sg.add(mesh(new T.BoxGeometry(.92,.06,.07),'#A97853',0,1.14,.04));
     sg.add(mesh(ball(.07,0),'#F8C8D4',-.32,1.2,.06));sg.add(mesh(ball(.06,0),'#F6D27A',.34,1.19,.06));
     var lb=label(320,120,1.7,.64);lb.position.set(c.x,1.25,c.z);lb.layers.set(1);scene.add(lb);
-    var hb=hit(.75,{land:'center'});hb.position.set(c.x,.9,c.z);scene.add(hb);bake(sg);signFace(sg,'center');
+    var hb=hit(.75,{land:'center'});hb.position.set(c.x,.9,c.z);scene.add(hb);bake(sg);signFace(sg,'center');signLamp(sg);
     centerSign={g:sg,lb:lb,hb:hb,x:c.x,z:c.z};drawLabel(lb,{text:'🌳 中間的花園'});}
   function addLands(){
     LAND_IDS.forEach(function(id,j){
@@ -392,7 +408,7 @@ var Garden3D=(function(){
       var lk=new T.Group(),fp=polar(ISL+.95,L.a);lk.position.set(fp.x,0,fp.z);lk.rotation.y=face;scene.add(lk);
       [-.75,0,.75].forEach(function(x){lk.add(mesh(cyl(.045,.05,.6,6),'#8C6A55',x,.3,0));});lk.add(mesh(new T.BoxGeometry(1.6,.07,.05),'#B9845E',0,.45,0));lk.add(mesh(new T.BoxGeometry(1.6,.06,.05),'#B9845E',0,.22,0));
       sg.userData.still=true;bake(g);bake(lk);
-      signFace(sg,id);L.sign={g:sg,lb:lb,hb:hb};L.lock=lk;L.open=false;g.visible=false;
+      signFace(sg,id);signLamp(sg);L.sign={g:sg,lb:lb,hb:hb};L.lock=lk;L.open=false;g.visible=false;
     });
   }
   function build(){
@@ -2560,7 +2576,7 @@ var Garden3D=(function(){
     if(mv){var pu=1+Math.sin(now*5)*.08;mv.mark.scale.set(pu,pu,pu);if(mv.kind==='plot'){var sp0=mv.src;mv.mark.position.set(sp0.x,.2,sp0.z);}}
     if(Date.now()-skyAt>20000){skyAt=Date.now();sky();}
     clouds.rotation.y+=dt*.012;
-    movePets(dt);movePeople(dt);moveVisitors(dt);tickActs(dt);tickWeather(dt);tickDecor(dt);tickParty(dt);tickHol(dt);tickBubbles(dt);tickRides(dt);tickTreeFx(dt);tickHL(dt);
+    movePets(dt);movePeople(dt);moveVisitors(dt);tickActs(dt);tickWeather(dt);tickDecor(dt);tickParty(dt);tickHol(dt);tickBubbles(dt);tickRides(dt);tickTreeFx(dt);tickHalos(dt);tickHL(dt);
     // 溪水往下流、湖上的小鴨子游來游去
     flecks.forEach(function(f){f.userData.t=(f.userData.t+dt*.045)%1;var p=along(f.userData.t),p2=along(Math.min(.999,f.userData.t+.01));f.position.set(p.x,.05,p.z);f.rotation.y=-Math.atan2(p2.z-p.z,p2.x-p.x);});
     ducks.forEach(function(d){var u=d.userData;u.a+=dt*u.s;d.position.set(lake.x+Math.cos(u.a)*u.r,.05+Math.sin(now*2.4+u.r)*.02,lake.z+Math.sin(u.a)*u.r);d.rotation.y=-u.a+(u.s>0?-Math.PI/2:Math.PI/2);});
@@ -2605,7 +2621,7 @@ var Garden3D=(function(){
       R=new T.WebGLRenderer({canvas:cv,antialias:true,powerPreference:'low-power'});
       if(!R.getContext())throw new Error('no webgl');
       R.setPixelRatio(Math.min(2,window.devicePixelRatio||1));R.shadowMap.enabled=true;R.shadowMap.type=T.PCFSoftShadowMap;
-      build();addTreehouse();addActs();sky();bakeScene();addPeople();addBikes();bind(cv);size();
+      build();addTreehouse();addActs();pathLights();sky();bakeScene();addPeople();addBikes();bind(cv);size();
       if(window.ResizeObserver)new ResizeObserver(size).observe(box);else addEventListener('resize',size);
       if(window.IntersectionObserver)new IntersectionObserver(function(es){vis=es[0].isIntersecting;}).observe(box);
       try{var lq=localStorage.getItem('gardenQ');if(lq!=null&&lq!==''){qLock=+lq;setQuality(qLock);}}catch(e){}
