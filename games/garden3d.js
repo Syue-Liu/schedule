@@ -188,12 +188,12 @@ var Garden3D=(function(){
     // 沒有第三行的時候整個往下挪，標籤底部貼著植物
     if(o.frac!=null&&!o.sub)x.translate(0,28);
     var wd=o.wd||[],dw=wd.length?wd.length*30+4:0;
-    x.font='30px Huninn, "PingFang TC", sans-serif';var tw=Math.min(296,Math.max(o.empty?60:150,x.measureText(o.text).width+44+dw)),l=(320-tw)/2;
+    x.font='30px Huninn, "PingFang TC", sans-serif';var line=GardenIcons.line(x,o.text,30),tw=Math.min(296,Math.max(o.empty?60:150,line.width+44+dw)),l=(320-tw)/2;
     x.globalAlpha=o.empty?.82:1;rr(x,l,6,tw,52,26);x.fillStyle=o.pest?'#FCE6E1':o.ready?'#FDF2D2':'#FFFCF6';x.fill();x.lineWidth=5;x.strokeStyle='#594C43';x.stroke();
     wd.forEach(function(d,i){var cx=l+28+i*30,cy=31;dropPath(x,cx,cy,1);x.fillStyle=d.on?'#79BDDA':'#EEF3F4';x.fill();x.lineWidth=2.5;x.strokeStyle=d.on?'#397D9E':'#B4C3C8';x.stroke();
       if(d.c){x.font='bold 15px Huninn, "PingFang TC", sans-serif';x.fillStyle=d.on?'#FFFFFF':'#A3B1B6';x.textAlign='center';x.textBaseline='middle';x.fillText(d.c,cx,cy+4);}});
     if(wd.length===2&&wd[0].on&&wd[1].on){heartPath(x,l+43,15,1.15);x.fillStyle='#F2A497';x.fill();x.lineWidth=2;x.strokeStyle='#594C43';x.stroke();}
-    x.font='30px Huninn, "PingFang TC", sans-serif';x.fillStyle=o.empty?'#8C6A55':'#3E3A39';x.textAlign='center';x.textBaseline='middle';x.fillText(o.text,160+dw/2,33,tw-20-dw);
+    x.font='30px Huninn, "PingFang TC", sans-serif';x.fillStyle=o.empty?'#8C6A55':'#3E3A39';x.textAlign='center';x.textBaseline='middle';line.draw(x,160+dw/2,33,tw-20-dw);
     if(o.frac!=null){rr(x,70,68,180,22,11);x.fillStyle='#FFFCF6';x.fill();x.lineWidth=4;x.strokeStyle='#594C43';x.stroke();if(o.frac>0){rr(x,72,70,Math.max(18,176*o.frac),18,9);x.fillStyle=o.thirsty?'#A8D3E6':'#7FB36E';x.fill();}}
     if(o.sub){rr(x,56,92,208,27,13);x.fillStyle=o.pest?'#FCE6E1':o.ready?'#FDF2D2':o.thirsty?'#EAF4F8':'#F5FBF9';x.fill();x.font='24px Huninn, sans-serif';x.fillStyle=o.pest?'#9A4A3E':o.ready?'#7A5A1E':'#385F71';x.fillText(o.sub,160,106,196);}
     s.userData.t.needsUpdate=true;
@@ -362,7 +362,7 @@ var Garden3D=(function(){
     x.restore();
     var t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;t.anisotropy=4;return t;
   }
-  /* ── 晚上的花園燈：木牌旁邊掛一盞小燈籠，中間花園外圈的小路邊插一圈小地燈；白天不亮，傍晚微亮，晚上亮起來還有一圈光暈 ── */
+  /* ── 晚上的花園燈：木牌旁邊掛一盞小燈籠；白天不亮，傍晚微亮，晚上亮起來還有一圈光暈 ── */
   var halos=[],haloTex=null;
   function halo(x,y,z,s0,col){if(!haloTex){var c=document.createElement('canvas');c.width=c.height=64;var g2=c.getContext('2d'),gr=g2.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(255,240,190,.9)');gr.addColorStop(.4,'rgba(255,220,140,.35)');gr.addColorStop(1,'rgba(255,210,120,0)');g2.fillStyle=gr;g2.fillRect(0,0,64,64);haloTex=new T.CanvasTexture(c);}
     var sp=new T.Sprite(new T.SpriteMaterial({map:haloTex,color:new T.Color(col||'#FFE6A8'),transparent:true,depthWrite:false,blending:T.AdditiveBlending,opacity:0}));sp.position.set(x,y,z);sp.scale.setScalar(s0);sp.userData={s:s0,ph:Math.random()*6.28};sp.visible=false;scene.add(sp);halos.push(sp);return sp;}
@@ -371,12 +371,6 @@ var Garden3D=(function(){
     var lg=new T.Group();lg.position.set(.68,1.0,.04);lg.add(mesh(cyl(.006,.006,.12,4),'#594C43',0,.1,0));lg.add(mesh(cyl(.07,.055,.03,8),'#594C43',0,.045,0));
     var bulb=new T.Mesh(cyl(.055,.045,.12,8),glowMat('#F3E6C8','#FFD36B'));lg.add(bulb);lg.add(mesh(cyl(.045,.06,.025,8),'#594C43',0,-.07,0));lg.userData.dyn=true;sg.add(lg);
     sg.updateMatrixWorld(true);var w=bulb.getWorldPosition(new T.Vector3());halo(w.x,w.y,w.z,.9);}
-  function pathLights(){var n=14;for(var i=0;i<n;i++){var a=i/n*Math.PI*2+.11,q=polar(4.45,a);
-      if(inArea(q.x,q.z,.6)||(treeHome&&Math.hypot(q.x-treeHome.c.x,q.z-treeHome.c.z)<3.2)||(pondP&&Math.hypot(q.x-pondP.x,q.z-pondP.z)<1.4)||(centerSign&&Math.hypot(q.x-centerSign.x,q.z-centerSign.z)<1))continue;
-      var wet=false;for(var j=0;j<flow.length-1;j++)if(segDist(q.x,q.z,flow[j],flow[j+1])<1)wet=true;if(wet)continue;
-      if(plots.some(function(p){return Math.hypot(p.x-q.x,p.z-q.z)<1.05;}))continue;
-      var g=new T.Group();g.position.set(q.x,0,q.z);g.add(mesh(cyl(.022,.028,.32,6),'#6E5449',0,.16,0));var top=new T.Mesh(ball(.06,1),glowMat('#EDE3C8','#FFE08A'));top.position.y=.36;top.scale.y=.85;g.add(top);g.add(mesh(cone(.075,.05,8),'#6E5449',0,.42,0));scene.add(g);
-      halo(q.x,.38,q.z,.75);}}
   function tickHalos(dt){var k=night>.5?1:phase==='eve'?.35:0;halos.forEach(function(h){h.visible=k>0;if(k>0){h.material.opacity=k*(.75+.18*Math.sin(now*2.1+h.userData.ph));var sc=h.userData.s*(1+.06*Math.sin(now*1.7+h.userData.ph));h.scale.setScalar(sc);}});}
   // 板子兩面都貼上插圖（板子 .86×.4×.06、中心 (0,.92,.04)）
   function signFace(sg,id){var tx=signArt(id),m=new T.MeshToonMaterial({map:tx,gradientMap:GM,emissive:new T.Color('#FFFFFF'),emissiveMap:tx,emissiveIntensity:.28});[[.071,0],[.009,Math.PI]].forEach(function(q){var pl=new T.Mesh(new T.PlaneGeometry(.84,.38),m);pl.position.set(0,.92,q[0]);pl.rotation.y=q[1];pl.userData.dyn=true;sg.add(pl);});}
@@ -1127,8 +1121,8 @@ var Garden3D=(function(){
   /* ── 紀念日布置：garden.html 傳 st.party＝{title, bday:[誰生日]}；沒有就收起來 ── */
   var party=null,partyKey='',fwT=0;
   function balloons(x,z,n,seed){var g=new T.Group();g.position.set(x,0,z);for(var i=0;i<n;i++){var a=i/n*6.28+seed,r=.18,bx=Math.cos(a)*r,bz=Math.sin(a)*r,h=1.7+rnd(seed*10+i)*.6;var b=mesh(ball(.2,2),['#F2A497','#F6D27A','#A8D3E6','#B9A6DE','#9CCB85','#F8C8D4'][(i+seed)%6],bx,h,bz);b.scale.y=1.15;b.castShadow=false;g.add(b);g.add(mesh(cyl(.006,.006,h-.15,3),'#FFFFFF',bx/2,(h-.15)/2,bz/2));}g.add(mesh(cyl(.05,.06,.1,6),'#8C6A55',0,.05,0));bake(g);g.userData.dyn=true;return g;}
-  function bannerSprite(text){var s0=label(640,150,6.4,1.5),c=s0.userData.c,x=c.getContext('2d');x.clearRect(0,0,640,150);x.font='54px Huninn, "PingFang TC", sans-serif';var tw=Math.min(620,x.measureText(text).width+80),l=(640-tw)/2;
-    x.fillStyle='#FFFCF6';rr(x,l,20,tw,96,48);x.fill();x.lineWidth=7;x.strokeStyle='#594C43';x.stroke();x.fillStyle='#3E3A39';x.textAlign='center';x.textBaseline='middle';x.fillText(text,320,70);
+  function bannerSprite(text){var s0=label(640,150,6.4,1.5),c=s0.userData.c,x=c.getContext('2d');x.clearRect(0,0,640,150);x.font='54px Huninn, "PingFang TC", sans-serif';var line=GardenIcons.line(x,text,54),tw=Math.min(620,line.width+80),l=(640-tw)/2;
+    x.fillStyle='#FFFCF6';rr(x,l,20,tw,96,48);x.fill();x.lineWidth=7;x.strokeStyle='#594C43';x.stroke();x.fillStyle='#3E3A39';x.textAlign='center';x.textBaseline='middle';line.draw(x,320,70,tw-30);
     for(var i=0;i<9;i++){x.fillStyle=['#F2A497','#F6D27A','#A8D3E6','#9CCB85'][i%4];x.beginPath();var fx=l+20+i*(tw-40)/8;x.moveTo(fx-12,122);x.lineTo(fx+12,122);x.lineTo(fx,146);x.closePath();x.fill();}
     s0.material.depthTest=true;s0.userData.t.needsUpdate=true;return s0;}
   function cake(){var g=new T.Group();g.add(mesh(cyl(.34,.38,.5,10),'#C99A6F',0,.25,0));g.add(mesh(cyl(.3,.3,.03,16),'#FFFCF6',0,.52,0));
@@ -2230,9 +2224,9 @@ var Garden3D=(function(){
   function bubble(p,t,id){
     p.bubTxt=t;p.bubId=id||(Date.now().toString(36)+Math.random().toString(36).slice(2,6));
     if(p.bub){p.g.remove(p.bub);p.bub.material.map.dispose();p.bub.material.dispose();p.bub=null;}
-    var c=document.createElement('canvas'),x=c.getContext('2d'),f='30px Huninn, "PingFang TC", sans-serif';x.font=f;var w=Math.min(500,x.measureText(t).width+44);c.width=w+12;c.height=86;x=c.getContext('2d');x.font=f;
+    var c=document.createElement('canvas'),x=c.getContext('2d'),f='30px Huninn, "PingFang TC", sans-serif';x.font=f;var line=GardenIcons.line(x,t,30),w=Math.min(500,line.width+44);c.width=w+12;c.height=86;x=c.getContext('2d');x.font=f;
     rr(x,6,6,w,56,22);x.fillStyle='#FFFCF6';x.fill();x.lineWidth=5;x.strokeStyle='#594C43';x.stroke();x.beginPath();x.moveTo(c.width/2-10,60);x.lineTo(c.width/2,80);x.lineTo(c.width/2+10,60);x.fillStyle='#FFFCF6';x.fill();x.stroke();x.fillRect(c.width/2-8,55,16,7);
-    x.fillStyle='#3E3A39';x.textAlign='center';x.textBaseline='middle';x.fillText(t,6+w/2,35);
+    x.fillStyle='#3E3A39';x.textAlign='center';x.textBaseline='middle';line.draw(x,6+w/2,35,w-20);
     var tx=new T.CanvasTexture(c);tx.colorSpace=T.SRGBColorSpace;var s=new T.Sprite(new T.SpriteMaterial({map:tx,transparent:true,depthTest:false}));s.renderOrder=12;s.center.set(.5,0);var k=.0085;s.scale.set(c.width*k,c.height*k,1);s.position.y=2.25;s.layers.set(1);p.g.add(s);p.bub=s;p.bubT=2.8;
   }
   function tickBubbles(dt){people.forEach(function(p){if(p.bub){p.bubT-=dt;var o=Math.min(1,p.bubT/.4);p.bub.material.opacity=o;if(p.bubT<=0){p.g.remove(p.bub);p.bub.material.map.dispose();p.bub.material.dispose();p.bub=null;}}});}
@@ -2729,7 +2723,7 @@ var Garden3D=(function(){
       R=new T.WebGLRenderer({canvas:cv,antialias:true,powerPreference:'low-power'});
       if(!R.getContext())throw new Error('no webgl');
       R.setPixelRatio(Math.min(2,window.devicePixelRatio||1));R.shadowMap.enabled=true;R.shadowMap.type=T.PCFSoftShadowMap;
-      build();addTreehouse();addActs();pathLights();sky();bakeScene();addPeople();addBikes();bind(cv);size();
+      build();addTreehouse();addActs();sky();bakeScene();addPeople();addBikes();bind(cv);size();
       if(window.ResizeObserver)new ResizeObserver(size).observe(box);else addEventListener('resize',size);
       if(window.IntersectionObserver)new IntersectionObserver(function(es){vis=es[0].isIntersecting;}).observe(box);
       try{var lq=localStorage.getItem('gardenQ');if(lq!=null&&lq!==''){qLock=+lq;setQuality(qLock);}}catch(e){}

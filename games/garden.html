@@ -93,7 +93,7 @@ body.shooting .fbar,body.shooting .toasts{display:none;}
 .plot .pw span.on.syue{background:#D7ECCB;color:var(--t);}.plot .pw span.on.ling{background:#F8D1CB;color:var(--t);}
 .plot .empty{margin:auto;font-size:13px;color:#8C6A55;}
 .plot .empty i{display:block;font-style:normal;font-size:26px;text-align:center;}
-.plot.ready::after{content:'✨';position:absolute;right:6px;top:4px;font-size:18px;animation:sparkle 1s ease-in-out infinite alternate;}
+.plot-ready-mark{pointer-events:none;position:absolute;right:6px;top:4px;font-size:18px;animation:sparkle 1s ease-in-out infinite alternate;}
 @keyframes sparkle{to{transform:scale(1.3) rotate(20deg);}}
 .plot.thirsty .art svg{filter:saturate(.4) brightness(.97);transform:rotate(-5deg);transform-origin:50% 100%;}
 .plot.thirsty::before{content:'口渴了';position:absolute;left:6px;top:6px;padding:0 6px;border-radius:999px;background:#E4F2F8;font-size:10px;}
@@ -108,7 +108,7 @@ body.shooting .fbar,body.shooting .toasts{display:none;}
 .forest h3 small{font-size:12px;color:var(--t3);}
 .ftrees{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
 .ftree{display:flex;flex-direction:column;align-items:center;padding:6px 2px;border:var(--lw2) solid var(--ink);border-radius:16px;background:var(--paper);font-size:11px;}
-.ftree svg{width:100%;height:70px;}
+.ftree svg:not(.garden-action-icon){width:100%;height:70px;}
 .ftree b{font-weight:400;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
 .ftree span{color:var(--t3);}
 .ftabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 2px 10px;}
@@ -251,13 +251,13 @@ body.placing-decor .g3-tools,body.placing-decor .g3-full-control,body.placing-de
 .sh-name button{padding:0 14px;border:var(--lw2) solid var(--ink);border-radius:12px;background:var(--yellow);font-size:14px;}
 .seeds{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px;}
 .seeds button{display:flex;flex-direction:column;align-items:center;padding:6px 2px;border:var(--lw2) solid var(--ink);border-radius:14px;background:var(--paper);font-size:13px;}
-.seeds button svg{width:64px;height:70px;}
+.seeds button svg:not(.garden-action-icon){width:64px;height:70px;}
 .seeds button small{font-size:10px;color:var(--t3);}
 .seeds button[disabled]{opacity:.45;border-style:dashed;}
 .seeds button.cmb{position:relative;border-color:#D9A93A;background:#FFF7DD;box-shadow:inset 0 0 0 1.5px #F6D27A;}
 .seeds .cmb-tag{max-width:100%;padding:1px 6px;border-radius:999px;background:#F6D27A;font-style:normal;font-size:10px;line-height:1.5;color:#7A5A12;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .seeds.newsp{max-height:46vh;overflow:auto;}.seeds.newsp .lock{opacity:.6;}.seeds.newsp div{display:flex;flex-direction:column;align-items:center;padding:6px 2px;border:var(--lw2) solid var(--ink);border-radius:14px;background:var(--paper);font-size:13px;}
-.seeds.newsp div svg{width:64px;height:70px;}.seeds.newsp div small{font-size:10px;color:var(--t3);}
+.seeds.newsp div svg:not(.garden-action-icon){width:64px;height:70px;}.seeds.newsp div small{font-size:10px;color:var(--t3);}
 .mem,.mem-notes,.mem-qa{text-align:left;}
 .mem-row{margin-top:6px;font-size:13px;color:var(--t2);text-align:center;}
 .mem-notes{margin-top:10px;display:flex;flex-direction:column;gap:6px;}
@@ -297,8 +297,7 @@ body.placing-decor .g3-tools,body.placing-decor .g3-full-control,body.placing-de
 .g3-tool svg[hidden]{display:none;}
 .g3-tool svg .accent{fill:#DDEBCF;stroke:#799268;}
 .g3-tool svg .warm{fill:#F6DDA4;stroke:#A18455;}
-.garden-action-icon{display:inline-block;width:1.2em;height:1.2em;vertical-align:-.22em;fill:none;stroke:#665347;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
-.garden-action-icon .fill-orange{fill:#EBA454;stroke:#A65C2A;}.garden-action-icon .fill-green{fill:#DDEBCF;}.garden-action-icon .fill-yellow{fill:#F6DDA4;}.garden-action-icon .fill-pink{fill:#F6D7D3;}.garden-action-icon .fill-blue{fill:#D4EAF1;}
+.garden-action-icon{pointer-events:none;flex:none;display:inline-block;width:1.2em;height:1.2em;vertical-align:-.22em;fill:none;stroke:#665347;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
 .g3-tool span{margin-top:1px;font-size:10px;line-height:12px;letter-spacing:.5px;color:var(--t2);white-space:nowrap;}
 .g3-tool:active{background:#F1E7D6;}
 .g3-tool.on{background:#FFE9A8;}.g3-tool.on span{color:var(--t);}
@@ -585,7 +584,9 @@ body.placing-decor .g3-tools,body.placing-decor .g3-full-control,body.placing-de
 <script src="sound.js?v=piano-20261116"></script>
 <script src="game.js?v=garden-20261102"></script>
 <script src="vs.js?v=mail-20261108"></script>
-<script src="garden3d.js?v=hats2-20261120"></script>
+<script src="garden-icon-art.js?v=20261121"></script>
+<script src="garden-icons.js?v=20261121"></script>
+<script src="garden3d.js?v=night-path-20261121"></script>
 <script>
 /* 記憶小森林：兩個人一起種。每天回答一題問答拿水滴，一起澆水，把種子種成樹；長大的樹放進森林，留著那段時間的問答和兩個人的話。
    資料：班表同一個 Firebase 的 banbiao/<同步代碼>_garden（沒有同步代碼就存在這支手機）
@@ -1480,7 +1481,7 @@ function paintPlots(){
     if(gi!==grp&&os[os.length-1]>=12){h+='<div class="plot-land">'+(lo?'🏡 '+esc(areaName(lo.id)):'🌳 '+esc(areaName('center')))+'</div>';}grp=gi;
     if(!p){h+=mp?'<button class="plot target" data-to="'+i+'"><span class="empty"><i>🪴</i>移到這裡</span></button>':'<button class="plot" data-slot="'+i+'" aria-label="空的土，種一棵"><span class="empty"><i>🌱</i>種一棵</span></button>';return;}
     var g=grow(p),td=(p.w||{}),a=+((td.syue||{})[today()])||0,b=+((td.ling||{})[today()])||0,pe=pestOf(p),me2=mp&&p.id===moving.id;
-    h+='<button class="plot has'+(g.stage===4?' ready':'')+(g.stage<4&&thirsty(p)?' thirsty':'')+(me2?' moving':mp?' swap':'')+'" '+(mp?(me2?'':'data-to="'+i+'"'):'data-id="'+p.id+'"')+' aria-label="'+esc(label(p))+(pe?'，有'+PESTS[pe.kind].name:'')+'">'+(pe?'<span class="pest">'+PESTS[pe.kind].e+'</span>':'')+'<div class="art">'+art(p.sp,g.stage)+'</div><div class="pn">'+esc(p.name||SP[p.sp].name)+'</div><div class="bar"><i style="width:'+Math.round(g.r*100)+'%"></i></div><div class="pw">'+(me2?'<span class="on syue">🪴 移植中</span>':mp?'<span class="on ling">點這裡交換</span>':'<span class="syue'+(a?' on':'')+'">學💧'+a+'</span><span class="ling'+(b?' on':'')+'">綾💧'+b+'</span>')+'</div></button>';
+    h+='<button class="plot has'+(g.stage===4?' ready':'')+(g.stage<4&&thirsty(p)?' thirsty':'')+(me2?' moving':mp?' swap':'')+'" '+(mp?(me2?'':'data-to="'+i+'"'):'data-id="'+p.id+'"')+' aria-label="'+esc(label(p))+(pe?'，有'+PESTS[pe.kind].name:'')+'">'+(g.stage===4?'<span class="plot-ready-mark" aria-hidden="true">✨</span>':'')+(pe?'<span class="pest">'+PESTS[pe.kind].e+'</span>':'')+'<div class="art">'+art(p.sp,g.stage)+'</div><div class="pn">'+esc(p.name||SP[p.sp].name)+'</div><div class="bar"><i style="width:'+Math.round(g.r*100)+'%"></i></div><div class="pw">'+(me2?'<span class="on syue">🪴 移植中</span>':mp?'<span class="on ling">點這裡交換</span>':'<span class="syue'+(a?' on':'')+'">學💧'+a+'</span><span class="ling'+(b?' on':'')+'">綾💧'+b+'</span>')+'</div></button>';
   });
   // 下一塊要升級才開的土（或新土地）
   var nx=0;for(var k=L+1;k<=20;k++)if(plotsAt(k)>N){nx=k;break;}
@@ -2014,9 +2015,9 @@ function doingText(I){var d=I.d,o=DOING[d];if(d==='land')return '在'+areaName(I
 var PACTS={slide:['🛝','溜滑梯'],swing:['🎠','盪鞦韆'],bench:['🌇','坐長椅'],fire:['🔥','烤棉花糖'],cafe:['☕','去涼亭'],tswing:['🌳','樹屋鞦韆']};
 var PRES={ok:'',busy:'那裡有人在用，等一下再去',tree:'在樹屋上，先下來囉，等一下再叫他',ride:'正在騎車兜風，回來再叫他',fail:'現在沒辦法過去，換一個試試',none:'',sent:''};
 var CLO_S=[['spring','🌸 春'],['summer','☀️ 夏'],['autumn','🍁 秋'],['winter','❄️ 冬'],['special','💝 特別']];
-var HAIRN={syue:{default:['💇‍♂️','清爽短髮'],side:['💁‍♂️','旁分'],curly:['🌀','捲捲頭'],spiky:['⚡','刺刺頭'],brown:['🤎','咖啡色短髮'],mid:['🎸','中長髮']},
-  ling:{default:['👒','及肩捲髮'],pony:['🎀','馬尾'],bun:['🍡','丸子頭'],long:['✨','長直髮'],twin:['🎀','雙馬尾'],bob:['🌰','鮑伯頭']}};
-var HATN={bucket:['🧺','漁夫帽'],beanie:['🧶','毛帽'],cap:['🧢','棒球帽'],straw:['👒','草帽'],beret:['🎨','貝雷帽'],tophat:['🎩','紳士帽'],bow:['🎀','蝴蝶結'],flower:['🌼','花圈'],crown:['👑','小皇冠'],cat:['🐱','貓耳'],bunny:['🐰','兔耳']};
+var HAIRN={syue:{default:['hair-short','清爽短髮'],side:['hair-side','旁分'],curly:['hair-curly','捲捲頭'],spiky:['hair-spiky','刺刺頭'],brown:['hair-brown','咖啡色短髮'],mid:['hair-mid','中長髮']},
+  ling:{default:['hair-wave','及肩捲髮'],pony:['hair-pony','馬尾'],bun:['🍡','丸子頭'],long:['hair-long','長直髮'],twin:['hair-twin','雙馬尾'],bob:['hair-bob','鮑伯頭']}};
+var HATN={bucket:['hat-bucket','漁夫帽'],beanie:['🧶','毛帽'],cap:['🧢','棒球帽'],straw:['👒','草帽'],beret:['hat-beret','貝雷帽'],tophat:['🎩','紳士帽'],bow:['🎀','蝴蝶結'],flower:['hat-flower','花圈'],crown:['👑','小皇冠'],cat:['🐱','貓耳'],bunny:['🐰','兔耳']};
 var FACEN={auto:['✨','自動'],smile:['😊','微笑'],laugh:['😆','大笑'],shy:['☺️','害羞'],surprise:['😮','驚訝'],wink:['😉','眨眼'],love:['😍','愛心眼'],sleepy:['😪','想睡'],pout:['😤','嘟嘴']};
 var PS={k:'syue',tab:'do',clo:''};
 // 狀態欄：上面是誰（可以切換學、綾）、現在在做什麼、停下來和跟著看；下面四個分頁：做什麼、衣服、髮型、表情
@@ -2026,7 +2027,7 @@ function openPerson(k){
   sheet.paint=function(){
     var k=PS.k,I=Garden3D.personInfo(k);if(!I){closeSheet();return;}var box=sheet.ov.querySelector('.g-card'),O=Garden3D.outfits(k),who=k==='syue'?'ling':'syue',LK=(D.look||{})[k]||{};
     var curO=O.filter(function(o){return o.id===I.outfit;})[0]||O[0];if(!PS.clo||PS.cloK!==k){PS.clo=curO.s||seasonOf(today());PS.cloK=k;}
-    var tile=function(attr,e,t,on,dis){return '<button '+attr+(on?' class="on"':'')+(dis?' disabled':'')+'><i>'+e+'</i><span>'+esc(t)+'</span></button>';};
+    var tile=function(attr,e,t,on,dis){return '<button '+attr+(on?' class="on"':'')+(dis?' disabled':'')+'><i>'+GardenIcons.mark(e)+'</i><span>'+esc(t)+'</span></button>';};
     var body='';
     if(PS.tab==='do'){
       var sec=function(t,items){items=items.filter(Boolean);return items.length?'<div class="ps-sec"><h5>'+t+'</h5><div class="ps-grid">'+items.join('')+'</div></div>':'';};
@@ -2058,7 +2059,7 @@ function openPerson(k){
     var fb=box.querySelector('[data-follow]');if(fb)fb.onclick=function(){closeSheet();startFollow(k);};
     box.querySelectorAll('[data-ct]').forEach(function(b){b.onclick=function(){SND.sfx('tap');PS.clo=b.getAttribute('data-ct');sheet.paint();};});
     box.querySelectorAll('[data-clo]').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-clo');SND.sfx('pop');write({outfit:obj(k,id)});paintPlots();sheet.paint();toast('👕 '+NAMES[k]+'換上'+b.textContent);};});
-    box.querySelectorAll('[data-hair]').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-hair');SND.sfx('pop');write({look:obj(k,{hair:id})});paintPlots();sheet.paint();toast('💇 '+NAMES[k]+'換成'+b.textContent.replace(/^\S+/,'').trim());};});
+    box.querySelectorAll('[data-hair]').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-hair');SND.sfx('pop');write({look:obj(k,{hair:id})});paintPlots();sheet.paint();toast('💇 '+NAMES[k]+'換成'+b.querySelector('span').textContent);};});
     box.querySelectorAll('[data-hat]').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-hat');SND.sfx('pop');write({look:obj(k,{hat:id})});paintPlots();sheet.paint();toast(id==='none'?'🙆 '+NAMES[k]+'把帽子脫下來了':id==='auto'?'👕 帽子跟著衣服':'🎩 '+NAMES[k]+'戴上'+(HATN[id]||['',''])[1]);};});
     box.querySelectorAll('[data-face]').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-face');SND.sfx('pop');write({look:obj(k,{face:id})});paintPlots();sheet.paint();};});
     box.querySelector('[data-close]').onclick=closeSheet;
@@ -2373,7 +2374,6 @@ addEventListener('pagehide',function(){clearTimeout(wT);flush();});
 start3d();
 connect();
 </script>
-<script src="garden-icons.js?v=mem-20261120"></script>
 </body>
 </html>
 
