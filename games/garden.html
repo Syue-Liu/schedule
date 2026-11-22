@@ -254,6 +254,13 @@ body.placing-decor .g3-tools,body.placing-decor .g3-full-control,body.placing-de
 .seeds button svg:not(.garden-action-icon){width:64px;height:70px;}
 .seeds button small{font-size:10px;color:var(--t3);}
 .seeds button[disabled]{opacity:.45;border-style:dashed;}
+.seed-tabs,.bk-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:4px 0 8px;}.bk-tabs{grid-template-columns:repeat(5,1fr);grid-column:1/-1;margin-top:0;}
+.seed-tabs button,.bk-tabs button{position:relative;display:flex;flex-direction:column;align-items:center;padding:6px 2px 5px;border:2px solid var(--ink);border-radius:14px;background:var(--paper);font:inherit;font-size:13px;color:var(--t);line-height:1.2;}
+.seed-tabs button small,.bk-tabs button small{font-size:10.5px;color:var(--t3);}.seed-tabs button.on,.bk-tabs button.on{background:#E7F2DF;box-shadow:0 2px 0 var(--ink);}
+.seed-tabs em{position:absolute;top:-8px;left:50%;transform:translateX(-50%);padding:0 6px;border-radius:999px;background:#F2A497;font-style:normal;font-size:10px;line-height:15px;color:#FFFFFF;white-space:nowrap;}
+.seed-tabs b{position:absolute;top:-6px;right:-4px;font-weight:400;font-size:12px;}
+.bk-tabs button{font-size:12px;padding:5px 1px;}
+.pc-chips .ss{background:#F3EEF9;color:#6A5A8E;}.pc-chips .ss-spring{background:#FCE9EF;color:#A2566D;}.pc-chips .ss-summer{background:#FFF3D6;color:#8A6A1E;}.pc-chips .ss-autumn{background:#FBE7D6;color:#9A5A2E;}.pc-chips .ss-winter{background:#E8F0F6;color:#4F6B82;}
 .seeds button.cmb{position:relative;border-color:#D9A93A;background:#FFF7DD;box-shadow:inset 0 0 0 1.5px #F6D27A;}
 .seeds .cmb-tag{max-width:100%;padding:1px 6px;border-radius:999px;background:#F6D27A;font-style:normal;font-size:10px;line-height:1.5;color:#7A5A12;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .seeds.newsp{max-height:46vh;overflow:auto;}.seeds.newsp .lock{opacity:.6;}.seeds.newsp div{display:flex;flex-direction:column;align-items:center;padding:6px 2px;border:var(--lw2) solid var(--ink);border-radius:14px;background:var(--paper);font-size:13px;}
@@ -586,7 +593,7 @@ body.placing-decor .g3-tools,body.placing-decor .g3-full-control,body.placing-de
 <script src="vs.js?v=mail-20261108"></script>
 <script src="garden-icon-art.js?v=20261121"></script>
 <script src="garden-icons.js?v=20261121"></script>
-<script src="garden3d.js?v=plant-seasons-20261121"></script>
+<script src="garden3d.js?v=seasons-20261122"></script>
 <script>
 /* 記憶小森林：兩個人一起種。每天回答一題問答拿水滴，一起澆水，把種子種成樹；長大的樹放進森林，留著那段時間的問答和兩個人的話。
    資料：班表同一個 Firebase 的 banbiao/<同步代碼>_garden（沒有同步代碼就存在這支手機）
@@ -735,8 +742,41 @@ var SP={
   pansy:{name:'三色堇',kind:'flower',like:'daisy',need:18,c:'#9B7FD9',lv:27},
   bougain:{name:'九重葛',kind:'tree',shape:'round',need:72,c:'#E46AA8',dot:'#F7C6DC',sd:1,lv:28},
   calla:{name:'海芋',kind:'flower',like:'tulip',need:22,c:'#FBFAF4',lv:29},
-  cypress:{name:'紅檜',kind:'tree',shape:'pine',need:80,c:'#4F7F62',plain:1,lv:30}
+  cypress:{name:'紅檜',kind:'tree',shape:'pine',need:80,c:'#4F7F62',plain:1,lv:30},
+  // 四季的新植物（季節在 PSEASON）
+  rapeseed:{name:'油菜花',kind:'flower',like:'lavender',need:12,c:'#F6D24A',lv:2},
+  chrysanthemum:{name:'菊花',kind:'flower',like:'daisy',need:12,c:'#F6C343',lv:2},
+  morningglory:{name:'牽牛花',kind:'flower',like:'bellflower',need:12,c:'#7F8CE6',lv:3},
+  narcissus:{name:'水仙',kind:'flower',like:'daisy',need:12,c:'#FFF8DC',lv:4},
+  azalea:{name:'杜鵑花',kind:'flower',like:'hydrangea',need:16,c:'#F28AB0',c2:'#F8C8D4',lv:5},
+  silvergrass:{name:'芒草',kind:'flower',like:'lavender',need:12,c:'#EDE3D2',lv:6},
+  lotus:{name:'荷花',kind:'flower',like:'lily',need:18,c:'#F49AB8',lv:7},
+  poinsettia:{name:'聖誕紅',kind:'flower',like:'hydrangea',need:16,c:'#D9343E',c2:'#E8554A',lv:8},
+  celosia:{name:'雞冠花',kind:'flower',like:'lavender',need:14,c:'#D9343E',lv:8},
+  pomelo:{name:'柚子樹',kind:'tree',shape:'round',need:60,c:'#86B67C',dot:'#D9DC6A',lv:9},
+  zinnia:{name:'百日草',kind:'flower',like:'daisy',need:14,c:'#E8553A',lv:10},
+  kumquat:{name:'金桔',kind:'tree',shape:'round',need:56,c:'#86B67C',dot:'#F2A12B',sd:1,lv:11},
+  daylily:{name:'金針花',kind:'flower',like:'lily',need:16,c:'#F28C28',lv:12},
+  cyclamen:{name:'仙客來',kind:'flower',like:'tulip',need:16,c:'#E85A8A',lv:13},
+  spiderlily:{name:'石蒜',kind:'flower',like:'lily',need:18,c:'#D9343E',lv:14},
+  hibiscus:{name:'扶桑花',kind:'flower',like:'lily',need:18,c:'#E2455A',lv:15},
+  calendula:{name:'金盞花',kind:'flower',like:'daisy',need:14,c:'#F2A12B',lv:16},
+  fringe:{name:'流蘇樹',kind:'tree',shape:'round',need:64,c:'#F4F1EA',dot:'#FFFFFF',sd:1,lv:18},
+  wintersweet:{name:'臘梅',kind:'tree',shape:'branch',need:64,c:'#F6E3A0',dot:'#F6C343',lv:19},
+  watermelon:{name:'西瓜',kind:'flower',need:20,c:'#4F9A45',lv:20},
+  chestnut:{name:'栗子樹',kind:'tree',shape:'round',need:66,c:'#7FA86A',dot:'#8C5A3A',lv:22},
+  holly:{name:'冬青',kind:'tree',shape:'round',need:66,c:'#2F6B44',dot:'#D9343E',sd:1,lv:23},
+  baldcypress:{name:'落羽松',kind:'tree',shape:'pine',need:72,c:'#C9703A',plain:1,lv:26},
+  snowdrop:{name:'雪花蓮',kind:'flower',like:'lilyvalley',need:20,c:'#FFFFFF',lv:27}
 };
+/* ── 四季：每一種植物屬於哪一季（選種子、圖鑑照季節分；跟 FLOWER_PEAK、TREE_SEASONS 的開花結果季節一樣） ── */
+var PSEASON={
+  spring:['tulip','daisy','lilyvalley','orchid','carnation','hyacinth','forgetmenot','iris','peony','calla','dandelion','rapeseed','azalea','cherry','peach','jacaranda','trumpet','tung','wisteria','kapok','willow','fringe'],
+  summer:['sunflower','lavender','bellflower','hydrangea','lily','jasmine','succulent','morningglory','lotus','zinnia','hibiscus','watermelon','flame','goldshower','lemon','mango','lychee','palm','cactus'],
+  autumn:['cosmos','rose','gerbera','chrysanthemum','silvergrass','celosia','spiderlily','daylily','osmanthus','apple','persimmon','orange','maple','ginkgo','pomelo','chestnut','baldcypress'],
+  winter:['camellia','pansy','strawberry','narcissus','poinsettia','cyclamen','snowdrop','calendula','plum','bougain','bamboo','pine','cypress','kumquat','wintersweet','holly']};
+var SEASON_E={spring:'🌸',summer:'☀️',autumn:'🍁',winter:'❄️'},SEASON_W={spring:'春',summer:'夏',autumn:'秋',winter:'冬'};
+function plantSeason(sp){for(var k in PSEASON)if(PSEASON[k].indexOf(sp)>=0)return k;return 'spring';}
 // 花圃、森林模型與植物插畫共用一份四季外觀，成長點數另由 grow 計算。
 var FOLIAGE = {
   spring: {leaf:'#B1D87B', stem:'#84AA64', tint:'#FFE3EB'},
@@ -757,11 +797,15 @@ var TREE_SEASONS = {
   maple: {bare:true}, ginkgo: {bare:true}, willow: {bare:true},
   cactus: {bloom:['spring','summer']}
 };
+Object.assign(TREE_SEASONS,{fringe:{bloom:['spring'],bare:true},pomelo:{fruit:['autumn']},chestnut:{fruit:['autumn'],bare:true},baldcypress:{bare:true},
+  kumquat:{fruit:['winter']},wintersweet:{bloom:['winter'],bare:true},holly:{fruit:['winter']}});
 var FLOWER_PEAK = {
   spring:['tulip','daisy','lilyvalley','orchid','carnation','hyacinth','forgetmenot','iris','peony','calla'],
   summer:['sunflower','lavender','bellflower','hydrangea','lily','jasmine'],
   autumn:['cosmos','rose','gerbera'], winter:['camellia','pansy','strawberry']
 };
+['rapeseed','azalea'].forEach(function(k){FLOWER_PEAK.spring.push(k);});['morningglory','lotus','zinnia','hibiscus','watermelon'].forEach(function(k){FLOWER_PEAK.summer.push(k);});
+['chrysanthemum','silvergrass','celosia','spiderlily','daylily'].forEach(function(k){FLOWER_PEAK.autumn.push(k);});['narcissus','poinsettia','cyclamen','snowdrop','calendula'].forEach(function(k){FLOWER_PEAK.winter.push(k);});
 function plantTint(base,tint,amount){
   var a=parseInt(base.slice(1),16), b=parseInt(tint.slice(1),16);
   var channels=[16,8,0].map(function(shift){
@@ -792,6 +836,7 @@ function plantAppearance(sp,season){
       look.c=plantTint(source.c,green,season==='winter'?.3:.22);
     }
     if(season==='autumn'&&sp==='maple')look.c='#CE6547';
+    if(sp==='baldcypress')look.c=season==='autumn'?'#C9703A':season==='summer'?'#5E9466':'#7FAF74';
     if(season==='autumn'&&sp==='ginkgo')look.c='#EFBD45';
     look.dormant=season==='winter'&&cycle.bare&&!blooming;
     if(look.dormant)look.shape='branch';
@@ -859,6 +904,30 @@ var SPI={
   pansy:{lang:'思念・請想著我',intro:'堇菜科的小花，花瓣上常有好幾種顏色，中間的花紋看起來像一張小臉。',fact:'三色堇的英文 pansy 來自法文 pensée，意思是「思念」。它不怕冷，冬天的花圃很常見。'},
   bougain:{lang:'熱情・堅韌',intro:'紫茉莉科的蔓性灌木，原產南美洲，天氣溫暖時幾乎整年都會開花，顏色有桃紅、紫、橘、白。',fact:'九重葛鮮豔的「花瓣」其實是苞片，真正的花是中間那幾朵白色的小花。'},
   calla:{lang:'純潔・幸福',intro:'天南星科的多年生草本，白色的「花」像一個捲起來的喇叭，中間立著一根黃色的花序。',fact:'那片白色的喇叭其實是苞片。陽明山竹子湖每年春天有海芋季，可以下田採海芋。'},
+  rapeseed:{lang:'加油・快樂',intro:'十字花科的一年生草本，春天開出一大片金黃色的小花，常種在田裡當綠肥。',fact:'台灣的稻田在冬天休耕時常種油菜花，開完花直接翻進土裡當肥料，所以春天鄉下常看到一整片黃色花海。'},
+  azalea:{lang:'節制・愛的喜悅',intro:'杜鵑花科的灌木，春天開滿粉紅、桃紅、白色的花，是台北市的市花。',fact:'台大校園每年三月都有杜鵑花節；杜鵑花也叫「映山紅」，開起來整片山坡都紅了。'},
+  fringe:{lang:'思念・純潔',intro:'木犀科的落葉樹，春天開滿細細長長的白色小花，遠看像樹上積了一層雪，所以又叫「四月雪」。',fact:'花瓣細長得像衣服上的流蘇，因此得名；台灣野生的流蘇樹已經很少見了。'},
+  morningglory:{lang:'愛情永固・短暫的美',intro:'旋花科的蔓性植物，會沿著籬笆和欄杆往上爬，夏天早上開出喇叭形的花。',fact:'牽牛花通常清晨開、中午就閉合，所以英文叫 morning glory（早晨的榮耀）。'},
+  lotus:{lang:'清白・堅貞',intro:'蓮科的水生植物，夏天在池塘裡開出粉紅色或白色的大花，圓圓的葉子浮在水面上。',fact:'荷葉表面有細小的凸起和蠟質，水珠在上面滾來滾去不會沾濕葉子，叫做「蓮葉效應」。台南白河是有名的賞荷地方。'},
+  zinnia:{lang:'思念遠方的朋友・天長地久',intro:'菊科的一年生草本，從夏天一直開到秋天，顏色有紅、橘、黃、粉。',fact:'一朵花可以開很久、整株的花期將近一百天，所以叫做「百日草」。'},
+  hibiscus:{lang:'熱情・新鮮的戀情',intro:'錦葵科的灌木，又叫朱槿，大紅花中間伸出一根長長的花蕊，一年四季都會開，夏天最多。',fact:'扶桑花是馬來西亞的國花，黃色的品種是夏威夷的州花。'},
+  watermelon:{lab:'寓意',lang:'圓滿・甜蜜',intro:'葫蘆科的蔓性植物，藤蔓在地上爬，開黃色小花，夏天結出又大又圓的西瓜。',fact:'西瓜的果肉大約九成都是水，是夏天消暑最受歡迎的水果；照植物學的分法，西瓜其實是一種漿果。'},
+  chrysanthemum:{lang:'高潔・長壽',intro:'菊科的多年生草本，秋天開花，品種很多，從小小一朵到碗口那麼大的都有。',fact:'菊花和梅、蘭、竹合稱「四君子」；重陽節有賞菊、喝菊花茶的習慣。'},
+  silvergrass:{lab:'寓意',lang:'堅韌・活力',intro:'禾本科的多年生草本，秋天長出一串串銀白色的花穗，風一吹，整片山坡像波浪一樣。',fact:'陽明山擎天崗每年秋冬都有芒草季；芒草葉子邊緣有細細的鋸齒，摸的時候小心不要被割到。'},
+  celosia:{lang:'真摯的愛・不朽',intro:'莧科的一年生草本，花序紅紅皺皺的，形狀很像公雞頭上的雞冠。',fact:'雞冠花摸起來像絨布，曬乾以後顏色還能留很久，常拿來做乾燥花。'},
+  pomelo:{lab:'寓意',lang:'團圓・平安',intro:'芸香科的常綠果樹，秋天結出又大又圓的柚子，果皮厚厚的，果肉酸甜多汁。',fact:'中秋節吃柚子是台灣的習俗，「柚」和「佑」同音，有保佑的意思；麻豆文旦是有名的柚子品種。'},
+  spiderlily:{lang:'相思・悲傷的回憶',intro:'石蒜科的球根植物，秋天先開出鮮紅色、花瓣往後捲的花，花謝了才長葉子。',fact:'石蒜也叫彼岸花，因為花和葉子不會同時出現，被說是「花葉永不相見」。'},
+  daylily:{lang:'忘憂・母親的愛',intro:'多年生草本，又叫萱草、忘憂草，夏末秋初開出橘黃色、很像百合的花。',fact:'花蓮六十石山、台東太麻里每年八、九月有金針花海；古時候用萱草代表母親，所以有「萱堂」的說法。'},
+  chestnut:{lab:'寓意',lang:'豐收・好運',intro:'殼斗科的落葉樹，秋天結出外面包著刺刺外殼的果實，剝開裡面就是栗子。',fact:'栗子的外殼長滿尖刺，像一顆小刺蝟，熟了會自己裂開；糖炒栗子是秋冬的街頭點心。'},
+  baldcypress:{lab:'寓意',lang:'季節的變化',intro:'柏科的落葉針葉樹，春夏是翠綠色，秋天整棵變成紅褐色，冬天葉子掉光。',fact:'落羽松雖然是針葉樹，冬天卻會落葉，掉下來的小枝條像羽毛，所以叫落羽松；它很喜歡長在水邊。'},
+  narcissus:{lang:'自戀・自尊',intro:'石蒜科的球根植物，冬天到早春開花，白色花瓣中間有一個黃色的小杯子，香味很濃。',fact:'希臘神話裡的美少年愛上自己在水裡的倒影，變成了水仙花；過年擺水仙也象徵吉祥。'},
+  poinsettia:{lang:'祝福・普天同慶',intro:'大戟科的灌木，冬天頂端的葉子變成鮮紅色，很像花瓣，真正的花其實是中間黃黃的小點。',fact:'聖誕紅要在白天變短的季節才會轉紅，剛好在聖誕節前後最漂亮，所以叫聖誕紅。'},
+  cyclamen:{lang:'內向・害羞',intro:'報春花科的球根植物，冬天開花，花瓣往上翻，像一隻隻停著的小蝴蝶。',fact:'「仙客來」是學名 Cyclamen 的音譯，聽起來像「仙客來訪」，所以常被當成過年的吉祥盆花。'},
+  snowdrop:{lang:'希望・安慰',intro:'石蒜科的小型球根植物，冬末早春雪還沒融就冒出來，開出垂著頭的白色小花。',fact:'雪花蓮常常從雪地裡鑽出來開花，被當成冬天快結束、春天要來的訊號。'},
+  calendula:{lang:'溫暖・惜別',intro:'菊科的一年生草本，冬天到春天開出橘黃色的花，在冷冷的季節特別顯眼。',fact:'金盞花的花瓣可以吃，以前還被拿來代替很貴的番紅花，幫食物染上金黃色。'},
+  kumquat:{lab:'寓意',lang:'吉祥・大吉大利',intro:'芸香科的常綠灌木，冬天結出一顆顆金黃色的小果子，可以連皮一起吃。',fact:'過年擺金桔盆栽代表「大吉大利」；金桔切半泡熱水加蜂蜜就是金桔茶。'},
+  wintersweet:{lab:'寓意',lang:'堅強・慈愛',intro:'蠟梅科的落葉灌木，冬天葉子掉光後開出蠟黃色、半透明的小花，香味很濃。',fact:'臘梅名字有梅，但不是梅花的親戚；花瓣像蠟做的、又在臘月開，所以叫蠟梅或臘梅。'},
+  holly:{lab:'寓意',lang:'祝福・守護',intro:'冬青科的常綠樹，葉子邊緣有尖刺，冬天結出一串串紅色的小果子。',fact:'西方聖誕節常用冬青的綠葉和紅果做花圈；果子是小鳥的冬天食物，人吃了會不舒服，不能吃喔。'},
   cypress:{lab:'寓意',lang:'長壽・守護',intro:'柏科的常綠大樹，是台灣特有的珍貴樹種，長在中高海拔的山區，可以活上千年。',fact:'阿里山、拉拉山的「神木」很多都是紅檜，有的已經超過兩千歲。檜木有一股好聞的香味，也是很好的木材。'}
 };
 /* ── 種在一起：同一種 3 株以上靠在一起變成花海、樹林；特別的三種種在一起是隱藏組合（連在一起：相鄰的土，或森林裡種在旁邊；旁邊再種同一類的會一起加入，組合可以變大）。
@@ -870,6 +939,9 @@ var COMBO=[
   {k:'autumn',e:'🍁',name:'秋日楓情',g:[['maple'],['ginkgo'],['persimmon']],fx:'swirl',pk:'leaf',c:['#E2603C','#F6D27A','#F07A2A'],hint:'楓樹、銀杏、柿子樹',d:'紅的楓葉、黃的銀杏、橘的柿子，秋天的顏色一次到齊，落葉捲成一圈一圈'},
   {k:'winter',e:'🎍',name:'歲寒三友',g:[['pine','cypress'],['bamboo'],['plum']],fx:'snow',c:['#FFFFFF'],hint:'松（或紅檜）、竹、梅',d:'松、竹、梅在寒冬裡也不怕冷，古人叫它們「歲寒三友」。種在一起會飄下細細的雪花'},
   {k:'fruit',e:'🍎',name:'果香小園',any:['apple','orange','lemon','persimmon','mango','lychee'],fx:'fruit',c:['#F2A15B'],hint:'三種不一樣的果樹',d:'三種果樹種在一起，果子掉得更勤，樹下常常有香香的水果'},
+  {k:'moon',e:'🥮',name:'中秋團圓',g:[['pomelo'],['osmanthus'],['chrysanthemum']],fx:'sunny',c:['#F6D27A'],hint:'柚子樹、桂花、菊花',d:'中秋節的柚子、桂花香、賞菊花，種在一起滿滿都是金黃色的光點，像團圓的月光'},
+  {k:'xmas',e:'🎄',name:'聖誕花園',g:[['poinsettia'],['holly'],['pine','cypress']],fx:'snow',c:['#FFFFFF'],hint:'聖誕紅、冬青、松（或紅檜）',d:'聖誕紅、冬青的紅果子和松樹種在一起，會飄下聖誕節的雪花'},
+  {k:'pond',e:'🪷',name:'夏日荷塘',g:[['lotus'],['morningglory'],['hibiscus','zinnia']],fx:'hearts',c:['#F49AB8'],hint:'荷花、牽牛花、扶桑花（或百日草）',d:'夏天的荷花、早上的牽牛花和熱情的紅花種在一起，會飄出粉紅色的愛心'},
   {k:'scent',e:'🌿',name:'芬芳花園',any:['lavender','jasmine','hyacinth','lily','lilyvalley','orchid','osmanthus'],fx:'scent',c:['#CDBDF0','#FFFFFF','#F6B8D6'],hint:'三種香香的花（薰衣草、茉莉、風信子、百合、鈴蘭、蝴蝶蘭、桂花）',d:'香香的花種在一起，香氣變成一圈一圈的光點飄上天，還有蝴蝶飛來'}
 ];
 var COMBO_NM={strawberry:'草莓園',lavender:'薰衣草田',succulent:'多肉小花園',rose:'玫瑰園',dandelion:'蒲公英草原',peony:'牡丹園',calla:'海芋田',orchid:'蘭花園',hydrangea:'繡球花步道',
@@ -984,6 +1056,7 @@ function comboTap(k){
   if(ids.length&&g3){Garden3D.flashTrees(ids);$('g3').scrollIntoView({behavior:'smooth',block:'center'});toast(comboE(k)+' 「'+comboName(k)+'」在這裡');return;}
   toast(f?comboE(k)+' 「'+comboName(k)+'」現在沒有種在一起':R?'❔ 提示：'+R.hint+' 種在一起':'');
 }
+function seasonChip(sp){var q=plantSeason(sp);return '<span class="ss ss-'+q+'">'+SEASON_E[q]+' '+SEASON_W[q]+'天'+(q===seasonOf(today())?'・當季':'')+'</span>';}
 function spInfo(sp,small){var I=SPI[sp],S=SP[sp];if(!I||!S)return '';return '<div class="sp-info'+(small?' small':'')+'"><div class="sp-lang"><b>'+(I.lab||'花語')+'</b><span>'+esc(I.lang)+'</span></div><p>'+esc(I.intro)+'</p><p class="sp-fact">💡 '+esc(I.fact)+'</p></div>';}
 // 害蟲：長大中的植物每天有機會跑來一隻，抓走之前不能澆水
 var PESTS={bug:{name:'毛毛蟲',e:'🐛'},snail:{name:'蝸牛',e:'🐌'},beetle:{name:'甲蟲',e:'🪲'}},PK=['bug','snail','beetle'];
@@ -1125,9 +1198,12 @@ var ACH=[
   {id:'book10',e:'📖',t:'園藝愛好者',d:'種出 10 種不同的植物',v:'book',n:10,r:2},
   {id:'book15',e:'📖',t:'植物學家',d:'種出 15 種不同的植物',v:'book',n:15,r:3,decor:'well'},
   {id:'book20',e:'📖',t:'種子收藏家',d:'種出 20 種不同的植物',v:'book',n:20,r:4},
-  {id:'book30',e:'📖',t:'圖鑑全滿',d:'30 種全部種過',v:'book',n:30,r:5},
+  {id:'book30',e:'📖',t:'圖鑑過半',d:'種出 30 種不同的植物',v:'book',n:30,r:5},
   {id:'book40',e:'📖',t:'植物百科',d:'種出 40 種不同的植物',v:'book',n:40,r:6},
-  {id:'book50',e:'📚',t:'圖鑑大師',d:'50 種全部種過',v:'book',n:50,r:10},
+  {id:'book50',e:'📚',t:'圖鑑大師',d:'種出 50 種不同的植物',v:'book',n:50,r:10},
+  {id:'book60',e:'📚',t:'植物博士',d:'種出 60 種不同的植物',v:'book',n:60,r:10},
+  {id:'bookAll',e:'👑',t:'圖鑑全滿',d:'全部 '+Object.keys(SP).length+' 種都種過',v:'book',n:Object.keys(SP).length,r:15},
+  {id:'season4p',e:'🌸',t:'四季花園',d:'春、夏、秋、冬的植物各種出 3 種',v:'seasonP',n:3,r:4},
   {id:'forest5',e:'🌳',t:'小樹林',d:'森林有 5 棵',v:'forest',n:5,r:2},
   {id:'forest10',e:'🌳',t:'一片樹林',d:'森林有 10 棵',v:'forest',n:10,r:2},
   {id:'forest20',e:'🌳',t:'大森林',d:'森林有 20 棵',v:'forest',n:20,r:3},
@@ -1184,7 +1260,8 @@ var ACH=[
   {id:'combo5',e:'✨',t:'組合達人',d:'發現 5 種組合（花海、樹林、特別組合都算）',v:'combo',n:5,r:3},
   {id:'combo15',e:'✨',t:'組合收藏家',d:'發現 15 種組合',v:'combo',n:15,r:5},
   {id:'recipe3',e:'🌟',t:'特別組合',d:'發現 3 種特別組合',v:'recipe',n:3,r:3},
-  {id:'recipe7',e:'🌟',t:'組合大師',d:'7 種特別組合全部發現',v:'recipe',n:7,r:8},
+  {id:'recipe7',e:'🌟',t:'組合大師',d:'7 種特別組合都發現了',v:'recipe',n:7,r:8},
+  {id:'recipeAll',e:'🌟',t:'組合全收集',d:'全部 '+COMBO.length+' 種特別組合都發現了',v:'recipe',n:COMBO.length,r:10},
   {id:'lv5',e:'⭐',t:'花園 Lv.5',d:'花園升到 Lv.5',v:'lv',n:5,r:3},
   {id:'lv10',e:'⭐',t:'花園 Lv.10',d:'花園升到 Lv.10',v:'lv',n:10,r:5},
   {id:'lv15',e:'⭐',t:'花園 Lv.15',d:'花園升到 Lv.15',v:'lv',n:15,r:6},
@@ -1200,7 +1277,7 @@ function achVals(){
   var wa=0,hd={},se={},cq=0,rd=0,dk={},wd={syue:{},ling:{}},nm=0,nt=0,ps=all();ps.forEach(function(p){['syue','ling'].forEach(function(u){var w=(p.w||{})[u]||{};Object.keys(w).forEach(function(d){var n=+w[d]||0;wa+=n;if(n>0){wd[u][d]=1;var h=holidayOf(d);if(h)hd[h.n||h.h]=1;}});});if(p.done)se[seasonOf(dayOf(p.done))]=1;if(p.name)nm++;if(p.note&&(p.note.syue||p.note.ling))nt++;});
   var bo=Object.keys(wd.syue).filter(function(d){return wd.ling[d];}).length;
   Object.keys(D.cq||{}).forEach(function(d){if(D.cq[d]&&D.cq[d].q)cq++;});Object.keys(D.rides||{}).forEach(function(d){rd+=+D.rides[d]||0;});decorList().forEach(function(d){dk[d.k]=1;});
-  return {book:Object.keys(bk).length,forest:f.length,streak:streak().best,qa:both,match:mt,pest:pe,mail:ml,decor:decorList().length,decorK:Object.keys(dk).length,album:albumList().length,lv:level(),water:wa,hol:Object.keys(hd).length,season:Object.keys(se).length,cq:cq,ride:rd,both:bo,planted:ps.length,named:nm,note:nt,combo:Object.keys(D.combo||{}).filter(function(k){return comboName(k);}).length,recipe:COMBO.filter(function(R){return (D.combo||{})[R.k];}).length};
+  return {book:Object.keys(bk).length,forest:f.length,streak:streak().best,qa:both,match:mt,pest:pe,mail:ml,decor:decorList().length,decorK:Object.keys(dk).length,album:albumList().length,lv:level(),water:wa,hol:Object.keys(hd).length,season:Object.keys(se).length,cq:cq,ride:rd,both:bo,planted:ps.length,named:nm,note:nt,combo:Object.keys(D.combo||{}).filter(function(k){return comboName(k);}).length,recipe:COMBO.filter(function(R){return (D.combo||{})[R.k];}).length,seasonP:Math.min.apply(null,['spring','summer','autumn','winter'].map(function(q){return PSEASON[q].filter(function(k){return bk[k];}).length;}))};
 }
 function achDone(id,V){var a=achOf(id);return !!a.id&&(V||achVals())[a.v]>=a.n;}
 function achMine(id){return ((D.ach||{})[me]||{})[id];}
@@ -1405,6 +1482,12 @@ function art(sp,stage,season){
       [[-34,-14,-40],[34,-14,40],[0,-30,0],[-18,-34,-18],[18,-34,18]].forEach(function(l){var cx=100+l[0]*k3,cy=200+l[1]*k3;o+=stem(100,206,cx,cy+6,3.5,S)+'<ellipse cx="'+cx+'" cy="'+cy+'" rx="'+15*k3+'" ry="'+11*k3+'" transform="rotate('+l[2]+' '+cx+' '+cy+')" fill="'+S.leaf+'" stroke="'+INK+'" stroke-width="3.5"/><path d="M'+cx+' '+(cy+8*k3)+'L'+cx+' '+(cy-6*k3)+'" stroke="'+INK+'" stroke-width="2" opacity=".35" transform="rotate('+l[2]+' '+cx+' '+cy+')"/>';});
       if(stage===3)[[-22,-62],[24,-66]].forEach(function(f){var fx=100+f[0],fy=200+f[1];o+=stem(100,196,fx,fy,2.5,S);for(var pp=0;pp<5;pp++)o+='<circle cx="'+(fx+Math.cos(pp*1.2566)*6).toFixed(1)+'" cy="'+(fy+Math.sin(pp*1.2566)*6).toFixed(1)+'" r="5" fill="#FFFFFF" stroke="'+INK+'" stroke-width="2"/>';o+='<circle cx="'+fx+'" cy="'+fy+'" r="3.5" fill="#F6D27A"/>';});
       if(stage===4)[[-36,-6],[34,-8],[6,-18],[-14,-2]].forEach(function(b){var bx=100+b[0],by=200+b[1];o+='<path d="M'+(bx-11)+' '+(by-9)+'Q'+bx+' '+(by-14)+' '+(bx+11)+' '+(by-9)+'Q'+(bx+11)+' '+(by+6)+' '+bx+' '+(by+15)+'Q'+(bx-11)+' '+(by+6)+' '+(bx-11)+' '+(by-9)+'Z" fill="'+S.c+'" stroke="'+INK+'" stroke-width="3" stroke-linejoin="round"/><path d="M'+(bx-9)+' '+(by-10)+'l4 -6 5 5 5 -5 4 6" fill="#8DBB5E" stroke="'+INK+'" stroke-width="2" stroke-linejoin="round"/>';[[-4,-2],[4,-1],[0,6]].forEach(function(sd){o+='<ellipse cx="'+(bx+sd[0])+'" cy="'+(by+sd[1])+'" rx="1.4" ry="2" fill="#F6E06E"/>';});});}
+    else if(R==='watermelon'){var k9=[0,0,.75,.9,1][stage];
+      o+='<path d="M40 196Q70 '+(186-8*k9)+' 100 194T160 192" fill="none" stroke="'+S.stem+'" stroke-width="4" stroke-linecap="round"/>';
+      [[52,188,-20],[80,182,10],[118,184,-8],[150,186,18]].forEach(function(l){o+='<ellipse cx="'+l[0]+'" cy="'+l[1]+'" rx="'+15*k9+'" ry="'+10*k9+'" transform="rotate('+l[2]+' '+l[0]+' '+l[1]+')" fill="'+S.leaf+'" stroke="'+INK+'" stroke-width="3"/>';});
+      if(stage===3)[[70,172],[132,170]].forEach(function(f){for(var p9=0;p9<5;p9++)o+='<circle cx="'+(f[0]+Math.cos(p9*1.2566)*5).toFixed(1)+'" cy="'+(f[1]+Math.sin(p9*1.2566)*5).toFixed(1)+'" r="4.5" fill="#F6D24A" stroke="'+INK+'" stroke-width="1.8"/>';});
+      if(stage===4)[[78,176,30,22],[132,184,24,17]].forEach(function(m){o+='<ellipse cx="'+m[0]+'" cy="'+m[1]+'" rx="'+m[2]+'" ry="'+m[3]+'" fill="'+S.c+'" stroke="'+INK+'" stroke-width="4"/>';
+        [-.55,-.18,.18,.55].forEach(function(t){var sx=m[0]+t*m[2];o+='<path d="M'+sx+' '+(m[1]-m[3]*.92)+'Q'+(sx+t*8)+' '+m[1]+' '+sx+' '+(m[1]+m[3]*.92)+'" fill="none" stroke="#2F6B32" stroke-width="3.2"/>';});});}
     else if(R==='lilyvalley'){var k4=[0,0,.75,.9,1][stage],tp=204-100*k4;
       o+='<path d="M96 204Q66 '+(204-60*k4)+' 84 '+tp+'Q104 '+(204-62*k4)+' 100 204Z" fill="'+S.leaf+'" stroke="'+INK+'" stroke-width="3.5" stroke-linejoin="round"/><path d="M104 204Q132 '+(204-56*k4)+' 118 '+(tp+12)+'Q98 '+(204-60*k4)+' 100 204Z" fill="'+S.stem+'" stroke="'+INK+'" stroke-width="3.5" stroke-linejoin="round"/>';
       if(stage>=3){var ax=104,ay=tp-22;o+='<path d="M100 204Q'+ax+' '+ay+' '+(ax+44*k4)+' '+(ay+26*k4)+'" fill="none" stroke="'+S.stem+'" stroke-width="3.5" stroke-linecap="round"/>';
@@ -1574,7 +1657,7 @@ function paintPlots(){
 }
 /* ── 森林分類：全部／樹／花／📖 圖鑑（每一種各種了幾棵），可以排最新或最早；
    點圖鑑裡的一種就只看那一種，3D 花園裡那幾棵也會亮起來 ── */
-var fTab='all',fSort='new',fSp='';
+var fTab='all',fSort='new',fSp='',fBookS='all';
 try{var fs0=JSON.parse(localStorage.getItem('gardenFTab')||'{}');fTab=['all','tree','flower','book'].indexOf(fs0.t)>=0?fs0.t:'all';fSort=fs0.s||'new';}catch(e){}
 function forestList(){
   var f=forest();
@@ -1618,8 +1701,9 @@ function paintForest(){
     $('forest').innerHTML=comboBook();
     $('forest').querySelectorAll('[data-ck]').forEach(function(b){b.onclick=function(e){var ph=e.target.closest('[data-cph]');if(ph){openComboPhoto(ph.getAttribute('data-cph'));return;}comboTap(b.getAttribute('data-ck'));};});
   }else if(book){
-    var L=level();
-    $('forest').innerHTML=Object.keys(SP).map(function(k){var c=seen[k]||0,lock=L<SP[k].lv;return '<button class="ftree'+(c?'':' none')+'" data-sp="'+k+'"'+(c?'':' disabled')+'>'+art(k,c?4:4)+'<b>'+SP[k].name+'</b><span>'+(c?'×'+c:lock?'Lv.'+SP[k].lv+' 解鎖':'還沒種過')+'</span></button>';}).join('');
+    var L=level(),bq=fBookS;
+    $('forest').innerHTML='<div class="bk-tabs">'+['all','spring','summer','autumn','winter'].map(function(q){var L2=q==='all'?Object.keys(SP):PSEASON[q],got=L2.filter(function(k){return seen[k];}).length;return '<button data-bq="'+q+'"'+(q===bq?' class="on"':'')+'>'+(q==='all'?'全部':SEASON_E[q]+' '+SEASON_W[q])+' <small>'+got+'/'+L2.length+'</small></button>';}).join('')+'</div>'+(bq==='all'?Object.keys(SP):PSEASON[bq]).map(function(k){var c=seen[k]||0,lock=L<SP[k].lv;return '<button class="ftree'+(c?'':' none')+'" data-sp="'+k+'"'+(c?'':' disabled')+'>'+art(k,4,plantSeason(k))+'<b>'+SP[k].name+'</b><span>'+(c?'×'+c:lock?'Lv.'+SP[k].lv+' 解鎖':'還沒種過')+'</span></button>';}).join('');
+    $('forest').querySelectorAll('[data-bq]').forEach(function(b){b.onclick=function(){SND.sfx('tap');fBookS=b.getAttribute('data-bq');paintForest();};});
     $('forest').querySelectorAll('[data-sp]').forEach(function(b){b.onclick=function(){var k=b.getAttribute('data-sp');setForestTab('book',k);if(g3)Garden3D.flashTrees(all.filter(function(p){return p.sp===k;}).map(function(p){return p.id;}));};});
   }else{
   var f=list;
@@ -1902,14 +1986,14 @@ function xmasGift(){
   write({gift:obj(me,obj(day,Date.now()))});SND.sfx('fanfare',2);toast('🎁 聖誕樹下的禮物：一滴水！+1 💧');paint();return true;
 }
 // 新品種（這次多的 12 種）：之前就在玩的，第一次打開跳一張卡片介紹（現在就能種的、升級才會解鎖的）
-var NEWSP=['carnation','trumpet','gerbera','tung','hyacinth','flame','jasmine','wisteria','camellia','kapok','forgetmenot','mango','iris','osmanthus','peony','lychee','pansy','bougain','calla','cypress'],NEWSP_KEY='gardenNewSp2';
+var NEWSP=['rapeseed','azalea','fringe','morningglory','lotus','zinnia','hibiscus','watermelon','chrysanthemum','silvergrass','celosia','daylily','spiderlily','pomelo','chestnut','baldcypress','narcissus','poinsettia','cyclamen','snowdrop','calendula','kumquat','wintersweet','holly'],NEWSP_KEY='gardenNewSp3';
 function newSpCard(){
   try{if(localStorage.getItem(NEWSP_KEY)==='1')return;}catch(e){return;}
   if(!all().length){try{localStorage.setItem(NEWSP_KEY,'1');}catch(e){}return;}
   if(sheet||typing()||moving||!LD.done||$('ld')){setTimeout(newSpCard,1500);return;}
   try{localStorage.setItem(NEWSP_KEY,'1');}catch(e){}
   var L=level(),now=NEWSP.filter(function(k){return SP[k].lv<=L;}),later=NEWSP.filter(function(k){return SP[k].lv>L;});
-  card('<h2>🌱 花園多了 '+NEWSP.length+' 種新的花和樹</h2><p class="g-small" style="margin-top:0">等級也開到 Lv.'+MAXLV+' 了，Lv.11 開始每升一級解鎖一種'+(now.length?'；有 '+now.length+' 種現在就能種':'')+'</p><div class="seeds newsp">'+NEWSP.map(function(k){var ok=SP[k].lv<=L;return '<div'+(ok?'':' class="lock"')+'>'+art(k,4)+SP[k].name+'<small>'+(ok?(SP[k].kind==='flower'?'花':'樹')+'・要 '+SP[k].need+' 點':'Lv.'+SP[k].lv+' 解鎖')+'</small></div>';}).join('')+'</div>'+
+  card('<h2>🌱 花園多了 '+NEWSP.length+' 種四季的花和樹</h2><p class="g-small" style="margin-top:0">選種子的時候照春、夏、秋、冬分好了，當季的種下去最漂亮'+(now.length?'；有 '+now.length+' 種現在就能種':'')+'</p><div class="seeds newsp">'+NEWSP.map(function(k){var ok=SP[k].lv<=L;return '<div'+(ok?'':' class="lock"')+'>'+art(k,4,plantSeason(k))+SP[k].name+'<small>'+(ok?(SP[k].kind==='flower'?'花':'樹')+'・要 '+SP[k].need+' 點':'Lv.'+SP[k].lv+' 解鎖')+'</small></div>';}).join('')+'</div>'+
     '<div class="g-btns"><button class="g-btn" data-close>'+(now.length?'去種種看 🌱':'好期待 🌱')+'</button></div>');
   sheet.ov.querySelector('[data-close]').onclick=closeSheet;
 }
@@ -2289,7 +2373,7 @@ function openPlant(id){
     var main=g.stage===4?'<button class="g-btn" data-harvest>🌳 種進森林</button>':pe?'<button class="g-btn" data-catch>'+PESTS[pe.kind].e+' 抓走'+PESTS[pe.kind].name+'</button>':'<button class="g-btn" data-water>💧 澆水（還有 '+left()+' 滴）</button>';
     var tiles=(naming?'':'<button data-name><i>✏️</i><span>取名字</span></button>')+'<button data-move><i>🪴</i><span>移植</span></button>'+(g3&&g.stage>0?'<button data-rot><i>🔄</i><span>轉方向</span></button>':'')+(dig?'':'<button data-dig><i>🗑️</i><span>拔掉</span></button>');
     box.innerHTML=navHtml(nav,id)+
-      '<div class="pc-head"><div class="pc-art">'+art(p.sp,g.stage)+'</div><div class="pc-title"><h2>'+esc(p.name||S0.name)+'</h2><div class="pc-chips">'+(p.name?'<span>'+esc(S0.name)+'</span>':'')+'<span class="'+(g.stage===4?'ready':'')+'">'+esc(stageName(p,g))+'</span></div><div class="pc-by">'+md(dayOf(p.at))+' '+NAMES[p.by]+'種的</div></div></div>'+
+      '<div class="pc-head"><div class="pc-art">'+art(p.sp,g.stage)+'</div><div class="pc-title"><h2>'+esc(p.name||S0.name)+'</h2><div class="pc-chips">'+(p.name?'<span>'+esc(S0.name)+'</span>':'')+'<span class="'+(g.stage===4?'ready':'')+'">'+esc(stageName(p,g))+'</span>'+seasonChip(p.sp)+'</div><div class="pc-by">'+md(dayOf(p.at))+' '+NAMES[p.by]+'種的</div></div></div>'+
       '<div class="pc-box"><div class="pc-row"><b>🌱 成長</b><span>'+Math.min(g.pts,g.need)+' / '+g.need+' 點</span></div><div class="bar big"><i style="width:'+Math.round(g.r*100)+'%"></i></div>'+steps+(g.rain?'<div class="pc-note">🌧️ 淋雨自己長了 '+g.rain*RAIN+' 點</div>':'')+'</div>'+
       '<div class="pc-box"><div class="pc-row"><b>💧 今天</b><span>兩個人都澆，多長 '+TOGETHER+' 點</span></div><div class="pc-ws"><span class="pc-w'+(a?' on':'')+'">學 💧'+a+'</span><span class="pc-w'+(b?' on':'')+'">綾 💧'+b+'</span>'+(both?'<span class="pc-w both">✨ +'+TOGETHER+'</span>':'')+(wt?'<span class="pc-w rain">'+(weatherOf(today())==='snow'?'❄️':'🌧️')+' +'+RAIN+'</span>':'')+'</div></div>'+
       (g.stage<4&&thirsty(p)?'<div class="sh-warn">好幾天沒人澆水，口渴了…</div>':'')+(pe?'<div class="sh-pest">'+PESTS[pe.kind].e+' 有'+PESTS[pe.kind].name+'在啃葉子！先抓走才能澆水</div>':'')+
@@ -2314,13 +2398,17 @@ function openPlant(id){
   };
   sheet.paint();
 }
+var seedTab='';
 function openSeeds(slot){
-  var L=level(),occ=g3?slotSpecies():null,anyC=false,planned={};
+  var L=level(),occ=g3?slotSpecies():null,anyC=false,planned={},now=seasonOf(today());if(!seedTab)seedTab=now;
   if(occ)linkedSlots(slot).forEach(function(b){if(occ[b])slotCombos(b,occ[b],occ).forEach(function(c){planned[c.k]=1;});});
   // 種在這塊土會和旁邊的植物湊成組合的：金色框＋✨ 名字
-  var h=Object.keys(SP).map(function(k){var S=SP[k],lock=L<S.lv,cs=!lock&&occ?slotCombos(slot,k,occ):[];if(cs.length)anyC=true;cs.sort(function(a,b){return (comboSp(a.k)?1:0)-(comboSp(b.k)?1:0);});
-    return '<button data-sp="'+k+'"'+(lock?' disabled':'')+(cs.length?' class="cmb"':'')+'>'+(cs.length?'<i class="cmb-tag">✨ '+(planned[cs[0].k]?'加入':'')+esc(comboLabel(cs[0].k))+'</i>':'')+art(k,lock?0:4)+S.name+'<small>'+(lock?'Lv.'+S.lv+' 解鎖':(S.kind==='flower'?'花・':'樹・')+'要 '+S.need+' 點')+'</small></button>';}).join('');
-  var ov=card('<h2>🌱 要種什麼呢？</h2>'+(anyC?'<p class="g-small" style="margin:0 0 4px">✨ 的種在這裡，會和旁邊的植物湊成組合（都開花後出現效果）</p>':'')+'<div class="seeds">'+h+'</div><p class="g-small">花長得快；樹長得慢，但長大很漂亮</p><div class="g-btns"><button class="g-btn ghost" data-close>取消</button></div>');
+  var cmbS={};Object.keys(SP).forEach(function(k){if(L>=SP[k].lv&&occ&&slotCombos(slot,k,occ).length)cmbS[plantSeason(k)]=1;});
+  var tabs='<div class="seed-tabs">'+['spring','summer','autumn','winter'].map(function(q){var n=PSEASON[q].filter(function(k){return SP[k]&&L>=SP[k].lv;}).length;return '<button data-ss="'+q+'"'+(q===seedTab?' class="on"':'')+'>'+SEASON_E[q]+' '+SEASON_W[q]+(q===now?'<em>當季</em>':'')+(cmbS[q]?'<b>✨</b>':'')+'<small>'+n+' 種</small></button>';}).join('')+'</div>';
+  var h=PSEASON[seedTab].filter(function(k){return SP[k];}).sort(function(a,b){return (L<SP[a].lv?1:0)-(L<SP[b].lv?1:0)||SP[a].lv-SP[b].lv;}).map(function(k){var S=SP[k],lock=L<S.lv,cs=!lock&&occ?slotCombos(slot,k,occ):[];if(cs.length)anyC=true;cs.sort(function(a,b){return (comboSp(a.k)?1:0)-(comboSp(b.k)?1:0);});
+    return '<button data-sp="'+k+'"'+(lock?' disabled':'')+(cs.length?' class="cmb"':'')+'>'+(cs.length?'<i class="cmb-tag">✨ '+(planned[cs[0].k]?'加入':'')+esc(comboLabel(cs[0].k))+'</i>':'')+art(k,lock?0:4,plantSeason(k))+S.name+'<small>'+(lock?'Lv.'+S.lv+' 解鎖':(S.kind==='flower'?'花・':'樹・')+'要 '+S.need+' 點')+'</small></button>';}).join('');
+  var ov=card('<h2>🌱 要種什麼呢？</h2>'+tabs+(anyC?'<p class="g-small" style="margin:0 0 4px">✨ 的種在這裡，會和旁邊的植物湊成組合（都開花後出現效果）</p>':'')+'<div class="seeds">'+h+'</div><p class="g-small">'+(seedTab===now?'當季的花和樹，這個季節開花結果最漂亮':'不是當季的也可以種，到了'+SEASON_W[seedTab]+'天會開花結果')+'；花長得快，樹長得慢</p><div class="g-btns"><button class="g-btn ghost" data-close>取消</button></div>');
+  ov.querySelectorAll('[data-ss]').forEach(function(b){b.onclick=function(){SND.sfx('tap');seedTab=b.getAttribute('data-ss');openSeeds(slot);};});
   ov.querySelectorAll('[data-sp]').forEach(function(b){b.onclick=function(){closeSheet();plantSeed(slot,b.getAttribute('data-sp'));};});
   ov.querySelector('[data-close]').onclick=closeSheet;
 }
@@ -2340,7 +2428,7 @@ function openMemory(id,list){
     var S0=SP[p.sp],main=p.done&&p.bag?'<button class="g-btn" data-bagout>🌱 拿出來種回森林</button>':g3&&p.done&&Garden3D.treeOK(id)?'<button class="g-btn" data-tcall>🧺 一起來樹下坐坐</button>':'';
     var tiles=p.done&&!p.bag&&g3?'<button data-move><i>🌳</i><span>移植</span></button><button data-rot><i>🔄</i><span>轉方向</span></button>':'';if(p.done&&!p.bag)tiles+='<button data-bagin><i>🎒</i><span>收進背包</span></button>';
     box.innerHTML=navHtml(list,id)+
-      '<div class="pc-head"><div class="pc-art">'+art(p.sp,4)+'</div><div class="pc-title"><h2>'+esc(p.name||S0.name)+'</h2><div class="pc-chips">'+(p.name?'<span>'+esc(S0.name)+'</span>':'')+'<span class="ready">'+(p.bag?'🎒 在背包裡':S0.kind==='tree'?'🌳 森林裡的樹':'🌸 森林裡的花')+'</span></div><div class="pc-by">'+md(d1)+' 種進森林</div></div></div>'+
+      '<div class="pc-head"><div class="pc-art">'+art(p.sp,4)+'</div><div class="pc-title"><h2>'+esc(p.name||S0.name)+'</h2><div class="pc-chips">'+(p.name?'<span>'+esc(S0.name)+'</span>':'')+'<span class="ready">'+(p.bag?'🎒 在背包裡':S0.kind==='tree'?'🌳 森林裡的樹':'🌸 森林裡的花')+'</span>'+seasonChip(p.sp)+'</div><div class="pc-by">'+md(d1)+' 種進森林</div></div></div>'+
       '<div class="pc-box"><div class="pc-row"><b>🌱 一起長大</b><span>'+days+' 天</span></div><div class="mem-tl"><div><i>🌱</i><b>'+md(d0)+'</b><span>'+NAMES[p.by]+'種下</span></div><em></em><div><i>🌳</i><b>'+md(d1)+'</b><span>長大了</span></div></div>'+
         '<div class="pc-ws"><span class="pc-w on">學 💧'+g.sn+'</span><span class="pc-w on">綾 💧'+g.ln+'</span>'+(g.both?'<span class="pc-w both">💑 一起澆水 '+g.both+' 天</span>':'')+(g.rain?'<span class="pc-w rain">🌧️ 淋雨 '+g.rain+' 天</span>':'')+'</div></div>'+
       comboHtml(id)+hintHtml(forestHints(id))+spInfo(p.sp)+
@@ -2379,7 +2467,7 @@ function help(){
   card('<h2>🎮 遊戲操作</h2><div class="g-rules">'+
     '<h4>🖐️ 怎麼操作</h4><ul><li>拖曳轉一圈、兩指拉近拉遠；用「全螢幕」放大，用「視角」回到原本的角度</li><li>點土種樹、點植物澆水；需要時按「澆澆水」顯示植物名稱、成長進度和今天的澆水狀態，再按一次隱藏</li><li>植物和森林的樹都可以「移植」，把花園排成你們喜歡的樣子</li><li>按「澆澆水」以後左下角的「🏷️ 區域名字」，可以幫中間的花園和每塊新土地取名字（會寫在木牌上）</li><li>按「澆澆水」以後，下面有「⛏️ 填土」和「🪏 翻土」：空的土可以填平，再翻到花園裡想要的地方（土的數量還是照等級）</li><li>右側工具列可以收合，按「展開」再打開；工具列裡有視角、澆澆水、裝飾、背包、拍照、跟著看</li><li>樹屋旁停著學的紅色街車和綾的小電動車：點它們可以叫兩個人一起去兜風（下雨、下雪不騎）</li><li>3D 花園右邊的「跟著看」：選學、綾或一隻寵物，鏡頭就一直跟著他（拖曳繞著看、兩指拉近）</li><li>裝飾、植物、森林的樹都可以轉方向：點它，按「🔄 轉方向」，在花園裡邊看邊按 ↺ ↻</li></ul>'+
     '<h4>💧 水滴</h4><ul><li>每個人每天 '+BASE+' 滴水；回答今日問題 +'+ANSWER+' 滴，二選一兩個人選一樣再各多 '+MATCH+' 滴</li><li>同一天兩個人都澆同一棵，那天多長 '+TOGETHER+' 點</li><li>小鳥飛來的時候點牠，送一滴水（每天最多 '+BIRD+' 滴）；有害蟲要先抓走才能澆水</li><li>下雨、下雪那天，所有植物都會自己長一點</li></ul>'+
-    '<h4>🌳 森林</h4><ul><li>植物依月份換季。春天賞櫻，秋天看楓紅和金黃銀杏，冬天梅花會在枝頭開放。四季都可以繼續澆水。<a href="../assets/games/garden/plant-seasons.webp" target="_blank" rel="noopener">看植物的四季對照圖</a></li><li>長大的植物種進森林，會留下那段時間的問答和你們寫的話</li><li>種進森林兩個人各拿 1 包飼料（算在每天 '+G.CAP+' 包裡）</li><li>澆水、回答、抓害蟲都會加經驗；升級多幾塊土、開放新土地、解鎖新的花和樹</li><li>🎒 不想放在花園裡的植物可以先收起來（還是算在森林和圖鑑裡）：右邊工具列的「背包」按「點花園裡的植物收進來」再點植物，或在回憶卡片按「收進背包」；背包裡的隨時可以拿出來</li><li>👫 長按學或綾打開狀態欄：上面看他現在在做什麼、停下來、跟著看；下面五頁「做什麼、衣服（春夏秋冬＋特別）、帽子（可以不戴）、髮型、表情」，上面的按鈕可以切換學和綾</li><li>🖐️ 長按植物或森林的樹：跳出小選單，直接澆水、移植、轉方向、拔掉或收進背包</li><li>🧺 學和綾會自己去樹下坐坐、接花瓣、搖果樹撿果子、在落葉上跳、抱抱大樹；森林回憶卡片的「一起來樹下坐坐」可以叫他們過去</li><li>✨ 種在一起：同一種植物 3 株以上種在一起（相鄰的土，或森林裡種在旁邊）會變成花海、樹林；特別的三種種在一起還有隱藏組合，像松、竹、梅是「歲寒三友」；組合湊成後，旁邊再種同一類的會一起加入，越大片效果越熱鬧。森林的「✨ 組合」看得到提示</li></ul>'+
+    '<h4>🌳 森林</h4><ul><li>植物依月份換季。春天賞櫻，秋天看楓紅和金黃銀杏，冬天梅花會在枝頭開放。四季都可以繼續澆水。<a href="../assets/games/garden/plant-seasons.webp" target="_blank" rel="noopener">看植物的四季對照圖</a></li><li>長大的植物種進森林，會留下那段時間的問答和你們寫的話</li><li>種進森林兩個人各拿 1 包飼料（算在每天 '+G.CAP+' 包裡）</li><li>澆水、回答、抓害蟲都會加經驗；升級多幾塊土、開放新土地、解鎖新的花和樹</li><li>🎒 不想放在花園裡的植物可以先收起來（還是算在森林和圖鑑裡）：右邊工具列的「背包」按「點花園裡的植物收進來」再點植物，或在回憶卡片按「收進背包」；背包裡的隨時可以拿出來</li><li>👫 長按學或綾打開狀態欄：上面看他現在在做什麼、停下來、跟著看；下面五頁「做什麼、衣服（春夏秋冬＋特別）、帽子（可以不戴）、髮型、表情」，上面的按鈕可以切換學和綾</li><li>🖐️ 長按植物或森林的樹：跳出小選單，直接澆水、移植、轉方向、拔掉或收進背包</li><li>🌸 植物照春、夏、秋、冬分好了：選種子時上面可以切換季節，標「當季」的這個季節開花結果最漂亮；森林圖鑑也能照季節看</li><li>🧺 學和綾會自己去樹下坐坐、接花瓣、搖果樹撿果子、在落葉上跳、抱抱大樹；森林回憶卡片的「一起來樹下坐坐」可以叫他們過去</li><li>✨ 種在一起：同一種植物 3 株以上種在一起（相鄰的土，或森林裡種在旁邊）會變成花海、樹林；特別的三種種在一起還有隱藏組合，像松、竹、梅是「歲寒三友」；組合湊成後，旁邊再種同一類的會一起加入，越大片效果越熱鬧。森林的「✨ 組合」看得到提示</li></ul>'+
     '<h4>🛝 遊樂區（點它們叫學和綾過去）</h4><ul><li>白天溜滑梯、盪鞦韆；下雨、下雪天溜滑梯換成涼亭，喝咖啡吃甜點</li><li>傍晚長椅看夕陽，晚上營火烤棉花糖；下雨的晚上會搭起天幕</li><li>樹屋旁的鞦韆隨時都能盪，兩個人的話一個坐、一個在後面推</li></ul>'+
     '<h4>🔥 連續紀錄・🏅 成就・📸 拍照</h4><ul><li>兩個人同一天都有澆水或回答問題，連續紀錄就多一天（最上面的 🔥）</li><li>下面的 🏅 成就：達成後每個人各領一次獎勵水滴，有的還會解鎖限定裝飾</li><li>3D 花園右邊的「拍照」：按鈕和名字會收起來，選好角度按快門，可以存到手機或放進兩個人的相簿</li><li>今日問題下面的「✍️ 我來出題」：自己寫題目排進之後的今日問題</li></ul>'+
     '<h4>🎀 裝飾・📮 信箱・🎉 紀念日</h4><ul><li>升級解鎖裝飾（3D 花園工具列的「裝飾」）：盆栽、路燈、柵欄、蘑菇燈、花拱門、花圃、名字木牌、風車、長椅、小花車、稻草人、石板路、愛心氣球、鳥屋、南瓜燈、野餐墊、燈串、噴水池、風鈴、吊床、雙人鞦韆椅、小池塘、蜂箱、帳篷、狗屋、鳥浴盆、石燈籠、日晷、陽傘野餐桌、小鋼琴；學和綾會去坐長椅、躺吊床、坐鞦韆椅和野餐桌</li><li>成就限定裝飾：幸福鐘、許願井、望遠鏡（晚上點它看流星）、熱氣球、雪人、愛心拍照框、天燈、彩虹拱門</li><li>📮 寫信給對方，對方一打開班表或花園就會看到</li><li>紀念日（交往、結婚、生日、在一起每 100 天）花園會布置，每個人多 '+SPECIAL+' 滴水</li><li>節日也會布置：聖誕節（點聖誕樹拆禮物）、跨年、過年、情人節、七夕、中秋、萬聖節</li></ul>'+

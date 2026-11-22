@@ -97,6 +97,14 @@ var Garden3D=(function(){
     if(S.kind==='flower'){
       if(R==='lavender'){var H=[0,0,.75,1,1.15][stage],col=stage===2?S.leaf:S.c;[-.12,0,.12].forEach(function(dx,i){var hh=H-(i===1?0:.12),st=new T.Group();stem(st,hh,.025,S);for(var j=0;j<6;j++)st.add(mesh(ball(.055,0),col,(j%2?.03:-.03),hh-.04-j*.07,0));st.position.x=dx;st.rotation.z=-dx*1.4;g.add(st);});leaf(g,.15,0,.8,S);leaf(g,.13,Math.PI,.8,S);return g;}
       if(R==='succulent'){var k2=[0,0,.6,.8,1][stage];for(var i=0;i<8;i++){var a=i*Math.PI/4,l=mesh(ball(.14),S.c);l.scale.set(.5,.32,1.2);l.position.set(Math.cos(a)*.18*k2,.08,Math.sin(a)*.18*k2);l.rotation.set(0,-a+Math.PI/2,0);l.rotateX(-.55);l.scale.multiplyScalar(k2);g.add(l);}for(var j=0;j<5;j++){var b2=j*Math.PI*2/5+.3,m2=mesh(ball(.1),S.c);m2.scale.set(.5,.4,1);m2.position.set(Math.cos(b2)*.07*k2,.16*k2,Math.sin(b2)*.07*k2);m2.rotation.set(0,-b2+Math.PI/2,0);m2.rotateX(-1);m2.scale.multiplyScalar(k2);g.add(m2);}if(stage===4){stem(g,.5,.02,S);g.add(mesh(ball(.07),'#F8C8D4',0,.52,0));}return g;}
+      // 西瓜：藤蔓在地上爬、大葉子，開黃色小花，長大結兩顆有條紋的大西瓜
+      if(R==='watermelon'){var k9=[0,0,.75,.9,1][stage];
+        [[-.32,.1,.4],[.05,-.28,-.5],[.3,.18,1.4],[-.12,.3,2.4]].forEach(function(v,i){var vn=mesh(cyl(.012,.012,.5*k9,4),S.stem,v[0]*k9,.02,v[1]*k9);vn.rotation.set(Math.PI/2,0,v[2]);g.add(vn);
+          var lf=mesh(ball(.11),S.leaf,v[0]*k9*1.5,.05,v[1]*k9*1.5);lf.scale.set(1.4*k9,.25,1.1*k9);lf.rotation.y=v[2];g.add(lf);});
+        if(stage===3)[[.18,.1],[-.2,-.12]].forEach(function(c){var f=new T.Group();petals(f,0,.32,'#F6D24A',5,.9,'#E8B84A',.04);f.children[0].rotation.x=0;f.position.set(c[0],.1,c[1]);g.add(f);});
+        if(stage===4)[[.06,.02,.2],[-.24,-.2,.15]].forEach(function(m,i){var wm=mesh(ball(m[2],2),S.c,m[0],m[2]*.75,m[1]);wm.scale.set(1.25,.85,1);wm.rotation.y=i*.8;g.add(wm);
+          for(var st=0;st<6;st++){var a=st/6*Math.PI*2,sp9=mesh(ball(m[2]*1.03,1),'#2F6B32',m[0],m[2]*.75,m[1]);sp9.scale.set(.2*1.25,.86,1.0);sp9.rotation.set(0,i*.8+a,0);g.add(sp9);}});
+        return g;}
       if(R==='strawberry'){var k3=[0,0,.75,.9,1][stage];
         for(var i3=0;i3<5;i3++){var a3=i3*1.2566+.3,lg=new T.Group();lg.position.set(Math.cos(a3)*.15*k3,0,Math.sin(a3)*.15*k3);lg.rotation.y=-a3;lg.add(mesh(cyl(.012,.015,.16*k3,4),S.stem,0,.08*k3,0));
           for(var j3=0;j3<3;j3++){var b3=(j3-1)*.75,l3=mesh(ball(.07),S.leaf);l3.scale.set(1.2,.3,.9);l3.position.set(Math.cos(b3)*.06*k3+.05*k3,.16*k3,Math.sin(b3)*.06*k3);l3.rotation.y=-b3;lg.add(l3);}g.add(lg);}
@@ -1473,7 +1481,8 @@ var Garden3D=(function(){
     kapok:['bloom','#E8553A',.12],osmanthus:['tiny','#F5B342',1.2],cactus:['petal','#F49AC1',.06],
     maple:['leaf','#E2603C',.3,'autumn'],ginkgo:['fan','#F6D27A',.3,'autumn'],
     apple:['fruit','#E2675A',.05],orange:['fruit','#F2A15B',.05],lemon:['fruit','#F6E06E',.05],persimmon:['fruit','#F07A2A',.05],mango:['fruit','#F2B134',.045],lychee:['fruit','#D9434E',.045],
-    willow:['fluff','#FFFFFF',.3,'spring'],bamboo:['blade','#9CCB85',.25],pine:['cone','#8C6A55',.03],cypress:['cone','#7A5A45',.03],palm:['nut','#8C6A55',.02],dandelion:['seed','#FFFFFF',.35]};
+    willow:['fluff','#FFFFFF',.3,'spring'],fringe:['petal','#FFFFFF',1.0],pomelo:['fruit','#D9DC6A',.05],chestnut:['nut','#8C5A3A',.03],baldcypress:['leaf','#C9703A',.3,'autumn'],
+    kumquat:['fruit','#F2A12B',.05],wintersweet:['tiny','#F6C343',1.0],holly:['cone','#D9343E',.03],bamboo:['blade','#9CCB85',.25],pine:['cone','#8C6A55',.03],cypress:['cone','#7A5A45',.03],palm:['nut','#8C6A55',.02],dandelion:['seed','#FFFFFF',.35]};
   /* ── 花的小動畫：花跟著風輕輕搖（一陣一陣吹過花田，下雨搖得大一點）；薰衣草、風信子、茉莉飄出香氣的小光點，向日葵、雛菊飄花粉，
      玫瑰、波斯菊偶爾掉一片花瓣，山茶花整朵掉下來；早上鬱金香、草莓、多肉的露珠閃一下，晚上茉莉、百合、鈴蘭比較香 ── */
   var FFX={sunflower:[['pollen','#FFE07A',.35]],tulip:[['petal','#F2A497',.04],['dew','#EAF6FF',.15,'morning']],strawberry:[['dew','#EAF6FF',.15,'morning']],
@@ -1481,7 +1490,11 @@ var Garden3D=(function(){
     succulent:[['dew','#EAF6FF',.12,'morning']],bellflower:[['scent','#C4C0F6',.15]],hydrangea:[['dew','#DDEEFF',.15,'rain']],cosmos:[['petal','#F8B4D0',.06],['pollen','#FFE07A',.1]],
     lily:[['scent','#FFF3F6',.3,'night']],orchid:[['scent','#F7D3E6',.2]],carnation:[['petal','#F49AB0',.06]],gerbera:[['pollen','#FFD07A',.22]],hyacinth:[['scent','#F6B8D6',.4]],
     jasmine:[['scent','#FFFFFF',.35,'night']],camellia:[['bloom','#D9465A',.03]],forgetmenot:[['pollen','#CFE2FA',.22]],iris:[['scent','#BDB0F2',.2]],
-    peony:[['petal','#F7A8C0',.06],['scent','#FBD5E0',.15]],pansy:[['petal','#9B7FD9',.04],['pollen','#FFE07A',.1]],calla:[['dew','#EAF6FF',.12,'morning'],['scent','#FFFFFF',.15,'night']]};
+    peony:[['petal','#F7A8C0',.06],['scent','#FBD5E0',.15]],pansy:[['petal','#9B7FD9',.04],['pollen','#FFE07A',.1]],calla:[['dew','#EAF6FF',.12,'morning'],['scent','#FFFFFF',.15,'night']],
+    rapeseed:[['pollen','#FFE07A',.35]],azalea:[['petal','#F28AB0',.06]],morningglory:[['dew','#EAF6FF',.2,'morning']],lotus:[['scent','#F8D3E0',.2],['dew','#EAF6FF',.12,'morning']],
+    zinnia:[['pollen','#FFD07A',.15]],hibiscus:[['petal','#E2455A',.04]],watermelon:[['dew','#EAF6FF',.12,'morning']],chrysanthemum:[['scent','#F6E3A0',.2]],
+    silvergrass:[['seed','#FFFFFF',.3]],celosia:[['pollen','#F6B8B8',.12]],spiderlily:[['petal','#D9343E',.05]],daylily:[['petal','#F28C28',.04]],
+    narcissus:[['scent','#FFFDE8',.3,'night']],poinsettia:[['dew','#EAF6FF',.12,'rain']],cyclamen:[['petal','#E85A8A',.04]],snowdrop:[['dew','#EAF6FF',.15,'morning']],calendula:[['pollen','#FFD07A',.2]]};
   var tfx=[],tfxG=null,tfxM={},tfxB={},fxL={},heartMat=null,hourNow=12,TFX_FALL={petal:1,leaf:1,fan:1,tiny:1,blade:1,bloom:1},TFX_DROP={fruit:1,cone:1,nut:1},
     TFX_GLOW={scent:1,pollen:1,dew:1,spark:1,flake:1,firefly:1},TFX_FLOAT={scent:1,pollen:1,dew:1,spark:1,flake:1,firefly:1,heart:1,swirl:1};
   function treeEffect(sp){
