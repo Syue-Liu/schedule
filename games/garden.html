@@ -257,7 +257,8 @@ body.placing-decor .g3-tools,body.placing-decor .g3-full-control,body.placing-de
 .seed-tabs,.bk-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:4px 0 8px;}.bk-tabs{grid-template-columns:repeat(5,1fr);grid-column:1/-1;margin-top:0;}
 .seed-tabs button,.bk-tabs button{position:relative;display:flex;flex-direction:column;align-items:center;padding:6px 2px 5px;border:2px solid var(--ink);border-radius:14px;background:var(--paper);font:inherit;font-size:13px;color:var(--t);line-height:1.2;}
 .seed-tabs button small,.bk-tabs button small{font-size:10.5px;color:var(--t3);}.seed-tabs button.on,.bk-tabs button.on{background:#E7F2DF;box-shadow:0 2px 0 var(--ink);}
-.seed-tabs em{position:absolute;top:-8px;left:50%;transform:translateX(-50%);padding:0 6px;border-radius:999px;background:#F2A497;font-style:normal;font-size:10px;line-height:15px;color:#FFFFFF;white-space:nowrap;}
+.seed-tabs{grid-template-columns:1.6fr 1fr 1fr 1fr;}.seed-tabs button.reco{background:#FFF3D6;border-color:#D9A93A;}.seed-tabs button.reco.on{background:#FFE7A8;}
+.seed-reco{margin:0 2px 8px;padding:6px 10px;border-radius:12px;background:#FFF6DE;font-size:12.5px;color:#7A5A12;text-align:left;}.seed-reco.off{background:#F3EEE4;color:var(--t3);}
 .seed-tabs b{position:absolute;top:-6px;right:-4px;font-weight:400;font-size:12px;}
 .bk-tabs button{font-size:12px;padding:5px 1px;}
 .pc-chips .ss{background:#F3EEF9;color:#6A5A8E;}.pc-chips .ss-spring{background:#FCE9EF;color:#A2566D;}.pc-chips .ss-summer{background:#FFF3D6;color:#8A6A1E;}.pc-chips .ss-autumn{background:#FBE7D6;color:#9A5A2E;}.pc-chips .ss-winter{background:#E8F0F6;color:#4F6B82;}
@@ -593,7 +594,7 @@ body.placing-decor .g3-tools,body.placing-decor .g3-full-control,body.placing-de
 <script src="vs.js?v=mail-20261108"></script>
 <script src="garden-icon-art.js?v=20261121"></script>
 <script src="garden-icons.js?v=20261121"></script>
-<script src="garden3d.js?v=seasons-20261122"></script>
+<script src="garden3d.js?v=reco-20261122"></script>
 <script>
 /* 記憶小森林：兩個人一起種。每天回答一題問答拿水滴，一起澆水，把種子種成樹；長大的樹放進森林，留著那段時間的問答和兩個人的話。
    資料：班表同一個 Firebase 的 banbiao/<同步代碼>_garden（沒有同步代碼就存在這支手機）
@@ -1987,6 +1988,15 @@ function xmasGift(){
 }
 // 新品種（這次多的 12 種）：之前就在玩的，第一次打開跳一張卡片介紹（現在就能種的、升級才會解鎖的）
 var NEWSP=['rapeseed','azalea','fringe','morningglory','lotus','zinnia','hibiscus','watermelon','chrysanthemum','silvergrass','celosia','daylily','spiderlily','pomelo','chestnut','baldcypress','narcissus','poinsettia','cyclamen','snowdrop','calendula','kumquat','wintersweet','holly'],NEWSP_KEY='gardenNewSp3';
+/* ── 新版本提醒：網站上的花園換新了（garden3d.js 的版本號不一樣），提醒重新整理，免得手機一直用舊的 ── */
+var verAt=0,verTold=false;
+function verCheck(){
+  if(verTold||!navigator.onLine||Date.now()-verAt<600000)return;verAt=Date.now();
+  var cur=(document.querySelector('script[src*="garden3d.js?v="]')||{}).src||'',m0=/garden3d\.js\?v=([\w-]+)/.exec(cur);if(!m0)return;
+  fetch(location.pathname+'?vc='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():'';}).then(function(t){var m1=/garden3d\.js\?v=([\w-]+)/.exec(t||'');
+    if(m1&&m1[1]!==m0[1]){verTold=true;toast('🌱 花園有新的內容了，點這裡更新',function(){location.reload();},15000);}}).catch(function(){});
+}
+document.addEventListener('visibilitychange',function(){if(!document.hidden&&started)verCheck();});
 function newSpCard(){
   try{if(localStorage.getItem(NEWSP_KEY)==='1')return;}catch(e){return;}
   if(!all().length){try{localStorage.setItem(NEWSP_KEY,'1');}catch(e){}return;}
@@ -2398,17 +2408,21 @@ function openPlant(id){
   };
   sheet.paint();
 }
-var seedTab='';
-function openSeeds(slot){
-  var L=level(),occ=g3?slotSpecies():null,anyC=false,planned={},now=seasonOf(today());if(!seedTab)seedTab=now;
+// 選種子：一打開都是「⭐ 當季推薦」（現在這一季），後面接著下一季、再下一季…
+var seedTab='',SEASON_ORDER=['spring','summer','autumn','winter'];
+function openSeeds(slot,tab){
+  var L=level(),occ=g3?slotSpecies():null,anyC=false,planned={},now=seasonOf(today());seedTab=tab||now;
+  var order=[0,1,2,3].map(function(i){return SEASON_ORDER[(SEASON_ORDER.indexOf(now)+i)%4];});
   if(occ)linkedSlots(slot).forEach(function(b){if(occ[b])slotCombos(b,occ[b],occ).forEach(function(c){planned[c.k]=1;});});
   // 種在這塊土會和旁邊的植物湊成組合的：金色框＋✨ 名字
   var cmbS={};Object.keys(SP).forEach(function(k){if(L>=SP[k].lv&&occ&&slotCombos(slot,k,occ).length)cmbS[plantSeason(k)]=1;});
-  var tabs='<div class="seed-tabs">'+['spring','summer','autumn','winter'].map(function(q){var n=PSEASON[q].filter(function(k){return SP[k]&&L>=SP[k].lv;}).length;return '<button data-ss="'+q+'"'+(q===seedTab?' class="on"':'')+'>'+SEASON_E[q]+' '+SEASON_W[q]+(q===now?'<em>當季</em>':'')+(cmbS[q]?'<b>✨</b>':'')+'<small>'+n+' 種</small></button>';}).join('')+'</div>';
-  var h=PSEASON[seedTab].filter(function(k){return SP[k];}).sort(function(a,b){return (L<SP[a].lv?1:0)-(L<SP[b].lv?1:0)||SP[a].lv-SP[b].lv;}).map(function(k){var S=SP[k],lock=L<S.lv,cs=!lock&&occ?slotCombos(slot,k,occ):[];if(cs.length)anyC=true;cs.sort(function(a,b){return (comboSp(a.k)?1:0)-(comboSp(b.k)?1:0);});
+  var tabs='<div class="seed-tabs">'+order.map(function(q){var n=PSEASON[q].filter(function(k){return SP[k]&&L>=SP[k].lv;}).length;return '<button data-ss="'+q+'" class="'+(q===seedTab?'on':'')+(q===now?' reco':'')+'">'+(q===now?'⭐ 當季推薦<small>'+SEASON_E[q]+' '+SEASON_W[q]+'天・'+n+' 種</small>':SEASON_E[q]+' '+SEASON_W[q]+'<small>'+n+' 種</small>')+(cmbS[q]?'<b>✨</b>':'')+'</button>';}).join('')+'</div>'+
+    (seedTab===now?'<p class="seed-reco">'+SEASON_E[now]+' 現在是'+SEASON_W[now]+'天，這些種下去開花結果最漂亮</p>':'<p class="seed-reco off">'+SEASON_E[seedTab]+' '+SEASON_W[seedTab]+'天的花和樹：現在也能種，到了'+SEASON_W[seedTab]+'天最漂亮</p>');
+  var cmbK={};if(occ)PSEASON[seedTab].forEach(function(k){if(SP[k]&&L>=SP[k].lv&&slotCombos(slot,k,occ).length)cmbK[k]=1;});
+  var h=PSEASON[seedTab].filter(function(k){return SP[k];}).sort(function(a,b){return (L<SP[a].lv?1:0)-(L<SP[b].lv?1:0)||(cmbK[b]?1:0)-(cmbK[a]?1:0)||SP[a].lv-SP[b].lv;}).map(function(k){var S=SP[k],lock=L<S.lv,cs=!lock&&occ?slotCombos(slot,k,occ):[];if(cs.length)anyC=true;cs.sort(function(a,b){return (comboSp(a.k)?1:0)-(comboSp(b.k)?1:0);});
     return '<button data-sp="'+k+'"'+(lock?' disabled':'')+(cs.length?' class="cmb"':'')+'>'+(cs.length?'<i class="cmb-tag">✨ '+(planned[cs[0].k]?'加入':'')+esc(comboLabel(cs[0].k))+'</i>':'')+art(k,lock?0:4,plantSeason(k))+S.name+'<small>'+(lock?'Lv.'+S.lv+' 解鎖':(S.kind==='flower'?'花・':'樹・')+'要 '+S.need+' 點')+'</small></button>';}).join('');
-  var ov=card('<h2>🌱 要種什麼呢？</h2>'+tabs+(anyC?'<p class="g-small" style="margin:0 0 4px">✨ 的種在這裡，會和旁邊的植物湊成組合（都開花後出現效果）</p>':'')+'<div class="seeds">'+h+'</div><p class="g-small">'+(seedTab===now?'當季的花和樹，這個季節開花結果最漂亮':'不是當季的也可以種，到了'+SEASON_W[seedTab]+'天會開花結果')+'；花長得快，樹長得慢</p><div class="g-btns"><button class="g-btn ghost" data-close>取消</button></div>');
-  ov.querySelectorAll('[data-ss]').forEach(function(b){b.onclick=function(){SND.sfx('tap');seedTab=b.getAttribute('data-ss');openSeeds(slot);};});
+  var ov=card('<h2>🌱 要種什麼呢？</h2>'+tabs+(anyC?'<p class="g-small" style="margin:0 0 4px">✨ 的種在這裡，會和旁邊的植物湊成組合（都開花後出現效果）</p>':'')+'<div class="seeds">'+h+'</div><p class="g-small">花長得快，樹長得慢</p><div class="g-btns"><button class="g-btn ghost" data-close>取消</button></div>');
+  ov.querySelectorAll('[data-ss]').forEach(function(b){b.onclick=function(){SND.sfx('tap');openSeeds(slot,b.getAttribute('data-ss'));};});
   ov.querySelectorAll('[data-sp]').forEach(function(b){b.onclick=function(){closeSheet();plantSeed(slot,b.getAttribute('data-sp'));};});
   ov.querySelector('[data-close]').onclick=closeSheet;
 }
@@ -2520,7 +2534,7 @@ function ambient(){
 var gardenEnteredAt=0;
 function ready(){
   gardenEnteredAt=Date.now();
-  ldStep('data');loadYearly();albumLoad();cphLoad();setInterval(streakWarn,60000);setTimeout(partyCard,1200);setTimeout(mailEntry,300);setTimeout(newSpCard,2600);setTimeout(thirstTip,4200);setInterval(ambient,2500);ambient();
+  ldStep('data');loadYearly();albumLoad();cphLoad();setInterval(streakWarn,60000);setTimeout(partyCard,1200);setTimeout(mailEntry,300);setTimeout(newSpCard,2600);setTimeout(verCheck,6000);setTimeout(thirstTip,4200);setInterval(ambient,2500);ambient();
 
   started=true;
   $('gpets').innerHTML=['cat','pg','dg'].map(function(k){return '<img src="'+G.petImg(k,'happy')+'" alt="'+esc(G.petName(k))+'">';}).join('');
