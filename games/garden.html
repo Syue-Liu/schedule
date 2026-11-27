@@ -594,7 +594,7 @@ body.placing-decor .g3-tools,body.placing-decor .g3-full-control,body.placing-de
 <script src="vs.js?v=mail-20261108"></script>
 <script src="garden-icon-art.js?v=20261121"></script>
 <script src="garden-icons.js?v=20261121"></script>
-<script src="garden3d.js?v=reco-20261122"></script>
+<script src="garden3d.js?v=trees-20261127"></script>
 <script>
 /* 記憶小森林：兩個人一起種。每天回答一題問答拿水滴，一起澆水，把種子種成樹；長大的樹放進森林，留著那段時間的問答和兩個人的話。
    資料：班表同一個 Firebase 的 banbiao/<同步代碼>_garden（沒有同步代碼就存在這支手機）
@@ -800,6 +800,17 @@ var TREE_SEASONS = {
 };
 Object.assign(TREE_SEASONS,{fringe:{bloom:['spring'],bare:true},pomelo:{fruit:['autumn']},chestnut:{fruit:['autumn'],bare:true},baldcypress:{bare:true},
   kumquat:{fruit:['winter']},wintersweet:{bloom:['winter'],bare:true},holly:{fruit:['winter']}});
+/* ── 樹的樣子：每一種樹照真的長相（f：dome 圓頂、oval 橢圓直立、umbrella 平平的大傘、spread 開開的幾叢、cone 尖塔、vase 花瓶形、tiers 一層一層、mound 矮矮的一堆）
+   w 寬、h 高、t 樹幹高（倍數）、hang 果子垂在樹冠下、fr 果子大小（3D） ── */
+var TREE_FORM={
+  cherry:{f:'umbrella',w:1.1,h:.85,t:.65},peach:{f:'spread',w:.95,h:.8,t:.75},plum:{f:'spread',w:.9,h:.75,t:.75},
+  apple:{f:'spread',w:1,h:.9,t:.8,hang:1},persimmon:{f:'spread',w:.95,h:1,t:.95,hang:1,fr:.1},
+  orange:{f:'oval',w:.85,h:.9,t:.55,hang:1},lemon:{f:'oval',w:.8,h:.85,t:.55,hang:1,fr:.075},kumquat:{f:'oval',w:.7,h:.75,t:.45,fr:.05},
+  lychee:{f:'dome',w:1.05,h:.85,t:.65,hang:1,fr:.06},mango:{f:'dome',w:1.1,h:1.1,t:.85,hang:1,fr:.08,long:1},pomelo:{f:'dome',w:.95,h:.9,t:.7,hang:1,fr:.12},
+  chestnut:{f:'dome',w:1.15,h:.9,t:.85,fr:.075},maple:{f:'dome',w:1,h:1.05,t:.95,star:1},tung:{f:'dome',w:1.05,h:.85,t:1},
+  fringe:{f:'dome',w:1,h:.8,t:.9},osmanthus:{f:'oval',w:.85,h:1.05,t:.45},holly:{f:'cone',w:1,h:1.15,t:.45},
+  jacaranda:{f:'umbrella',w:1.2,h:.8,t:.85},flame:{f:'umbrella',w:1.4,h:.5,t:.8},trumpet:{f:'vase',w:1,h:.85,t:1},
+  kapok:{f:'tiers',w:.9,h:1,t:1.5},bougain:{f:'mound',w:1.4,h:.85,t:.2},wintersweet:{f:'oval',w:.85,h:.9,t:.45}};
 var FLOWER_PEAK = {
   spring:['tulip','daisy','lilyvalley','orchid','carnation','hyacinth','forgetmenot','iris','peony','calla'],
   summer:['sunflower','lavender','bellflower','hydrangea','lily','jasmine'],
@@ -1408,6 +1419,38 @@ function head(sp,x,y,s,S){
 }
 function sparks(){return '<path d="M38 60l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#F6D27A" stroke="'+INK+'" stroke-width="2.5"/><path d="M160 42l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" fill="#FFFCF6" stroke="'+INK+'" stroke-width="2.5"/>';}
 // 樹冠：先畫粗墨線的形狀，再蓋上顏色，重疊的地方就不會有線
+// 2D 的樹冠：每一團是 [x, y, 半徑]（以樹幹頂端為原點，往上是負的）
+var FORM2D={
+  dome:[[0,-30,40],[-34,-8,32],[34,-8,32],[-18,-50,28],[20,-48,28],[0,0,30]],
+  oval:[[0,-56,30],[0,-22,38],[-22,-36,26],[22,-36,26],[0,4,32],[-18,-4,22],[18,-4,22]],
+  umbrella:[[0,-26,28],[-32,-16,26],[32,-16,26],[-58,-4,20],[58,-4,20],[-14,-36,22],[16,-36,22],[-44,-26,18],[44,-26,18]],
+  spread:[[0,-46,26],[-44,-14,24],[44,-18,24],[-60,-2,16],[60,-4,16],[-16,-36,18],[18,-34,18]],
+  cone:[[0,-78,16],[-12,-58,20],[12,-58,20],[-20,-34,24],[20,-34,24],[0,-40,22],[-28,-8,26],[28,-8,26],[0,-12,28]],
+  vase:[[0,-44,24],[-42,-24,24],[42,-24,24],[-24,-48,20],[24,-48,20],[-56,-10,16],[56,-10,16]],
+  tiers:[[0,-30,17],[-26,-6,13],[26,-6,13],[-38,18,14],[38,18,14],[-48,42,15],[48,42,15]],
+  mound:[[-30,-14,26],[30,-14,26],[0,-30,30],[-54,0,20],[54,0,20],[-16,-48,20],[18,-46,20]]};
+function form2d(sp,S,stage,F){
+  var o='',k=stage===2?.55:stage===3?.82:1,col=stage===4?S.c:S.leaf,w=Math.min(1.25,F.w||1)*k,h=(F.h||1)*k,C=FORM2D[F.f]||FORM2D.dome;
+  var tt=F.f==='mound'?186:Math.max(70,204-(F.f==='tiers'?118:90)*(F.t||1)*k),tw=(stage===2?6:stage===3?9:11)*(F.f==='tiers'?1.1:1);
+  // 樹幹（往上變細）＋幾根分枝伸到樹冠
+  var cx=100,cy=F.f==='tiers'?tt:tt+6;if(F.f==='tiers')tt=cy+C[0][1]*h;
+  if(F.f!=='mound')o+='<path d="M'+(100-tw)+' 204L'+(100-tw*.6)+' '+tt+'H'+(100+tw*.6)+'L'+(100+tw)+' 204Z" fill="'+TRUNK+'" stroke="'+INK+'" stroke-width="4.5" stroke-linejoin="round"/>';
+  if(F.f==='spread'||F.f==='vase'||F.f==='umbrella'||F.f==='tiers')C.slice(1).forEach(function(c,i){if(F.f==='tiers'||i<4){var ti=F.f==='tiers',ex=cx+c[0]*w*(ti?.9:.82),ey=cy+c[1]*h*(ti?1:.75),sy=ti?ey+10*k:cy+6,my=ti?ey+8*k:(cy+ey)/2+6;o+='<path d="M'+cx+' '+sy+'Q'+((cx+ex)/2)+' '+my+' '+ex.toFixed(1)+' '+ey.toFixed(1)+'" fill="none" stroke="'+INK+'" stroke-width="'+(6*k+3)+'" stroke-linecap="round"/><path d="M'+cx+' '+sy+'Q'+((cx+ex)/2)+' '+my+' '+ex.toFixed(1)+' '+ey.toFixed(1)+'" fill="none" stroke="'+TRUNK+'" stroke-width="'+(6*k-1)+'" stroke-linecap="round"/>';}});
+  // 樹冠：先畫黑邊再上色，重疊的地方沒有線；下面一點的顏色深一點
+  var dk=shade2(col,.86),L=C.map(function(c){return [cx+c[0]*w,cy+c[1]*h,c[2]*Math.min(w,Math.max(h*1.15,w*.75))];}),ln='',fl='';
+  L.forEach(function(c){ln+='<circle cx="'+c[0].toFixed(1)+'" cy="'+c[1].toFixed(1)+'" r="'+(c[2]+3).toFixed(1)+'" fill="'+INK+'"/>';});
+  L.slice().sort(function(a,b){return b[1]-a[1];}).forEach(function(c,i){fl+='<circle cx="'+c[0].toFixed(1)+'" cy="'+c[1].toFixed(1)+'" r="'+(c[2]-2).toFixed(1)+'" fill="'+(c[1]>cy-10*h?dk:col)+'"/>';});
+  if(F.star)L.forEach(function(c,i){if(i%2)return;fl+='<path d="M'+c[0]+' '+(c[1]-9)+'l3 6 6 1-5 4 1 6-5-3-5 3 1-6-5-4 6-1z" fill="'+shade2(col,1.12)+'" opacity=".8"/>';});
+  o+=ln+fl;
+  // 果子、花：在樹冠的邊上（hang＝垂在下面，有一小段梗）
+  if(stage===4&&S.dot){var r=F.fr?Math.round(F.fr*85):(S.sd?6:8);
+    if(S.florets){L.forEach(function(c,i){if(i>=7)return;var px=c[0]+Math.cos(i*2.3)*c[2]*.55,py=c[1]+Math.sin(i*2.3)*c[2]*.55;for(var j=0;j<5;j++){var a=j*Math.PI*2/5;o+='<circle cx="'+(px+3.3*Math.cos(a)).toFixed(1)+'" cy="'+(py+3.3*Math.sin(a)).toFixed(1)+'" r="2.8" fill="'+S.dot+'"/>';}o+='<circle cx="'+px.toFixed(1)+'" cy="'+py.toFixed(1)+'" r="1.7" fill="#E4AD53"/>';});}
+    else L.forEach(function(c,i){if(i>=8)return;var a=F.hang?(.35+i*.45)%Math.PI:(i*2.3),px=c[0]+Math.cos(a)*c[2]*.6,py=c[1]+(F.hang?c[2]*.55:Math.sin(a)*c[2]*.55);
+      if(F.hang)o+='<path d="M'+px.toFixed(1)+' '+(py-r-5).toFixed(1)+'v6" stroke="'+INK+'" stroke-width="2"/>';
+      o+=F.long?'<ellipse cx="'+px.toFixed(1)+'" cy="'+py.toFixed(1)+'" rx="'+r*.75+'" ry="'+r*1.2+'" fill="'+S.dot+'" stroke="'+INK+'" stroke-width="2.5"/>':'<circle cx="'+px.toFixed(1)+'" cy="'+py.toFixed(1)+'" r="'+r+'" fill="'+S.dot+'" stroke="'+INK+'" stroke-width="'+(r>6?3:2)+'"/>';});}
+  return o;
+}
+function shade2(hex,f){var n=parseInt(hex.slice(1),16);return '#'+[16,8,0].map(function(sh){var v=Math.max(0,Math.min(255,Math.round(((n>>sh)&255)*f)));return ('0'+v.toString(16)).slice(-2);}).join('');}
 function crown(shape,col,x,y,s){
   var C=shape==='pine'?[[0,-62,34,-14,-34,-14],[0,-36,46,16,-46,16],[0,-8,56,46,-56,46]]:null,o='',f='';
   if(shape==='round'){var cs=[[0,-14,46],[-32,8,34],[32,8,34]];cs.forEach(function(c){o+='<circle cx="'+(x+c[0]*s)+'" cy="'+(y+c[1]*s)+'" r="'+(c[2]*s+3)+'" fill="'+INK+'"/>';f+='<circle cx="'+(x+c[0]*s)+'" cy="'+(y+c[1]*s)+'" r="'+(c[2]*s-2)+'" fill="'+col+'"/>';});return o+f;}
@@ -1501,6 +1544,7 @@ function art(sp,stage,season){
     else{var top=[0,0,124,98,86][stage];o+=stem(100,204,100,top,7,S)+leaves(stage===2?[182,156]:[184,158,132],stage===2?.9:1,S);
       o+=stage===2?'<circle cx="100" cy="'+(top-6)+'" r="12" fill="'+(R==='sunflower'||R==='hydrangea'?S.leaf:S.c)+'" stroke="'+INK+'" stroke-width="4"/>':head(sp,100,top-(R==='tulip'?-4:R==='rose'||R==='hydrangea'?2:12),stage===3?.72:1,S);}
   }else if(S.shape==='bamboo'||S.shape==='palm'||S.shape==='branch'||S.shape==='willow'||S.shape==='cactus')o+=odd(S,stage);
+  else if(S.shape==='round'&&TREE_FORM[sp])o+=form2d(sp,S,stage,TREE_FORM[sp]);
   else{
     var tw=stage===2?7:stage===3?11:13,ty2=stage===2?150:124;
     o+='<path d="M'+(100-tw)+' 204L'+(100-tw*.7)+' '+ty2+'H'+(100+tw*.7)+'L'+(100+tw)+' 204Z" fill="'+TRUNK+'" stroke="'+INK+'" stroke-width="4.5" stroke-linejoin="round"/>';

@@ -153,6 +153,8 @@ var Garden3D=(function(){
       if(stage>=3)[[-1,.45,.32],[1,.6,.26]].forEach(function(c){var ay=H8*c[1],ar=R8*.62,ax=c[0]*(R8+.13*k8),hz=mesh(cyl(ar,ar,Math.abs(ax),8),S.c,ax/2,ay,0);hz.rotation.z=Math.PI/2;g.add(hz);var up=H8*c[2];g.add(mesh(cyl(ar,ar,up,8),S.c,ax,ay+up/2,0));g.add(mesh(ball(ar,1),S.c,ax,ay+up,0));g.add(mesh(ball(ar,1),S.c,ax,ay,0));});
       if(stage===4&&S.dot){var f8=new T.Group();petals(f8,0,.55,S.dot,8,.9,'#F6D27A',.05);f8.children[0].rotation.x=0;f8.position.y=H8+R8*.9;g.add(f8);}
       return g;}
+    // 照真的長相做的樹（TREE_FORM，在 garden.html）：大傘一樣的鳳凰木、尖尖的冬青、矮矮一堆的九重葛…
+    var F0=window.TREE_FORM&&window.TREE_FORM[sp];if(F0&&S.shape==='round'&&stage>=2)return formTree(g,sp,S,stage,F0,big);
     // 其他樹：樹幹＋樹冠（圓的、扇形的銀杏、一層一層的松樹）；長大了換成那種樹的顏色、掛上花或果子
     // big：森林裡的大樹，樹幹高一點、粗一點（學和綾站到樹下，頭不會卡進樹冠）
     var k=[0,0,.5,.8,1][stage],Ht=[0,0,.5,.8,1][stage]*(big?1.5:1),tk=big?1.2:1,col2=stage===4||S.shape==='pine'?S.c:S.leaf;
@@ -173,6 +175,55 @@ var Garden3D=(function(){
     if(stage===4&&S.dot){var r=S.sd||R==='cherry'||R==='maple'||R==='ginkgo'||R==='jacaranda'?.06:.085;var out=R==='persimmon'?.17:.08;spots2.forEach(function(p){var o=new T.Vector3(p[0],0,p[2]).normalize();g.add(mesh(ball(r,0),S.dot,p[0]+o.x*out,Ht+p[1]*k,p[2]+o.z*out));});}
     return g;
   }
+  /* ── 照樣子做樹：樹幹（底下有一點根）、幾根分枝、樹冠是很多團（上面亮、下面暗），果子和花放在外面那幾團的表面
+     dome 圓頂、oval 橢圓直立、umbrella 平平的大傘、spread 開開的幾叢、cone 尖塔、vase 花瓶形、tiers 一層一層（木棉）、mound 矮矮一堆（九重葛） ── */
+  function shade3(hex,f){var c=new T.Color(hex);c.multiplyScalar(f);return '#'+c.getHexString();}
+  function formTree(g,sp,S,stage,F,big){
+    var sf=[0,0,.5,.8,1][stage],k=sf,w=F.w||1,h=F.h||1,tk=big?1.2:1,col=stage===4?S.c:S.leaf,f=F.f;
+    // 樹幹高度：森林裡的大樹至少高過學和綾的頭
+    var T0=f==='mound'?0:Math.max(sf*(big?1.5:1)*(F.t||1),big?sf*.95:0);
+    var seed=0;for(var i0=0;i0<sp.length;i0++)seed=(seed*31+sp.charCodeAt(i0))%997;var R=function(i){return rnd(seed+i*7.13);};
+    var P=[],limbs=[],top=T0,add=function(x,y,z,r,sy){P.push({x:x,y:y,z:z,r:r,sy:sy||1});};
+    if(f==='dome'||f==='oval'){var ov=f==='oval',RX=(ov?.52:.72)*w*k,RY=(ov?.7:.5)*h*k,cy=T0+RY*(ov?.8:.68);top=cy;
+      add(0,cy,0,Math.min(RX,RY)*.95);
+      var N=ov?16:20;for(var i2=0;i2<N;i2++){var u=i2*2.39996+seed,v=Math.min(2.25,Math.acos(1-(i2+.5)/N*1.65));add(Math.sin(v)*Math.cos(u)*RX*.82,cy+Math.cos(v)*RY*.8,Math.sin(v)*Math.sin(u)*RX*.82,(.21+R(i2)*.07)*k*(ov?.95:1.05));}
+      if(!ov)for(var c1=0;c1<3;c1++){var a1=c1*2.1+R(c1);limbs.push(new T.Vector3(Math.cos(a1)*RX*.5,cy-.05*k,Math.sin(a1)*RX*.5));}}
+    else if(f==='umbrella'){// 櫻花、藍花楹、鳳凰木：樹幹不高就分成幾根大枝斜斜往外，上面一把大傘
+      var Rr=.85*w*k,cy2=T0+.42*h*k,nl=4;top=T0;
+      for(var l=0;l<nl;l++){var al=l/nl*Math.PI*2+R(l)*.6,el=new T.Vector3(Math.cos(al)*Rr*.55,cy2-.04*k,Math.sin(al)*Rr*.55);limbs.push(el);}
+      [[7,.5,.2,.27],[11,.92,0,.24],[5,.2,.3,.3]].forEach(function(rg,ri){for(var j=0;j<rg[0];j++){var a=j/rg[0]*Math.PI*2+ri*.4+R(j+ri*20)*.35,d=rg[1]*Rr*(.92+R(j+ri*9)*.16);
+        add(Math.cos(a)*d,cy2+rg[2]*h*k+R(j+ri*5)*.05*k,Math.sin(a)*d,rg[3]*k*(.9+R(j)*.2),.66);}});}
+    else if(f==='spread'||f==='vase'){var va=f==='vase';top=T0;for(var c=0;c<4;c++){var a3=c/4*Math.PI*2+R(c)*.8,d3=(va?.5:.44)*w*k*(.85+R(c+5)*.3),y3=T0+(va?.55:.3+R(c+9)*.22)*h*k,cx=Math.cos(a3)*d3,cz=Math.sin(a3)*d3;limbs.push(new T.Vector3(cx*.85,y3-.05*k,cz*.85));
+        add(cx,y3,cz,.25*k);for(var e=0;e<5;e++){var b3=e*1.26+R(c*4+e);add(cx+Math.cos(b3)*.18*k,y3+(e%2?.07:-.05)*k,cz+Math.sin(b3)*.18*k,.18*k);}}
+      add(0,T0+(va?.66:.56)*h*k,0,.3*k);add(.12*k,T0+.72*h*k,-.08*k,.2*k);}
+    else if(f==='cone'){// 冬青：底下就長滿葉子的尖塔，裡面一個深色的芯
+      var H4=1.3*h*k,B4=.6*w*k,y0=T0*.45;top=y0+H4*.6;g.add(mesh(cone(B4*.92,H4,9),shade3(col,.7),0,y0+H4/2,0));
+      for(var j4=0;j4<7;j4++){var tt=j4/7,y4=y0+.12*k+tt*H4*.88,R4=B4*(1-tt)*.88,n4=Math.max(1,Math.round(R4/k*15));for(var q=0;q<n4;q++){var a4=q/n4*Math.PI*2+j4*.6;add(Math.cos(a4)*R4,y4,Math.sin(a4)*R4,(.2-tt*.08)*k);}}
+      add(0,y0+H4*.95,0,.08*k);}
+    else if(f==='tiers'){// 木棉：又高又直的樹幹，一層一層橫著長的枝
+      top=T0;[[.42,.55],[.62,.48],[.8,.38],[.96,.26]].forEach(function(tq,ti){var y5=T0*tq[0]+.25*k;for(var b5=0;b5<4;b5++){var a5=b5*1.5708+ti*.75,L5=tq[1]*w*k,ex=new T.Vector3(Math.cos(a5)*L5,y5+.1*k,Math.sin(a5)*L5);rod(g,new T.Vector3(0,y5-.04*k,0),ex,.024*k+.008,TRUNK);
+        add(ex.x,ex.y+.04*k,ex.z,.15*k,.62);add(ex.x*.72,ex.y+.07*k,ex.z*.72,.11*k,.62);}});add(0,T0+.3*k,0,.16*k,.8);}
+    else{// 九重葛：矮矮一大叢，枝條往外彎
+      for(var m6=0;m6<8;m6++){var a6=m6/8*Math.PI*2,d6=(m6%2?.34:.24)*w*k;add(Math.cos(a6)*d6,(.16+(m6%3)*.07)*k,Math.sin(a6)*d6,(.2+R(m6)*.05)*k);}add(0,.4*h*k,0,.24*k);add(.08*k,.56*h*k,.04*k,.17*k);
+      for(var m7=0;m7<5;m7++){var a7=m7*1.26+.4;rod(g,new T.Vector3(Math.cos(a7)*.08*k,.05,Math.sin(a7)*.08*k),new T.Vector3(Math.cos(a7)*.42*w*k,.34*k,Math.sin(a7)*.42*w*k),.012*k+.006,'#7A5A44');}}
+    if(f!=='mound'){g.add(mesh(cyl((.07*k+.02)*tk,(.13*k+.03)*tk,top,7),TRUNK,0,top/2,0));g.add(mesh(cone((.17*k+.03)*tk,.12*k,7),TRUNK,0,.06*k,0));}
+    limbs.forEach(function(e){rod(g,new T.Vector3(0,T0-.1*k,0),e,(.05*k+.012)*tk,TRUNK);});
+    // 樹冠：下面暗一點、上面亮一點，每團顏色差一點點（楓樹差多一點，紅橘黃混在一起）
+    var ymin=1e9,ymax=-1e9;P.forEach(function(p){ymin=Math.min(ymin,p.y);ymax=Math.max(ymax,p.y);});
+    var tc=new T.Color();
+    // 只用四種深淺（材質少，手機畫得快）：最下面、中間兩種隨機、最上面；楓樹中間那種偏橘一點
+    var SH=[.84,.95,1.03,1.1].map(function(v,ix){tc.set(col).multiplyScalar(v);if(F.star&&ix%2)tc.offsetHSL(.05,0,0);return '#'+tc.getHexString();});
+    P.forEach(function(p,i){var t=(p.y-ymin)/Math.max(.01,ymax-ymin),ix=t<.28?0:t>.8?3:R(i+40)<.5?1:2;
+      var m=mesh(ball(Math.round(p.r*100)/100,1),SH[ix],p.x,p.y,p.z);m.scale.y=p.sy;g.add(m);});
+    if(stage===4&&S.dot){var out=P.slice().sort(function(a,b){return Math.hypot(b.x,b.z)+b.y*.3-(Math.hypot(a.x,a.z)+a.y*.3);}).slice(0,f==='cone'?14:12),fr=F.fr||(S.sd?.055:.075);
+      out.forEach(function(p,i){var d=new T.Vector3(p.x,0,p.z);if(d.lengthSq()<1e-4)d.set(Math.cos(i),0,Math.sin(i));d.normalize();
+        if(S.florets){var fl2=new T.Group();petals(fl2,0,.37,S.dot,5,.9,'#E4AD53',.06);fl2.rotation.y=Math.atan2(d.x,d.z);fl2.position.set(p.x+d.x*p.r*.9,p.y+p.r*.2,p.z+d.z*p.r*.9);g.add(fl2);return;}
+        if(F.hang){var fx=p.x+d.x*p.r*.55,fy=p.y-p.r*.85*p.sy-fr,fz=p.z+d.z*p.r*.55;rod(g,new T.Vector3(fx,fy+fr+.07,fz),new T.Vector3(fx,fy+fr*.6,fz),.006,'#6E5449');var fm=mesh(ball(fr,1),S.dot,fx,fy,fz);if(F.long)fm.scale.set(.8,1.35,.8);g.add(fm);}
+        else{g.add(mesh(ball(fr,F.fr?1:0),S.dot,p.x+d.x*p.r*.92,p.y+p.r*p.sy*((i%3)*.3-.15),p.z+d.z*p.r*.92));if(f==='umbrella'||f==='tiers')g.add(mesh(ball(fr,0),S.dot,p.x-d.z*p.r*.5,p.y+p.r*p.sy*.75,p.z+d.x*p.r*.5));}});}
+    return g;
+  }
+  // 九重葛矮矮一叢：拍照、玩的時候站遠一點，不要站進樹叢裡
+  function treeGap(sp){var F=window.TREE_FORM&&window.TREE_FORM[sp];return F&&F.f==='mound'?.45:0;}
   // 植物最高點（世界座標）：標籤放在上面
   function height(g){return new T.Box3().setFromObject(g).max.y;}
 
@@ -2100,7 +2151,7 @@ var Garden3D=(function(){
       for(var k in trees)if(ok&&trees[k]!==t&&Math.hypot(trees[k].x-x,trees[k].z-z)<.45)ok=false;
       if(ok)return u;}
     return null;}
-  function treeSpot(id){var t=trees[id];if(!t||!isTreeSp(t.sp)||t.sp==='cactus'||Math.hypot(t.x,t.z)>ISL-.3)return null;var d=.6*TREE_S,u=treeDir(t,d+.35);if(!u)return null;
+  function treeSpot(id){var t=trees[id];if(!t||!isTreeSp(t.sp)||t.sp==='cactus'||Math.hypot(t.x,t.z)>ISL-.3)return null;var d=.6*TREE_S+treeGap(t.sp),u=treeDir(t,d+.35);if(!u)return null;
     return {x:t.x+u[0]*d,z:t.z+u[1]*d,ry:Math.atan2(u[0],u[1]),k:'tree',id:'t:'+id,tid:id};}
   function goPic(p,P0){
     var o=partner(p),C=allPics().filter(function(q){return Math.hypot(q.x,q.z)<ISL-1;}),P=P0||null;
@@ -2131,7 +2182,7 @@ var Garden3D=(function(){
   function goTreePlay(p,id,mate){
     if(!id){var L=nearTrees(p);if(!L.length)return false;id=L[Math.floor(Math.random()*L.length)];}
     var t=trees[id];if(!t||!isTreeSp(t.sp)||Math.hypot(t.x,t.z)>ISL-.3)return false;
-    var k=mate&&mate.tp?mate.tp.k:tpKind(t.sp),d=(k==='hug'||k==='poke'?.52:k==='catch'?1.3:k==='leaf'?1.05:.85)*TREE_S,side=mate&&mate.tp?-mate.tp.sd:(Math.random()<.5?-1:1),lat=(mate?.42:.15)*side,u=treeDir(t,d+.4);if(!u)return false;
+    var k=mate&&mate.tp?mate.tp.k:tpKind(t.sp),d=(k==='hug'||k==='poke'?.52:k==='catch'?1.3:k==='leaf'?1.05:.85)*TREE_S+treeGap(t.sp),side=mate&&mate.tp?-mate.tp.sd:(Math.random()<.5?-1:1),lat=(mate?.42:.15)*side,u=treeDir(t,d+.4);if(!u)return false;
     var cx=u[0],cz=u[1],x=t.x+cx*d-cz*lat,z=t.z+cz*d+cx*lat,a=Math.atan2(z,x),r=Math.hypot(x,z);
     if(!pathOk(p.ang,p.r,a,r))return false;
     strollEnd(p);p.with=null;p.via=[];p.goPic=null;p.ta=a;p.tr=r;p.tp={id:id,k:k,x:x,z:z,f:Math.atan2(t.x-x,t.z-z),sd:side,t:0,on:0};p.state='walk';if(mate&&mate.tp)mate.tp.mate=p.k;return true;
